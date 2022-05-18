@@ -1,0 +1,90 @@
+{
+  "version": "2.0.0",
+  "tasks": [
+    {
+      "type": "process",
+      "label": "(vscode) test",
+      "group": "test",
+      "command": "./run_tests.sh"
+    },
+    {
+      "type": "shell",
+      "label": "(vscode) sleep",
+      "group": "test",
+      "command": "sleep",
+      "args": ["10"]
+    },
+    {
+      "type": "process",
+      "label": "(vscode) test file",
+      "group": "test",
+      "command": "./run_tests.sh",
+      "args": ["${file}"]
+    },
+    {
+      "type": "process",
+      "label": "(vscode) prompt input",
+      "group": "test",
+      "command": "echo",
+      "args": ["${input:word}", "${input:position}"]
+    },
+    {
+      "type": "process",
+      "label": "(vscode) background",
+      "command": "./tests/fake_background_task.sh",
+      "isBackground": true,
+      "problemMatcher": {
+        "pattern": {
+          "regexp": "^([^:]+):(\\d+)",
+          "file": 1,
+          "line": 2
+        },
+        "background": {
+          "activeOnStart": false,
+          "beginsPattern": "^START$",
+          "endsPattern": "^END$"
+        }
+      }
+    },
+    {
+      "label": "(vscode) compound parallel",
+      "dependsOn": ["(vscode) test", "(vscode) sleep"]
+    },
+    {
+      "label": "(vscode) compound sequence",
+      "dependsOn": ["(vscode) sleep", "(vscode) test", "(vscode) prompt input"],
+      "dependsOrder": "sequence"
+    },
+    {
+      "type": "shell",
+      "label": "(vscode) create/move/delete",
+      "command": "rm",
+      "args": ["vscode_moved_test_file.txt"],
+      "dependsOn": "(vscode) move"
+    },
+    {
+      "type": "shell",
+      "label": "(vscode) move",
+      "command": "mv vscode_test_file.txt vscode_moved_test_file.txt && sleep 4",
+      "dependsOn": "(vscode) create"
+    },
+    {
+      "type": "shell",
+      "label": "(vscode) create",
+      "command": "touch vscode_test_file.txt && sleep 4"
+    }
+  ],
+  "inputs": [
+    {
+      "id": "word",
+      "description": "This is a word",
+      "type": "promptString"
+    },
+    {
+      "id": "position",
+      "description": "This is a position",
+      "type": "pickString",
+      "options": ["first", "second", "third"]
+    }
+  ]
+}

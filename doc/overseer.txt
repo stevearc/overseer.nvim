@@ -1,0 +1,561 @@
+*overseer.txt*
+*Overseer* *overseer* *overseer.nvim*
+--------------------------------------------------------------------------------
+CONTENTS                                                       *overseer-contents*
+
+  1. Commands..............................................|overseer-commands|
+  2. Options................................................|overseer-options|
+  3. Running tasks........................................|overseer-run-tasks|
+  4. Tasks....................................................|overseer-tasks|
+  5. Templates............................................|overseer-templates|
+  6. Template providers..........................|overseer-template-providers|
+  7. Actions................................................|overseer-actions|
+  8. Components..........................................|overseer-components|
+  9. Task result........................................|overseer-task-result|
+  10. Parameters.............................................|overseer-params|
+  11. Highlights.........................................|overseer-highlights|
+
+--------------------------------------------------------------------------------
+COMMANDS                                                       *overseer-commands*
+
+OverseerOpen[!] `left/right`                                         *:OverseerOpen*
+    Open the overseer window. With `!` cursor stays in current window
+
+OverseerClose                                                     *:OverseerClose*
+    Close the overseer window
+
+OverseerToggle[!] `left/right`                                     *:OverseerToggle*
+    Toggle the overseer window. With `!` cursor stays in current window
+
+OverseerSaveBundle `[name]`                                    *:OverseerSaveBundle*
+    Serialize and save the current tasks to disk
+
+OverseerLoadBundle `[name]`                                    *:OverseerLoadBundle*
+    Load tasks that were saved to disk
+
+OverseerDeleteBundle `[name]`                                *:OverseerDeleteBundle*
+    Delete a saved task bundle
+
+OverseerRunCmd `[command]`                                         *:OverseerRunCmd*
+    Run a raw shell command
+
+OverseerRun `[name/tags]`                                             *:OverseerRun*
+    Run a task from a template
+
+OverseerBuild                                                     *:OverseerBuild*
+    Open the task builder
+
+OverseerQuickAction `[action]`                                *:OverseerQuickAction*
+    Run an action on the most recent task, or the task under the cursor
+
+OverseerTaskAction                                           *:OverseerTaskAction*
+    Select a task to run an action on
+
+--------------------------------------------------------------------------------
+OPTIONS                                                         *overseer-options*
+
+>
+    require("overseer").setup({
+      -- Default task strategy
+      strategy = "terminal",
+      -- Template modules to load
+      templates = { "builtin" },
+      -- When true, tries to detect a green color from your colorscheme to use for success highlight
+      auto_detect_success_color = true,
+      -- Patch nvim-dap to support preLaunchTask and postDebugTask
+      dap = true,
+      -- Configure the task list
+      task_list = {
+        -- Default detail level for tasks. Can be 1-3.
+        default_detail = 1,
+        -- max_width = {100, 0.2} means "the lesser of 100 columns or 20% of total"
+        max_width = { 100, 0.2 },
+        -- min_width = {40, 0.1} means "the greater of 40 columns or 10% of total"
+        min_width = { 40, 0.1 },
+        -- String that separates tasks
+        separator = "────────────────────────────────────────",
+        -- Default direction. Can be "left" or "right"
+        direction = "left",
+        bindings = {
+          ["?"] = "ShowHelp",
+          ["<CR>"] = "RunAction",
+          ["<C-e>"] = "Edit",
+          ["o"] = "Open",
+          ["<C-v>"] = "OpenVsplit",
+          ["<C-f>"] = "OpenFloat",
+          ["p"] = "TogglePreview",
+          ["<C-l>"] = "IncreaseDetail",
+          ["<C-h>"] = "DecreaseDetail",
+          ["L"] = "IncreaseAllDetail",
+          ["H"] = "DecreaseAllDetail",
+          ["["] = "DecreaseWidth",
+          ["]"] = "IncreaseWidth",
+          ["{"] = "PrevTask",
+          ["}"] = "NextTask",
+        },
+      },
+      -- See :help overseer.actions
+      actions = {},
+      -- Configure the floating window used for task templates that require input
+      -- and the floating window used for editing tasks
+      form = {
+        border = "rounded",
+        zindex = 40,
+        min_width = 80,
+        max_width = 0.9,
+        min_height = 10,
+        max_height = 0.9,
+        -- Set any window options here (e.g. winhighlight)
+        win_opts = {
+          winblend = 10,
+        },
+      },
+      -- Configure the floating window used for confirmation prompts
+      confirm = {
+        border = "rounded",
+        zindex = 40,
+        min_width = 80,
+        max_width = 0.5,
+        min_height = 10,
+        max_height = 0.9,
+        -- Set any window options here (e.g. winhighlight)
+        win_opts = {
+          winblend = 10,
+        },
+      },
+      -- Configuration for task floating windows
+      task_win = {
+        -- How much space to leave around the floating window
+        padding = 2,
+        border = "rounded",
+        -- Set any window options here (e.g. winhighlight)
+        win_opts = {
+          winblend = 10,
+        },
+      },
+      -- Aliases for bundles of components. Redefine the builtins, or create your own.
+      component_aliases = {
+        -- Most tasks are initialized with the default components
+        default = {
+          "on_output_summarize",
+          "on_exit_set_status",
+          "on_complete_notify",
+          "on_complete_dispose",
+        },
+        -- Used for templates that define a task that should remain running and
+        -- restart on failure (e.g. a server or file-watching build process)
+        default_persist = {
+          "on_output_summarize",
+          "on_exit_set_status",
+          "on_complete_notify",
+          "on_complete_restart",
+        },
+        -- Used for tasks generated from the VS Code integration (tasks.json)
+        default_vscode = {
+          "default",
+          "on_result_diagnostics",
+          "on_result_diagnostics_quickfix",
+        },
+      },
+      -- A list of components to preload on setup.
+      -- Only matters if you want them to show up in the task editor.
+      preload_components = {},
+      -- Configure where the logs go and what level to use
+      -- Types are "echo", "notify", and "file"
+      log = {
+        {
+          type = "echo",
+          level = vim.log.levels.WARN,
+        },
+        {
+          type = "file",
+          filename = "overseer.log",
+          level = vim.log.levels.WARN,
+        },
+      },
+    })
+<
+
+--------------------------------------------------------------------------------
+RUNNING TASKS                                                 *overseer-run-tasks*
+
+The easiest way to select and run a task is `:OverseerRun`. This will open a
+`vim.ui.select` dialog and allow the user to select a task. Once selected, if
+the task requires any |parameters|, it will prompt the user for input. Once all
+inputs are satisfied, the task is started.
+
+If you want to customize how the tasks are searched, selected, or run, you can
+call `overseer.run_template` directly. Some examples:
+
+>
+    -- Run the task named "make all"
+    -- equivalent to :OverseerRun make all
+    overseer.run_template({name = "make all"})
+    -- Run the default "build" task
+    -- equivalent to :OverseerRun BUILD
+    overseer.run_template({tags = {overseer.TAG.BUILD}})
+    -- Run the task named "serve" with some default parameters
+    overseer.run_template({name = "serve", params = {port = 8080}})
+    -- Create a task but do not start it
+    overseer.run_template({name = "make", nostart = true}, function(task)
+      -- do something with the task
+    end)
+    -- Run a task and immediately open the floating window
+    overseer.run_template({name = "make", action = 'open float'})
+    -- Run a task and always show the parameter prompt
+    overseer.run_template({name = "npm watch", prompt = "always"})
+<
+
+--------------------------------------------------------------------------------
+TASKS                                                             *overseer-tasks*
+
+There are two ways to define a task for overseer.
+
+1) directly registering
+
+>
+    overseer.register_template({
+      -- Template definition (see below)
+    })
+<
+
+2) as a module
+
+Similar to |custom-components|, templates can be lazy-loaded from a module in
+the `overseer.template` namespace. It is recommended that you namespace your
+tasks inside of a folder (e.g. `overseer/template/myplugin/first_task.lua`,
+referenced as `myplugin.first_task`). To load them, you would pass the require
+path in setup:
+
+>
+    overseer.setup({
+      templates = { "builtin", "myplugin.first_task" },
+    })
+<
+
+If you have multiple templates that you would like to expose as a bundle, you
+can create an alias module. For example, put the following into
+`overseer/template/myplugin/init.lua`:
+
+>
+    return { "first_task", "second_task" }
+<
+
+This is how `builtin` references all of the different built-in templates.
+
+--------------------------------------------------------------------------------
+TEMPLATES                                                     *overseer-templates*
+
+The definition of a template looks like this:
+
+>
+    {
+      -- Required fields
+      name = "Some Task",
+      builder = function(params)
+        -- This must return an overseer.TaskDefinition
+        return {
+          cmd = {'echo', 'hello', 'world'}
+        }
+      end,
+      -- Optional fields
+      desc = "Optional description of task",
+      -- Tags can be used in overseer.run_template()
+      tags = {overseer.TAG.BUILD},
+      params = {
+        -- See :help overseer.params
+      },
+      -- Determines sort order when choosing tasks. Lower comes first.
+      priority = 50,
+      -- Add requirements for this template. If they are not met, the template will not be visible.
+      -- All fields are optional.
+      condition = {
+        -- A string or list of strings
+        -- Only matches when current buffer is one of the listed filetypes
+        filetype = {"c", "cpp"},
+        -- A string or list of strings
+        -- Only matches when cwd is inside one of the listed dirs
+        dir = "/home/user/my_project",
+        -- Arbitrary logic for determining if task is available
+        callback = function(search)
+          print(vim.inspect(search))
+          return true
+        end,
+      },
+    }
+<
+
+--------------------------------------------------------------------------------
+TEMPLATE PROVIDERS                                   *overseer-template-providers*
+
+Template providers are used to generate multiple templates dynamically. The main
+use case is generating one task per target (e.g. for a makefile), but can be
+used for any situation where you want the templates themselves to be generated
+at runtime.
+
+Providers are created the same way templates are (with
+`overseer.register_template`, or by putting them in a module). The structure is
+as follows:
+
+>
+    {
+      generator = function(search)
+        -- Return a list of templates
+        -- See the built-in providers for make or npm for an example
+        return {...}
+      end,
+      -- Optional. Same as template.condition
+      condition = function(search)
+        return true
+      end,
+    }
+<
+
+--------------------------------------------------------------------------------
+ACTIONS                                                         *overseer-actions*
+
+Actions can be performed on tasks by using the `RunAction` keybinding in the
+task list, or by the `OverseerQuickAction` and `OverseerTaskAction` commands.
+They are simply a custom function that will do something to or with a task.
+
+Browse the set of built-in actions at lua/overseer/task_list/actions.lua
+
+You can define your own or disable any of the built-in actions in the call to
+setup():
+
+>
+    overseer.setup({
+      actions = {
+        ["My custom action"] = {
+          desc = "This is an optional description. It may be omitted.",
+          -- Optional function that will determine when this action is available
+          condition = function(task)
+            if task.name == "foobar" then
+              return true
+            else
+              return false
+            end
+          end,
+          run = function(task)
+            -- Your custom logic here
+          end,
+        },
+    
+        -- Disable built-in actions by setting them to 'false'
+        watch = false,
+      },
+      -- You can optionally add keymaps to run your action in the task list
+      -- It will always be available in the "RunAction" menu, but it may be
+      -- worth mapping it directly if you use it often.
+      task_list = {
+        bindings = {
+          ['P'] = '<CMD>OverseerQuickAction My custom action<CR>',
+        }
+      }
+    })
+<
+
+--------------------------------------------------------------------------------
+COMPONENTS                                                   *overseer-components*
+
+When components are passed to a task (either from a template or a component
+alias), they can be specified as either a raw string (e.g.
+`"on_complete_dispose"`) or a table with configuration parameters (e.g.
+`{"on_complete_dispose", timeout = 10}`).
+
+Components are lazy-loaded via requiring in the `overseer.component` namespace.
+For example, the `timeout` component is loaded from
+`lua/overseer/component/timeout.lua`. It is recommended that for plugins or
+personal use, you namespace your own components behind an additional directory.
+For example, place your component in
+`lua/overseer/component/myplugin/mycomponent.lua`, and reference it as
+`myplugin.mycomponent`.
+
+The component definition should look like the following example:
+
+>
+    return {
+      desc = "Include a description of your component",
+      -- Define parameters that can be passed in to the component
+      params = {
+        -- See :help overseer.params
+      },
+      -- Optional, default true. Set to false to disallow editing this component in the task editor
+      editable = true,
+      -- Controls the serialization behavior when saving a task to disk.
+      -- "exclude" will allow task to be serialized, but this component will be excluded.
+      -- "fail" will prevent task from being serialized.
+      serialize = nil,
+      -- The params passed in will match the params defined above
+      constructor = function(params)
+        -- You may optionally define any of the methods below
+        return {
+          on_init = function(self, task)
+            -- Called when the task is created
+            -- This is a good place to initialize resources, if needed
+          end,
+          ---@return nil|boolean
+          on_pre_start = function(self, task)
+            -- Return false to prevent task from starting
+          end,
+          on_start = function(self, task)
+            -- Called when the task is started
+          end,
+          ---@param soft boolean When true, the components are being reset but the *task* is not. This is used to support commands that are watching the filesystem and rerunning themselves on file change.
+          on_reset = function(self, task, soft)
+            -- Called when the task is reset to run again
+          end,
+          ---@return table
+          on_pre_result = function(self, task)
+            -- Called when the task is finalizing.
+            -- Return a map-like table value here to merge it into the task result.
+            return {foo = {"bar", "baz"}}
+          end,
+          ---@param result table A result table.
+          on_result = function(self, task, result)
+            -- Called when a component has results to set. Usually this is after the command has completed, but certain types of tasks may wish to set a result while still running.
+          end,
+          ---@param status overseer.Status Can be CANCELED, FAILURE, or SUCCESS
+          ---@param result table A result table.
+          on_complete = function(self, task, status, result)
+            -- Called when the task has reached a completed state.
+          end,
+          ---@param status overseer.Status
+          on_status = function(self, task, status)
+            -- Called when the task status changes
+          end,
+          ---@param data string[] Output of process. See :help channel-lines
+          on_output = function(self, task, data)
+            -- Called when there is output from the task
+          end,
+          ---@param lines string[] Completed lines of output, with ansi codes removed.
+          on_output_lines = function(self, task, lines)
+            -- Called when there is output from the task
+            -- Usually easier to deal with than using on_output directly.
+          end,
+          ---@param code number The process exit code
+          on_exit = function(self, task, code)
+            -- Called when the task command has completed
+          end,
+          on_dispose = function(self, task)
+            -- Called when the task is disposed
+            -- Will be called IFF on_init was called, and will be called exactly once.
+            -- This is a good place to free resources (e.g. timers, files, etc)
+          end,
+          ---@param lines string[] The list of lines to render into
+          ---@param highlights table[] List of highlights to apply after rendering
+          ---@param detail number The detail level of the task. Ranges from 1 to 3.
+          render = function(self, task, lines, highlights, detail)
+            -- Called from the task list. This can be used to display information there.
+            table.insert(lines, "Here is a line of output")
+            -- The format is {highlight_group, lnum, col_start, col_end}
+            table.insert(highlights, {'Title', #lines, 0, -1})
+          end,
+        }
+      end,
+    }
+<
+
+--------------------------------------------------------------------------------
+TASK RESULT                                                 *overseer-task-result*
+
+A note on the Task result table: there is technically no schema for it, as the
+only things that interact with it are components and actions. However, there are
+a couple of built-in uses for specific keys of the table:
+
+diagnostics: This key is used for diagnostics. It should be a list of quickfix
+items (see `:help setqflist`)
+error: This key will be set when there is an internal overseer error when
+running the task
+
+--------------------------------------------------------------------------------
+PARAMETERS                                                       *overseer-params*
+
+Parameters are a schema-defined set of options. They are used by both
+|components| and |templates| to expose customization options.
+
+>
+    local params = {
+      my_var = {
+        type = "string",
+        -- Optional fields that are available on any type
+        name = "More readable name",
+        desc = "A detailed description",
+        validate = function(value)
+          return true,
+        end,
+        optional = true,
+        default = "foobar",
+      }
+    }
+<
+
+The following types are available:
+
+>
+    {
+      type = "string"
+    }
+    {
+      type = "boolean"
+    }
+    {
+      type = "number"
+    }
+    {
+      type = "integer"
+    }
+    {
+      type = "list",
+      subtype = {
+        type = "string"
+      },
+      delimiter = ",",
+    }
+    {
+      type = "enum",
+      choices = {"ONE", "TWO", "THREE"},
+    }
+    {
+      -- This is used when the value is too complex to be represented or edited by the user in the task editor.
+      -- It should generally only be used by components (which are usually configured programmatically)
+      -- and not templates (which usually prompt the user for their parameters)
+      type = "opaque"
+    }
+<
+
+--------------------------------------------------------------------------------
+HIGHLIGHTS                                                   *overseer-highlights*
+
+OverseerPENDING                                               *hl-OverseerPENDING*
+    Pending tasks
+
+OverseerRUNNING                                               *hl-OverseerRUNNING*
+    Running tasks
+
+OverseerSUCCESS                                               *hl-OverseerSUCCESS*
+    Succeeded tasks
+
+OverseerCANCELED                                             *hl-OverseerCANCELED*
+    Canceled tasks
+
+OverseerFAILURE                                               *hl-OverseerFAILURE*
+    Failed tasks
+
+OverseerTask                                                     *hl-OverseerTask*
+    Used to render the name of a task or template
+
+OverseerTaskBorder                                         *hl-OverseerTaskBorder*
+    The separator in the task list
+
+OverseerOutput                                                 *hl-OverseerOutput*
+    The output summary in the task list
+
+OverseerComponent                                           *hl-OverseerComponent*
+    The name of a component in the task list or task editor
+
+OverseerField                                                   *hl-OverseerField*
+    The name of a field in the task or template editor
+
+================================================================================
+vim:tw=80:ts=2:ft=help:norl:syntax=help:
