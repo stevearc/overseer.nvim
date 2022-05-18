@@ -42,6 +42,7 @@ local function create_overseer_window()
   vim.api.nvim_win_set_option(0, "relativenumber", false)
   vim.api.nvim_win_set_option(0, "wrap", false)
   vim.api.nvim_win_set_option(0, "spell", false)
+  vim.api.nvim_win_set_width(0, 80)
   -- Set the filetype only after we enter the buffer so that FileType autocmds
   -- behave properly
   vim.api.nvim_buf_set_option(bufnr, "filetype", "overseer")

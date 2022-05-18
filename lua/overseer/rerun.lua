@@ -1,3 +1,7 @@
+local constants = require("overseer.constants")
+
+local STATUS = constants.STATUS
+
 local M = {}
 
 M.new_rerun_on_trigger = function(opts)
@@ -8,24 +12,20 @@ M.new_rerun_on_trigger = function(opts)
   opts.delay = opts.delay or 500
   return {
     rerun_after_finalize = false,
-    timer = nil,
+    _trigger_active = false,
     _trigger_rerun = function(self, task)
-      if self.timer then
+      if self._trigger_active then
         return
       end
-      self.timer = vim.loop.new_timer()
-      self.timer:start(
-        opts.delay,
-        0,
-        vim.schedule_wrap(function()
+      self._trigger_active = true
+      vim.defer_fn(
+        function()
           if not task:is_running() and task:is_complete() then
             task:reset()
             task:start()
           end
-          self.timer:close()
-          self.timer = nil
-        end)
-      )
+          self._trigger_active = false
+        end, opts.delay)
     end,
     on_reset = function(self, task)
       self.rerun_after_finalize = false
@@ -34,12 +34,12 @@ M.new_rerun_on_trigger = function(opts)
       if task:is_running() then
         self.rerun_after_finalize = true
       else
-        self._trigger_rerun(self, task)
+        self:_trigger_rerun(task)
       end
     end,
     on_finalize = function(self, task)
       if self.rerun_after_finalize then
-        self._trigger_rerun(self, task)
+        self:_trigger_rerun(task)
       end
     end,
   }
@@ -66,6 +66,16 @@ M.new_rerun_on_save = function(opts)
     on_dispose = function(self, task)
       vim.api.nvim_del_autocmd(self.id)
       self.id = nil
+    end,
+  }
+end
+
+M.new_rerun_on_fail = function()
+  return {
+    on_finalize = function(self, task)
+      if task.status == STATUS.FAILURE then
+        task:rerun()
+      end
     end,
   }
 end
