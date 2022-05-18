@@ -54,10 +54,22 @@ function Task.new(opts)
     name = opts.name or table.concat(opts.cmd, " "),
     capabilities = opts.capabilities,
   }
+  -- Make sure every capability has a name
+  for _,cap in ipairs(data.capabilities) do
+    vim.validate({name = {cap.name, 's'}})
+  end
   next_id = next_id + 1
   local task = setmetatable(data, { __index = Task })
   task:dispatch("on_init")
   return task
+end
+
+function Task:add_capability(cap)
+  vim.validate({name = {cap.name, 's'}})
+  table.insert(self.capabilities, cap)
+  if cap.on_init then
+    cap:on_init(self)
+  end
 end
 
 function Task:is_running()

@@ -11,6 +11,7 @@ M.new_rerun_on_trigger = function(opts)
   })
   opts.delay = opts.delay or 500
   return {
+    name = 'rerun trigger handler',
     rerun_after_finalize = false,
     _trigger_active = false,
     _trigger_rerun = function(self, task)
@@ -53,6 +54,7 @@ M.new_rerun_on_save = function(opts)
   opts.delay = opts.delay or 500
 
   return {
+    name = 'rerun on save',
     id = nil,
     on_init = function(self, task)
       self.id = vim.api.nvim_create_autocmd("BufWritePost", {
@@ -72,6 +74,7 @@ end
 
 M.new_rerun_on_fail = function()
   return {
+    name = 'rerun on fail',
     on_finalize = function(self, task)
       if task.status == STATUS.FAILURE then
         task:rerun()

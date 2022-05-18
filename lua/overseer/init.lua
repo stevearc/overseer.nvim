@@ -5,7 +5,6 @@ local window = require("overseer.window")
 local M = {}
 
 -- TODO
--- * Capabilities should have name + category
 -- * Capabilities can put output in the render list (i.e. "queued rerun", "rerun on fail")
 -- * Mark a task to re-run on change
 --
@@ -40,12 +39,15 @@ M.load_from_template = function(name, params, silent)
     params = {params, 't', true},
     silent = {silent, 'b', true},
   })
-  local bufname = vim.api.nvim_buf_get_name(0)
-  if bufname == "" then
-    bufname = vim.fn.getcwd(0)
+  params = params or {}
+  params.bufnr = vim.api.nvim_get_current_buf()
+  params.bufname = vim.api.nvim_buf_get_name(0)
+  local dir = params.bufname
+  if dir == "" then
+    dir = vim.fn.getcwd(0)
   end
   local ft = vim.api.nvim_buf_get_option(0, 'filetype')
-  local template = template.get_by_name(name, bufname, ft)
+  local template = template.get_by_name(name, dir, ft)
   if not template then
     if silent then
       return
@@ -53,7 +55,7 @@ M.load_from_template = function(name, params, silent)
       error(string.format("Could not find template '%s'", name))
     end
   end
-  template:build(params or {})
+  template:build(params)
 end
 
 M.start_from_template = function(name, params)
@@ -62,14 +64,16 @@ M.start_from_template = function(name, params)
     params = {params, 't', true},
   })
   params = params or {}
-  local bufname = vim.api.nvim_buf_get_name(0)
-  if bufname == "" then
-    bufname = vim.fn.getcwd(0)
+  params.bufnr = vim.api.nvim_get_current_buf()
+  params.bufname = vim.api.nvim_buf_get_name(0)
+  local dir = params.bufname
+  if dir == "" then
+    dir = vim.fn.getcwd(0)
   end
   local ft = vim.api.nvim_buf_get_option(0, 'filetype')
 
   if name then
-    local template = template.get_by_name(name, bufname, ft)
+    local template = template.get_by_name(name, dir, ft)
     if not template then
       error(string.format("Could not find template '%s'", name))
     end
@@ -79,7 +83,7 @@ M.start_from_template = function(name, params)
       end
     end)
   else
-    local templates = template.list(bufname, ft)
+    local templates = template.list(dir, ft)
     vim.ui.select(templates, {
       prompt = "Task template:",
       kind = 'overseer_template',

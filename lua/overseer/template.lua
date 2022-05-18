@@ -112,7 +112,6 @@ function Template:prompt(params, callback)
   })
 
   local missing
-  -- FIXME handle optional params
   for k,_ in pairs(self.params) do
     if params[k] == nil then
       missing = k
@@ -126,6 +125,9 @@ function Template:prompt(params, callback)
     }, function(val)
       if val then
         params[missing] = val
+        self:prompt(params, callback)
+      elseif self.params[missing].optional then
+        params[missing] = false
         self:prompt(params, callback)
       end
     end)

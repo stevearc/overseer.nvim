@@ -1,36 +1,32 @@
 local constants = require("overseer.constants")
+local util = require("overseer.util")
 local STATUS = constants.STATUS
 local M = {}
 
 M.new_output_summarizer = function()
   return {
+    name = 'stdout/stderr summarizer',
     any_stderr = false,
+    stdout_iter = util.get_stdout_line_iter(),
+    stderr_iter = util.get_stdout_line_iter(),
     on_reset = function(self)
       self.any_stderr = false
-    end,
-    _append_data = function(self, task, data)
-      for i = #data, 1, -1 do
-        local line = data[i]
-        if line ~= "" then
-          line = string.gsub(line, "\r", "")
-          if i == 1 then
-            task.summary = task.summary .. line
-          else
-            task.summary = line
-          end
-          break
-        end
-      end
+      self.stdout_iter = util.get_stdout_line_iter()
+      self.stderr_iter = util.get_stdout_line_iter()
     end,
     on_stderr = function(self, task, data)
       self.any_stderr = true
-      self:_append_data(task, data)
+      for _,line in ipairs(self.stderr_iter(data)) do
+        task.summary = line
+      end
     end,
     on_stdout = function(self, task, data)
       if self.any_stderr then
         return
       end
-      self:_append_data(task, data)
+      for _,line in ipairs(self.stdout_iter(data)) do
+        task.summary = line
+      end
     end,
   }
 end
