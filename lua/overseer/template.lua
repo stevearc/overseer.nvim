@@ -1,3 +1,4 @@
+local Task = require('overseer.task')
 local M = {}
 
 local TemplateRegistry = {}
@@ -24,7 +25,13 @@ end
 
 function TemplateRegistry:get_templates(dir, filetype)
   local ret = {}
-  for tmpl_dir,ft_map in pairs(self.by_dir) do
+  local dirs = vim.tbl_keys(self.by_dir)
+  -- Iterate the directories from longest to shortest. We would like to add the
+  -- *most specific* tasks first.
+  table.sort(dirs)
+  for i=1,#dirs do
+    local tmpl_dir = dirs[#dirs + 1 - i]
+    local ft_map = self.by_dir[tmpl_dir]
     if string.sub(dir, 0, string.len(tmpl_dir)) == tmpl_dir then
       append_matching_templates(ret, ft_map, filetype)
     end
@@ -81,7 +88,7 @@ function Template.new(opts)
   })
   for _, param in pairs(opts.params) do
     vim.validate({
-      name = { param.name, "s" },
+      name = { param.name, "s", true },
       description = { param.description, "s" },
       optional = { param.optional, "b", true },
     })
@@ -95,7 +102,7 @@ function Template:build(params)
       error(string.format("Missing param %s", k))
     end
   end
-  return self.builder(params)
+  return Task.new(self.builder(params))
 end
 
 function Template:prompt(params, callback)
@@ -104,10 +111,26 @@ function Template:prompt(params, callback)
     callback = { callback, "f" },
   })
 
-  if not vim.tbl_isempty(self.params) then
-    error("TODO implement")
+  local missing
+  -- FIXME handle optional params
+  for k,_ in pairs(self.params) do
+    if params[k] == nil then
+      missing = k
+      break
+    end
+  end
+
+  if missing then
+    vim.ui.input({
+      prompt = string.format("%s (%s)", self.params[missing].name or missing, self.params[missing].description),
+    }, function(val)
+      if val then
+        params[missing] = val
+        self:prompt(params, callback)
+      end
+    end)
   else
-    callback(self.builder(params))
+    callback(Task.new(self.builder(params)))
   end
 end
 
@@ -119,6 +142,15 @@ end
 
 M.list = function(dir, filetype)
   return registry:get_templates(dir, filetype)
+end
+
+M.get_by_name = function(name, dir, filetype)
+  local templates = registry:get_templates(dir, filetype)
+  for _,t in ipairs(templates) do
+    if t.name == name then
+      return t
+    end
+  end
 end
 
 return M

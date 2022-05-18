@@ -4,7 +4,7 @@ M.setup = function(opts) end
 
 M.get_default_notifier = function()
   local notify = require("overseer.notify")
-  return notify.new_on_exit_notifier()
+  return notify.new_on_result_notifier()
 end
 
 M.get_default_summarizer = function()

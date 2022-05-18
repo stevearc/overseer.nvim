@@ -26,8 +26,34 @@ M.update_task = function(task)
   on_update()
 end
 
+M.remove_task = function(task)
+  lookup[task.id] = nil
+  for i,t in ipairs(M.tasks) do
+    if t.id == task.id then
+      table.remove(M.tasks, i)
+      break
+    end
+  end
+  on_update()
+end
+
+M.add_view = function(view)
+  table.insert(callbacks, function()
+    return view:render(M.tasks)
+  end)
+  view:render(M.tasks)
+end
+
 M.add_update_callback = function(cb)
   table.insert(callbacks, cb)
+end
+
+M.get_by_name = function(name)
+  for _,task in ipairs(M.tasks) do
+    if task.name == name then
+      return task
+    end
+  end
 end
 
 return M

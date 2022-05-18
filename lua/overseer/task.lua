@@ -12,6 +12,7 @@ function Task.new(opts)
   opts = opts or {}
   vim.validate({
     cmd = { opts.cmd, "t" },
+    cwd = { opts.cwd, "s", true },
     name = { opts.name, "s", true },
     capabilities = { opts.capabilities, "t", true },
     overwrite_capabilities = { opts.overwrite_capabilities, "b", true },
@@ -49,8 +50,8 @@ function Task.new(opts)
     result = nil,
     status = STATUS.PENDING,
     cmd = opts.cmd,
+    cwd = opts.cwd,
     name = opts.name or table.concat(opts.cmd, " "),
-    old_bufnrs = {},
     capabilities = opts.capabilities,
   }
   next_id = next_id + 1
@@ -74,6 +75,10 @@ function Task:reset()
   end
   self.status = STATUS.PENDING
   self.result = nil
+  if self.bufnr and vim.api.nvim_buf_is_valid(self.bufnr) then
+    vim.api.nvim_buf_delete(self.bufnr, {})
+  end
+  self.bufnr = nil
   self.summary = ""
   self:dispatch("on_reset")
 end
@@ -101,8 +106,6 @@ function Task:_set_result(status, data)
 
   -- Cleanup
   self.chan_id = nil
-  table.insert(self.old_bufnrs, self.bufnr)
-  self.bufnr = nil
   self:dispatch("on_finalize")
 end
 
@@ -111,8 +114,10 @@ function Task:dispose()
     error("Cannot call dispose on running task")
   end
   self:dispatch("on_dispose")
-  -- FIXME delete bufnrs
-  -- FIXME remove from registry
+  registry.remove_task(self)
+  if vim.api.nvim_buf_is_valid(self.bufnr) then
+    vim.api.nvim_buf_delete(self.bufnr, {})
+  end
 end
 
 function Task:rerun(force_stop)
@@ -158,6 +163,7 @@ function Task:start()
   vim.api.nvim_buf_call(self.bufnr, function()
     chan_id = vim.fn.termopen(self.cmd, {
       stdin = "null",
+      cwd = self.cwd,
       on_stdout = function(j, d)
         self:__on_stdout(j, d)
       end,

@@ -1,29 +1,41 @@
+local constants = require("overseer.constants")
+local STATUS = constants.STATUS
 local M = {}
 
 M.NOTIFY = {
   NEVER = 'never',
+  SUCCESS_FAILURE = 'success_failure',
   ALWAYS = 'always',
   SUCCESS = 'success',
   FAILURE = 'failure',
 }
 
-M.new_on_exit_notifier = function(opts)
+M.new_on_result_notifier = function(opts)
   opts = opts or {}
   vim.validate({when = { opts.when, 's', true}})
   return {
-    config = opts.when or M.NOTIFY.ALWAYS,
-    on_exit = function(self, task, code)
-      M.vim_notify_from_code(task, code, self.config)
+    when = opts.when or M.NOTIFY.SUCCESS_FAILURE,
+    on_result = function(self, task, status)
+      M.vim_notify_from_status(task, status, self.when)
     end
   }
 end
 
-M.vim_notify_from_code = function(task, code, enum)
+M.get_level_from_status = function(status)
+  if status == STATUS.FAILURE then
+    return vim.log.levels.ERROR
+  elseif status == STATUS.STOPPED then
+    return vim.log.levels.WARN
+  else
+    return vim.log.levels.INFO
+  end
+end
+
+M.vim_notify_from_status = function(task, status, enum)
   enum = enum or M.NOTIFY.ALWAYS
-  if enum == M.NOTIFY.ALWAYS or (enum == M.NOTIFY.SUCCESS and code == 0) or (enum == M.NOTIFY.FAILURE and code ~= 0) then
-    local level = code == 0 and vim.log.levels.INFO or vim.log.levels.ERROR
-    local msg = code == 0 and "COMPLETED" or "FAILED"
-    vim.notify(string.format("%s %s", task.name, msg), level)
+  if enum == M.NOTIFY.ALWAYS or ((enum == M.NOTIFY.SUCCESS or enum == M.NOTIFY.SUCCESS_FAILURE) and status == STATUS.SUCCESS) or ((enum == M.NOTIFY.FAILURE or enum == M.NOTIFY.SUCCESS_FAILURE) and status == STATUS.FAILURE) then
+    local level = M.get_level_from_status(status)
+    vim.notify(string.format("%s %s", status, task.name), level)
     return true
   end
   return false
