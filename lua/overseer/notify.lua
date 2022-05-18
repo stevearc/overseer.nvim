@@ -7,20 +7,16 @@ M.NOTIFY = {
   FAILURE = 'failure',
 }
 
-local VimNotifyOnExit = {}
-function VimNotifyOnExit.new(config)
-  return setmetatable({
-    config = config or M.NOTIFY.ALWAYS
-  }, {
-    __index = VimNotifyOnExit
-  })
+M.new_on_exit_notifier = function(opts)
+  opts = opts or {}
+  vim.validate({when = { opts.when, 's', true}})
+  return {
+    config = opts.when or M.NOTIFY.ALWAYS,
+    on_exit = function(self, task, code)
+      M.vim_notify_from_code(task, code, self.config)
+    end
+  }
 end
-
-function VimNotifyOnExit:on_exit(task, code)
-  M.vim_notify_from_code(task, code, self.config)
-end
-
-M.VimNotifyOnExit = VimNotifyOnExit
 
 M.vim_notify_from_code = function(task, code, enum)
   enum = enum or M.NOTIFY.ALWAYS

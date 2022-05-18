@@ -1,0 +1,11 @@
+local M = {}
+
+M.STATUS = {
+  PENDING = "PENDING",
+  RUNNING = "RUNNING",
+  CANCELED = "CANCELED",
+  SUCCESS = "SUCCESS",
+  FAILURE = "FAILURE",
+}
+
+return M
