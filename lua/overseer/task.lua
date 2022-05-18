@@ -76,7 +76,7 @@ function Task:reset()
   self.status = STATUS.PENDING
   self.result = nil
   if self.bufnr and vim.api.nvim_buf_is_valid(self.bufnr) then
-    vim.api.nvim_buf_delete(self.bufnr, {})
+    vim.api.nvim_buf_delete(self.bufnr, {force = true})
   end
   self.bufnr = nil
   self.summary = ""
@@ -116,7 +116,7 @@ function Task:dispose()
   self:dispatch("on_dispose")
   registry.remove_task(self)
   if vim.api.nvim_buf_is_valid(self.bufnr) then
-    vim.api.nvim_buf_delete(self.bufnr, {})
+    vim.api.nvim_buf_delete(self.bufnr, {force = true})
   end
 end
 

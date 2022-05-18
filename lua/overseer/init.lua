@@ -5,13 +5,11 @@ local window = require("overseer.window")
 local M = {}
 
 -- TODO
--- * Register actions on the task list
 -- * Capabilities should have name + category
 -- * Capabilities can put output in the render list (i.e. "queued rerun", "rerun on fail")
 -- * Mark a task to re-run on change
 --
 -- WISHLIST
--- * Register actions on the task list
 -- * Run a test (file/suite/line) and notify.
 -- * Run a test (file/suite/line) every time you save a file (debounce).
 -- * :make every time you save a file (debounce).

@@ -26,6 +26,28 @@ function TaskList.new()
  
   local tl = setmetatable({
     bufnr = bufnr,
+    actions = {
+      {
+        name = 'start',
+        condition = function(task) return task.status == STATUS.PENDING end,
+        callback = function(task) task:start() end,
+      },
+      {
+        name = 'stop',
+        condition = function(task) return task.status == STATUS.RUNNING end,
+        callback = function(task) task:stop() end,
+      },
+      {
+        name = 'rerun',
+        condition = function(task) return task.status ~= STATUS.PENDING and task.status ~= STATUS.RUNNING end,
+        callback = function(task) task:rerun() end,
+      },
+      {
+        name = 'dispose',
+        condition = function(task) return task.status ~= STATUS.PENDING and task.status ~= STATUS.RUNNING end,
+        callback = function(task) task:dispose() end,
+      },
+    },
     line_to_task = {},
   }, {__index = TaskList})
 
@@ -52,7 +74,7 @@ function TaskList.new()
 
   vim.api.nvim_buf_set_keymap(bufnr, 'n', '<CR>', '', {
     callback = function()
-      tl:prompt_action()
+      tl:run_action()
     end,
   })
 
@@ -70,6 +92,15 @@ function TaskList.new()
 
   ref = tl
   return tl
+end
+
+function TaskList:register_action(opts)
+  vim.validate({
+    name = {opts.name, 's'},
+    condition = {opts.condition, 'f'},
+    callback = {opts.callback, 'f'},
+  })
+  table.insert(self.actions, opts)
 end
 
 function TaskList:_get_task_from_line(lnum)
@@ -120,32 +151,43 @@ function TaskList:open_buffer()
   util.scroll_to_end(0)
 end
 
-function TaskList:prompt_action()
+function TaskList:run_action(name)
+  vim.validate({name = {name, 's', true}})
   local task = self:_get_task_from_line()
   if not task then
     return
   end
 
+  print("Run action")
   local actions = {}
-  if task.status == STATUS.PENDING then
-    table.insert(actions, 'start')
-  elseif task.status == STATUS.RUNNING then
-    table.insert(actions, 'stop')
-  else
-    table.insert(actions, 'rerun')
-    table.insert(actions, 'dispose')
-    table.insert(actions, 'rerun on change')
+  for _, action in ipairs(self.actions) do
+    print(string.format("action: %s", vim.inspect(action)))
+    if action.condition(task, self) then
+      if action.name == name then
+        action.callback(task, self)
+        return
+      end
+      table.insert(actions, action)
+    end
+  end
+  if name then
+    vim.notify(string.format("No action '%s' found for task", name), vim.log.levels.ERROR)
+    return
   end
 
+  print(string.format("actions %s", vim.inspect(actions)))
   vim.ui.select(actions, {
     prompt = 'Task actions',
     kind = 'overseer_task_options',
+    format_item = function(action)
+      return action.name
+    end,
   }, function(action)
     if action then
-      if action == 'rerun on change' then
-        vim.notify("TODO FIXME implement")
+      if action.condition(task, self) then
+        action.callback(task, self)
       else
-        task[action](task)
+        vim.notify(string.format("Can no longer perform action '%s' on task", action.name), vim.log.levels.WARN)
       end
     end
   end)
@@ -181,5 +223,10 @@ function TaskList:render(tasks)
 end
 
 M.new = TaskList.new
+
+M.register_action = function(...)
+  local tl = M.get_or_create()
+  tl:register_action(...)
+end
 
 return M
