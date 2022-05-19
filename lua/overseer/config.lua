@@ -1,27 +1,27 @@
 local M = {}
 
 M.setup = function(opts)
-  local cap = require("overseer.capability")
-  cap.alias("default", {
+  local component = require("overseer.component")
+  component.alias("default", {
     "output_summary",
     "exit_code",
     "notify_success_failure",
     "rerun_trigger",
   })
-  cap.alias("default_once", {
+  component.alias("default_once", {
     "output_summary",
     "exit_code",
     "notify_success_failure",
     "dispose_delay",
   })
-  cap.alias("default_up", {
+  component.alias("default_up", {
     "output_summary",
     "exit_code",
     "notify_failure",
     "rerun_trigger",
     "rerun_on_fail",
   })
-  cap.alias("default_watch", {
+  component.alias("default_watch", {
     "output_summary",
     "exit_code",
     "notify_failure",

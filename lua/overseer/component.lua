@@ -6,7 +6,7 @@ local aliases = {}
 local builtin_modules = { "cleanup", "notify", "rerun", "result" }
 M.register_all = function()
   for _, mod in ipairs(builtin_modules) do
-    require(string.format("overseer.capability.%s", mod)).register_all()
+    require(string.format("overseer.component.%s", mod)).register_all()
   end
 end
 
@@ -31,13 +31,13 @@ M.register = function(opts)
   registry[opts.name] = opts
 end
 
-M.alias = function(name, capabilities)
+M.alias = function(name, components)
   vim.validate({
     name = { name, "s" },
-    capabilities = { capabilities, "t" },
+    components = { components, "t" },
   })
 
-  aliases[name] = capabilities
+  aliases[name] = components
 end
 
 local function resolve(seen, resolved, names)
@@ -55,17 +55,17 @@ local function resolve(seen, resolved, names)
   return resolved
 end
 
-local function instantiate(name, capability)
-  local obj = capability.builder()
+local function instantiate(name, component)
+  local obj = component.builder()
   obj.name = name
-  obj.description = capability.description
-  obj.slot = capability.slot
+  obj.description = component.description
+  obj.slot = component.slot
   return obj
 end
 
-M.resolve = function(capabilities, existing)
+M.resolve = function(components, existing)
   vim.validate({
-    capabilities = { capabilities, "t" },
+    components = { components, "t" },
     existing = { existing, "t", true },
   })
   local seen = {}
@@ -74,19 +74,19 @@ M.resolve = function(capabilities, existing)
       seen[v] = true
     end
   end
-  return resolve(seen, {}, capabilities)
+  return resolve(seen, {}, components)
 end
 
--- Returns a list of capabilities
-M.load = function(capabilities)
-  local resolved = resolve({}, {}, capabilities)
+-- Returns a list of instantiated components
+M.load = function(components)
+  local resolved = resolve({}, {}, components)
   local ret = {}
   for _, name in ipairs(resolved) do
-    local cap = registry[name]
-    if cap then
-      table.insert(ret, instantiate(name, cap))
+    local comp = registry[name]
+    if comp then
+      table.insert(ret, instantiate(name, comp))
     else
-      error(string.format("Unknown capability '%s'", name))
+      error(string.format("Unknown component '%s'", name))
     end
   end
 

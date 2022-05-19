@@ -4,7 +4,7 @@ local SLOT = constants.SLOT
 local M = {}
 
 M.register_all = function()
-  require("overseer.capability").register({
+  require("overseer.component").register({
     name = "notify_success_failure",
     description = "notify on success/failure",
     slot = SLOT.NOTIFY,
@@ -12,7 +12,7 @@ M.register_all = function()
       return M.result_notifier({ when = M.NOTIFY.SUCCESS_FAILURE })
     end,
   })
-  require("overseer.capability").register({
+  require("overseer.component").register({
     name = "notify_failure",
     description = "notify on failure",
     slot = SLOT.NOTIFY,

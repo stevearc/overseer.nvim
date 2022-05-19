@@ -4,13 +4,13 @@ local SLOT = constants.SLOT
 local M = {}
 
 M.register_all = function()
-  require("overseer.capability").register({
+  require("overseer.component").register({
     name = "output_summary",
     description = "Summarize stdout/stderr",
     slot = SLOT.SUMMARY,
     builder = M.output_summarizer,
   })
-  require("overseer.capability").register({
+  require("overseer.component").register({
     name = "exit_code",
     description = "Exit code finalizer",
     slot = SLOT.RESULT,

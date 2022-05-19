@@ -48,7 +48,7 @@ function TaskList.new()
       {
         name = "rerun",
         condition = function(task)
-          return task:has_capability("rerun_trigger")
+          return task:has_component("rerun_trigger")
             and task.status ~= STATUS.PENDING
             and task.status ~= STATUS.RUNNING
         end,
@@ -68,10 +68,10 @@ function TaskList.new()
       {
         name = "rerun on save",
         condition = function(task)
-          return task:has_capability("rerun_trigger") and not task:has_capability("rerun_on_save")
+          return task:has_component("rerun_trigger") and not task:has_component("rerun_on_save")
         end,
         callback = function(task)
-          task:add_capability("rerun_on_save")
+          task:add_component("rerun_on_save")
         end,
       },
     },

@@ -1,4 +1,4 @@
-local capability = require("overseer.capability")
+local component = require("overseer.component")
 local constants = require("overseer.constants")
 local registry = require("overseer.registry")
 local util = require("overseer.util")
@@ -15,11 +15,11 @@ function Task.new(opts)
     cmd = { opts.cmd, "t" },
     cwd = { opts.cwd, "s", true },
     name = { opts.name, "s", true },
-    capabilities = { opts.capabilities, "t", true },
+    components = { opts.components, "t", true },
   })
 
-  if not opts.capabilities then
-    opts.capabilities = { "default" }
+  if not opts.components then
+    opts.components = { "default" }
   end
   -- Build the instance data for the task
   local data = {
@@ -31,8 +31,8 @@ function Task.new(opts)
     cmd = opts.cmd,
     cwd = opts.cwd,
     name = opts.name or table.concat(opts.cmd, " "),
-    str_capabilities = capability.resolve(opts.capabilities),
-    capabilities = capability.load(opts.capabilities),
+    str_components = component.resolve(opts.components),
+    components = component.load(opts.components),
   }
   next_id = next_id + 1
   local task = setmetatable(data, { __index = Task })
@@ -46,34 +46,34 @@ function Task:serialize()
     name = self.name,
     cmd = self.cmd,
     cwd = self.cwd,
-    capabilities = self.str_capabilities,
+    components = self.str_components,
   }
 end
 
-function Task:add_capability(cap)
-  self:add_capabilities({ cap })
+function Task:add_component(comp)
+  self:add_components({ comp })
 end
 
-function Task:add_capabilities(capabilities)
+function Task:add_components(components)
   vim.validate({
-    capabilities = { capabilities, "t" },
+    components = { components, "t" },
   })
-  local new_caps = capability.resolve(capabilities, self.str_capabilities)
-  for _, v in ipairs(capability.load(new_caps)) do
-    table.insert(self.capabilities, v)
+  local new_comps = component.resolve(components, self.str_components)
+  for _, v in ipairs(component.load(new_comps)) do
+    table.insert(self.components, v)
     if v.on_init then
       v:on_init(self)
     end
   end
-  for _, v in ipairs(new_caps) do
-    table.insert(self.str_capabilities, v)
+  for _, v in ipairs(new_comps) do
+    table.insert(self.str_components, v)
   end
 end
 
-function Task:has_capability(name)
+function Task:has_component(name)
   vim.validate({ name = { name, "s" } })
-  local new_caps = capability.resolve({ name }, self.str_capabilities)
-  return vim.tbl_isempty(new_caps)
+  local new_comps = component.resolve({ name }, self.str_components)
+  return vim.tbl_isempty(new_comps)
 end
 
 function Task:is_running()
@@ -100,9 +100,9 @@ function Task:reset()
 end
 
 function Task:dispatch(name, ...)
-  for _, cap in ipairs(self.capabilities) do
-    if type(cap[name]) == "function" then
-      cap[name](cap, self, ...)
+  for _, comp in ipairs(self.components) do
+    if type(comp[name]) == "function" then
+      comp[name](comp, self, ...)
     end
   end
   registry.update_task(self)
@@ -159,7 +159,7 @@ function Task:__on_exit(_job_id, code)
     return
   end
   self:dispatch("on_exit", code)
-  -- We shouldn't hit this unless the capabilities are missing a finalizer or
+  -- We shouldn't hit this unless the components are missing a finalizer or
   -- they errored
   if self:is_running() then
     self:_set_result(STATUS.FAILURE, { error = "Task did not produce a result before exiting" })

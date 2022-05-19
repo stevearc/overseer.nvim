@@ -3,7 +3,7 @@ local SLOT = constants.SLOT
 local M = {}
 
 M.register_all = function()
-  require("overseer.capability").register({
+  require("overseer.component").register({
     name = "dispose_delay",
     description = "Dispose task after a timeout",
     slot = SLOT.OTHER,
