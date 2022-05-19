@@ -7,7 +7,6 @@ local M = {}
 -- TODO
 -- * components can put output in the render list (i.e. "queued rerun", "rerun on fail")
 -- * Save current state of tasks (incl modifications)
--- * get default components by category from config
 --
 -- WISHLIST
 -- * re-run can interrupt (stop job)

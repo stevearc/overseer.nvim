@@ -5,40 +5,41 @@ local SLOT = constants.SLOT
 local M = {}
 
 M.register_all = function()
-  require("overseer.component").register({
-    name = "notify_result",
-    description = "notify on result",
-    slot = SLOT.NOTIFY,
-    params = {
-      statuses = {
-        description = "What statuses to notify on",
-      },
+  require("overseer.component").register(M.result_notifier)
+end
+
+M.result_notifier = {
+  name = "notify_result",
+  description = "notify on result",
+  slot = SLOT.NOTIFY,
+  params = {
+    statuses = {
+      description = "What statuses to notify on",
+      optional = true,
     },
-    builder = M.result_notifier,
-  })
-end
+  },
+  builder = function(opts)
+    opts = opts or {}
+    if not opts.statuses then
+      opts.statuses = {
+        STATUS.FAILURE,
+        STATUS.SUCCESS,
+      }
+    elseif type(opts.statuses) == "string" then
+      opts.statuses = { opts.statuses }
+    end
+    local lookup = util.list_to_map(opts.statuses)
 
-M.result_notifier = function(opts)
-  opts = opts or {}
-  if not opts.statuses then
-    opts.statuses = {
-      STATUS.FAILURE,
-      STATUS.SUCCESS,
+    return {
+      on_result = function(self, task, status)
+        if lookup[status] then
+          local level = M.get_level_from_status(status)
+          vim.notify(string.format("%s %s", status, task.name), level)
+        end
+      end,
     }
-  elseif type(opts.statuses) == "string" then
-    opts.statuses = { opts.statuses }
-  end
-  local lookup = util.list_to_map(opts.statuses)
-
-  return {
-    on_result = function(self, task, status)
-      if lookup[status] then
-        local level = M.get_level_from_status(status)
-        vim.notify(string.format("%s %s", status, task.name), level)
-      end
-    end,
-  }
-end
+  end,
+}
 
 M.get_level_from_status = function(status)
   if status == STATUS.FAILURE then
