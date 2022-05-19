@@ -41,6 +41,14 @@ M.get_preview_window = function()
   end
 end
 
+M.list_to_map = function(list)
+  local map = {}
+  for _, v in ipairs(list) do
+    map[v] = true
+  end
+  return map
+end
+
 M.get_stdout_line_iter = function()
   local pending = ""
   return function(data)

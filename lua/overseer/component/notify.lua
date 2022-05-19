@@ -1,4 +1,5 @@
 local constants = require("overseer.constants")
+local util = require("overseer.util")
 local STATUS = constants.STATUS
 local SLOT = constants.SLOT
 local M = {}
@@ -27,10 +28,7 @@ M.result_notifier = function(opts)
   elseif type(opts.statuses) == "string" then
     opts.statuses = { opts.statuses }
   end
-  local lookup = {}
-  for _, v in ipairs(opts.statuses) do
-    lookup[v] = true
-  end
+  local lookup = util.list_to_map(opts.statuses)
 
   return {
     on_result = function(self, task, status)

@@ -1,4 +1,5 @@
 local constants = require("overseer.constants")
+local util = require("overseer.util")
 
 local STATUS = constants.STATUS
 
@@ -8,12 +9,23 @@ M.register_all = function()
   require("overseer.component").register({
     name = "rerun_trigger",
     description = "Ability to rerun the task",
+    params = {
+      delay = {
+        description = "How long to wait (in ms) post-result before triggering rerun",
+        optional = true,
+      },
+    },
     builder = M.rerun_trigger,
   })
   require("overseer.component").register({
-    name = "rerun_on_fail",
-    description = "Rerun on failure",
-    builder = M.rerun_on_fail,
+    name = "rerun_on_result",
+    description = "Rerun on result",
+    params = {
+      statuses = {
+        description = "What statuses to rerun on",
+      },
+    },
+    builder = M.rerun_on_result,
   })
   require("overseer.component").register({
     name = "rerun_on_save",
@@ -87,10 +99,17 @@ M.rerun_on_save = function(opts)
   }
 end
 
-M.rerun_on_fail = function()
+M.rerun_on_result = function(opts)
+  opts = opts or {}
+  if not opts.statuses then
+    opts.statuses = { STATUS.FAILURE }
+  elseif type(opts.statuses) == "string" then
+    opts.statuses = { opts.statuses }
+  end
+  local lookup = util.list_to_map(opts.statuses)
   return {
     on_finalize = function(self, task)
-      if task.status == STATUS.FAILURE then
+      if lookup[task.status] then
         task:rerun()
       end
     end,

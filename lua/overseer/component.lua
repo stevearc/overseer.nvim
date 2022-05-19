@@ -40,30 +40,62 @@ M.alias = function(name, components)
   aliases[name] = components
 end
 
+local function getname(comp_params)
+  if type(comp_params) == "string" then
+    return comp_params
+  else
+    return comp_params[1]
+  end
+end
+
 local function resolve(seen, resolved, names)
-  for _, name in ipairs(names) do
+  for _, comp_params in ipairs(names) do
+    local name = getname(comp_params)
     -- Let's not get stuck if there are cycles
     if not seen[name] then
       seen[name] = true
       if aliases[name] then
         resolve(seen, resolved, aliases[name])
       else
-        table.insert(resolved, name)
+        table.insert(resolved, comp_params)
       end
     end
   end
   return resolved
 end
 
-local function instantiate(name, component)
-  local obj = component.builder()
-  obj.name = name
+local function validate_params(params, schema)
+  for name, opts in pairs(schema) do
+    if params[name] == nil and not opts.optional then
+      error(string.format("Component '%s' requires param '%s'", getname(params), name))
+    end
+  end
+  for name in pairs(params) do
+    if type(name) == "string" and schema[name] == nil then
+      vim.notify(
+        string.format("Component '%s' passed unknown param '%s'", getname(params), name),
+        vim.log.levels.WARN
+      )
+    end
+  end
+end
+
+local function instantiate(comp_params, component)
+  local obj
+  if type(comp_params) == "string" then
+    obj = component.builder()
+  else
+    validate_params(comp_params, component.params)
+    obj = component.builder(comp_params)
+  end
+  obj.name = getname(comp_params)
+  obj.params = comp_params
   obj.description = component.description
   obj.slot = component.slot
   return obj
 end
 
--- @param components is a list of component names
+-- @param components is a list of component names or {name, params=}
 -- @param existing is a list of instantiated components
 M.resolve = function(components, existing)
   vim.validate({
@@ -79,14 +111,16 @@ M.resolve = function(components, existing)
   return resolve(seen, {}, components)
 end
 
--- Returns a list of instantiated components
+-- @param components is a list of component names or {name, params=}
+-- @returns a list of instantiated components
 M.load = function(components)
   local resolved = resolve({}, {}, components)
   local ret = {}
-  for _, name in ipairs(resolved) do
+  for _, comp_params in ipairs(resolved) do
+    local name = getname(comp_params)
     local comp = registry[name]
     if comp then
-      table.insert(ret, instantiate(name, comp))
+      table.insert(ret, instantiate(comp_params, comp))
     else
       error(string.format("Unknown component '%s'", name))
     end

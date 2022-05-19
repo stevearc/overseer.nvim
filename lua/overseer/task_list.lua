@@ -59,10 +59,10 @@ function TaskList.new()
       {
         name = "dispose",
         condition = function(task)
-          return task.status ~= STATUS.PENDING and task.status ~= STATUS.RUNNING
+          return true
         end,
         callback = function(task)
-          task:dispose()
+          task:dispose(true)
         end,
       },
       {

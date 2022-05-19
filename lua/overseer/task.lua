@@ -32,10 +32,11 @@ function Task.new(opts)
     cwd = opts.cwd,
     name = opts.name or table.concat(opts.cmd, " "),
     slots = {},
-    components = component.load(opts.components),
+    components = {},
   }
   next_id = next_id + 1
   local task = setmetatable(data, { __index = Task })
+  task:add_components(opts.components)
   task:dispatch("on_init")
   return task
 end
@@ -44,7 +45,7 @@ end
 function Task:serialize()
   local components = {}
   for _, comp in ipairs(self.components) do
-    table.insert(components, comp.name)
+    table.insert(components, comp.params)
   end
   return {
     name = self.name,
@@ -66,6 +67,9 @@ function Task:add_components(components)
   for _, v in ipairs(component.load(new_comps)) do
     -- Only add the component if the slot isn't taken
     if not v.slot or not self.slots[v.slot] then
+      if v.slot then
+        self.slots[v.slot] = v.name
+      end
       table.insert(self.components, v)
       if v.on_init then
         v:on_init(self)
@@ -74,7 +78,53 @@ function Task:add_components(components)
   end
 end
 
+function Task:remove_component(name)
+  vim.validate({
+    name = { name, "s" },
+  })
+  self:remove_components({ name })
+end
+
+function Task:remove_components(names)
+  vim.validate({
+    names = { names, "t" },
+  })
+  local lookup = {}
+  for _, name in ipairs(names) do
+    lookup[name] = true
+  end
+  local indexes = {}
+  for i, v in ipairs(self.components) do
+    if lookup[v.name] then
+      table.insert(indexes, i)
+    end
+  end
+  -- Iterate backwards so removing one doesn't invalidate the indexes
+  for i = #indexes, 1, -1 do
+    local idx = indexes[i]
+    local comp = table.remove(self.components, idx)
+    if comp.slot then
+      self.slots[comp.slot] = nil
+    end
+    if comp.on_dispose then
+      comp:on_dispose(self)
+    end
+  end
+end
+
+function Task:remove_by_slot(slot)
+  vim.validate({
+    slot = { slot, "s" },
+  })
+  if self.slots[slot] then
+    self:remove_component(self.slots[slot])
+  end
+end
+
 function Task:has_slot(slot)
+  vim.validate({
+    slot = { slot, "s" },
+  })
   return self.slots[slot] ~= nil
 end
 
@@ -138,13 +188,23 @@ function Task:_set_result(status, data)
   self:dispatch("on_finalize")
 end
 
-function Task:dispose()
+function Task:dispose(force)
+  vim.validate({
+    force = { force, "b", true },
+  })
   if self.disposed then
     return
   end
   self.disposed = true
   if self:is_running() then
-    error("Cannot call dispose on running task")
+    if force then
+      -- If we're forcing the dispose, remove the ability to rerun, then stop,
+      -- then dispose
+      self:remove_component("rerun_trigger")
+      self:stop()
+    else
+      error("Cannot call dispose on running task")
+    end
   end
   self:dispatch("on_dispose")
   registry.remove_task(self)

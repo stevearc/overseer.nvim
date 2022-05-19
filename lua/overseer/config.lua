@@ -14,17 +14,17 @@ M.setup = function(opts)
     "notify_result",
     "dispose_delay",
   })
-  component.alias("default_up", {
+  component.alias("default_persist", {
     "output_summary",
     "exit_code",
     "notify_result",
     "rerun_trigger",
-    "rerun_on_fail",
+    "rerun_on_result",
   })
   component.alias("default_watch", {
     "output_summary",
     "exit_code",
-    "notify_result",
+    { "notify_result", statuses = { require("overseer.constants").STATUS.FAILURE } },
     "rerun_trigger",
     "rerun_on_save",
   })
