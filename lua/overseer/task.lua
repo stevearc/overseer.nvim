@@ -42,7 +42,10 @@ function Task.new(opts)
 end
 
 function Task:render(lines, detail)
-  detail = detail or 1
+  vim.validate({
+    lines = {lines, 't'},
+    detail = {detail, 'n'},
+  })
   table.insert(lines, self.name)
   table.insert(lines, self.status .. ": " .. self.summary)
   local count = 2
@@ -76,10 +79,12 @@ function Task:render(lines, detail)
     end
   end
 
-  if self.result and not vim.tbl_isempty(self.result) then
-    for k, v in pairs(self.result) do
-      table.insert(lines, string.format("  %s: %s", k, v))
-      count = count + 1
+  if detail >= 1 then
+    if self.result and not vim.tbl_isempty(self.result) then
+      for k, v in pairs(self.result) do
+        table.insert(lines, string.format("  %s: %s", k, v))
+        count = count + 1
+      end
     end
   end
   return count

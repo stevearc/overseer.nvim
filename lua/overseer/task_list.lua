@@ -15,6 +15,9 @@ M.get_or_create = function()
   return ref
 end
 
+local MIN_DETAIL = 0
+local MAX_DETAIL = 3
+
 function TaskList.new()
   local bufnr = vim.api.nvim_create_buf(false, true)
 
@@ -27,6 +30,7 @@ function TaskList.new()
 
   local tl = setmetatable({
     bufnr = bufnr,
+    default_detail = 1,
     task_detail = {},
     actions = {
       {
@@ -126,6 +130,16 @@ function TaskList.new()
       tl:change_task_detail(-1)
     end,
   })
+  vim.api.nvim_buf_set_keymap(bufnr, "n", "gl", "", {
+    callback = function()
+      tl:change_default_detail(1)
+    end,
+  })
+  vim.api.nvim_buf_set_keymap(bufnr, "n", "gh", "", {
+    callback = function()
+      tl:change_default_detail(-1)
+    end,
+  })
 
   ref = tl
   return tl
@@ -174,9 +188,14 @@ function TaskList:change_task_detail(delta)
   if not task then
     return
   end
-  local detail = self.task_detail[task.id] or 1
-  self.task_detail[task.id] = math.max(1, math.min(3, detail + delta))
+  local detail = self.task_detail[task.id] or self.default_detail
+  self.task_detail[task.id] = math.max(MIN_DETAIL, math.min(MAX_DETAIL, detail + delta))
   registry.update_task(task)
+end
+
+function TaskList:change_default_detail(delta)
+  self.default_detail = math.max(MIN_DETAIL, math.min(MAX_DETAIL, self.default_detail + delta))
+  registry.update()
 end
 
 function TaskList:update_preview()
@@ -265,7 +284,7 @@ function TaskList:render(tasks)
   -- Iterate backwards so we should most recent tasks first
   for i = #tasks, 1, -1 do
     local task = tasks[i]
-    lineno = lineno + task:render(lines, self.task_detail[task.id])
+    lineno = lineno + task:render(lines, self.task_detail[task.id] or self.default_detail)
     table.insert(self.task_lines, { lineno, task })
     table.insert(lines, "--------------------")
     lineno = lineno + 1

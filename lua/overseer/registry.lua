@@ -26,6 +26,10 @@ M.update_task = function(task)
   on_update()
 end
 
+M.update = function()
+  on_update()
+end
+
 M.remove_task = function(task)
   lookup[task.id] = nil
   for i, t in ipairs(M.tasks) do
