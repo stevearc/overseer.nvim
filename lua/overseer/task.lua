@@ -56,10 +56,10 @@ function Task.new(opts)
     capabilities = opts.capabilities,
   }
   -- Make sure every capability has a name
-  for _,cap in ipairs(data.capabilities) do
+  for _, cap in ipairs(data.capabilities) do
     vim.validate({
-      name = {cap.name, 's'},
-      category = {cap.category, 's'},
+      name = { cap.name, "s" },
+      category = { cap.category, "s" },
     })
   end
   next_id = next_id + 1
@@ -70,8 +70,8 @@ end
 
 function Task:add_capability(cap)
   vim.validate({
-    name = {cap.name, 's'},
-    category = {cap.category, 's'},
+    name = { cap.name, "s" },
+    category = { cap.category, "s" },
   })
   table.insert(self.capabilities, cap)
   if cap.on_init then
@@ -80,8 +80,8 @@ function Task:add_capability(cap)
 end
 
 function Task:has_capability(name)
-  vim.validate({name = {name, 's'}})
-  for _,cap in ipairs(self.capabilities) do
+  vim.validate({ name = { name, "s" } })
+  for _, cap in ipairs(self.capabilities) do
     if cap.name == name then
       return true
     end
@@ -105,7 +105,7 @@ function Task:reset()
   self.status = STATUS.PENDING
   self.result = nil
   if self.bufnr and vim.api.nvim_buf_is_valid(self.bufnr) then
-    vim.api.nvim_buf_delete(self.bufnr, {force = true})
+    vim.api.nvim_buf_delete(self.bufnr, { force = true })
   end
   self.bufnr = nil
   self.summary = ""
@@ -151,7 +151,7 @@ function Task:dispose()
   self:dispatch("on_dispose")
   registry.remove_task(self)
   if vim.api.nvim_buf_is_valid(self.bufnr) then
-    vim.api.nvim_buf_delete(self.bufnr, {force = true})
+    vim.api.nvim_buf_delete(self.bufnr, { force = true })
   end
 end
 

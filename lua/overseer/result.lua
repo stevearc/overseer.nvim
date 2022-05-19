@@ -6,7 +6,7 @@ local M = {}
 
 M.new_output_summarizer = function()
   return {
-    name = 'stdout/stderr summarizer',
+    name = "stdout/stderr summarizer",
     category = CATEGORY.RESULT,
     any_stderr = false,
     on_reset = function(self)
@@ -28,7 +28,7 @@ M.new_output_summarizer = function()
     end,
     on_stderr = function(self, task, data)
       if not self.any_stderr then
-        task.summary = ''
+        task.summary = ""
       end
       self.any_stderr = true
       self:_append_data(task, data)

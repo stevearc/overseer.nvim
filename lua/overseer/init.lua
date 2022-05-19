@@ -40,49 +40,47 @@ M.close = window.close
 
 M.load_from_template = function(name, params, silent)
   vim.validate({
-    name = {name, 's'},
-    params = {params, 't', true},
-    silent = {silent, 'b', true},
+    name = { name, "s" },
+    params = { params, "t", true },
+    silent = { silent, "b", true },
   })
   params = params or {}
-  params.bufnr = vim.api.nvim_get_current_buf()
   params.bufname = vim.api.nvim_buf_get_name(0)
   local dir = params.bufname
   if dir == "" then
     dir = vim.fn.getcwd(0)
   end
-  local ft = vim.api.nvim_buf_get_option(0, 'filetype')
-  local template = template.get_by_name(name, dir, ft)
-  if not template then
+  local ft = vim.api.nvim_buf_get_option(0, "filetype")
+  local tmpl = template.get_by_name(name, dir, ft)
+  if not tmpl then
     if silent then
       return
     else
       error(string.format("Could not find template '%s'", name))
     end
   end
-  template:build(params)
+  tmpl:build(params)
 end
 
 M.start_from_template = function(name, params)
   vim.validate({
-    name = {name, 's', true},
-    params = {params, 't', true},
+    name = { name, "s", true },
+    params = { params, "t", true },
   })
   params = params or {}
-  params.bufnr = vim.api.nvim_get_current_buf()
   params.bufname = vim.api.nvim_buf_get_name(0)
   local dir = params.bufname
   if dir == "" then
     dir = vim.fn.getcwd(0)
   end
-  local ft = vim.api.nvim_buf_get_option(0, 'filetype')
+  local ft = vim.api.nvim_buf_get_option(0, "filetype")
 
   if name then
-    local template = template.get_by_name(name, dir, ft)
-    if not template then
+    local tmpl = template.get_by_name(name, dir, ft)
+    if not tmpl then
       error(string.format("Could not find template '%s'", name))
     end
-    template:prompt(params, function(task)
+    tmpl:prompt(params, function(task)
       if task then
         task:start()
       end
@@ -91,7 +89,7 @@ M.start_from_template = function(name, params)
     local templates = template.list(dir, ft)
     vim.ui.select(templates, {
       prompt = "Task template:",
-      kind = 'overseer_template',
+      kind = "overseer_template",
       format_item = function(tmpl)
         if tmpl.description then
           return string.format("%s (%s)", tmpl.name, tmpl.description)

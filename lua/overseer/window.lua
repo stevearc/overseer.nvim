@@ -1,4 +1,4 @@
-local task_list = require('overseer.task_list')
+local task_list = require("overseer.task_list")
 local registry = require("overseer.registry")
 local util = require("overseer.util")
 local M = {}

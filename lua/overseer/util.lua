@@ -30,12 +30,12 @@ M.scroll_to_end = function(winid)
   winid = winid or 0
   local bufnr = vim.api.nvim_win_get_buf(winid)
   local lnum = vim.api.nvim_buf_line_count(bufnr)
-  vim.api.nvim_win_set_cursor(winid, {lnum, 0})
+  vim.api.nvim_win_set_cursor(winid, { lnum, 0 })
 end
 
 M.get_preview_window = function()
-  for _,winid in ipairs(vim.api.nvim_list_wins()) do
-    if vim.api.nvim_win_get_option(winid, 'previewwindow') then
+  for _, winid in ipairs(vim.api.nvim_list_wins()) do
+    if vim.api.nvim_win_get_option(winid, "previewwindow") then
       return winid
     end
   end
@@ -47,17 +47,17 @@ M.get_stdout_line_iter = function()
     local ret = {}
     local last = #data
     for i, chunk in ipairs(data) do
-      if chunk == '' then
+      if chunk == "" then
         if pending ~= "" then
           table.insert(ret, pending)
         end
         pending = ""
       else
         -- No carriage returns plz
-        chunk = string.gsub(chunk, '\r', '')
+        chunk = string.gsub(chunk, "\r", "")
         if i ~= last then
           table.insert(ret, pending .. chunk)
-          pending = ''
+          pending = ""
         else
           pending = chunk
         end

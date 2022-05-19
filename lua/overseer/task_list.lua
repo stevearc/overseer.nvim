@@ -23,47 +23,65 @@ function TaskList.new()
   vim.api.nvim_buf_set_option(bufnr, "buflisted", false)
   vim.api.nvim_buf_set_option(bufnr, "swapfile", false)
   vim.api.nvim_buf_set_option(bufnr, "modifiable", false)
- 
+
   local tl = setmetatable({
     bufnr = bufnr,
     actions = {
       {
-        name = 'start',
-        condition = function(task) return task.status == STATUS.PENDING end,
-        callback = function(task) task:start() end,
-      },
-      {
-        name = 'stop',
-        condition = function(task) return task.status == STATUS.RUNNING end,
-        callback = function(task) task:stop() end,
-      },
-      {
-        name = 'rerun',
-        condition = function(task) return task.status ~= STATUS.PENDING and task.status ~= STATUS.RUNNING end,
-        callback = function(task) task:rerun() end,
-      },
-      {
-        name = 'dispose',
-        condition = function(task) return task.status ~= STATUS.PENDING and task.status ~= STATUS.RUNNING end,
-        callback = function(task) task:dispose() end,
-      },
-      {
-        name = 'rerun on save',
-        condition = function(task) return not task:has_capability("rerun on save") end,
+        name = "start",
+        condition = function(task)
+          return task.status == STATUS.PENDING
+        end,
         callback = function(task)
-          task:add_capability(require('overseer.rerun').new_rerun_on_save())
+          task:start()
+        end,
+      },
+      {
+        name = "stop",
+        condition = function(task)
+          return task.status == STATUS.RUNNING
+        end,
+        callback = function(task)
+          task:stop()
+        end,
+      },
+      {
+        name = "rerun",
+        condition = function(task)
+          return task.status ~= STATUS.PENDING and task.status ~= STATUS.RUNNING
+        end,
+        callback = function(task)
+          task:rerun()
+        end,
+      },
+      {
+        name = "dispose",
+        condition = function(task)
+          return task.status ~= STATUS.PENDING and task.status ~= STATUS.RUNNING
+        end,
+        callback = function(task)
+          task:dispose()
+        end,
+      },
+      {
+        name = "rerun on save",
+        condition = function(task)
+          return not task:has_capability("rerun on save")
+        end,
+        callback = function(task)
+          task:add_capability(require("overseer.rerun").new_rerun_on_save())
         end,
       },
     },
     line_to_task = {},
-  }, {__index = TaskList})
+  }, { __index = TaskList })
 
-  vim.api.nvim_create_autocmd({'BufHidden', 'WinLeave'}, {
+  vim.api.nvim_create_autocmd({ "BufHidden", "WinLeave" }, {
     desc = "Close preview window when task list closes",
     buffer = bufnr,
-    command = 'pclose',
+    command = "pclose",
   })
-  vim.api.nvim_create_autocmd('BufUnload', {
+  vim.api.nvim_create_autocmd("BufUnload", {
     desc = "Clean up references on buffer unload",
     buffer = bufnr,
     callback = function()
@@ -71,7 +89,7 @@ function TaskList.new()
     end,
     once = true,
   })
-  vim.api.nvim_create_autocmd('CursorMoved', {
+  vim.api.nvim_create_autocmd("CursorMoved", {
     desc = "Update preview window when cursor moves",
     buffer = bufnr,
     callback = function()
@@ -79,19 +97,19 @@ function TaskList.new()
     end,
   })
 
-  vim.api.nvim_buf_set_keymap(bufnr, 'n', '<CR>', '', {
+  vim.api.nvim_buf_set_keymap(bufnr, "n", "<CR>", "", {
     callback = function()
       tl:run_action()
     end,
   })
 
-  vim.api.nvim_buf_set_keymap(bufnr, 'n', 'o', '', {
+  vim.api.nvim_buf_set_keymap(bufnr, "n", "o", "", {
     callback = function()
       tl:open_buffer()
     end,
   })
 
-  vim.api.nvim_buf_set_keymap(bufnr, 'n', 'p', '', {
+  vim.api.nvim_buf_set_keymap(bufnr, "n", "p", "", {
     callback = function()
       tl:show_preview()
     end,
@@ -103,9 +121,9 @@ end
 
 function TaskList:register_action(opts)
   vim.validate({
-    name = {opts.name, 's'},
-    condition = {opts.condition, 'f'},
-    callback = {opts.callback, 'f'},
+    name = { opts.name, "s" },
+    condition = { opts.condition, "f" },
+    callback = { opts.callback, "f" },
   })
   table.insert(self.actions, opts)
 end
@@ -159,7 +177,7 @@ function TaskList:open_buffer()
 end
 
 function TaskList:run_action(name)
-  vim.validate({name = {name, 's', true}})
+  vim.validate({ name = { name, "s", true } })
   local task = self:_get_task_from_line()
   if not task then
     return
@@ -184,8 +202,8 @@ function TaskList:run_action(name)
 
   print(string.format("actions %s", vim.inspect(actions)))
   vim.ui.select(actions, {
-    prompt = 'Task actions',
-    kind = 'overseer_task_options',
+    prompt = "Task actions",
+    kind = "overseer_task_options",
     format_item = function(action)
       return action.name
     end,
@@ -194,7 +212,10 @@ function TaskList:run_action(name)
       if action.condition(task, self) then
         action.callback(task, self)
       else
-        vim.notify(string.format("Can no longer perform action '%s' on task", action.name), vim.log.levels.WARN)
+        vim.notify(
+          string.format("Can no longer perform action '%s' on task", action.name),
+          vim.log.levels.WARN
+        )
       end
     end
   end)
@@ -215,7 +236,7 @@ function TaskList:render(tasks)
     table.insert(self.line_to_task, task)
 
     if task.result and not vim.tbl_isempty(task.result) then
-      for k,v in pairs(task.result) do
+      for k, v in pairs(task.result) do
         table.insert(lines, string.format("  %s: %s", k, v))
         table.insert(self.line_to_task, task)
       end

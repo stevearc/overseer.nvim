@@ -12,7 +12,7 @@ M.new_rerun_on_trigger = function(opts)
   })
   opts.delay = opts.delay or 500
   return {
-    name = 'rerun trigger handler',
+    name = "rerun trigger handler",
     category = CATEGORY.RERUN,
     rerun_after_finalize = false,
     _trigger_active = false,
@@ -21,14 +21,13 @@ M.new_rerun_on_trigger = function(opts)
         return
       end
       self._trigger_active = true
-      vim.defer_fn(
-        function()
-          if not task:is_running() and task:is_complete() then
-            task:reset()
-            task:start()
-          end
-          self._trigger_active = false
-        end, opts.delay)
+      vim.defer_fn(function()
+        if not task:is_running() and task:is_complete() then
+          task:reset()
+          task:start()
+        end
+        self._trigger_active = false
+      end, opts.delay)
     end,
     on_reset = function(self, task)
       self.rerun_after_finalize = false
@@ -56,7 +55,7 @@ M.new_rerun_on_save = function(opts)
   opts.delay = opts.delay or 500
 
   return {
-    name = 'rerun on save',
+    name = "rerun on save",
     category = CATEGORY.RERUN,
     id = nil,
     on_init = function(self, task)
@@ -77,7 +76,7 @@ end
 
 M.new_rerun_on_fail = function()
   return {
-    name = 'rerun on fail',
+    name = "rerun on fail",
     category = CATEGORY.RERUN,
     on_finalize = function(self, task)
       if task.status == STATUS.FAILURE then

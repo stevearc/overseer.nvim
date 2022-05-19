@@ -28,7 +28,7 @@ end
 
 M.remove_task = function(task)
   lookup[task.id] = nil
-  for i,t in ipairs(M.tasks) do
+  for i, t in ipairs(M.tasks) do
     if t.id == task.id then
       table.remove(M.tasks, i)
       break
@@ -49,7 +49,7 @@ M.add_update_callback = function(cb)
 end
 
 M.get_by_name = function(name)
-  for _,task in ipairs(M.tasks) do
+  for _, task in ipairs(M.tasks) do
     if task.name == name then
       return task
     end

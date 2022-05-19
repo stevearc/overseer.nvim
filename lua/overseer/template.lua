@@ -1,4 +1,4 @@
-local Task = require('overseer.task')
+local Task = require("overseer.task")
 local M = {}
 
 local TemplateRegistry = {}
@@ -7,17 +7,17 @@ function TemplateRegistry.new()
   return setmetatable({
     global = {},
     by_dir = {},
-  }, {__index = TemplateRegistry})
+  }, { __index = TemplateRegistry })
 end
 
 local function append_matching_templates(ret, ft_map, filetype)
   if filetype and ft_map[filetype] then
-    for _,tmpl in ipairs(ft_map[filetype]) do
+    for _, tmpl in ipairs(ft_map[filetype]) do
       table.insert(ret, tmpl)
     end
   end
-  if ft_map['_'] then
-    for _,tmpl in ipairs(ft_map['_']) do
+  if ft_map["_"] then
+    for _, tmpl in ipairs(ft_map["_"]) do
       table.insert(ret, tmpl)
     end
   end
@@ -29,7 +29,7 @@ function TemplateRegistry:get_templates(dir, filetype)
   -- Iterate the directories from longest to shortest. We would like to add the
   -- *most specific* tasks first.
   table.sort(dirs)
-  for i=1,#dirs do
+  for i = 1, #dirs do
     local tmpl_dir = dirs[#dirs + 1 - i]
     local ft_map = self.by_dir[tmpl_dir]
     if string.sub(dir, 0, string.len(tmpl_dir)) == tmpl_dir then
@@ -42,19 +42,19 @@ end
 
 function TemplateRegistry:register(tmpl, opts)
   vim.validate({
-    tmpl = {tmpl, 't'},
-    opts = {opts, 't', true},
+    tmpl = { tmpl, "t" },
+    opts = { opts, "t", true },
   })
   if opts then
     vim.validate({
-      ['opts.dir'] = {opts.dir, 's', true},
-      ['opts.filetype'] = {opts.filetype, 's', true},
+      ["opts.dir"] = { opts.dir, "s", true },
+      ["opts.filetype"] = { opts.filetype, "s", true },
     })
   end
   if not vim.tbl_islist(tmpl) then
-    tmpl = {tmpl}
+    tmpl = { tmpl }
   end
-  local ft = opts.filetype or '_'
+  local ft = opts.filetype or "_"
   local ft_map
   if opts.dir then
     if not self.by_dir[opts.dir] then
@@ -68,7 +68,7 @@ function TemplateRegistry:register(tmpl, opts)
   if not ft_map[ft] then
     ft_map[ft] = tmpl
   else
-    for _,t in ipairs(tmpl) do
+    for _, t in ipairs(tmpl) do
       table.insert(ft_map[ft], t)
     end
   end
@@ -112,7 +112,7 @@ function Template:prompt(params, callback)
   })
 
   local missing
-  for k,_ in pairs(self.params) do
+  for k, _ in pairs(self.params) do
     if params[k] == nil then
       missing = k
       break
@@ -121,7 +121,11 @@ function Template:prompt(params, callback)
 
   if missing then
     vim.ui.input({
-      prompt = string.format("%s (%s)", self.params[missing].name or missing, self.params[missing].description),
+      prompt = string.format(
+        "%s (%s)",
+        self.params[missing].name or missing,
+        self.params[missing].description
+      ),
     }, function(val)
       if val then
         params[missing] = val
@@ -148,7 +152,7 @@ end
 
 M.get_by_name = function(name, dir, filetype)
   local templates = registry:get_templates(dir, filetype)
-  for _,t in ipairs(templates) do
+  for _, t in ipairs(templates) do
     if t.name == name then
       return t
     end
