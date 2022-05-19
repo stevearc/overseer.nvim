@@ -44,7 +44,7 @@ M.result_notifier = {
 M.get_level_from_status = function(status)
   if status == STATUS.FAILURE then
     return vim.log.levels.ERROR
-  elseif status == STATUS.STOPPED then
+  elseif status == STATUS.CANCELED then
     return vim.log.levels.WARN
   else
     return vim.log.levels.INFO

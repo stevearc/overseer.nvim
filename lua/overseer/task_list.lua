@@ -221,6 +221,7 @@ function TaskList:run_action(name)
     if action.condition(task, self) then
       if action.name == name then
         action.callback(task, self)
+        registry.update_task(task)
         return
       end
       table.insert(actions, action)
@@ -241,6 +242,7 @@ function TaskList:run_action(name)
     if action then
       if action.condition(task, self) then
         action.callback(task, self)
+        registry.update_task(task)
       else
         vim.notify(
           string.format("Can no longer perform action '%s' on task", action.name),

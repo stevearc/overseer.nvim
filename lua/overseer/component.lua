@@ -15,8 +15,8 @@ M.register = function(opts)
     name = { opts.name, "s" },
     slot = { opts.name, "s", true },
     description = { opts.description, "s", true },
-    builder = { opts.builder, "f" },
     params = { opts.params, "t", true },
+    builder = { opts.builder, "f" },
   })
   if opts.params then
     for _, param in pairs(opts.params) do

@@ -7,6 +7,7 @@ local M = {}
 -- TODO
 -- * Make sure that building templates with components works well now (possibly the template builder params needs to include component list?)
 -- * Save current state of tasks (incl modifications)
+-- * Maybe need category/tags for templates? (e.g. "Run test")
 --
 -- WISHLIST
 -- * re-run can interrupt (stop job)

@@ -62,8 +62,8 @@ M.rerun_trigger = {
 }
 
 M.rerun_on_save = {
-  name = "rerun_on_result",
-  description = "Rerun on result",
+  name = "rerun_on_save",
+  description = "Rerun on any buffer :write",
   params = {
     delay = {
       description = "How long to wait (in ms) post-result before triggering rerun",
@@ -97,8 +97,8 @@ M.rerun_on_save = {
 }
 
 M.rerun_on_result = {
-  name = "rerun_on_save",
-  description = "Rerun on save",
+  name = "rerun_on_result",
+  description = "Rerun when task ends (default on failure only)",
   params = {
     statuses = {
       description = "What statuses to notify on",
