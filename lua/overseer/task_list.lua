@@ -113,7 +113,7 @@ function TaskList.new()
 
   vim.api.nvim_buf_set_keymap(bufnr, "n", "p", "", {
     callback = function()
-      tl:show_preview()
+      tl:toggle_preview()
     end,
   })
 
@@ -135,7 +135,12 @@ function TaskList:_get_task_from_line(lnum)
   return self.line_to_task[lnum]
 end
 
-function TaskList:show_preview()
+function TaskList:toggle_preview()
+  local pwin = util.get_preview_window()
+  if pwin then
+    vim.cmd([[pclose]])
+    return
+  end
   local task = self:_get_task_from_line()
   if not task or not task.bufnr or not vim.api.nvim_buf_is_valid(task.bufnr) then
     return
@@ -162,8 +167,9 @@ function TaskList:update_preview()
   local task_buf_name = vim.api.nvim_buf_get_name(task.bufnr)
   local winbuf = vim.api.nvim_win_get_buf(winid)
   local preview_buf_name = vim.api.nvim_buf_get_name(winbuf)
-  if task_buf_name ~= win_buf_name then
-    self:show_preview()
+  if task_buf_name ~= preview_buf_name then
+    vim.cmd(string.format("vertical pedit %s", task_buf_name))
+    util.scroll_to_end(winid)
   end
 end
 

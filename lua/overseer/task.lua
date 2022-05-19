@@ -1,5 +1,4 @@
 local capability = require("overseer.capability")
-local config = require("overseer.config")
 local constants = require("overseer.constants")
 local registry = require("overseer.registry")
 local util = require("overseer.util")
@@ -17,10 +16,6 @@ function Task.new(opts)
     cwd = { opts.cwd, "s", true },
     name = { opts.name, "s", true },
     capabilities = { opts.capabilities, "t", true },
-    notifier = { opts.notifier, "t", true },
-    summarizer = { opts.summarizer, "t", true },
-    finalizer = { opts.finalizer, "t", true },
-    rerunner = { opts.rerunner, "t", true },
   })
 
   if not opts.capabilities then
