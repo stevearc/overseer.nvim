@@ -33,6 +33,14 @@ M.update = function()
   on_update()
 end
 
+M.serialize_tasks = function()
+  local ret = {}
+  for _,task in ipairs(M.tasks) do
+    table.insert(ret, task:serialize())
+  end
+  return ret
+end
+
 M.remove_task = function(task)
   lookup[task.id] = nil
   for i, t in ipairs(M.tasks) do

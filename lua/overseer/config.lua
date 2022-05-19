@@ -1,6 +1,6 @@
 local default_config = {
   list_sep = "--------------------",
-  bundles = {
+  component_sets = {
     default = {
       "output_summary",
       "exit_code",
@@ -39,7 +39,7 @@ M.setup = function(opts)
   end
 
   local component = require("overseer.component")
-  for k,v in pairs(M.bundles) do
+  for k,v in pairs(M.component_sets) do
     component.alias(k, v)
   end
 end

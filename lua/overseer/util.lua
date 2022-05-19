@@ -1,5 +1,22 @@
 local M = {}
 
+M.is_windows = vim.loop.os_uname().version:match("Windows")
+
+local sep = M.is_windows and "\\" or "/"
+
+M.path_exists = function(filename)
+  local stat = vim.loop.fs_stat(filename)
+  return stat and stat.type or false
+end
+
+M.join = function(...)
+  return table.concat({ ... }, sep)
+end
+
+M.get_cache_dir = function()
+  return M.join(vim.fn.stdpath('cache'), 'overseer')
+end
+
 M.is_floating_win = function(winid)
   return vim.api.nvim_win_get_config(winid or 0).relative ~= ""
 end

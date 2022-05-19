@@ -1,13 +1,14 @@
 local config = require("overseer.config")
+local registry = require("overseer.registry")
 local Task = require("overseer.task")
 local template = require("overseer.template")
+local util = require("overseer.util")
 local window = require("overseer.window")
 local M = {}
 
 -- TODO
 -- * { } to navigate task list
--- * Make sure that building templates with components works well now (possibly the template builder params needs to include component list?)
--- * Save current state of tasks (incl modifications)
+-- * Colorize task list
 -- * Maybe need category/tags for templates? (e.g. "Run test")
 -- * Rerun on save optionally takes directory
 -- * Autostart task on vim open in dir (needs some uniqueness checks)
@@ -16,7 +17,6 @@ local M = {}
 -- * re-run can interrupt (stop job)
 -- * Definitely going to need some sort of logging system
 -- * Live build a task from a template + components
--- * Save bundle of tasks for restoration
 -- * Load VSCode task definitions
 -- * Store recent commands in history per-directory
 --   * Can select & run task from recent history
@@ -34,6 +34,24 @@ local M = {}
 M.setup = function(opts)
   require("overseer.component").register_all()
   config.setup(opts)
+  vim.api.nvim_create_user_command('OverseerSaveBundle', function(params)
+    M.save_task_bundle(params.args ~= "" and params.args or nil)
+  end, {
+    desc = "Serialize the current tasks to disk",
+    nargs = '?',
+  })
+  vim.api.nvim_create_user_command('OverseerLoadBundle', function(params)
+    M.load_task_bundle(params.args ~= "" and params.args or nil)
+  end, {
+    desc = "Load tasks that were serialized to disk",
+    nargs = '?',
+  })
+  vim.api.nvim_create_user_command('OverseerDeleteBundle', function(params)
+    M.delete_task_bundle(params.args ~= "" and params.args or nil)
+  end, {
+    desc = "Delete a saved task bundle",
+    nargs = '?',
+  })
 end
 
 M.new_task = function(opts)
@@ -67,6 +85,108 @@ M.load_from_template = function(name, params, silent)
     end
   end
   return tmpl:build(params)
+end
+
+M.list_task_bundles = function()
+  local cache_dir = util.get_cache_dir()
+  local fd = vim.loop.fs_opendir(cache_dir, nil, 32)
+  local entries = vim.loop.fs_readdir(fd)
+  local ret = {}
+  while entries do
+    for _,entry in ipairs(entries) do
+      if entry.type == 'file' then
+        local name = entry.name:match("^(.+)%.bundle%.json$")
+        if name then
+          table.insert(ret, name)
+        end
+      end
+    end
+    entries = vim.loop.fs_readdir(fd)
+  end
+  vim.loop.fs_closedir(fd)
+  return ret
+end
+
+M.load_task_bundle = function(name)
+  if name then
+    local cache_dir = util.get_cache_dir()
+    local filename = util.join(cache_dir, string.format("%s.bundle.json", name))
+    if not util.path_exists(filename) then
+      vim.notify(string.format("No task bundle found at %s", filename), vim.log.levels.ERROR)
+      return
+    end
+    local fd = vim.loop.fs_open(filename, 'r', 420) -- 0644
+    local stat = vim.loop.fs_fstat(fd)
+    local content = vim.loop.fs_read(fd, stat.size)
+    vim.loop.fs_close(fd)
+    local data = vim.json.decode(content)
+    for _,params in ipairs(data) do
+      local task = M.new_task(params)
+      task:start()
+    end
+    vim.notify(string.format("Started %d tasks", #data))
+  else
+    local tasks = M.list_task_bundles()
+    if #tasks == 0 then
+      vim.notify("No saved task bundles", vim.log.levels.WARN)
+      return
+    end
+    vim.ui.select(tasks, {
+      prompt = "Task bundle:",
+      kind = "overseer_task_bundle",
+    }, function(name)
+      if name then
+        M.load_task_bundle(name)
+      end
+    end)
+  end
+end
+
+M.save_task_bundle = function(name)
+  if name then
+    local cache_dir = util.get_cache_dir()
+    if not util.path_exists(cache_dir) then
+      vim.loop.fs_mkdir(cache_dir, 493) -- 0755
+    end
+    local filename = util.join(cache_dir, string.format("%s.bundle.json", name))
+    local fd = vim.loop.fs_open(filename, 'w', 420) -- 0644
+    vim.loop.fs_write(fd, vim.json.encode(registry.serialize_tasks()))
+    vim.loop.fs_close(fd)
+  else
+    vim.ui.input({
+      prompt = "Task bundle name:",
+    }, function(name)
+      if name then
+        M.save_task_bundle(name)
+      end
+    end)
+  end
+end
+
+M.delete_task_bundle = function(name)
+  if name then
+    local cache_dir = util.get_cache_dir()
+    local filename = util.join(cache_dir, string.format("%s.bundle.json", name))
+    if util.path_exists(filename) then
+      vim.loop.fs_unlink(filename)
+    else
+      vim.notify(string.format("No task bundle at %s", filename))
+    end
+  else
+    local tasks = M.list_task_bundles()
+    if #tasks == 0 then
+      vim.notify("No saved task bundles", vim.log.levels.WARN)
+      return
+    end
+    vim.ui.select(tasks, {
+      prompt = "Task bundle:",
+      kind = "overseer_task_bundle",
+    }, function(name)
+      if name then
+        M.delete_task_bundle(name)
+      end
+    end)
+  end
 end
 
 M.start_from_template = function(name, params)
