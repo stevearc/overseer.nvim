@@ -24,17 +24,24 @@ M.dispose_delay = {
     -- Default timeout 5 minutes
     opts.timeout = opts.timeout or 300
     return {
-      generation = 0,
+      timer = nil,
       on_result = function(self, task)
-        local gen = self.generation
-        vim.defer_fn(function()
-          if self.generation == gen then
-            task:dispose()
-          end
-        end, opts.timeout * 1000)
+        self.timer = vim.loop.new_timer()
+        self.timer:start(1000 * opts.timeout, 0, vim.schedule_wrap(function()
+          task:dispose()
+        end))
       end,
       on_reset = function(self, task)
-        self.generation = self.generation + 1
+        if self.timer then
+          self.timer:close()
+          self.timer = nil
+        end
+      end,
+      on_dispose = function(self, task)
+        if self.timer then
+          self.timer:close()
+          self.timer = nil
+        end
       end,
     }
   end,

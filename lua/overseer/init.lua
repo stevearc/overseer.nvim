@@ -14,18 +14,22 @@ local M = {}
 --
 -- WISHLIST
 -- * re-run can interrupt (stop job)
+-- * Definitely going to need some sort of logging system
 -- * Live build a task from a template + components
 -- * Save bundle of tasks for restoration
 -- * Load VSCode task definitions
 -- * Store recent commands in history per-directory
 --   * Can select & run task from recent history
 -- * Add tests
+-- * Maybe add a way to customize the task detail per-piece. e.g. {components = 0, result = 2}
 -- * add debugging helpers for components
 -- * component: parse output and populate quickfix
 -- * task list: bulk actions
 -- * ability to require task to be unique (disallow duplicates). Coordinate among all vim instances
 -- * Quick jump to most recent task (started/notified)
 -- * Rerun trigger handler feels different from the rest. Maybe separate it out.
+-- * Lualine component
+-- * Separation of registry and task list feels like it needs refactor
 
 M.setup = function(opts)
   require("overseer.component").register_all()

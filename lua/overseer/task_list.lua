@@ -3,6 +3,7 @@ local constants = require("overseer.constants")
 local registry = require("overseer.registry")
 local util = require("overseer.util")
 local STATUS = constants.STATUS
+local SLOT = constants.SLOT
 local M = {}
 
 local TaskList = {}
@@ -78,6 +79,7 @@ function TaskList.new()
           return task:has_component("rerun_trigger") and not task:has_component("rerun_on_save")
         end,
         callback = function(task)
+          task:remove_by_slot(SLOT.DISPOSE)
           task:add_component("rerun_on_save")
         end,
       },
