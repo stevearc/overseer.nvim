@@ -13,10 +13,20 @@ end
 M.register = function(opts)
   vim.validate({
     name = { opts.name, "s" },
-    category = { opts.name, "s" },
+    slot = { opts.name, "s", true },
     description = { opts.description, "s", true },
     builder = { opts.builder, "f" },
+    params = { opts.params, "t", true },
   })
+  if opts.params then
+    for _, param in pairs(opts.params) do
+      vim.validate({
+        name = { param.name, "s", true },
+        description = { param.description, "s", true },
+        optional = { param.optional, "b", true },
+      })
+    end
+  end
 
   registry[opts.name] = opts
 end
@@ -49,7 +59,7 @@ local function instantiate(name, capability)
   local obj = capability.builder()
   obj.name = name
   obj.description = capability.description
-  obj.category = capability.category
+  obj.slot = capability.slot
   return obj
 end
 

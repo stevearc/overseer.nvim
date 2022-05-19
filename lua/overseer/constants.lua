@@ -12,10 +12,9 @@ M.STATUS = setmetatable({
   end,
 })
 
-M.CATEGORY = {
+M.SLOT = {
   SUMMARY = "SUMMARY",
   RESULT = "RESULT",
-  RESULT_HANDLER = "RESULT_HANDLER",
   NOTIFY = "NOTIFY",
   RERUN = "RERUN",
   OTHER = "OTHER",

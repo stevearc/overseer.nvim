@@ -1,12 +1,12 @@
 local constants = require("overseer.constants")
-local CATEGORY = constants.CATEGORY
+local SLOT = constants.SLOT
 local M = {}
 
 M.register_all = function()
   require("overseer.capability").register({
     name = "dispose_delay",
     description = "Dispose task after a timeout",
-    category = CATEGORY.OTHER,
+    slot = SLOT.OTHER,
     builder = M.dispose_delay,
   })
 end

@@ -1,7 +1,7 @@
 local constants = require("overseer.constants")
 
 local STATUS = constants.STATUS
-local CATEGORY = constants.CATEGORY
+local SLOT = constants.SLOT
 
 local M = {}
 
@@ -9,19 +9,16 @@ M.register_all = function()
   require("overseer.capability").register({
     name = "rerun_trigger",
     description = "Rerun capability",
-    category = CATEGORY.RERUN,
     builder = M.rerun_trigger,
   })
   require("overseer.capability").register({
     name = "rerun_on_fail",
     description = "Rerun on failure",
-    category = CATEGORY.RERUN,
     builder = M.rerun_on_fail,
   })
   require("overseer.capability").register({
     name = "rerun_on_save",
     description = "Rerun on save",
-    category = CATEGORY.RERUN,
     builder = M.rerun_on_save,
   })
 end

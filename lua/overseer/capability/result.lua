@@ -1,19 +1,19 @@
 local constants = require("overseer.constants")
 local STATUS = constants.STATUS
-local CATEGORY = constants.CATEGORY
+local SLOT = constants.SLOT
 local M = {}
 
 M.register_all = function()
   require("overseer.capability").register({
     name = "output_summary",
     description = "Summarize stdout/stderr",
-    category = CATEGORY.RESULT,
+    slot = SLOT.SUMMARY,
     builder = M.output_summarizer,
   })
   require("overseer.capability").register({
     name = "exit_code",
     description = "Exit code finalizer",
-    category = CATEGORY.RESULT,
+    slot = SLOT.RESULT,
     builder = M.exit_code_finalizer,
   })
 end

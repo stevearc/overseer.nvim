@@ -1,13 +1,13 @@
 local constants = require("overseer.constants")
 local STATUS = constants.STATUS
-local CATEGORY = constants.CATEGORY
+local SLOT = constants.SLOT
 local M = {}
 
 M.register_all = function()
   require("overseer.capability").register({
     name = "notify_success_failure",
     description = "notify on success/failure",
-    category = CATEGORY.NOTIFY,
+    slot = SLOT.NOTIFY,
     builder = function()
       return M.result_notifier({ when = M.NOTIFY.SUCCESS_FAILURE })
     end,
@@ -15,7 +15,7 @@ M.register_all = function()
   require("overseer.capability").register({
     name = "notify_failure",
     description = "notify on failure",
-    category = CATEGORY.NOTIFY,
+    slot = SLOT.NOTIFY,
     builder = function()
       return M.result_notifier({ when = M.NOTIFY.FAILURE })
     end,
