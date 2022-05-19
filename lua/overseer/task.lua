@@ -1,6 +1,7 @@
 local config = require("overseer.config")
 local constants = require("overseer.constants")
 local registry = require("overseer.registry")
+local util = require("overseer.util")
 
 local STATUS = constants.STATUS
 
@@ -56,7 +57,10 @@ function Task.new(opts)
   }
   -- Make sure every capability has a name
   for _,cap in ipairs(data.capabilities) do
-    vim.validate({name = {cap.name, 's'}})
+    vim.validate({
+      name = {cap.name, 's'},
+      category = {cap.category, 's'},
+    })
   end
   next_id = next_id + 1
   local task = setmetatable(data, { __index = Task })
@@ -65,11 +69,24 @@ function Task.new(opts)
 end
 
 function Task:add_capability(cap)
-  vim.validate({name = {cap.name, 's'}})
+  vim.validate({
+    name = {cap.name, 's'},
+    category = {cap.category, 's'},
+  })
   table.insert(self.capabilities, cap)
   if cap.on_init then
     cap:on_init(self)
   end
+end
+
+function Task:has_capability(name)
+  vim.validate({name = {name, 's'}})
+  for _,cap in ipairs(self.capabilities) do
+    if cap.name == name then
+      return true
+    end
+  end
+  return false
 end
 
 function Task:is_running()
@@ -117,7 +134,13 @@ function Task:_set_result(status, data)
   self:dispatch("on_result", status, data)
 
   -- Cleanup
+  local chan_id = self.chan_id
   self.chan_id = nil
+  -- Forcibly stop here because if we set the result before the process has
+  -- exited, then we need to stop the process. Otherwise if we re-run the task
+  -- the previous job may still be ongoing, and its callbacks will interfere
+  -- with ours.
+  vim.fn.jobstop(chan_id)
   self:dispatch("on_finalize")
 end
 
@@ -140,17 +163,9 @@ function Task:rerun(force_stop)
   self:dispatch("on_request_rerun")
 end
 
-function Task:__on_stdout(_job_id, data)
-  self:dispatch("on_stdout", data)
-end
-
-function Task:__on_stderr(_job_id, data)
-  self:dispatch("on_stderr", data)
-end
-
 function Task:__on_exit(_job_id, code)
   if not self:is_running() then
-    -- We've already finalized, so we probably canceled
+    -- We've already finalized, so we probably canceled this task
     return
   end
   self:dispatch("on_exit", code)
@@ -172,15 +187,25 @@ function Task:start()
   self.bufnr = vim.api.nvim_create_buf(false, true)
   local chan_id
   local mode = vim.api.nvim_get_mode().mode
+  local stdout_iter = util.get_stdout_line_iter()
+  local stderr_iter = util.get_stdout_line_iter()
   vim.api.nvim_buf_call(self.bufnr, function()
     chan_id = vim.fn.termopen(self.cmd, {
       stdin = "null",
       cwd = self.cwd,
       on_stdout = function(j, d)
-        self:__on_stdout(j, d)
+        self:dispatch("on_stdout", d)
+        local lines = stdout_iter(d)
+        if not vim.tbl_isempty(lines) then
+          self:dispatch("on_stdout_lines", lines)
+        end
       end,
       on_stderr = function(j, d)
-        self:__on_stderr(j, d)
+        self:dispatch("on_stderr", d)
+        local lines = stderr_iter(d)
+        if not vim.tbl_isempty(lines) then
+          self:dispatch("on_stderr_lines", lines)
+        end
       end,
       on_exit = function(j, c)
         self:__on_exit(j, c)

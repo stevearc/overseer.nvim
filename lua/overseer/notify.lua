@@ -1,5 +1,6 @@
 local constants = require("overseer.constants")
 local STATUS = constants.STATUS
+local CATEGORY = constants.CATEGORY
 local M = {}
 
 M.NOTIFY = {
@@ -18,6 +19,7 @@ M.new_on_result_notifier = function(opts)
   })
   return {
     name = 'notify on result',
+    category = CATEGORY.NOTIFY,
     when = opts.when or M.NOTIFY.SUCCESS_FAILURE,
     format = opts.format,
     on_result = function(self, task, status)

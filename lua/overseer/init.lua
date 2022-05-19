@@ -5,19 +5,24 @@ local window = require("overseer.window")
 local M = {}
 
 -- TODO
+-- * Rerun trigger handler feels different from the rest. Maybe separate it out.
 -- * Capabilities can put output in the render list (i.e. "queued rerun", "rerun on fail")
--- * Mark a task to re-run on change
+-- * Save current state of tasks (incl modifications)
+-- * get default capabilities by category from config
 --
 -- WISHLIST
 -- * Run a test (file/suite/line) and notify.
 -- * Run a test (file/suite/line) every time you save a file (debounce).
+-- * re-run can interrupt (stop job)
 -- * :make every time you save a file (debounce).
 -- * Save task templates somehow
 -- * Load VSCode task definitions
 -- * Store recent commands in history per-directory
 --   * Can select & run task from recent history
 -- * Add tests
--- * add names & debugging helpers for capabilities
+-- * add debugging helpers for capabilities
+-- * parse output and populate quickfix
+-- * capability to do automated cleanup (dispose after timeout)
 -- * Require task to be unique (disallow duplicates). Coordinate among all vim instances
 -- * Jump to most recent task (started/notified)
 

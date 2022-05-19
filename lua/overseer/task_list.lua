@@ -47,6 +47,13 @@ function TaskList.new()
         condition = function(task) return task.status ~= STATUS.PENDING and task.status ~= STATUS.RUNNING end,
         callback = function(task) task:dispose() end,
       },
+      {
+        name = 'rerun on save',
+        condition = function(task) return not task:has_capability("rerun on save") end,
+        callback = function(task)
+          task:add_capability(require('overseer.rerun').new_rerun_on_save())
+        end,
+      },
     },
     line_to_task = {},
   }, {__index = TaskList})
