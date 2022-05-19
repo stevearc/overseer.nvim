@@ -16,16 +16,16 @@ local M = {}
 -- * probably rename capability -> component
 -- * re-run can interrupt (stop job)
 -- * Live build a task from a template + capabilities
--- * Can create capability alias for groups of capabilities
 -- * Save bundle of tasks for restoration
 -- * Load VSCode task definitions
 -- * Store recent commands in history per-directory
 --   * Can select & run task from recent history
 -- * Add tests
 -- * add debugging helpers for capabilities
--- * parse output and populate quickfix
--- * Require task to be unique (disallow duplicates). Coordinate among all vim instances
--- * Jump to most recent task (started/notified)
+-- * capability: parse output and populate quickfix
+-- * task list: bulk actions
+-- * ability to require task to be unique (disallow duplicates). Coordinate among all vim instances
+-- * Quick jump to most recent task (started/notified)
 -- * Rerun trigger handler feels different from the rest. Maybe separate it out.
 -- * Do we actually need the capability categories?
 

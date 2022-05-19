@@ -40,6 +40,16 @@ function Task.new(opts)
   return task
 end
 
+-- Returns the arguments require to create a clone of this task
+function Task:serialize()
+  return {
+    name = self.name,
+    cmd = self.cmd,
+    cwd = self.cwd,
+    capabilities = self.str_capabilities,
+  }
+end
+
 function Task:add_capability(cap)
   self:add_capabilities({ cap })
 end

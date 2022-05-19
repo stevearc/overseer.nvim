@@ -237,7 +237,9 @@ function TaskList:render(tasks)
   vim.api.nvim_buf_set_option(self.bufnr, "modifiable", true)
   local lines = {}
   self.line_to_task = {}
-  for _, task in ipairs(tasks) do
+  -- Iterate backwards so we should most recent tasks first
+  for i = #tasks, 1, -1 do
+    local task = tasks[i]
     table.insert(lines, task.name)
     table.insert(self.line_to_task, task)
     table.insert(lines, task.status .. ": " .. task.summary)
