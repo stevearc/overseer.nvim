@@ -19,6 +19,9 @@ local function on_update()
 end
 
 M.update_task = function(task)
+  if task.disposed then
+    return
+  end
   if not lookup[task.id] then
     lookup[task.id] = task
     table.insert(M.tasks, task)

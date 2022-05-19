@@ -47,8 +47,18 @@ function Task:render(lines, detail)
     detail = {detail, 'n'},
   })
   table.insert(lines, self.name)
-  table.insert(lines, self.status .. ": " .. self.summary)
-  local count = 2
+  local count = 1
+  local sum_lines = vim.split(self.summary, '\n')
+  if detail == 0 then
+    table.insert(lines, self.status .. ": " .. sum_lines[#sum_lines])
+    count = count + 1
+  else
+    table.insert(lines, self.status .. ": " .. sum_lines[1])
+    for i=2,#sum_lines do
+      table.insert(lines, sum_lines[i])
+    end
+    count = count + #sum_lines
+  end
 
   if detail == 2 then
     local names = {}

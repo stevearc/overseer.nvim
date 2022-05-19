@@ -1,53 +1,47 @@
-local M = {}
+local default_config = {
+  list_sep = "--------------------",
+  bundles = {
+    default = {
+      "output_summary",
+      "exit_code",
+      "notify_result",
+      "rerun_trigger",
+    },
+    default_once = {
+      "output_summary",
+      "exit_code",
+      "notify_result",
+      "dispose_delay",
+    },
+    default_persist = {
+      "output_summary",
+      "exit_code",
+      "notify_result",
+      "rerun_trigger",
+      "rerun_on_result",
+    },
+    default_watch = {
+      "output_summary",
+      "exit_code",
+      { "notify_result", statuses = { require("overseer.constants").STATUS.FAILURE } },
+      "rerun_trigger",
+      "rerun_on_save",
+    },
+  },
+}
+
+local M = vim.deepcopy(default_config)
 
 M.setup = function(opts)
+  local newconf = vim.tbl_deep_extend("force", default_config, opts or {})
+  for k, v in pairs(newconf) do
+    M[k] = v
+  end
+
   local component = require("overseer.component")
-  component.alias("default", {
-    "output_summary",
-    "exit_code",
-    "notify_result",
-    "rerun_trigger",
-  })
-  component.alias("default_once", {
-    "output_summary",
-    "exit_code",
-    "notify_result",
-    "dispose_delay",
-  })
-  component.alias("default_persist", {
-    "output_summary",
-    "exit_code",
-    "notify_result",
-    "rerun_trigger",
-    "rerun_on_result",
-  })
-  component.alias("default_watch", {
-    "output_summary",
-    "exit_code",
-    { "notify_result", statuses = { require("overseer.constants").STATUS.FAILURE } },
-    "rerun_trigger",
-    "rerun_on_save",
-  })
-end
-
-M.get_default_notifier = function()
-  local notify = require("overseer.notify")
-  return notify.new_on_result_notifier()
-end
-
-M.get_default_summarizer = function()
-  local result = require("overseer.result")
-  return result.new_output_summarizer()
-end
-
-M.get_default_finalizer = function()
-  local result = require("overseer.result")
-  return result.new_exit_code_finalizer()
-end
-
-M.get_default_rerunner = function()
-  local rerun = require("overseer.rerun")
-  return rerun.new_rerun_on_trigger()
+  for k,v in pairs(M.bundles) do
+    component.alias(k, v)
+  end
 end
 
 return M

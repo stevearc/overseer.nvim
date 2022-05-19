@@ -5,9 +5,12 @@ local window = require("overseer.window")
 local M = {}
 
 -- TODO
+-- * { } to navigate task list
 -- * Make sure that building templates with components works well now (possibly the template builder params needs to include component list?)
 -- * Save current state of tasks (incl modifications)
 -- * Maybe need category/tags for templates? (e.g. "Run test")
+-- * Rerun on save optionally takes directory
+-- * Autostart task on vim open in dir (needs some uniqueness checks)
 --
 -- WISHLIST
 -- * re-run can interrupt (stop job)

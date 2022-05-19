@@ -1,3 +1,4 @@
+local config = require("overseer.config")
 local constants = require("overseer.constants")
 local registry = require("overseer.registry")
 local util = require("overseer.util")
@@ -130,14 +131,26 @@ function TaskList.new()
       tl:change_task_detail(-1)
     end,
   })
-  vim.api.nvim_buf_set_keymap(bufnr, "n", "gl", "", {
+  vim.api.nvim_buf_set_keymap(bufnr, "n", "L", "", {
     callback = function()
       tl:change_default_detail(1)
     end,
   })
-  vim.api.nvim_buf_set_keymap(bufnr, "n", "gh", "", {
+  vim.api.nvim_buf_set_keymap(bufnr, "n", "H", "", {
     callback = function()
       tl:change_default_detail(-1)
+    end,
+  })
+  vim.api.nvim_buf_set_keymap(bufnr, "n", "[", "", {
+    callback = function()
+      local width = vim.api.nvim_win_get_width(0)
+      vim.api.nvim_win_set_width(0, math.max(10, width - 10))
+    end,
+  })
+  vim.api.nvim_buf_set_keymap(bufnr, "n", "]", "", {
+    callback = function()
+      local width = vim.api.nvim_win_get_width(0)
+      vim.api.nvim_win_set_width(0, width + 10)
     end,
   })
 
@@ -195,6 +208,11 @@ end
 
 function TaskList:change_default_detail(delta)
   self.default_detail = math.max(MIN_DETAIL, math.min(MAX_DETAIL, self.default_detail + delta))
+  for i,v in pairs(self.task_detail) do
+    if (delta < 0 and v > self.default_detail) or (delta > 0 and v < self.default_detail) then
+      self.task_detail[i] = nil
+    end
+  end
   registry.update()
 end
 
@@ -286,11 +304,14 @@ function TaskList:render(tasks)
     local task = tasks[i]
     lineno = lineno + task:render(lines, self.task_detail[task.id] or self.default_detail)
     table.insert(self.task_lines, { lineno, task })
-    table.insert(lines, "--------------------")
-    lineno = lineno + 1
+    if i > 1 then
+      table.insert(lines, config.list_sep)
+      lineno = lineno + 1
+    end
   end
   vim.api.nvim_buf_set_lines(self.bufnr, 0, -1, true, lines)
   vim.api.nvim_buf_set_option(self.bufnr, "modifiable", false)
+  vim.api.nvim_buf_set_option(self.bufnr, "modified", false)
 
   return true
 end
