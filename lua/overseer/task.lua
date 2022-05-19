@@ -41,6 +41,12 @@ function Task.new(opts)
   return task
 end
 
+function Task:render(lines)
+  table.insert(lines, self.name)
+  table.insert(lines, self.status .. ": " .. self.summary)
+  return 2
+end
+
 -- Returns the arguments require to create a clone of this task
 function Task:serialize()
   local components = {}

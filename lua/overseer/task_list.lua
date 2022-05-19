@@ -75,7 +75,7 @@ function TaskList.new()
         end,
       },
     },
-    line_to_task = {},
+    task_lines = {},
   }, { __index = TaskList })
 
   vim.api.nvim_create_autocmd({ "BufHidden", "WinLeave" }, {
@@ -132,7 +132,12 @@ end
 
 function TaskList:_get_task_from_line(lnum)
   lnum = lnum or vim.api.nvim_win_get_cursor(0)[1]
-  return self.line_to_task[lnum]
+  -- TODO could do binary search here
+  for _, v in ipairs(self.task_lines) do
+    if v[1] >= lnum then
+      return v[2]
+    end
+  end
 end
 
 function TaskList:toggle_preview()
@@ -191,10 +196,8 @@ function TaskList:run_action(name)
     return
   end
 
-  print("Run action")
   local actions = {}
   for _, action in ipairs(self.actions) do
-    print(string.format("action: %s", vim.inspect(action)))
     if action.condition(task, self) then
       if action.name == name then
         action.callback(task, self)
@@ -208,7 +211,6 @@ function TaskList:run_action(name)
     return
   end
 
-  print(string.format("actions %s", vim.inspect(actions)))
   vim.ui.select(actions, {
     prompt = "Task actions",
     kind = "overseer_task_options",
@@ -236,23 +238,15 @@ function TaskList:render(tasks)
 
   vim.api.nvim_buf_set_option(self.bufnr, "modifiable", true)
   local lines = {}
-  self.line_to_task = {}
+  local lineno = 1
+  self.task_lines = {}
   -- Iterate backwards so we should most recent tasks first
   for i = #tasks, 1, -1 do
     local task = tasks[i]
-    table.insert(lines, task.name)
-    table.insert(self.line_to_task, task)
-    table.insert(lines, task.status .. ": " .. task.summary)
-    table.insert(self.line_to_task, task)
-
-    if task.result and not vim.tbl_isempty(task.result) then
-      for k, v in pairs(task.result) do
-        table.insert(lines, string.format("  %s: %s", k, v))
-        table.insert(self.line_to_task, task)
-      end
-    end
+    lineno = lineno + task:render(lines)
+    table.insert(self.task_lines, { lineno, task })
     table.insert(lines, "----------")
-    table.insert(self.line_to_task, nil)
+    lineno = lineno + 1
   end
   vim.api.nvim_buf_set_lines(self.bufnr, 0, -1, true, lines)
   vim.api.nvim_buf_set_option(self.bufnr, "modifiable", false)
