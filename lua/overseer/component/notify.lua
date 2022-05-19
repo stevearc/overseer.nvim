@@ -5,42 +5,39 @@ local M = {}
 
 M.register_all = function()
   require("overseer.component").register({
-    name = "notify_success_failure",
-    description = "notify on success/failure",
+    name = "notify_result",
+    description = "notify on result",
     slot = SLOT.NOTIFY,
-    builder = function()
-      return M.result_notifier({ when = M.NOTIFY.SUCCESS_FAILURE })
-    end,
-  })
-  require("overseer.component").register({
-    name = "notify_failure",
-    description = "notify on failure",
-    slot = SLOT.NOTIFY,
-    builder = function()
-      return M.result_notifier({ when = M.NOTIFY.FAILURE })
-    end,
+    params = {
+      statuses = {
+        description = "What statuses to notify on",
+      },
+    },
+    builder = M.result_notifier,
   })
 end
 
-M.NOTIFY = {
-  NEVER = "never",
-  SUCCESS_FAILURE = "success_failure",
-  ALWAYS = "always",
-  SUCCESS = "success",
-  FAILURE = "failure",
-}
-
 M.result_notifier = function(opts)
   opts = opts or {}
-  vim.validate({
-    when = { opts.when, "s", true },
-    format = { opts.format, "f", true },
-  })
+  if not opts.statuses then
+    opts.statuses = {
+      STATUS.FAILURE,
+      STATUS.SUCCESS,
+    }
+  elseif type(opts.statuses) == "string" then
+    opts.statuses = { opts.statuses }
+  end
+  local lookup = {}
+  for _, v in ipairs(opts.statuses) do
+    lookup[v] = true
+  end
+
   return {
-    when = opts.when or M.NOTIFY.SUCCESS_FAILURE,
-    format = opts.format,
     on_result = function(self, task, status)
-      M.vim_notify_from_status(task, status, self.when, self.format)
+      if lookup[status] then
+        local level = M.get_level_from_status(status)
+        vim.notify(string.format("%s %s", status, task.name), level)
+      end
     end,
   }
 end
@@ -53,24 +50,6 @@ M.get_level_from_status = function(status)
   else
     return vim.log.levels.INFO
   end
-end
-
-M.vim_notify_from_status = function(task, status, enum, format)
-  enum = enum or M.NOTIFY.ALWAYS
-  if
-    enum == M.NOTIFY.ALWAYS
-    or ((enum == M.NOTIFY.SUCCESS or enum == M.NOTIFY.SUCCESS_FAILURE) and status == STATUS.SUCCESS)
-    or ((enum == M.NOTIFY.FAILURE or enum == M.NOTIFY.SUCCESS_FAILURE) and status == STATUS.FAILURE)
-  then
-    local level = M.get_level_from_status(status)
-    if format then
-      vim.notify(format(task), level)
-    else
-      vim.notify(string.format("%s %s", status, task.name), level)
-    end
-    return true
-  end
-  return false
 end
 
 return M

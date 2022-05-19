@@ -5,26 +5,26 @@ M.setup = function(opts)
   component.alias("default", {
     "output_summary",
     "exit_code",
-    "notify_success_failure",
+    "notify_result",
     "rerun_trigger",
   })
   component.alias("default_once", {
     "output_summary",
     "exit_code",
-    "notify_success_failure",
+    "notify_result",
     "dispose_delay",
   })
   component.alias("default_up", {
     "output_summary",
     "exit_code",
-    "notify_failure",
+    "notify_result",
     "rerun_trigger",
     "rerun_on_fail",
   })
   component.alias("default_watch", {
     "output_summary",
     "exit_code",
-    "notify_failure",
+    "notify_result",
     "rerun_trigger",
     "rerun_on_save",
   })
