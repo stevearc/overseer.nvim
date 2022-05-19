@@ -5,7 +5,7 @@ local window = require("overseer.window")
 local M = {}
 
 -- TODO
--- * components can put output in the render list (i.e. "queued rerun", "rerun on fail")
+-- * Make sure that building templates with components works well now (possibly the template builder params needs to include component list?)
 -- * Save current state of tasks (incl modifications)
 --
 -- WISHLIST

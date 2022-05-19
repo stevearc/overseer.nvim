@@ -41,10 +41,48 @@ function Task.new(opts)
   return task
 end
 
-function Task:render(lines)
+function Task:render(lines, detail)
+  detail = detail or 1
   table.insert(lines, self.name)
   table.insert(lines, self.status .. ": " .. self.summary)
-  return 2
+  local count = 2
+
+  if detail == 2 then
+    local names = {}
+    for _, comp in ipairs(self.components) do
+      table.insert(names, comp.name)
+    end
+    table.insert(lines, table.concat(names, ", "))
+    count = count + 1
+  end
+
+  if detail >= 3 then
+    for _, comp in ipairs(self.components) do
+      if comp.description then
+        table.insert(lines, string.format("%s: %s", comp.name, comp.description))
+      else
+        table.insert(lines, comp.name)
+      end
+      count = count + 1
+      if comp.render then
+        count = count + comp:render(self, lines, detail)
+      end
+    end
+  else
+    for _, comp in ipairs(self.components) do
+      if comp.render then
+        count = count + comp:render(self, lines, detail)
+      end
+    end
+  end
+
+  if self.result and not vim.tbl_isempty(self.result) then
+    for k, v in pairs(self.result) do
+      table.insert(lines, string.format("  %s: %s", k, v))
+      count = count + 1
+    end
+  end
+  return count
 end
 
 -- Returns the arguments require to create a clone of this task

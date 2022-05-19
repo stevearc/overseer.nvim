@@ -1,4 +1,5 @@
 local constants = require("overseer.constants")
+local registry = require("overseer.registry")
 local util = require("overseer.util")
 local STATUS = constants.STATUS
 local M = {}
@@ -26,6 +27,7 @@ function TaskList.new()
 
   local tl = setmetatable({
     bufnr = bufnr,
+    task_detail = {},
     actions = {
       {
         name = "start",
@@ -104,16 +106,24 @@ function TaskList.new()
       tl:run_action()
     end,
   })
-
   vim.api.nvim_buf_set_keymap(bufnr, "n", "o", "", {
     callback = function()
       tl:open_buffer()
     end,
   })
-
   vim.api.nvim_buf_set_keymap(bufnr, "n", "p", "", {
     callback = function()
       tl:toggle_preview()
+    end,
+  })
+  vim.api.nvim_buf_set_keymap(bufnr, "n", "l", "", {
+    callback = function()
+      tl:change_task_detail(1)
+    end,
+  })
+  vim.api.nvim_buf_set_keymap(bufnr, "n", "h", "", {
+    callback = function()
+      tl:change_task_detail(-1)
     end,
   })
 
@@ -134,7 +144,7 @@ function TaskList:_get_task_from_line(lnum)
   lnum = lnum or vim.api.nvim_win_get_cursor(0)[1]
   -- TODO could do binary search here
   for _, v in ipairs(self.task_lines) do
-    if v[1] >= lnum then
+    if v[1] > lnum then
       return v[2]
     end
   end
@@ -157,6 +167,16 @@ function TaskList:toggle_preview()
   if winid then
     util.scroll_to_end(winid)
   end
+end
+
+function TaskList:change_task_detail(delta)
+  local task = self:_get_task_from_line()
+  if not task then
+    return
+  end
+  local detail = self.task_detail[task.id] or 1
+  self.task_detail[task.id] = math.max(1, math.min(3, detail + delta))
+  registry.update_task(task)
 end
 
 function TaskList:update_preview()
@@ -243,9 +263,9 @@ function TaskList:render(tasks)
   -- Iterate backwards so we should most recent tasks first
   for i = #tasks, 1, -1 do
     local task = tasks[i]
-    lineno = lineno + task:render(lines)
+    lineno = lineno + task:render(lines, self.task_detail[task.id])
     table.insert(self.task_lines, { lineno, task })
-    table.insert(lines, "----------")
+    table.insert(lines, "--------------------")
     lineno = lineno + 1
   end
   vim.api.nvim_buf_set_lines(self.bufnr, 0, -1, true, lines)
