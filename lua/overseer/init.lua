@@ -7,7 +7,6 @@ local M = {}
 -- TODO
 -- * Figure out how templates work with components
 --   * Params for components
---   * Force components on tasks to be unique by-slot
 -- * components can put output in the render list (i.e. "queued rerun", "rerun on fail")
 -- * Save current state of tasks (incl modifications)
 -- * get default components by category from config

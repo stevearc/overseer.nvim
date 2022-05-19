@@ -31,7 +31,7 @@ function Task.new(opts)
     cmd = opts.cmd,
     cwd = opts.cwd,
     name = opts.name or table.concat(opts.cmd, " "),
-    str_components = component.resolve(opts.components),
+    slots = {},
     components = component.load(opts.components),
   }
   next_id = next_id + 1
@@ -42,11 +42,15 @@ end
 
 -- Returns the arguments require to create a clone of this task
 function Task:serialize()
+  local components = {}
+  for _, comp in ipairs(self.components) do
+    table.insert(components, comp.name)
+  end
   return {
     name = self.name,
     cmd = self.cmd,
     cwd = self.cwd,
-    components = self.str_components,
+    components = components,
   }
 end
 
@@ -58,21 +62,25 @@ function Task:add_components(components)
   vim.validate({
     components = { components, "t" },
   })
-  local new_comps = component.resolve(components, self.str_components)
+  local new_comps = component.resolve(components, self.components)
   for _, v in ipairs(component.load(new_comps)) do
-    table.insert(self.components, v)
-    if v.on_init then
-      v:on_init(self)
+    -- Only add the component if the slot isn't taken
+    if not v.slot or not self.slots[v.slot] then
+      table.insert(self.components, v)
+      if v.on_init then
+        v:on_init(self)
+      end
     end
   end
-  for _, v in ipairs(new_comps) do
-    table.insert(self.str_components, v)
-  end
+end
+
+function Task:has_slot(slot)
+  return self.slots[slot] ~= nil
 end
 
 function Task:has_component(name)
   vim.validate({ name = { name, "s" } })
-  local new_comps = component.resolve({ name }, self.str_components)
+  local new_comps = component.resolve({ name }, self.components)
   return vim.tbl_isempty(new_comps)
 end
 

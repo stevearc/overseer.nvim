@@ -1,7 +1,6 @@
 local constants = require("overseer.constants")
 
 local STATUS = constants.STATUS
-local SLOT = constants.SLOT
 
 local M = {}
 

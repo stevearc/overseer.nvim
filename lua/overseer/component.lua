@@ -63,6 +63,8 @@ local function instantiate(name, component)
   return obj
 end
 
+-- @param components is a list of component names
+-- @param existing is a list of instantiated components
 M.resolve = function(components, existing)
   vim.validate({
     components = { components, "t" },
@@ -70,8 +72,8 @@ M.resolve = function(components, existing)
   })
   local seen = {}
   if existing then
-    for _, v in ipairs(M.resolve(existing)) do
-      seen[v] = true
+    for _, comp in ipairs(existing) do
+      seen[comp.name] = true
     end
   end
   return resolve(seen, {}, components)

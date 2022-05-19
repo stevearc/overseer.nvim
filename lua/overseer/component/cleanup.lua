@@ -6,7 +6,7 @@ M.register_all = function()
   require("overseer.component").register({
     name = "dispose_delay",
     description = "Dispose task after a timeout",
-    slot = SLOT.OTHER,
+    slot = SLOT.DISPOSE,
     builder = M.dispose_delay,
   })
 end

@@ -16,8 +16,7 @@ M.SLOT = {
   SUMMARY = "SUMMARY",
   RESULT = "RESULT",
   NOTIFY = "NOTIFY",
-  RERUN = "RERUN",
-  OTHER = "OTHER",
+  DISPOSE = "DISPOSE",
 }
 
 return M
