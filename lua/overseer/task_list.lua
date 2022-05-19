@@ -66,10 +66,10 @@ function TaskList.new()
       {
         name = "rerun on save",
         condition = function(task)
-          return not task:has_capability("rerun on save")
+          return not task:has_capability("rerun_on_save")
         end,
         callback = function(task)
-          task:add_capability(require("overseer.rerun").new_rerun_on_save())
+          task:add_capability("rerun_on_save")
         end,
       },
     },

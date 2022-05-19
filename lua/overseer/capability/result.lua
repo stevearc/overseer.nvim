@@ -1,13 +1,25 @@
 local constants = require("overseer.constants")
-local util = require("overseer.util")
 local STATUS = constants.STATUS
 local CATEGORY = constants.CATEGORY
 local M = {}
 
-M.new_output_summarizer = function()
-  return {
-    name = "stdout/stderr summarizer",
+M.register_all = function()
+  require("overseer.capability").register({
+    name = "output_summary",
+    description = "Summarize stdout/stderr",
     category = CATEGORY.RESULT,
+    builder = M.output_summarizer,
+  })
+  require("overseer.capability").register({
+    name = "exit_code",
+    description = "Exit code finalizer",
+    category = CATEGORY.RESULT,
+    builder = M.exit_code_finalizer,
+  })
+end
+
+M.output_summarizer = function()
+  return {
     any_stderr = false,
     on_reset = function(self)
       self.any_stderr = false
@@ -42,10 +54,8 @@ M.new_output_summarizer = function()
   }
 end
 
-M.new_exit_code_finalizer = function()
+M.exit_code_finalizer = function()
   return {
-    name = "exit code",
-    category = CATEGORY.RESULT,
     on_exit = function(self, task, code)
       local status = code == 0 and STATUS.SUCCESS or STATUS.FAILURE
       task:_set_result(status, task.result or {})

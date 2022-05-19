@@ -5,15 +5,34 @@ local CATEGORY = constants.CATEGORY
 
 local M = {}
 
-M.new_rerun_on_trigger = function(opts)
+M.register_all = function()
+  require("overseer.capability").register({
+    name = "rerun_trigger",
+    description = "Rerun capability",
+    category = CATEGORY.RERUN,
+    builder = M.rerun_trigger,
+  })
+  require("overseer.capability").register({
+    name = "rerun_on_fail",
+    description = "Rerun on failure",
+    category = CATEGORY.RERUN,
+    builder = M.rerun_on_fail,
+  })
+  require("overseer.capability").register({
+    name = "rerun_on_save",
+    description = "Rerun on save",
+    category = CATEGORY.RERUN,
+    builder = M.rerun_on_save,
+  })
+end
+
+M.rerun_trigger = function(opts)
   opts = opts or {}
   vim.validate({
     delay = { opts.delay, "n", true },
   })
   opts.delay = opts.delay or 500
   return {
-    name = "rerun trigger handler",
-    category = CATEGORY.RERUN,
     rerun_after_finalize = false,
     _trigger_active = false,
     _trigger_rerun = function(self, task)
@@ -47,7 +66,7 @@ M.new_rerun_on_trigger = function(opts)
   }
 end
 
-M.new_rerun_on_save = function(opts)
+M.rerun_on_save = function(opts)
   opts = opts or {}
   vim.validate({
     delay = { opts.delay, "n", true },
@@ -55,8 +74,6 @@ M.new_rerun_on_save = function(opts)
   opts.delay = opts.delay or 500
 
   return {
-    name = "rerun on save",
-    category = CATEGORY.RERUN,
     id = nil,
     on_init = function(self, task)
       self.id = vim.api.nvim_create_autocmd("BufWritePost", {
@@ -74,10 +91,8 @@ M.new_rerun_on_save = function(opts)
   }
 end
 
-M.new_rerun_on_fail = function()
+M.rerun_on_fail = function()
   return {
-    name = "rerun on fail",
-    category = CATEGORY.RERUN,
     on_finalize = function(self, task)
       if task.status == STATUS.FAILURE then
         task:rerun()

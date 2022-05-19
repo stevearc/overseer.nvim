@@ -1,6 +1,12 @@
 local M = {}
 
-M.setup = function(opts) end
+M.setup = function(opts)
+  -- pass
+  require("overseer.capability").alias(
+    "default",
+    { "output_summary", "exit_code", "notify_success_failure", "rerun_trigger" }
+  )
+end
 
 M.get_default_notifier = function()
   local notify = require("overseer.notify")

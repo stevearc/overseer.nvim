@@ -1,6 +1,14 @@
 local Task = require("overseer.task")
 local M = {}
 
+local builtin_modules = { "go", "make" }
+
+M.register_all = function()
+  for _, mod in ipairs(builtin_modules) do
+    require(string.format("overseer.template.%s", mod)).register_all()
+  end
+end
+
 local TemplateRegistry = {}
 
 function TemplateRegistry.new()
@@ -89,7 +97,7 @@ function Template.new(opts)
   for _, param in pairs(opts.params) do
     vim.validate({
       name = { param.name, "s", true },
-      description = { param.description, "s" },
+      description = { param.description, "s", true },
       optional = { param.optional, "b", true },
     })
   end
@@ -120,12 +128,15 @@ function Template:prompt(params, callback)
   end
 
   if missing then
+    local prompt
+    local param = self.params[missing]
+    if param.description then
+      prompt = string.format("%s (%s)", param.name or missing, param.description)
+    else
+      prompt = param.name or missing
+    end
     vim.ui.input({
-      prompt = string.format(
-        "%s (%s)",
-        self.params[missing].name or missing,
-        self.params[missing].description
-      ),
+      prompt = prompt,
     }, function(val)
       if val then
         params[missing] = val

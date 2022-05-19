@@ -11,11 +11,10 @@ local M = {}
 -- * get default capabilities by category from config
 --
 -- WISHLIST
--- * Run a test (file/suite/line) and notify.
--- * Run a test (file/suite/line) every time you save a file (debounce).
 -- * re-run can interrupt (stop job)
--- * :make every time you save a file (debounce).
--- * Save task templates somehow
+-- * Live build a task from a template + capabilities
+-- * Can create capability alias for groups of capabilities
+-- * Save bundle of tasks for restoration
 -- * Load VSCode task definitions
 -- * Store recent commands in history per-directory
 --   * Can select & run task from recent history
@@ -27,6 +26,7 @@ local M = {}
 -- * Jump to most recent task (started/notified)
 
 M.setup = function(opts)
+  require("overseer.capability").register_all()
   config.setup(opts)
 end
 
@@ -46,9 +46,10 @@ M.load_from_template = function(name, params, silent)
   })
   params = params or {}
   params.bufname = vim.api.nvim_buf_get_name(0)
+  params.dirname = vim.fn.getcwd(0)
   local dir = params.bufname
   if dir == "" then
-    dir = vim.fn.getcwd(0)
+    dir = params.dirname
   end
   local ft = vim.api.nvim_buf_get_option(0, "filetype")
   local tmpl = template.get_by_name(name, dir, ft)
@@ -59,7 +60,7 @@ M.load_from_template = function(name, params, silent)
       error(string.format("Could not find template '%s'", name))
     end
   end
-  tmpl:build(params)
+  return tmpl:build(params)
 end
 
 M.start_from_template = function(name, params)
@@ -67,46 +68,40 @@ M.start_from_template = function(name, params)
     name = { name, "s", true },
     params = { params, "t", true },
   })
+  if name then
+    local task = M.load_from_template(name, params)
+    task:start()
+    return
+  end
   params = params or {}
   params.bufname = vim.api.nvim_buf_get_name(0)
+  params.dirname = vim.fn.getcwd(0)
   local dir = params.bufname
   if dir == "" then
-    dir = vim.fn.getcwd(0)
+    dir = params.dirname
   end
   local ft = vim.api.nvim_buf_get_option(0, "filetype")
 
-  if name then
-    local tmpl = template.get_by_name(name, dir, ft)
-    if not tmpl then
-      error(string.format("Could not find template '%s'", name))
-    end
-    tmpl:prompt(params, function(task)
-      if task then
-        task:start()
+  local templates = template.list(dir, ft)
+  vim.ui.select(templates, {
+    prompt = "Task template:",
+    kind = "overseer_template",
+    format_item = function(tmpl)
+      if tmpl.description then
+        return string.format("%s (%s)", tmpl.name, tmpl.description)
+      else
+        return tmpl.name
       end
-    end)
-  else
-    local templates = template.list(dir, ft)
-    vim.ui.select(templates, {
-      prompt = "Task template:",
-      kind = "overseer_template",
-      format_item = function(tmpl)
-        if tmpl.description then
-          return string.format("%s (%s)", tmpl.name, tmpl.description)
-        else
-          return tmpl.name
+    end,
+  }, function(tmpl)
+    if tmpl then
+      tmpl:prompt(params, function(task)
+        if task then
+          task:start()
         end
-      end,
-    }, function(tmpl)
-      if tmpl then
-        tmpl:prompt(params, function(task)
-          if task then
-            task:start()
-          end
-        end)
-      end
-    end)
-  end
+      end)
+    end
+  end)
 end
 
 setmetatable(M, {

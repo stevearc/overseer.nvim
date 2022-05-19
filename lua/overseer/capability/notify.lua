@@ -3,6 +3,25 @@ local STATUS = constants.STATUS
 local CATEGORY = constants.CATEGORY
 local M = {}
 
+M.register_all = function()
+  require("overseer.capability").register({
+    name = "notify_success_failure",
+    description = "notify on success/failure",
+    category = CATEGORY.NOTIFY,
+    builder = function()
+      return M.result_notifier({ when = M.NOTIFY.SUCCESS_FAILURE })
+    end,
+  })
+  require("overseer.capability").register({
+    name = "notify_failure",
+    description = "notify on failure",
+    category = CATEGORY.NOTIFY,
+    builder = function()
+      return M.result_notifier({ when = M.NOTIFY.FAILURE })
+    end,
+  })
+end
+
 M.NOTIFY = {
   NEVER = "never",
   SUCCESS_FAILURE = "success_failure",
@@ -11,15 +30,13 @@ M.NOTIFY = {
   FAILURE = "failure",
 }
 
-M.new_on_result_notifier = function(opts)
+M.result_notifier = function(opts)
   opts = opts or {}
   vim.validate({
     when = { opts.when, "s", true },
     format = { opts.format, "f", true },
   })
   return {
-    name = "notify on result",
-    category = CATEGORY.NOTIFY,
     when = opts.when or M.NOTIFY.SUCCESS_FAILURE,
     format = opts.format,
     on_result = function(self, task, status)

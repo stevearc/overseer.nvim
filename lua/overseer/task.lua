@@ -1,3 +1,4 @@
+local capability = require("overseer.capability")
 local config = require("overseer.config")
 local constants = require("overseer.constants")
 local registry = require("overseer.registry")
@@ -16,33 +17,14 @@ function Task.new(opts)
     cwd = { opts.cwd, "s", true },
     name = { opts.name, "s", true },
     capabilities = { opts.capabilities, "t", true },
-    overwrite_capabilities = { opts.overwrite_capabilities, "b", true },
     notifier = { opts.notifier, "t", true },
     summarizer = { opts.summarizer, "t", true },
     finalizer = { opts.finalizer, "t", true },
     rerunner = { opts.rerunner, "t", true },
   })
 
-  if not opts.capabilities or not opts.overwrite_capabilities then
-    opts.capabilities = opts.capabilities or {}
-    if not opts.notifier then
-      opts.notifier = config.get_default_notifier()
-    end
-    if not opts.summarizer then
-      opts.summarizer = config.get_default_summarizer()
-    end
-    if not opts.finalizer then
-      opts.finalizer = config.get_default_finalizer()
-    end
-    if not opts.rerunner then
-      opts.rerunner = config.get_default_rerunner()
-    end
-    table.insert(opts.capabilities, opts.notifier)
-    table.insert(opts.capabilities, opts.summarizer)
-    table.insert(opts.capabilities, opts.finalizer)
-    table.insert(opts.capabilities, opts.rerunner)
-  elseif opts.notifier then
-    vim.notify("Ignoring 'notifier' option when 'capabilities' is passed", vim.log.levels.WARN)
+  if not opts.capabilities then
+    opts.capabilities = { "default" }
   end
   -- Build the instance data for the task
   local data = {
@@ -53,15 +35,9 @@ function Task.new(opts)
     cmd = opts.cmd,
     cwd = opts.cwd,
     name = opts.name or table.concat(opts.cmd, " "),
-    capabilities = opts.capabilities,
+    str_capabilities = capability.resolve(opts.capabilities),
+    capabilities = capability.load(opts.capabilities),
   }
-  -- Make sure every capability has a name
-  for _, cap in ipairs(data.capabilities) do
-    vim.validate({
-      name = { cap.name, "s" },
-      category = { cap.category, "s" },
-    })
-  end
   next_id = next_id + 1
   local task = setmetatable(data, { __index = Task })
   task:dispatch("on_init")
@@ -69,24 +45,29 @@ function Task.new(opts)
 end
 
 function Task:add_capability(cap)
+  self:add_capabilities({ cap })
+end
+
+function Task:add_capabilities(capabilities)
   vim.validate({
-    name = { cap.name, "s" },
-    category = { cap.category, "s" },
+    capabilities = { capabilities, "t" },
   })
-  table.insert(self.capabilities, cap)
-  if cap.on_init then
-    cap:on_init(self)
+  local new_caps = capability.resolve(capabilities, self.str_capabilities)
+  for _, v in ipairs(capability.load(new_caps)) do
+    table.insert(self.capabilities, v)
+    if v.on_init then
+      v:on_init(self)
+    end
+  end
+  for _, v in ipairs(new_caps) do
+    table.insert(self.str_capabilities, v)
   end
 end
 
 function Task:has_capability(name)
   vim.validate({ name = { name, "s" } })
-  for _, cap in ipairs(self.capabilities) do
-    if cap.name == name then
-      return true
-    end
-  end
-  return false
+  local new_caps = capability.resolve({ name }, self.str_capabilities)
+  return vim.tbl_isempty(new_caps)
 end
 
 function Task:is_running()
@@ -214,6 +195,7 @@ function Task:start()
   end)
 
   -- It's common to have autocmds that enter insert mode when opening a terminal
+  -- This is a hack so we don't end up in insert mode after starting a task
   vim.defer_fn(function()
     local new_mode = vim.api.nvim_get_mode().mode
     if new_mode ~= mode then
