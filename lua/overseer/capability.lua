@@ -3,7 +3,7 @@ local M = {}
 local registry = {}
 local aliases = {}
 
-local builtin_modules = { "notify", "rerun", "result" }
+local builtin_modules = { "cleanup", "notify", "rerun", "result" }
 M.register_all = function()
   for _, mod in ipairs(builtin_modules) do
     require(string.format("overseer.capability.%s", mod)).register_all()

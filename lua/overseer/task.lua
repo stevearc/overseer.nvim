@@ -31,6 +31,7 @@ function Task.new(opts)
     id = next_id,
     summary = "",
     result = nil,
+    disposed = false,
     status = STATUS.PENDING,
     cmd = opts.cmd,
     cwd = opts.cwd,
@@ -115,17 +116,20 @@ function Task:_set_result(status, data)
   self:dispatch("on_result", status, data)
 
   -- Cleanup
-  local chan_id = self.chan_id
-  self.chan_id = nil
   -- Forcibly stop here because if we set the result before the process has
   -- exited, then we need to stop the process. Otherwise if we re-run the task
   -- the previous job may still be ongoing, and its callbacks will interfere
   -- with ours.
-  vim.fn.jobstop(chan_id)
+  vim.fn.jobstop(self.chan_id)
+  self.chan_id = nil
   self:dispatch("on_finalize")
 end
 
 function Task:dispose()
+  if self.disposed then
+    return
+  end
+  self.disposed = true
   if self:is_running() then
     error("Cannot call dispose on running task")
   end
@@ -229,9 +233,7 @@ function Task:stop()
   if not self:is_running() then
     return false
   end
-  local chan_id = self.chan_id
   self:_set_result(STATUS.CANCELED)
-  vim.fn.jobstop(chan_id)
   return true
 end
 

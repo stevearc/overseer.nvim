@@ -5,12 +5,15 @@ local window = require("overseer.window")
 local M = {}
 
 -- TODO
--- * Rerun trigger handler feels different from the rest. Maybe separate it out.
+-- * Figure out how templates work with capabilities
+--   * For example, a test tmpl may need to override the exit_code handler. How to specify that it *overrides* one handler but *merges* with the others (e.g. notifier)
+--   * What if we have dispose_delay on a test task, but want to edit it to rerun on save AND remove dispose_delay? How can we add an action that does this in a generic way? (in case a custom capability is used instead of dispose_delay)
 -- * Capabilities can put output in the render list (i.e. "queued rerun", "rerun on fail")
 -- * Save current state of tasks (incl modifications)
 -- * get default capabilities by category from config
 --
 -- WISHLIST
+-- * probably rename capability -> component
 -- * re-run can interrupt (stop job)
 -- * Live build a task from a template + capabilities
 -- * Can create capability alias for groups of capabilities
@@ -21,9 +24,10 @@ local M = {}
 -- * Add tests
 -- * add debugging helpers for capabilities
 -- * parse output and populate quickfix
--- * capability to do automated cleanup (dispose after timeout)
 -- * Require task to be unique (disallow duplicates). Coordinate among all vim instances
 -- * Jump to most recent task (started/notified)
+-- * Rerun trigger handler feels different from the rest. Maybe separate it out.
+-- * Do we actually need the capability categories?
 
 M.setup = function(opts)
   require("overseer.capability").register_all()

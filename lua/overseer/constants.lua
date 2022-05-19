@@ -1,12 +1,16 @@
 local M = {}
 
-M.STATUS = {
+M.STATUS = setmetatable({
   PENDING = "PENDING",
   RUNNING = "RUNNING",
   CANCELED = "CANCELED",
   SUCCESS = "SUCCESS",
   FAILURE = "FAILURE",
-}
+}, {
+  __index = function(_, key)
+    error(string.format("Unknown constant value '%s'", key))
+  end,
+})
 
 M.CATEGORY = {
   SUMMARY = "SUMMARY",

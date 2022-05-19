@@ -1,11 +1,33 @@
 local M = {}
 
 M.setup = function(opts)
-  -- pass
-  require("overseer.capability").alias(
-    "default",
-    { "output_summary", "exit_code", "notify_success_failure", "rerun_trigger" }
-  )
+  local cap = require("overseer.capability")
+  cap.alias("default", {
+    "output_summary",
+    "exit_code",
+    "notify_success_failure",
+    "rerun_trigger",
+  })
+  cap.alias("default_once", {
+    "output_summary",
+    "exit_code",
+    "notify_success_failure",
+    "dispose_delay",
+  })
+  cap.alias("default_up", {
+    "output_summary",
+    "exit_code",
+    "notify_failure",
+    "rerun_trigger",
+    "rerun_on_fail",
+  })
+  cap.alias("default_watch", {
+    "output_summary",
+    "exit_code",
+    "notify_failure",
+    "rerun_trigger",
+    "rerun_on_save",
+  })
 end
 
 M.get_default_notifier = function()
