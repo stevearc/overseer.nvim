@@ -8,6 +8,7 @@ local M = {}
 
 -- TODO
 -- * Live build a task from a template + components
+-- * add_component should replace existing
 --
 -- WISHLIST
 -- * { } to navigate task list

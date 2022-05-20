@@ -352,6 +352,7 @@ function Task:start()
       end,
     })
   end)
+  vim.api.nvim_buf_set_option(self.bufnr, 'buflisted', false)
 
   -- It's common to have autocmds that enter insert mode when opening a terminal
   -- This is a hack so we don't end up in insert mode after starting a task
