@@ -7,29 +7,32 @@ local window = require("overseer.window")
 local M = {}
 
 -- TODO
--- * { } to navigate task list
 -- * Colorize task list
+-- * Maybe add a way to customize the task detail per-piece. e.g. {components = 0, result = 2}
 -- * More compact result line in task_list
+-- * Live build a task from a template + components
 --
 -- WISHLIST
--- * Definitely going to need some sort of logging system
+-- * { } to navigate task list
+-- * Timestamp status changes
+-- * Register template with callback conditional (e.g. make only when Makefile exists)
+-- * What about task chaining? Do we care?
 -- * Notifier that notifies on fail, or transition from fail to success
--- * Live build a task from a template + components
+-- * Definitely going to need some sort of logging system
 -- * Load VSCode task definitions
 -- * Store recent commands in history per-directory
 --   * Can select & run task from recent history
 -- * Add tests
--- * Maybe add a way to customize the task detail per-piece. e.g. {components = 0, result = 2}
 -- * add debugging helpers for components
 -- * stronger typing for all the params
 -- * component: parse output and populate quickfix
 -- * task list: bulk actions
--- * Autostart task on vim open in dir (needs some uniqueness checks)
 -- * ability to require task to be unique (disallow duplicates). Coordinate among all vim instances
--- * Quick jump to most recent task (started/notified)
--- * Rerun trigger handler feels different from the rest. Maybe separate it out.
+-- * Autostart task on vim open in dir (needs some uniqueness checks)
 -- * Lualine component
 -- * Separation of registry and task list feels like it needs refactor
+-- * docs/helpfile
+-- * keybinding help in float
 
 M.setup = function(opts)
   require("overseer.component").register_all()
