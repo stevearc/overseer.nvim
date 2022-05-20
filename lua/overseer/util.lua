@@ -13,6 +13,10 @@ M.join = function(...)
   return table.concat({ ... }, sep)
 end
 
+M.is_subpath = function(dir, path)
+  return string.sub(path, 0, string.len(dir)) == dir
+end
+
 M.get_cache_dir = function()
   return M.join(vim.fn.stdpath("cache"), "overseer")
 end

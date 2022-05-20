@@ -79,8 +79,17 @@ function TaskList.new()
           return task:has_component("rerun_trigger") and not task:has_component("rerun_on_save")
         end,
         callback = function(task)
-          task:remove_by_slot(SLOT.DISPOSE)
-          task:add_component("rerun_on_save")
+          vim.ui.input({
+            prompt = "Directory (files saved here will trigger rerun)",
+            default = vim.fn.getcwd(0),
+          }, function(dirname)
+            task:remove_by_slot(SLOT.DISPOSE)
+            if dirname then
+              task:add_component({ "rerun_on_save", dirname = dirname })
+            else
+              task:add_component("rerun_on_save")
+            end
+          end)
         end,
       },
     },

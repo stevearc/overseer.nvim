@@ -65,6 +65,11 @@ M.rerun_on_save = {
   name = "rerun_on_save",
   description = "Rerun on any buffer :write",
   params = {
+    dirname = {
+      name = "directory",
+      description = "Only rerun when writing files in this directory",
+      optional = true,
+    },
     delay = {
       description = "How long to wait (in ms) post-result before triggering rerun",
       optional = true,
@@ -74,6 +79,7 @@ M.rerun_on_save = {
     opts = opts or {}
     vim.validate({
       delay = { opts.delay, "n", true },
+      dirname = { opts.dirname, "s", true },
     })
     opts.delay = opts.delay or 500
 
@@ -83,8 +89,14 @@ M.rerun_on_save = {
         self.id = vim.api.nvim_create_autocmd("BufWritePost", {
           pattern = "*",
           desc = string.format("Rerun task %s on save", task.name),
-          callback = function()
-            task:rerun()
+          callback = function(params)
+            -- Only care about normal files
+            if vim.api.nvim_buf_get_option(params.buf, "buftype") == "" then
+              local bufname = vim.api.nvim_buf_get_name(params.buf)
+              if not opts.dirname or util.is_subpath(opts.dirname, bufname) then
+                task:rerun()
+              end
+            end
           end,
         })
       end,

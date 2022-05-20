@@ -9,7 +9,6 @@ local M = {}
 -- TODO
 -- * { } to navigate task list
 -- * Colorize task list
--- * Rerun on save optionally takes directory
 -- * Autostart task on vim open in dir (needs some uniqueness checks)
 --
 -- WISHLIST

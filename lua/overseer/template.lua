@@ -75,7 +75,7 @@ function TemplateRegistry:get_templates(opts)
     for i = 1, #dirs do
       local tmpl_dir = dirs[#dirs + 1 - i]
       local ft_map = self.by_dir[tmpl_dir]
-      if string.sub(opts.dir, 0, string.len(tmpl_dir)) == tmpl_dir then
+      if util.is_subpath(tmpl_dir, opts.dir) then
         append_matching_templates(ret, ft_map, opts.filetype, opts.tags)
       end
     end
