@@ -16,4 +16,6 @@ M.STATUS = make_enum({ "PENDING", "RUNNING", "CANCELED", "SUCCESS", "FAILURE" })
 
 M.SLOT = make_enum({ "SUMMARY", "RESULT", "NOTIFY", "DISPOSE" })
 
+M.TAG = make_enum({ "TEST", "BUILD", "SERVE" })
+
 return M

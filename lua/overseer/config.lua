@@ -1,5 +1,6 @@
 local default_config = {
-  list_sep = "--------------------",
+  list_sep = "────────────────────────────────────────",
+  use_builtin_templates = true,
   component_sets = {
     default = {
       "output_summary",
@@ -37,6 +38,10 @@ M.setup = function(opts)
   local newconf = vim.tbl_deep_extend("force", default_config, opts or {})
   for k, v in pairs(newconf) do
     M[k] = v
+  end
+
+  if M.use_builtin_templates then
+    require("overseer.template").register_all()
   end
 
   local component = require("overseer.component")

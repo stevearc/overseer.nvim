@@ -1,11 +1,13 @@
+local overseer = require("overseer")
 local M = {}
 
 M.go_test = require("overseer.template").new({
   name = "run test",
   description = "go test <directory>",
+  tags = { overseer.TAG.TEST },
   builder = function(params)
     return {
-      cmd = { "go", "test", params.dirname },
+      cmd = { "go", "test", params.dirname .. "/..." },
     }
   end,
   params = {
@@ -14,7 +16,7 @@ M.go_test = require("overseer.template").new({
 })
 
 M.register_all = function()
-  require("overseer.template").register({ M.go_test }, { filetype = "go" })
+  overseer.template.register({ M.go_test }, { filetype = "go" })
 end
 
 return M

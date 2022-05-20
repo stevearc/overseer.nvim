@@ -1,4 +1,5 @@
 local Task = require("overseer.task")
+local util = require("overseer.util")
 local M = {}
 
 local builtin_modules = { "go", "make" }
@@ -30,33 +31,56 @@ function TemplateRegistry.new()
   }, { __index = TemplateRegistry })
 end
 
-local function append_matching_templates(ret, ft_map, filetype)
-  if filetype and ft_map[filetype] then
-    for _, tmpl in ipairs(ft_map[filetype]) do
-      table.insert(ret, tmpl)
+local function tags_match(tags, tmpl)
+  if not tags then
+    return true
+  end
+  if not tmpl.tags then
+    return false
+  end
+  local tag_map = util.list_to_map(tmpl.tags)
+  for _, v in ipairs(tags) do
+    if not tag_map[v] then
+      return false
     end
   end
-  if ft_map["_"] then
-    for _, tmpl in ipairs(ft_map["_"]) do
-      table.insert(ret, tmpl)
+  return true
+end
+
+local function append_matching_templates(ret, ft_map, filetype, tags)
+  for _, ft in ipairs({ filetype, "_" }) do
+    if ft and ft_map[ft] then
+      for _, tmpl in ipairs(ft_map[ft]) do
+        if tags_match(tags, tmpl) then
+          table.insert(ret, tmpl)
+        end
+      end
     end
   end
 end
 
-function TemplateRegistry:get_templates(dir, filetype)
+function TemplateRegistry:get_templates(opts)
+  opts = opts or {}
+  vim.validate({
+    tags = { opts.tags, "t", true },
+    dir = { opts.dir, "s", true },
+    filetype = { opts.filetype, "s", true },
+  })
   local ret = {}
-  local dirs = vim.tbl_keys(self.by_dir)
-  -- Iterate the directories from longest to shortest. We would like to add the
-  -- *most specific* tasks first.
-  table.sort(dirs)
-  for i = 1, #dirs do
-    local tmpl_dir = dirs[#dirs + 1 - i]
-    local ft_map = self.by_dir[tmpl_dir]
-    if string.sub(dir, 0, string.len(tmpl_dir)) == tmpl_dir then
-      append_matching_templates(ret, ft_map, filetype)
+  if opts.dir then
+    local dirs = vim.tbl_keys(self.by_dir)
+    -- Iterate the directories from longest to shortest. We would like to add the
+    -- *most specific* tasks first.
+    table.sort(dirs)
+    for i = 1, #dirs do
+      local tmpl_dir = dirs[#dirs + 1 - i]
+      local ft_map = self.by_dir[tmpl_dir]
+      if string.sub(opts.dir, 0, string.len(tmpl_dir)) == tmpl_dir then
+        append_matching_templates(ret, ft_map, opts.filetype, opts.tags)
+      end
     end
   end
-  append_matching_templates(ret, self.global, filetype)
+  append_matching_templates(ret, self.global, opts.filetype, opts.tags)
   return ret
 end
 
@@ -66,12 +90,10 @@ function TemplateRegistry:register(tmpl, opts)
     tmpl = { tmpl, "t" },
     opts = { opts, "t", true },
   })
-  if opts then
-    vim.validate({
-      ["opts.dir"] = { opts.dir, "s", true },
-      ["opts.filetype"] = { opts.filetype, "s", true },
-    })
-  end
+  vim.validate({
+    ["opts.dir"] = { opts.dir, "s", true },
+    ["opts.filetype"] = { opts.filetype, "s", true },
+  })
   if not vim.tbl_islist(tmpl) then
     tmpl = { tmpl }
   end
@@ -104,8 +126,9 @@ function Template.new(opts)
   vim.validate({
     name = { opts.name, "s" },
     description = { opts.description, "s", true },
-    builder = { opts.builder, "f" },
+    tags = { opts.tags, "t", true },
     params = { opts.params, "t" },
+    builder = { opts.builder, "f" },
   })
   for _, param in pairs(opts.params) do
     vim.validate({
@@ -170,12 +193,12 @@ M.register = function(...)
   registry:register(...)
 end
 
-M.list = function(dir, filetype)
-  return registry:get_templates(dir, filetype)
+M.list = function(opts)
+  return registry:get_templates(opts)
 end
 
-M.get_by_name = function(name, dir, filetype)
-  local templates = registry:get_templates(dir, filetype)
+M.get_by_name = function(name, opts)
+  local templates = registry:get_templates(opts)
   for _, t in ipairs(templates) do
     if t.name == name then
       return t

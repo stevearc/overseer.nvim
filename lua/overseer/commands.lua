@@ -38,15 +38,26 @@ M.create_commands = function()
     desc = "Delete a saved task bundle",
     nargs = "?",
   })
+  vim.api.nvim_create_user_command("OverseerRun", function(params)
+    local opts = {
+      name = params.args ~= "" and params.args or nil,
+    }
+    M.run_template(opts)
+  end, {
+    desc = "Run a task from a template",
+    nargs = "?",
+  })
 end
 
 -- TEMPLATE LOADING/RUNNING
---
-M.create_from_template = function(name, params, silent)
+
+M.run_template = function(opts, params, callback)
+  opts = opts or {}
   vim.validate({
-    name = { name, "s" },
-    params = { params, "t", true },
-    silent = { silent, "b", true },
+    name = { opts.name, "s", true },
+    tags = { opts.tags, "t", true },
+    nostart = { opts.nostart, "b", true },
+    callback = { callback, "f", true },
   })
   params = params or {}
   params.bufname = vim.api.nvim_buf_get_name(0)
@@ -56,56 +67,46 @@ M.create_from_template = function(name, params, silent)
     dir = params.dirname
   end
   local ft = vim.api.nvim_buf_get_option(0, "filetype")
-  local tmpl = template.get_by_name(name, dir, ft)
-  if not tmpl then
-    if silent then
-      return
-    else
-      error(string.format("Could not find template '%s'", name))
+  if opts.name then
+    local tmpl = template.get_by_name(opts.name, { dir = dir, filetype = ft, tags = opts.tags })
+    if not tmpl then
+      error(string.format("Could not find template '%s'", opts.name))
     end
-  end
-  return tmpl:build(params)
-end
-
-M.start_from_template = function(name, params)
-  vim.validate({
-    name = { name, "s", true },
-    params = { params, "t", true },
-  })
-  if name then
-    local task = M.create_from_template(name, params)
-    task:start()
-    return
-  end
-  params = params or {}
-  params.bufname = vim.api.nvim_buf_get_name(0)
-  params.dirname = vim.fn.getcwd(0)
-  local dir = params.bufname
-  if dir == "" then
-    dir = params.dirname
-  end
-  local ft = vim.api.nvim_buf_get_option(0, "filetype")
-
-  local templates = template.list(dir, ft)
-  vim.ui.select(templates, {
-    prompt = "Task template:",
-    kind = "overseer_template",
-    format_item = function(tmpl)
-      if tmpl.description then
-        return string.format("%s (%s)", tmpl.name, tmpl.description)
-      else
-        return tmpl.name
+    tmpl:prompt(params, function(task)
+      if not opts.nostart then
+        task:start()
       end
-    end,
-  }, function(tmpl)
-    if tmpl then
-      tmpl:prompt(params, function(task)
-        if task then
-          task:start()
+      if callback then
+        callback(task)
+      end
+    end)
+  else
+    local templates = template.list({ dir = dir, filetype = ft, tags = opts.tags })
+    if #templates == 0 then
+      vim.notify("Could not find any matching task templates", vim.log.levels.ERROR)
+      return
+    elseif #templates == 1 then
+      opts.name = templates[1].name
+      M.run_template(opts, params, callback)
+    else
+      vim.ui.select(templates, {
+        prompt = "Task template:",
+        kind = "overseer_template",
+        format_item = function(tmpl)
+          if tmpl.description then
+            return string.format("%s (%s)", tmpl.name, tmpl.description)
+          else
+            return tmpl.name
+          end
+        end,
+      }, function(tmpl)
+        if tmpl then
+          opts.name = tmpl.name
+          M.run_template(opts, params, callback)
         end
       end)
     end
-  end)
+  end
 end
 
 -- TASK BUNDLE

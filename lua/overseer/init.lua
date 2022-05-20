@@ -1,19 +1,21 @@
 local commands = require("overseer.commands")
 local config = require("overseer.config")
+local constants = require("overseer.constants")
 local Task = require("overseer.task")
 local window = require("overseer.window")
 local M = {}
 
 -- TODO
+-- * session-wrapper support
 -- * { } to navigate task list
 -- * Colorize task list
--- * Maybe need category/tags for templates? (e.g. "Run test")
 -- * Rerun on save optionally takes directory
 -- * Autostart task on vim open in dir (needs some uniqueness checks)
 --
 -- WISHLIST
 -- * re-run can interrupt (stop job)
 -- * Definitely going to need some sort of logging system
+-- * Notifier that notifies on fail, or transition from fail to success
 -- * Live build a task from a template + components
 -- * Load VSCode task definitions
 -- * Store recent commands in history per-directory
@@ -47,13 +49,17 @@ M.list_task_bundles = commands.list_task_bundles
 M.load_task_bundles = commands.load_task_bundles
 M.save_task_bundles = commands.save_task_bundles
 M.delete_task_bundles = commands.delete_task_bundles
-M.create_from_template = commands.create_from_template
-M.start_from_template = commands.start_from_template
+M.run_template = commands.run_template
+
+M.TAG = constants.TAG
+M.SLOT = constants.SLOT
+M.STATUS = constants.STATUS
 
 setmetatable(M, {
-  __index = function(_, key)
+  __index = function(t, key)
     local ok, val = pcall(require, string.format("overseer.%s", key))
     if ok then
+      rawset(t, key, val)
       return val
     else
       error(string.format("Error requiring overseer.%s: %s", key, val))
