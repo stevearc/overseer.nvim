@@ -7,6 +7,18 @@ M.register_all = function()
   for _, mod in ipairs(builtin_modules) do
     require(string.format("overseer.template.%s", mod)).register_all()
   end
+  -- For testing and debugging
+  M.register(M.new({
+    name = "sleep",
+    builder = function(params)
+      return {
+        cmd = { "sleep", params.duration },
+      }
+    end,
+    params = {
+      duration = {},
+    },
+  }))
 end
 
 local TemplateRegistry = {}
@@ -49,6 +61,7 @@ function TemplateRegistry:get_templates(dir, filetype)
 end
 
 function TemplateRegistry:register(tmpl, opts)
+  opts = opts or {}
   vim.validate({
     tmpl = { tmpl, "t" },
     opts = { opts, "t", true },
