@@ -6,6 +6,7 @@ local default_config = {
       "exit_code",
       "notify_result",
       "rerun_trigger",
+      "dispose_delay",
     },
     default_once = {
       "output_summary",
@@ -39,7 +40,7 @@ M.setup = function(opts)
   end
 
   local component = require("overseer.component")
-  for k,v in pairs(M.component_sets) do
+  for k, v in pairs(M.component_sets) do
     component.alias(k, v)
   end
 end
