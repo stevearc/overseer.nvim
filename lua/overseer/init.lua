@@ -7,7 +7,6 @@ local window = require("overseer.window")
 local M = {}
 
 -- TODO
--- * Notifier that notifies on fail, or transition from fail to success
 -- * Live build a task from a template + components
 --
 -- WISHLIST

@@ -25,7 +25,7 @@ local default_config = {
     default_watch = {
       "output_summary",
       "exit_code",
-      { "notify_result", statuses = { require("overseer.constants").STATUS.FAILURE } },
+      "notify_red_green",
       { "rerun_trigger", interrupt = true },
       "rerun_on_save",
     },
