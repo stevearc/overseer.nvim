@@ -83,6 +83,7 @@ end
 local function instantiate(comp_params, component)
   local obj
   if type(comp_params) == "string" then
+    comp_params = { comp_params }
     obj = component.builder()
   else
     validate_params(comp_params, component.params)

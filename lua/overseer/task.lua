@@ -77,6 +77,14 @@ function Task:render(lines, detail)
         table.insert(lines, comp.name)
       end
       count = count + 1
+
+      for k, v in pairs(comp.params) do
+        if k ~= 1 then
+          table.insert(lines, string.format("  %s: %s", k, v))
+          count = count + 1
+        end
+      end
+
       if comp.render then
         count = count + comp:render(self, lines, detail)
       end
@@ -137,11 +145,22 @@ function Task:add_components(components)
   end
 end
 
+function Task:get_component(name)
+  vim.validate({
+    name = { name, "s" },
+  })
+  for _, v in ipairs(self.components) do
+    if v.name == name then
+      return v
+    end
+  end
+end
+
 function Task:remove_component(name)
   vim.validate({
     name = { name, "s" },
   })
-  self:remove_components({ name })
+  return self:remove_components({ name })
 end
 
 function Task:remove_components(names)
@@ -153,9 +172,11 @@ function Task:remove_components(names)
     lookup[name] = true
   end
   local indexes = {}
+  local ret = {}
   for i, v in ipairs(self.components) do
     if lookup[v.name] then
       table.insert(indexes, i)
+      table.insert(ret, v)
     end
   end
   -- Iterate backwards so removing one doesn't invalidate the indexes
@@ -169,6 +190,7 @@ function Task:remove_components(names)
       comp:on_dispose(self)
     end
   end
+  return ret
 end
 
 function Task:remove_by_slot(slot)

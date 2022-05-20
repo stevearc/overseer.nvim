@@ -32,7 +32,7 @@ function TemplateRegistry.new()
 end
 
 local function tags_match(tags, tmpl)
-  if not tags then
+  if not tags or vim.tbl_isempty(tags) then
     return true
   end
   if not tmpl.tags then

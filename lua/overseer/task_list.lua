@@ -84,11 +84,13 @@ function TaskList.new()
             default = vim.fn.getcwd(0),
           }, function(dirname)
             task:remove_by_slot(SLOT.DISPOSE)
-            if dirname then
-              task:add_component({ "rerun_on_save", dirname = dirname })
-            else
-              task:add_component("rerun_on_save")
+            local trigger = task:get_component("rerun_trigger")
+            if trigger and not trigger.params.interrupt then
+              task:remove_component("rerun_trigger")
             end
+            task:add_component({ "rerun_trigger", interrupt = true })
+            task:add_component({ "rerun_on_save", dirname = dirname })
+            registry.update_task(task)
           end)
         end,
       },
