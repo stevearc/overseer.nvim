@@ -1,3 +1,6 @@
+local constants = require("overseer.constants")
+local SLOT = constants.SLOT
+
 local M = {}
 
 local callbacks = {}
@@ -35,8 +38,11 @@ end
 
 M.serialize_tasks = function()
   local ret = {}
-  for _,task in ipairs(M.tasks) do
-    table.insert(ret, task:serialize())
+  for _, task in ipairs(M.tasks) do
+    -- Don't save tasks that are pending disposal
+    if not task:has_slot(SLOT.DISPOSE) then
+      table.insert(ret, task:serialize())
+    end
   end
   return ret
 end
