@@ -1,12 +1,12 @@
 local commands = require("overseer.commands")
 local config = require("overseer.config")
 local constants = require("overseer.constants")
+local registry = require("overseer.registry")
 local Task = require("overseer.task")
 local window = require("overseer.window")
 local M = {}
 
 -- TODO
--- * session-wrapper support
 -- * { } to navigate task list
 -- * Colorize task list
 -- * Rerun on save optionally takes directory
@@ -35,11 +35,28 @@ M.setup = function(opts)
   require("overseer.component").register_all()
   config.setup(opts)
   commands.create_commands()
+  local aug = vim.api.nvim_create_augroup("Overseer", {})
+  vim.api.nvim_create_autocmd("User", {
+    pattern = "SessionSavePre",
+    desc = "Save task state when vim-session saves",
+    group = aug,
+    callback = function()
+      local cmds = vim.g.session_save_commands
+      local tasks = registry.serialize_tasks()
+      if vim.tbl_isempty(tasks) then
+        return
+      end
+      table.insert(cmds, '" overseer.nvim')
+      table.insert(
+        cmds,
+        string.format("lua require('overseer')._start_tasks([[ %s ]])", vim.json.encode(tasks))
+      )
+      vim.g.session_save_commands = cmds
+    end,
+  })
 end
 
-M.new_task = function(opts)
-  return Task.new(opts)
-end
+M.new_task = Task.new
 
 M.toggle = window.toggle
 M.open = window.open
@@ -54,6 +71,27 @@ M.run_template = commands.run_template
 M.TAG = constants.TAG
 M.SLOT = constants.SLOT
 M.STATUS = constants.STATUS
+
+-- Used for vim-session integration.
+local timer_active = false
+M._start_tasks = function(str)
+  -- HACK for some reason vim-session first SessionSavePre multiple times, which
+  -- can lead to multiple 'load' lines in the same session file. We need to make
+  -- sure we only take the first one.
+  if timer_active then
+    return
+  end
+  timer_active = true
+  vim.defer_fn(function()
+    print(string.format("Running now %s", str))
+    local data = vim.json.decode(str)
+    for _, params in ipairs(data) do
+      local task = Task.new(params)
+      task:start()
+    end
+    timer_active = false
+  end, 100)
+end
 
 setmetatable(M, {
   __index = function(t, key)

@@ -3,6 +3,7 @@ local constants = require("overseer.constants")
 local registry = require("overseer.registry")
 local util = require("overseer.util")
 local template = require("overseer.template")
+local Task = require("overseer.task")
 local window = require("overseer.window")
 
 M.create_commands = function()
@@ -57,7 +58,6 @@ M.create_commands = function()
       name = name,
       tags = tags,
     }
-    print(string.format("opts: %s", vim.inspect(opts)))
     M.run_template(opts)
   end, {
     desc = "Run a task from a template",
@@ -161,7 +161,7 @@ M.load_task_bundle = function(name)
     vim.loop.fs_close(fd)
     local data = vim.json.decode(content)
     for _, params in ipairs(data) do
-      local task = M.new_task(params)
+      local task = Task.new(params)
       task:start()
     end
     vim.notify(string.format("Started %d tasks", #data))
