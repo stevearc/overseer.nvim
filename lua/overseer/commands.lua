@@ -1,4 +1,5 @@
 local M = {}
+local constants = require("overseer.constants")
 local registry = require("overseer.registry")
 local util = require("overseer.util")
 local template = require("overseer.template")
@@ -39,13 +40,28 @@ M.create_commands = function()
     nargs = "?",
   })
   vim.api.nvim_create_user_command("OverseerRun", function(params)
+    local name
+    local tags = {}
+    for _, str in ipairs(params.fargs) do
+      if constants.TAG:contains(str) then
+        table.insert(tags, str)
+      else
+        name = str
+      end
+    end
+    if name and not vim.tbl_isempty(tags) then
+      vim.notify(string.format("Cannot find template: %s is not a tag", name), vim.log.levels.ERROR)
+      return
+    end
     local opts = {
-      name = params.args ~= "" and params.args or nil,
+      name = name,
+      tags = tags,
     }
+    print(string.format("opts: %s", vim.inspect(opts)))
     M.run_template(opts)
   end, {
     desc = "Run a task from a template",
-    nargs = "?",
+    nargs = "*",
   })
 end
 

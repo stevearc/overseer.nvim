@@ -1,21 +1,32 @@
 local M = {}
 
-local function make_enum(values)
+local Enum = setmetatable({}, {
+  __index = function(_, key)
+    error(string.format("Unknown constant value '%s'", key))
+  end,
+})
+
+function Enum:contains(value)
+  for k in pairs(self) do
+    if k == value then
+      return true
+    end
+  end
+  return false
+end
+
+function Enum.new(values)
   local ret = {}
   for _, v in ipairs(values) do
     ret[v] = v
   end
-  return setmetatable(ret, {
-    __index = function(_, key)
-      error(string.format("Unknown constant value '%s'", key))
-    end,
-  })
+  return setmetatable(ret, { __index = Enum })
 end
 
-M.STATUS = make_enum({ "PENDING", "RUNNING", "CANCELED", "SUCCESS", "FAILURE" })
+M.STATUS = Enum.new({ "PENDING", "RUNNING", "CANCELED", "SUCCESS", "FAILURE" })
 
-M.SLOT = make_enum({ "SUMMARY", "RESULT", "NOTIFY", "DISPOSE" })
+M.SLOT = Enum.new({ "SUMMARY", "RESULT", "NOTIFY", "DISPOSE" })
 
-M.TAG = make_enum({ "TEST", "BUILD", "SERVE" })
+M.TAG = Enum.new({ "TEST", "BUILD", "SERVE" })
 
 return M
