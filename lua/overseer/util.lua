@@ -14,7 +14,7 @@ M.join = function(...)
 end
 
 M.get_cache_dir = function()
-  return M.join(vim.fn.stdpath('cache'), 'overseer')
+  return M.join(vim.fn.stdpath("cache"), "overseer")
 end
 
 M.is_floating_win = function(winid)

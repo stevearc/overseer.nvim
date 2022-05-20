@@ -210,7 +210,7 @@ end
 
 function TaskList:change_default_detail(delta)
   self.default_detail = math.max(MIN_DETAIL, math.min(MAX_DETAIL, self.default_detail + delta))
-  for i,v in pairs(self.task_detail) do
+  for i, v in pairs(self.task_detail) do
     if (delta < 0 and v > self.default_detail) or (delta > 0 and v < self.default_detail) then
       self.task_detail[i] = nil
     end

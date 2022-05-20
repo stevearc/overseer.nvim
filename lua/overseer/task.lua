@@ -43,18 +43,18 @@ end
 
 function Task:render(lines, detail)
   vim.validate({
-    lines = {lines, 't'},
-    detail = {detail, 'n'},
+    lines = { lines, "t" },
+    detail = { detail, "n" },
   })
   table.insert(lines, self.name)
   local count = 1
-  local sum_lines = vim.split(self.summary, '\n')
+  local sum_lines = vim.split(self.summary, "\n")
   if detail == 0 then
     table.insert(lines, self.status .. ": " .. sum_lines[#sum_lines])
     count = count + 1
   else
     table.insert(lines, self.status .. ": " .. sum_lines[1])
-    for i=2,#sum_lines do
+    for i = 2, #sum_lines do
       table.insert(lines, sum_lines[i])
     end
     count = count + #sum_lines
