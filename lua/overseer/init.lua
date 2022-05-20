@@ -7,9 +7,7 @@ local window = require("overseer.window")
 local M = {}
 
 -- TODO
--- * Colorize task list
--- * Maybe add a way to customize the task detail per-piece. e.g. {components = 0, result = 2}
--- * More compact result line in task_list
+-- * Notifier that notifies on fail, or transition from fail to success
 -- * Live build a task from a template + components
 --
 -- WISHLIST
@@ -17,7 +15,6 @@ local M = {}
 -- * Timestamp status changes
 -- * Register template with callback conditional (e.g. make only when Makefile exists)
 -- * What about task chaining? Do we care?
--- * Notifier that notifies on fail, or transition from fail to success
 -- * Definitely going to need some sort of logging system
 -- * Load VSCode task definitions
 -- * Store recent commands in history per-directory

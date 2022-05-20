@@ -17,7 +17,7 @@ M.get_or_create = function()
   return ref
 end
 
-local MIN_DETAIL = 0
+local MIN_DETAIL = 1
 local MAX_DETAIL = 3
 
 function TaskList.new()

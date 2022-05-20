@@ -11,12 +11,13 @@ end
 M.output_summarizer = {
   name = "output_summary",
   description = "Summarize stdout/stderr",
-  slot = SLOT.SUMMARY,
   builder = function()
     return {
       any_stderr = false,
+      summary = "",
       on_reset = function(self)
         self.any_stderr = false
+        self.summary = ""
       end,
       _append_data = function(self, task, data)
         for i = #data, 1, -1 do
@@ -24,9 +25,9 @@ M.output_summarizer = {
           if line ~= "" then
             line = string.gsub(line, "\r", "")
             if i == 1 then
-              task.summary = task.summary .. line
+              self.summary = self.summary .. line
             else
-              task.summary = line
+              self.summary = line
             end
             break
           end
@@ -34,7 +35,7 @@ M.output_summarizer = {
       end,
       on_stderr = function(self, task, data)
         if not self.any_stderr then
-          task.summary = ""
+          self.summary = ""
         end
         self.any_stderr = true
         self:_append_data(task, data)
@@ -44,6 +45,24 @@ M.output_summarizer = {
           return
         end
         self:_append_data(task, data)
+      end,
+      render = function(self, task, lines, highlights, detail)
+        local count = 0
+        local sum_lines = vim.split(self.summary, "\n")
+        if detail == 1 then
+          table.insert(lines, sum_lines[#sum_lines])
+          table.insert(highlights, { "Comment", #lines, 0, -1 })
+          count = count + 1
+        else
+          for i = 1, #sum_lines do
+            if sum_lines[i] ~= "" then
+              table.insert(lines, sum_lines[i])
+              table.insert(highlights, { "Comment", #lines, 0, -1 })
+            end
+          end
+          count = count + #sum_lines
+        end
+        return count
       end,
     }
   end,

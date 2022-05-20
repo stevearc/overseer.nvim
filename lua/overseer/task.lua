@@ -24,7 +24,6 @@ function Task.new(opts)
   -- Build the instance data for the task
   local data = {
     id = next_id,
-    summary = "",
     result = nil,
     disposed = false,
     status = STATUS.PENDING,
@@ -50,15 +49,8 @@ function Task:render(lines, highlights, detail)
   table.insert(highlights, { "Overseer" .. self.status, #lines, 0, string.len(self.status) })
   table.insert(highlights, { "OverseerTask", #lines, string.len(self.status) + 2, -1 })
   local count = 1
-  if detail == 2 then
-    local names = {}
-    for _, comp in ipairs(self.components) do
-      table.insert(names, comp.name)
-    end
-    table.insert(lines, table.concat(names, ", "))
-    count = count + 1
-  end
 
+  -- Render components
   if detail >= 3 then
     for _, comp in ipairs(self.components) do
       if comp.description then
@@ -77,39 +69,42 @@ function Task:render(lines, highlights, detail)
       end
 
       if comp.render then
-        count = count + comp:render(self, lines, detail)
+        count = count + comp:render(self, lines, highlights, detail)
       end
     end
   else
+    if detail == 2 then
+      local names = {}
+      for _, comp in ipairs(self.components) do
+        table.insert(names, comp.name)
+      end
+      table.insert(lines, table.concat(names, ", "))
+      count = count + 1
+    end
     for _, comp in ipairs(self.components) do
       if comp.render then
-        count = count + comp:render(self, lines, detail)
+        count = count + comp:render(self, lines, highlights, detail)
       end
     end
   end
 
-  if detail >= 1 then
-    if self.result and not vim.tbl_isempty(self.result) then
+  -- Render the result
+  if self.result and not vim.tbl_isempty(self.result) then
+    if detail == 1 then
+      local pieces = {}
       for k, v in pairs(self.result) do
-        table.insert(lines, string.format("  %s: %s", k, v))
+        table.insert(pieces, string.format("%s=%s", k, v))
+      end
+      table.insert(lines, "Result: " .. table.concat(pieces, ", "))
+      count = count + 1
+    else
+      table.insert(lines, "Result:")
+      count = count + 1
+      for k, v in pairs(self.result) do
+        table.insert(lines, string.format("  %s = %s", k, v))
         count = count + 1
       end
     end
-  end
-
-  local sum_lines = vim.split(self.summary, "\n")
-  if detail == 0 then
-    table.insert(lines, sum_lines[#sum_lines])
-    table.insert(highlights, { "Comment", #lines, 0, -1 })
-    count = count + 1
-  else
-    for i = 1, #sum_lines do
-      if sum_lines[i] ~= "" then
-        table.insert(lines, sum_lines[i])
-        table.insert(highlights, { "Comment", #lines, 0, -1 })
-      end
-    end
-    count = count + #sum_lines
   end
 
   return count
@@ -241,7 +236,6 @@ function Task:reset()
     vim.api.nvim_buf_delete(self.bufnr, { force = true })
   end
   self.bufnr = nil
-  self.summary = ""
   self:dispatch("on_reset")
 end
 
