@@ -1,8 +1,8 @@
 local M = {}
 
-local function make_enum(...)
+local function make_enum(values)
   local ret = {}
-  for _, v in ipairs(table.pack(...)) do
+  for _, v in ipairs(values) do
     ret[v] = v
   end
   return setmetatable(ret, {
@@ -12,8 +12,8 @@ local function make_enum(...)
   })
 end
 
-M.STATUS = make_enum("PENDING", "RUNNING", "CANCELED", "SUCCESS", "FAILURE")
+M.STATUS = make_enum({ "PENDING", "RUNNING", "CANCELED", "SUCCESS", "FAILURE" })
 
-M.SLOT = make_enum("SUMMARY", "RESULT", "NOTIFY", "DISPOSE")
+M.SLOT = make_enum({ "SUMMARY", "RESULT", "NOTIFY", "DISPOSE" })
 
 return M
