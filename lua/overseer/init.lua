@@ -39,6 +39,15 @@ M.setup = function(opts)
   config.setup(opts)
   commands.create_commands()
   local aug = vim.api.nvim_create_augroup("Overseer", {})
+  vim.cmd([[
+    hi default link OverseerRUNNING Constant
+    hi default link OverseerSUCCESS DiagnosticInfo
+    hi default link OverseerCANCELED DiagnosticWarn
+    hi default link OverseerFAILURE DiagnosticError
+    hi default link OverseerTask String
+    hi default link OverseerTaskBorder FloatBorder
+    hi default link OverseerOutput Comment
+  ]])
   vim.api.nvim_create_autocmd("User", {
     pattern = "SessionSavePre",
     desc = "Save task state when vim-session saves",

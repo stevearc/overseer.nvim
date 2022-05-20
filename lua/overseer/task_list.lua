@@ -307,24 +307,33 @@ function TaskList:render(tasks)
   if not vim.api.nvim_buf_is_valid(self.bufnr) then
     return false
   end
+  local ns = vim.api.nvim_create_namespace("overseer")
+  vim.api.nvim_buf_clear_namespace(self.bufnr, ns, 0, -1)
 
   vim.api.nvim_buf_set_option(self.bufnr, "modifiable", true)
   local lines = {}
+  local highlights = {}
   local lineno = 1
   self.task_lines = {}
   -- Iterate backwards so we should most recent tasks first
   for i = #tasks, 1, -1 do
     local task = tasks[i]
-    lineno = lineno + task:render(lines, self.task_detail[task.id] or self.default_detail)
+    local detail = self.task_detail[task.id] or self.default_detail
+    lineno = lineno + task:render(lines, highlights, detail)
     table.insert(self.task_lines, { lineno, task })
     if i > 1 then
       table.insert(lines, config.list_sep)
+      table.insert(highlights, { "OverseerTaskBorder", #lines, 0, -1 })
       lineno = lineno + 1
     end
   end
   vim.api.nvim_buf_set_lines(self.bufnr, 0, -1, true, lines)
   vim.api.nvim_buf_set_option(self.bufnr, "modifiable", false)
   vim.api.nvim_buf_set_option(self.bufnr, "modified", false)
+  for _, hl in ipairs(highlights) do
+    local group, row, col_start, col_end = unpack(hl)
+    vim.api.nvim_buf_add_highlight(self.bufnr, ns, group, row - 1, col_start, col_end)
+  end
 
   return true
 end

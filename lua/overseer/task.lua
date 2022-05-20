@@ -41,25 +41,15 @@ function Task.new(opts)
   return task
 end
 
-function Task:render(lines, detail)
+function Task:render(lines, highlights, detail)
   vim.validate({
     lines = { lines, "t" },
     detail = { detail, "n" },
   })
-  table.insert(lines, self.name)
+  table.insert(lines, string.format("%s: %s", self.status, self.name))
+  table.insert(highlights, { "Overseer" .. self.status, #lines, 0, string.len(self.status) })
+  table.insert(highlights, { "OverseerTask", #lines, string.len(self.status) + 2, -1 })
   local count = 1
-  local sum_lines = vim.split(self.summary, "\n")
-  if detail == 0 then
-    table.insert(lines, self.status .. ": " .. sum_lines[#sum_lines])
-    count = count + 1
-  else
-    table.insert(lines, self.status .. ": " .. sum_lines[1])
-    for i = 2, #sum_lines do
-      table.insert(lines, sum_lines[i])
-    end
-    count = count + #sum_lines
-  end
-
   if detail == 2 then
     local names = {}
     for _, comp in ipairs(self.components) do
@@ -73,6 +63,7 @@ function Task:render(lines, detail)
     for _, comp in ipairs(self.components) do
       if comp.description then
         table.insert(lines, string.format("%s: %s", comp.name, comp.description))
+        table.insert(highlights, { "Comment", #lines, string.len(comp.name) + 1, -1 })
       else
         table.insert(lines, comp.name)
       end
@@ -105,6 +96,22 @@ function Task:render(lines, detail)
       end
     end
   end
+
+  local sum_lines = vim.split(self.summary, "\n")
+  if detail == 0 then
+    table.insert(lines, sum_lines[#sum_lines])
+    table.insert(highlights, { "Comment", #lines, 0, -1 })
+    count = count + 1
+  else
+    for i = 1, #sum_lines do
+      if sum_lines[i] ~= "" then
+        table.insert(lines, sum_lines[i])
+        table.insert(highlights, { "Comment", #lines, 0, -1 })
+      end
+    end
+    count = count + #sum_lines
+  end
+
   return count
 end
 
