@@ -7,10 +7,18 @@ local window = require("overseer.window")
 local M = {}
 
 -- TODO
--- * Live build a task from a template + components
+-- * Edit a task:
+--    * view components & params
+--    * popup to add new component
+--    * remove component
+--    * edit existing component
 -- * add_component should replace existing
 --
 -- WISHLIST
+-- * output shouldn't be comment-colored
+-- * shortcut to open terminal in vsplit
+-- * don't dispose a task if we're doing something with it
+-- * task list previews in a float, not a split
 -- * { } to navigate task list
 -- * Timestamp status changes
 -- * Register template with callback conditional (e.g. make only when Makefile exists)
@@ -21,14 +29,17 @@ local M = {}
 --   * Can select & run task from recent history
 -- * Add tests
 -- * add debugging helpers for components
--- * stronger typing for all the params
+-- * should we allow duplicate template names? how to handle double-register gracefully?
 -- * component: parse output and populate quickfix
 -- * task list: bulk actions
+-- * params can be file/dir type and will autocomplete
+-- * list params allow escaping / quotes
 -- * ability to require task to be unique (disallow duplicates). Coordinate among all vim instances
 -- * Autostart task on vim open in dir (needs some uniqueness checks)
 -- * Lualine component
 -- * Separation of registry and task list feels like it needs refactor
 -- * docs/helpfile
+-- * when jumping around terminals, somehow the buffers become listed
 -- * keybinding help in float
 
 M.setup = function(opts)

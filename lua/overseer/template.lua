@@ -1,8 +1,9 @@
 local Task = require("overseer.task")
+local form = require("overseer.form")
 local util = require("overseer.util")
 local M = {}
 
-local builtin_modules = { "go", "make" }
+local builtin_modules = { "go", "make", "shell" }
 
 M.register_all = function()
   for _, mod in ipairs(builtin_modules) do
@@ -135,56 +136,59 @@ function Template.new(opts)
       name = { param.name, "s", true },
       description = { param.description, "s", true },
       optional = { param.optional, "b", true },
+      -- default = any type
     })
   end
   return setmetatable(opts, { __index = Template })
 end
 
-function Template:build(params)
-  for k, config in pairs(self.params) do
-    if params[k] == nil and not config.optional then
-      error(string.format("Missing param %s", k))
-    end
-  end
-  return Task.new(self.builder(params))
-end
+-- These params are always passed in, and are not directly user-controlled
+local auto_params = {
+  dirname = true,
+  bufname = true,
+}
 
-function Template:prompt(params, callback)
-  vim.validate({
-    params = { params, "t" },
-    callback = { callback, "f" },
-  })
-
-  local missing
-  for k, _ in pairs(self.params) do
-    if params[k] == nil then
-      missing = k
-      break
-    end
-  end
-
-  if missing then
-    local prompt
-    local param = self.params[missing]
-    if param.description then
-      prompt = string.format("%s (%s)", param.name or missing, param.description)
-    else
-      prompt = param.name or missing
-    end
-    vim.ui.input({
-      prompt = prompt,
-    }, function(val)
-      if val then
-        params[missing] = val
-        self:prompt(params, callback)
-      elseif self.params[missing].optional then
-        params[missing] = false
-        self:prompt(params, callback)
+function Template:build(prompt, params, callback)
+  local any_missing = false
+  local required_missing = false
+  for k, schema in pairs(self.params) do
+    if not auto_params[k] then
+      if params[k] == nil then
+        if prompt == "never" then
+          error(string.format("Missing param %s", k))
+        end
+        any_missing = true
+        if not schema.optional then
+          required_missing = true
+        end
+        break
       end
-    end)
-  else
+    end
+  end
+
+  if
+    prompt == "never"
+    or (prompt == "allow" and not required_missing)
+    or (prompt == "missing" and not any_missing)
+    or vim.tbl_isempty(self.params)
+  then
     callback(Task.new(self.builder(params)))
   end
+
+  local schema = {}
+  for k, v in pairs(self.params) do
+    if not auto_params[k] then
+      schema[k] = v
+    end
+  end
+  form.show(self.name, schema, params, function(final_params)
+    if final_params then
+      callback(Task.new(self.builder(final_params)))
+    else
+      callback()
+    end
+  end)
+  return
 end
 
 M.new = Template.new

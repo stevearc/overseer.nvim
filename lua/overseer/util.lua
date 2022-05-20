@@ -96,4 +96,13 @@ M.get_stdout_line_iter = function()
   end
 end
 
+M.pwrap = function(fn)
+  return function(...)
+    local ok, err = pcall(fn, ...)
+    if not ok then
+      vim.api.nvim_err_writeln(err)
+    end
+  end
+end
+
 return M

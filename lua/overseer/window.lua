@@ -33,7 +33,7 @@ local function create_overseer_window()
   vim.api.nvim_win_set_width(0, 60)
   -- Set the filetype only after we enter the buffer so that FileType autocmds
   -- behave properly
-  vim.api.nvim_buf_set_option(tl.bufnr, "filetype", "overseer")
+  vim.api.nvim_buf_set_option(tl.bufnr, "filetype", "OverseerList")
 
   local winid = vim.api.nvim_get_current_win()
   util.go_win_no_au(my_winid)
@@ -44,7 +44,7 @@ end
 M.get_win_id = function()
   for _, winid in ipairs(vim.api.nvim_tabpage_list_wins(0)) do
     local bufnr = vim.api.nvim_win_get_buf(winid)
-    if vim.api.nvim_buf_get_option(bufnr, "filetype") == "overseer" then
+    if vim.api.nvim_buf_get_option(bufnr, "filetype") == "OverseerList" then
       return winid
     end
   end

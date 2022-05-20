@@ -119,53 +119,41 @@ function TaskList.new()
     end,
   })
 
-  vim.api.nvim_buf_set_keymap(bufnr, "n", "<CR>", "", {
-    callback = function()
-      tl:run_action()
-    end,
-  })
-  vim.api.nvim_buf_set_keymap(bufnr, "n", "o", "", {
-    callback = function()
-      tl:open_buffer()
-    end,
-  })
-  vim.api.nvim_buf_set_keymap(bufnr, "n", "p", "", {
-    callback = function()
-      tl:toggle_preview()
-    end,
-  })
-  vim.api.nvim_buf_set_keymap(bufnr, "n", "l", "", {
-    callback = function()
-      tl:change_task_detail(1)
-    end,
-  })
-  vim.api.nvim_buf_set_keymap(bufnr, "n", "h", "", {
-    callback = function()
-      tl:change_task_detail(-1)
-    end,
-  })
-  vim.api.nvim_buf_set_keymap(bufnr, "n", "L", "", {
-    callback = function()
-      tl:change_default_detail(1)
-    end,
-  })
-  vim.api.nvim_buf_set_keymap(bufnr, "n", "H", "", {
-    callback = function()
-      tl:change_default_detail(-1)
-    end,
-  })
-  vim.api.nvim_buf_set_keymap(bufnr, "n", "[", "", {
-    callback = function()
-      local width = vim.api.nvim_win_get_width(0)
-      vim.api.nvim_win_set_width(0, math.max(10, width - 10))
-    end,
-  })
-  vim.api.nvim_buf_set_keymap(bufnr, "n", "]", "", {
-    callback = function()
-      local width = vim.api.nvim_win_get_width(0)
-      vim.api.nvim_win_set_width(0, width + 10)
-    end,
-  })
+  vim.keymap.set("n", "<CR>", function()
+    tl:run_action()
+  end, { buffer = bufnr })
+  vim.keymap.set("n", "o", function()
+    tl:open_buffer()
+  end, { buffer = bufnr })
+  vim.keymap.set("n", "v", function()
+    tl:open_buffer("vsplit")
+  end, { buffer = bufnr })
+  vim.keymap.set("n", "f", function()
+    tl:open_buffer("float")
+  end, { buffer = bufnr })
+  vim.keymap.set("n", "p", function()
+    tl:toggle_preview()
+  end, { buffer = bufnr })
+  vim.keymap.set("n", "l", function()
+    tl:change_task_detail(1)
+  end, { buffer = bufnr })
+  vim.keymap.set("n", "h", function()
+    tl:change_task_detail(-1)
+  end, { buffer = bufnr })
+  vim.keymap.set("n", "L", function()
+    tl:change_default_detail(1)
+  end, { buffer = bufnr })
+  vim.keymap.set("n", "H", function()
+    tl:change_default_detail(-1)
+  end, { buffer = bufnr })
+  vim.keymap.set("n", "[", function()
+    local width = vim.api.nvim_win_get_width(0)
+    vim.api.nvim_win_set_width(0, math.max(10, width - 10))
+  end, { buffer = bufnr })
+  vim.keymap.set("n", "]", function()
+    local width = vim.api.nvim_win_get_width(0)
+    vim.api.nvim_win_set_width(0, math.max(10, width + 10))
+  end, { buffer = bufnr })
 
   ref = tl
   return tl
@@ -248,14 +236,39 @@ function TaskList:update_preview()
   end
 end
 
-function TaskList:open_buffer()
+function TaskList:open_buffer(direction)
   local task = self:_get_task_from_line()
   if not task or not task.bufnr or not vim.api.nvim_buf_is_valid(task.bufnr) then
     return
   end
 
-  vim.cmd([[normal! m']])
-  vim.api.nvim_win_set_buf(0, task.bufnr)
+  if direction == "float" then
+    local width = vim.o.columns - vim.api.nvim_win_get_width(0)
+    local col = vim.fn.winnr() == 1 and width or 0
+    local winid = vim.api.nvim_open_win(task.bufnr, true, {
+      relative = "editor",
+      row = 1,
+      col = col,
+      width = width,
+      height = vim.o.lines - vim.o.cmdheight,
+      style = "minimal",
+    })
+    vim.api.nvim_create_autocmd("BufLeave", {
+      desc = "Close float on BufLeave",
+      buffer = task.bufnr,
+      once = true,
+      nested = true,
+      callback = function()
+        vim.api.nvim_win_close(winid, true)
+      end,
+    })
+  elseif direction == "vsplit" then
+    vim.cmd([[vsplit]])
+    vim.api.nvim_win_set_buf(0, task.bufnr)
+  else
+    vim.cmd([[normal! m']])
+    vim.api.nvim_win_set_buf(0, task.bufnr)
+  end
   util.scroll_to_end(0)
 end
 

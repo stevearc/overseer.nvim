@@ -67,14 +67,26 @@ end
 
 -- TEMPLATE LOADING/RUNNING
 
+-- @param name (string) The name of the template to run
+-- @param tags (list|string) List of tags used to filter when searching for template
+-- @param nostart (bool) When true, create the task but do not start it
+-- @param prompt (string) Controls when to prompt user for parameter input
+--            always    Show when template has any params
+--            missing   Show when template has any params not provided (default)
+--            allow     Only show when required param is missing
+--            never     Never show prompt (error if required param missing)
+-- @param params (table) Parameters to pass to template
 M.run_template = function(opts, params, callback)
   opts = opts or {}
   vim.validate({
     name = { opts.name, "s", true },
     tags = { opts.tags, "t", true },
     nostart = { opts.nostart, "b", true },
+    prompt = { opts.prompt, "s", true },
+    params = { params, "t", true },
     callback = { callback, "f", true },
   })
+  opts.prompt = opts.prompt or "always"
   params = params or {}
   params.bufname = vim.api.nvim_buf_get_name(0)
   params.dirname = vim.fn.getcwd(0)
@@ -88,8 +100,8 @@ M.run_template = function(opts, params, callback)
     if not tmpl then
       error(string.format("Could not find template '%s'", opts.name))
     end
-    tmpl:prompt(params, function(task)
-      if not opts.nostart then
+    tmpl:build(opts.prompt, params, function(task)
+      if task and not opts.nostart then
         task:start()
       end
       if callback then
