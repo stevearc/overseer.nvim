@@ -1,22 +1,19 @@
 local M = {}
 
-M.STATUS = setmetatable({
-  PENDING = "PENDING",
-  RUNNING = "RUNNING",
-  CANCELED = "CANCELED",
-  SUCCESS = "SUCCESS",
-  FAILURE = "FAILURE",
-}, {
-  __index = function(_, key)
-    error(string.format("Unknown constant value '%s'", key))
-  end,
-})
+local function make_enum(...)
+  local ret = {}
+  for _, v in ipairs(table.pack(...)) do
+    ret[v] = v
+  end
+  return setmetatable(ret, {
+    __index = function(_, key)
+      error(string.format("Unknown constant value '%s'", key))
+    end,
+  })
+end
 
-M.SLOT = {
-  SUMMARY = "SUMMARY",
-  RESULT = "RESULT",
-  NOTIFY = "NOTIFY",
-  DISPOSE = "DISPOSE",
-}
+M.STATUS = make_enum("PENDING", "RUNNING", "CANCELED", "SUCCESS", "FAILURE")
+
+M.SLOT = make_enum("SUMMARY", "RESULT", "NOTIFY", "DISPOSE")
 
 return M
