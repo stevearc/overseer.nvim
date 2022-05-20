@@ -19,11 +19,16 @@ M.rerun_trigger = {
       description = "How long to wait (in ms) post-result before triggering rerun",
       optional = true,
     },
+    interrupt = {
+      description = "If true, a rerun will cancel a currently running task",
+      optional = true,
+    },
   },
   builder = function(opts)
     opts = opts or {}
     vim.validate({
       delay = { opts.delay, "n", true },
+      interrupt = { opts.interrupt, "b", true },
     })
     opts.delay = opts.delay or 500
     return {
@@ -48,6 +53,9 @@ M.rerun_trigger = {
       on_request_rerun = function(self, task)
         if task:is_running() then
           self.rerun_after_finalize = true
+          if opts.interrupt then
+            task:stop()
+          end
         else
           self:_trigger_rerun(task)
         end

@@ -26,7 +26,7 @@ local default_config = {
       "output_summary",
       "exit_code",
       { "notify_result", statuses = { require("overseer.constants").STATUS.FAILURE } },
-      "rerun_trigger",
+      { "rerun_trigger", interrupt = true },
       "rerun_on_save",
     },
   },

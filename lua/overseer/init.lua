@@ -9,10 +9,9 @@ local M = {}
 -- TODO
 -- * { } to navigate task list
 -- * Colorize task list
--- * Autostart task on vim open in dir (needs some uniqueness checks)
+-- * More compact result line in task_list
 --
 -- WISHLIST
--- * re-run can interrupt (stop job)
 -- * Definitely going to need some sort of logging system
 -- * Notifier that notifies on fail, or transition from fail to success
 -- * Live build a task from a template + components
@@ -22,8 +21,10 @@ local M = {}
 -- * Add tests
 -- * Maybe add a way to customize the task detail per-piece. e.g. {components = 0, result = 2}
 -- * add debugging helpers for components
+-- * stronger typing for all the params
 -- * component: parse output and populate quickfix
 -- * task list: bulk actions
+-- * Autostart task on vim open in dir (needs some uniqueness checks)
 -- * ability to require task to be unique (disallow duplicates). Coordinate among all vim instances
 -- * Quick jump to most recent task (started/notified)
 -- * Rerun trigger handler feels different from the rest. Maybe separate it out.
