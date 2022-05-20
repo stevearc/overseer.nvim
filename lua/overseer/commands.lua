@@ -101,7 +101,7 @@ M.run_template = function(opts, params, callback)
     if #templates == 0 then
       vim.notify("Could not find any matching task templates", vim.log.levels.ERROR)
       return
-    elseif #templates == 1 then
+    elseif #templates == 1 and (opts.name or not vim.tbl_isempty(opts.tags or {})) then
       opts.name = templates[1].name
       M.run_template(opts, params, callback)
     else
