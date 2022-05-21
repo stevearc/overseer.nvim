@@ -55,7 +55,6 @@ local function new_input(opts, schema)
     end,
     set_focus = function(self, focus)
       if self.focused and not focus then
-        print(string.format("Setting ever_focused %s", vim.inspect(schema)))
         self.ever_focused = true
       end
       self.focused = focus

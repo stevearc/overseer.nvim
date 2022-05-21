@@ -15,8 +15,6 @@ local M = {}
 -- * add_component should replace existing
 --
 -- WISHLIST
--- * output shouldn't be comment-colored
--- * shortcut to open terminal in vsplit
 -- * don't dispose a task if we're doing something with it
 -- * task list previews in a float, not a split
 -- * { } to navigate task list
@@ -28,6 +26,7 @@ local M = {}
 -- * Store recent commands in history per-directory
 --   * Can select & run task from recent history
 -- * Add tests
+-- * Summary stores N most recent lines
 -- * add debugging helpers for components
 -- * should we allow duplicate template names? how to handle double-register gracefully?
 -- * component: parse output and populate quickfix

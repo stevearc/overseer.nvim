@@ -328,23 +328,27 @@ function Task:start()
   local chan_id
   local mode = vim.api.nvim_get_mode().mode
   local stdout_iter = util.get_stdout_line_iter()
-  local stderr_iter = util.get_stdout_line_iter()
+
+  -- We have to create & immediately destroy an editor-sized window because
+  -- termopen() sets the pty width & height based on the current window
+  local winid = vim.api.nvim_open_win(self.bufnr, true, {
+    relative = "editor",
+    row = 0,
+    col = 0,
+    width = vim.o.columns,
+    height = vim.o.lines - vim.o.cmdheight,
+    noautocmd = true,
+  })
+
   vim.api.nvim_buf_call(self.bufnr, function()
     chan_id = vim.fn.termopen(self.cmd, {
       stdin = "null",
       cwd = self.cwd,
       on_stdout = function(j, d)
-        self:dispatch("on_stdout", d)
+        self:dispatch("on_output", d)
         local lines = stdout_iter(d)
         if not vim.tbl_isempty(lines) then
-          self:dispatch("on_stdout_lines", lines)
-        end
-      end,
-      on_stderr = function(j, d)
-        self:dispatch("on_stderr", d)
-        local lines = stderr_iter(d)
-        if not vim.tbl_isempty(lines) then
-          self:dispatch("on_stderr_lines", lines)
+          self:dispatch("on_output_lines", lines)
         end
       end,
       on_exit = function(j, c)
@@ -352,6 +356,7 @@ function Task:start()
       end,
     })
   end)
+  vim.api.nvim_win_close(winid, true)
   vim.api.nvim_buf_set_option(self.bufnr, "buflisted", false)
 
   -- It's common to have autocmds that enter insert mode when opening a terminal
