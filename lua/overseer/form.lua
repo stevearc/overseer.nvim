@@ -407,13 +407,16 @@ M.show = function(title, schema, params, callback)
     end
   end, { buffer = bufnr })
 
-  vim.api.nvim_create_autocmd("BufLeave", {
-    desc = "Close float on BufLeave",
-    buffer = bufnr,
-    once = true,
-    nested = true,
-    callback = cancel,
-  })
+  table.insert(
+    autocmds,
+    vim.api.nvim_create_autocmd("BufLeave", {
+      desc = "Close float on BufLeave",
+      buffer = bufnr,
+      once = true,
+      nested = true,
+      callback = cancel,
+    })
+  )
   vim.defer_fn(function()
     vim.cmd([[startinsert!]])
   end, 5)
