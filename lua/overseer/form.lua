@@ -45,7 +45,7 @@ local function new_input(opts, schema)
     render = function(self, ctx)
       local value = ctx.params[opts.id]
       if value == nil then
-        value = schema.default or ""
+        value = ""
       end
       if type(value) == "table" then
         value = table.concat(value, " ")
@@ -90,11 +90,7 @@ local function new_input(opts, schema)
         vim.notify(string.format("Unknown param type '%s'", ptype), vim.log.levels.WARN)
       end
     end,
-    parse = function(self, line, params)
-      if string.sub(line, 1, string.len(label)) ~= label then
-        return
-      end
-      local value = string.sub(line, string.len(label) + 1)
+    parse_value = function(self, value, params)
       if value == "" then
         params[opts.id] = nil
         return
@@ -114,6 +110,13 @@ local function new_input(opts, schema)
         end
       end
       params[opts.id] = value
+    end,
+    parse = function(self, line, params)
+      if string.sub(line, 1, string.len(label)) ~= label then
+        return
+      end
+      local value = string.sub(line, string.len(label) + 1)
+      self:parse_value(value, params)
     end,
   }
 end
@@ -391,6 +394,18 @@ M.show = function(title, schema, params, callback)
   vim.keymap.set({ "n", "i" }, "<C-s>", submit, { buffer = bufnr })
   vim.keymap.set({ "n", "i" }, "<Tab>", next_field, { buffer = bufnr })
   vim.keymap.set({ "n", "i" }, "<S-Tab>", prev_field, { buffer = bufnr })
+  -- Some shenanigans to make <C-u> behave the way we expect
+  vim.keymap.set("i", "<C-u>", function()
+    local cur = vim.api.nvim_win_get_cursor(0)
+    local field = fields[cur[1]]
+    if field and field.parse_value then
+      local line = vim.api.nvim_buf_get_lines(bufnr, cur[1] - 1, cur[1], true)[1]
+      local rem = string.sub(line, cur[2] + 1)
+      field:parse_value(rem, params)
+      vim.api.nvim_win_set_cursor(0, { cur[1], 0 })
+      render()
+    end
+  end, { buffer = bufnr })
 
   vim.api.nvim_create_autocmd("BufLeave", {
     desc = "Close float on BufLeave",
