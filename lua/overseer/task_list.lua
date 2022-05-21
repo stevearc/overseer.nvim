@@ -1,6 +1,7 @@
 local config = require("overseer.config")
 local constants = require("overseer.constants")
 local registry = require("overseer.registry")
+local task_editor = require("overseer.task_editor")
 local util = require("overseer.util")
 local STATUS = constants.STATUS
 local SLOT = constants.SLOT
@@ -72,6 +73,13 @@ function TaskList.new()
         callback = function(task)
           task:dispose(true)
         end,
+      },
+      {
+        name = "edit",
+        condition = function(task)
+          return task.status ~= STATUS.RUNNING
+        end,
+        callback = task_editor.open,
       },
       {
         name = "rerun on save",
@@ -324,18 +332,16 @@ function TaskList:render(tasks)
   vim.api.nvim_buf_set_option(self.bufnr, "modifiable", true)
   local lines = {}
   local highlights = {}
-  local lineno = 1
   self.task_lines = {}
   -- Iterate backwards so we should most recent tasks first
   for i = #tasks, 1, -1 do
     local task = tasks[i]
     local detail = self.task_detail[task.id] or self.default_detail
-    lineno = lineno + task:render(lines, highlights, detail)
-    table.insert(self.task_lines, { lineno, task })
+    task:render(lines, highlights, detail)
+    table.insert(self.task_lines, { #lines, task })
     if i > 1 then
       table.insert(lines, config.list_sep)
       table.insert(highlights, { "OverseerTaskBorder", #lines, 0, -1 })
-      lineno = lineno + 1
     end
   end
   vim.api.nvim_buf_set_lines(self.bufnr, 0, -1, true, lines)

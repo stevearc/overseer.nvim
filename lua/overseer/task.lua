@@ -48,33 +48,10 @@ function Task:render(lines, highlights, detail)
   table.insert(lines, string.format("%s: %s", self.status, self.name))
   table.insert(highlights, { "Overseer" .. self.status, #lines, 0, string.len(self.status) })
   table.insert(highlights, { "OverseerTask", #lines, string.len(self.status) + 2, -1 })
-  local count = 1
 
   -- Render components
   if detail >= 3 then
-    for _, comp in ipairs(self.components) do
-      if comp.description then
-        table.insert(lines, string.format("%s: %s", comp.name, comp.description))
-        table.insert(highlights, { "Comment", #lines, string.len(comp.name) + 1, -1 })
-      else
-        table.insert(lines, comp.name)
-      end
-      count = count + 1
-
-      for k, v in pairs(comp.params) do
-        if k ~= 1 then
-          if type(v) == "table" and vim.tbl_islist(v) then
-            v = table.concat(v, ", ")
-          end
-          table.insert(lines, string.format("  %s: %s", k, v))
-          count = count + 1
-        end
-      end
-
-      if comp.render then
-        count = count + comp:render(self, lines, highlights, detail)
-      end
-    end
+    self:_render_components(lines, highlights, detail)
   else
     if detail == 2 then
       local names = {}
@@ -82,11 +59,10 @@ function Task:render(lines, highlights, detail)
         table.insert(names, comp.name)
       end
       table.insert(lines, table.concat(names, ", "))
-      count = count + 1
     end
     for _, comp in ipairs(self.components) do
       if comp.render then
-        count = count + comp:render(self, lines, highlights, detail)
+        comp:render(self, lines, highlights, detail)
       end
     end
   end
@@ -99,18 +75,37 @@ function Task:render(lines, highlights, detail)
         table.insert(pieces, string.format("%s=%s", k, v))
       end
       table.insert(lines, "Result: " .. table.concat(pieces, ", "))
-      count = count + 1
     else
       table.insert(lines, "Result:")
-      count = count + 1
       for k, v in pairs(self.result) do
         table.insert(lines, string.format("  %s = %s", k, v))
-        count = count + 1
       end
     end
   end
+end
 
-  return count
+function Task:_render_components(lines, highlights, detail)
+  for _, comp in ipairs(self.components) do
+    if comp.description then
+      table.insert(lines, string.format("%s: %s", comp.name, comp.description))
+      table.insert(highlights, { "Comment", #lines, string.len(comp.name) + 1, -1 })
+    else
+      table.insert(lines, comp.name)
+    end
+
+    for k, v in pairs(comp.params) do
+      if k ~= 1 then
+        if type(v) == "table" and vim.tbl_islist(v) then
+          v = table.concat(v, ", ")
+        end
+        table.insert(lines, string.format("  %s: %s", k, v))
+      end
+    end
+
+    if detail > 0 and comp.render then
+      comp:render(self, lines, highlights, detail)
+    end
+  end
 end
 
 -- Returns the arguments require to create a clone of this task

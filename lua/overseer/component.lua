@@ -1,3 +1,4 @@
+local form = require("overseer.form")
 local M = {}
 
 local registry = {}
@@ -18,17 +19,30 @@ M.register = function(opts)
     params = { opts.params, "t", true },
     builder = { opts.builder, "f" },
   })
+  if opts.name:match("%s") then
+    error("Component name cannot have whitespace")
+  end
   if opts.params then
-    for _, param in pairs(opts.params) do
+    for name, param in pairs(opts.params) do
       vim.validate({
-        name = { param.name, "s", true },
         description = { param.description, "s", true },
         optional = { param.optional, "b", true },
+        type = { param.type, "s", true },
+        -- default = any type
       })
+      if name:match("%s") then
+        error(string.format("Component %s param %s cannot have whitespace", opts.name, name))
+      end
     end
+  else
+    opts.params = {}
   end
 
   registry[opts.name] = opts
+end
+
+M.get = function(name)
+  return registry[name]
 end
 
 M.alias = function(name, components)
@@ -76,8 +90,15 @@ end
 local function validate_params(params, schema)
   if schema then
     for name, opts in pairs(schema) do
-      if params[name] == nil and not opts.optional then
-        error(string.format("Component '%s' requires param '%s'", getname(params), name))
+      local value = params[name]
+      if value == nil then
+        if opts.default ~= nil then
+          params[name] = opts.default
+        elseif not opts.optional then
+          error(string.format("Component '%s' requires param '%s'", getname(params), name))
+        end
+      elseif not form.validate_field(opts, value) then
+        error(string.format("Component '%s' param '%s' is invalid", getname(params), name))
       end
     end
   end

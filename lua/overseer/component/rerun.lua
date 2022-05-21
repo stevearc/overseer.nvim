@@ -17,20 +17,20 @@ M.rerun_trigger = {
   params = {
     delay = {
       description = "How long to wait (in ms) post-result before triggering rerun",
-      optional = true,
+      default = 500,
+      type = "number",
     },
     interrupt = {
       description = "If true, a rerun will cancel a currently running task",
-      optional = true,
+      default = false,
+      type = "bool",
     },
   },
   builder = function(opts)
-    opts = opts or {}
     vim.validate({
-      delay = { opts.delay, "n", true },
-      interrupt = { opts.interrupt, "b", true },
+      delay = { opts.delay, "n" },
+      interrupt = { opts.interrupt, "b" },
     })
-    opts.delay = opts.delay or 500
     return {
       rerun_after_finalize = false,
       _trigger_active = false,
@@ -80,16 +80,15 @@ M.rerun_on_save = {
     },
     delay = {
       description = "How long to wait (in ms) post-result before triggering rerun",
-      optional = true,
+      type = "number",
+      default = 500,
     },
   },
   builder = function(opts)
-    opts = opts or {}
     vim.validate({
-      delay = { opts.delay, "n", true },
+      delay = { opts.delay, "n" },
       dirname = { opts.dirname, "s", true },
     })
-    opts.delay = opts.delay or 500
 
     return {
       id = nil,
@@ -122,14 +121,12 @@ M.rerun_on_result = {
   params = {
     statuses = {
       description = "What statuses to notify on",
-      optional = true,
+      type = "list",
+      default = { STATUS.FAILURE },
     },
   },
   builder = function(opts)
-    opts = opts or {}
-    if not opts.statuses then
-      opts.statuses = { STATUS.FAILURE }
-    elseif type(opts.statuses) == "string" then
+    if type(opts.statuses) == "string" then
       opts.statuses = { opts.statuses }
     end
     local lookup = util.list_to_map(opts.statuses)

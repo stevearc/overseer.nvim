@@ -16,17 +16,16 @@ M.notify_result = {
   params = {
     statuses = {
       description = "What statuses to notify on",
-      optional = true,
+      type = "list",
+      default = {
+        STATUS.FAILURE,
+        STATUS.SUCCESS,
+      },
     },
   },
   builder = function(opts)
     opts = opts or {}
-    if not opts.statuses then
-      opts.statuses = {
-        STATUS.FAILURE,
-        STATUS.SUCCESS,
-      }
-    elseif type(opts.statuses) == "string" then
+    if type(opts.statuses) == "string" then
       opts.statuses = { opts.statuses }
     end
     local lookup = util.list_to_map(opts.statuses)

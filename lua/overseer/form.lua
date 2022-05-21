@@ -1,6 +1,63 @@
 local M = {}
 
-local function new_label(opts)
+M.render_field = function(schema, prefix, name, value)
+  if value == nil then
+    value = ""
+  end
+  if type(value) == "table" then
+    value = table.concat(value, " ")
+  end
+
+  return string.format("%s%s: %s", prefix, name, value)
+end
+
+M.validate_field = function(schema, value)
+  local ptype = schema.type or "string"
+  if value == nil then
+    return schema.optional
+  elseif ptype == "list" then
+    return type(value) == "table" and vim.tbl_islist(value)
+  elseif ptype == "number" then
+    return type(value) == "number"
+  elseif ptype == "bool" then
+    return type(value) == "boolean"
+  elseif ptype == "string" then
+    return true
+  else
+    vim.notify(string.format("Unknown param type '%s'", ptype), vim.log.levels.WARN)
+  end
+end
+
+M.parse_field = function(schema, prefix, name, line)
+  local label = string.format("%s%s: ", prefix, name)
+  if string.sub(line, 1, string.len(label)) ~= label then
+    return false
+  end
+  local value = string.sub(line, string.len(label) + 1)
+  if value == "" then
+    return true, nil
+  end
+  if schema.type == "list" then
+    -- TODO escaping? configurable delimiter? quoting?
+    return true, vim.split(value, "%s+")
+  elseif schema.type == "number" then
+    local num = tonumber(value)
+    -- If the number ends with '.' or '.0' don't parse it yet, because that will
+    -- truncate it and cause problems for input.
+    if num and not string.match(value, "%.$") and not string.match(value, "%.%d*0+$") then
+      return true, num
+    end
+  elseif schema.type == "bool" then
+    if string.match(value, "^ye?s?") or string.match(value, "^tr?u?e?") then
+      return true, true
+    elseif string.match(value, "^no?") or string.match(value, "^fa?l?s?e?") then
+      return true, false
+    end
+  end
+  return true, value
+end
+
+M.new_label = function(opts)
   opts = opts or {}
   vim.validate({
     text = { opts.text, "s" },
@@ -29,13 +86,12 @@ local function new_label(opts)
   }
 end
 
-local function new_input(opts, schema)
+M.new_input = function(opts, schema)
   vim.validate({
     id = { opts.id, "s" },
     label = { opts.label, "s" },
   })
-  local ptype = schema.type or "string"
-  local label = string.format("%s: ", opts.label)
+  local label = opts.label
   if not schema.optional then
     label = "*" .. label
   end
@@ -44,14 +100,7 @@ local function new_input(opts, schema)
     ever_focused = false,
     render = function(self, ctx)
       local value = ctx.params[opts.id]
-      if value == nil then
-        value = ""
-      end
-      if type(value) == "table" then
-        value = table.concat(value, " ")
-      end
-
-      return string.format("%s%s", label, value)
+      return M.render_field(schema, "", label, value)
     end,
     set_focus = function(self, focus)
       if self.focused and not focus then
@@ -70,53 +119,19 @@ local function new_input(opts, schema)
       end
     end,
     adjust_cursor = function(self, cur)
-      if cur[2] < string.len(label) then
-        return { cur[1], string.len(label) }
+      if cur[2] < string.len(label) + 1 then
+        return { cur[1], string.len(label) + 1 }
       end
     end,
     is_valid = function(self, params)
       local value = params[opts.id]
-      if value == nil then
-        return schema.optional
-      elseif ptype == "list" then
-        return type(value) == "table" and vim.tbl_islist(value)
-      elseif ptype == "number" then
-        return type(value) == "number"
-      elseif ptype == "bool" then
-        return type(value) == "boolean"
-      elseif ptype == "string" then
-        return true
-      else
-        vim.notify(string.format("Unknown param type '%s'", ptype), vim.log.levels.WARN)
-      end
-    end,
-    parse_value = function(self, value, params)
-      if value == "" then
-        params[opts.id] = nil
-        return
-      end
-      if ptype == "list" then
-        value = vim.split(value, "%s+")
-      elseif ptype == "number" then
-        local num = tonumber(value)
-        if num and not string.match(value, "%.$") and not string.match(value, "%.%d*0+$") then
-          value = num
-        end
-      elseif ptype == "bool" then
-        if string.match(value, "^ye?s?") or string.match(value, "^tr?u?e?") then
-          value = true
-        elseif string.match(value, "^no?") or string.match(value, "^fa?l?s?e?") then
-          value = false
-        end
-      end
-      params[opts.id] = value
+      return M.validate_field(schema, value)
     end,
     parse = function(self, line, params)
-      if string.sub(line, 1, string.len(label)) ~= label then
-        return
+      local parsed, val = M.parse_field(schema, "", label, line)
+      if parsed then
+        params[opts.id] = val
       end
-      local value = string.sub(line, string.len(label) + 1)
-      self:parse_value(value, params)
     end,
   }
 end
@@ -128,7 +143,7 @@ M.show = function(title, schema, params, callback)
   end
 
   local fields = {
-    new_label({ text = title, align = "center", nofocus = true }),
+    M.new_label({ text = title, align = "center", nofocus = true }),
   }
   local keys = vim.tbl_keys(schema)
   -- Sort the params by required, then if they have no value, then by name
@@ -152,7 +167,7 @@ M.show = function(title, schema, params, callback)
     if params[k] == nil then
       params[k] = param.default
     end
-    table.insert(fields, new_input({ id = k, label = param.name or k }, param))
+    table.insert(fields, M.new_input({ id = k, label = param.name or k }, param))
   end
 
   local bufnr = vim.api.nvim_create_buf(false, true)

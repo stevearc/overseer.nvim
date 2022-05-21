@@ -13,16 +13,15 @@ M.dispose_delay = {
   params = {
     timeout = {
       description = "Time to wait (in seconds) before disposing",
-      optional = true,
+      default = 300, -- 5 minutes
+      type = "number",
     },
   },
   builder = function(opts)
     opts = opts or {}
     vim.validate({
-      timeout = { opts.timeout, "n", true },
+      timeout = { opts.timeout, "n" },
     })
-    -- Default timeout 5 minutes
-    opts.timeout = opts.timeout or 300
     return {
       timer = nil,
       on_result = function(self, task)

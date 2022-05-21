@@ -18,6 +18,8 @@ local M = {}
 -- * task list previews in a float, not a split
 -- * { } to navigate task list
 -- * Timestamp status changes
+-- * More schema validations (callback, non-empty list, number greater than,
+-- etc)
 -- * Register template with callback conditional (e.g. make only when Makefile exists)
 -- * What about task chaining? Do we care?
 -- * Definitely going to need some sort of logging system
