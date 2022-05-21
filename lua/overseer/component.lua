@@ -40,6 +40,15 @@ M.alias = function(name, components)
   aliases[name] = components
 end
 
+M.params_should_replace = function(new_params, existing)
+  for k, v in pairs(new_params) do
+    if existing[k] ~= v then
+      return true
+    end
+  end
+  return false
+end
+
 local function getname(comp_params)
   if type(comp_params) == "string" then
     return comp_params
@@ -65,13 +74,15 @@ local function resolve(seen, resolved, names)
 end
 
 local function validate_params(params, schema)
-  for name, opts in pairs(schema) do
-    if params[name] == nil and not opts.optional then
-      error(string.format("Component '%s' requires param '%s'", getname(params), name))
+  if schema then
+    for name, opts in pairs(schema) do
+      if params[name] == nil and not opts.optional then
+        error(string.format("Component '%s' requires param '%s'", getname(params), name))
+      end
     end
   end
   for name in pairs(params) do
-    if type(name) == "string" and schema[name] == nil then
+    if type(name) == "string" and (not schema or schema[name] == nil) then
       vim.notify(
         string.format("Component '%s' passed unknown param '%s'", getname(params), name),
         vim.log.levels.WARN
@@ -84,11 +95,9 @@ local function instantiate(comp_params, component)
   local obj
   if type(comp_params) == "string" then
     comp_params = { comp_params }
-    obj = component.builder()
-  else
-    validate_params(comp_params, component.params)
-    obj = component.builder(comp_params)
   end
+  validate_params(comp_params, component.params)
+  obj = component.builder(comp_params)
   obj.name = getname(comp_params)
   obj.params = comp_params
   obj.description = component.description

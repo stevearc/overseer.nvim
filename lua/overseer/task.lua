@@ -63,6 +63,9 @@ function Task:render(lines, highlights, detail)
 
       for k, v in pairs(comp.params) do
         if k ~= 1 then
+          if type(v) == "table" and vim.tbl_islist(v) then
+            v = table.concat(v, ", ")
+          end
           table.insert(lines, string.format("  %s: %s", k, v))
           count = count + 1
         end
@@ -142,6 +145,44 @@ function Task:add_components(components)
       table.insert(self.components, v)
       if v.on_init then
         v:on_init(self)
+      end
+    end
+  end
+end
+
+function Task:set_component(comp)
+  self:set_components({ comp })
+end
+
+-- Add components, overwriting any existing
+function Task:set_components(components)
+  vim.validate({
+    components = { components, "t" },
+  })
+  for _, new_comp in ipairs(component.load(components)) do
+    local found = false
+    local replaced = false
+    for i, comp in ipairs(self.components) do
+      if comp.name == new_comp.name then
+        found = true
+        if component.params_should_replace(new_comp.params, comp.params) then
+          if comp.dispose then
+            comp:dispose(self)
+          end
+          self.components[i] = new_comp
+          replaced = true
+        end
+      end
+    end
+    if replaced or not found then
+      if new_comp.slot then
+        self.slots[new_comp.slot] = new_comp.name
+      end
+      if not replaced then
+        table.insert(self.components, new_comp)
+      end
+      if new_comp.on_init then
+        new_comp:on_init(self)
       end
     end
   end

@@ -12,7 +12,6 @@ local M = {}
 --    * popup to add new component
 --    * remove component
 --    * edit existing component
--- * add_component should replace existing
 --
 -- WISHLIST
 -- * don't dispose a task if we're doing something with it
