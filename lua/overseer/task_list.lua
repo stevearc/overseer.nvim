@@ -310,6 +310,7 @@ function TaskList:run_action(name)
     return
   end
 
+  task:inc_reference()
   vim.ui.select(actions, {
     prompt = "Task actions",
     kind = "overseer_task_options",
@@ -317,6 +318,7 @@ function TaskList:run_action(name)
       return action.name
     end,
   }, function(action)
+    task:dec_reference()
     if action then
       if action.condition(task, self) then
         action.callback(task, self)

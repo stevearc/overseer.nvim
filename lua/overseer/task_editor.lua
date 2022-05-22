@@ -4,7 +4,14 @@ local Task = require("overseer.task")
 local util = require("overseer.util")
 local M = {}
 
-M.open = function(task, callback)
+M.open = function(task, task_cb)
+  task:inc_reference()
+  local function callback(...)
+    task:dec_reference()
+    if task_cb then
+      task_cb(...)
+    end
+  end
   local bufnr = vim.api.nvim_create_buf(false, true)
   vim.api.nvim_buf_set_option(bufnr, "swapfile", false)
   vim.api.nvim_buf_set_option(bufnr, "bufhidden", "wipe")

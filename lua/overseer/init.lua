@@ -7,9 +7,6 @@ local window = require("overseer.window")
 local M = {}
 
 -- TODO
--- * Edit a task:
---   * Better layout (dynamic sizing)
---   * Pull as much out of the closures as possible
 --
 -- BETA
 -- * don't dispose a task if we're doing something with it
@@ -22,12 +19,14 @@ local M = {}
 -- * More schema validations (callback, non-empty list, number greater than,
 -- * Register template with callback conditional (e.g. make only when Makefile exists)
 -- * Summary stores N most recent lines
+-- * Pull as much logic out of the closures as possible
 -- * Better highlight groups (link instead of directly using Keyword/Comment)
 -- * Many more task templates, especially for tests
 -- * Load VSCode task definitions
 -- * Add extension points to the task list actions
 -- * Basic Readme
 -- * Vim help docs
+-- * Dynamic sizing for task editor
 -- * Architecture doc (Template / Task / Component)
 -- * Extension doc (how to make your own template/component)
 -- * should we allow duplicate template names? how to handle double-register gracefully?

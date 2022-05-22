@@ -35,6 +35,7 @@ function Task.new(opts)
   local data = {
     id = next_id,
     result = nil,
+    _references = 0,
     disposed = false,
     status = STATUS.PENDING,
     cmd = opts.cmd,
@@ -313,11 +314,19 @@ function Task:_set_result(status, data)
   self:dispatch("on_finalize")
 end
 
+function Task:inc_reference()
+  self._references = self._references + 1
+end
+
+function Task:dec_reference()
+  self._references = self._references - 1
+end
+
 function Task:dispose(force)
   vim.validate({
     force = { force, "b", true },
   })
-  if self.disposed then
+  if self.disposed or (self._references > 0 and not force) then
     return
   end
   self.disposed = true
