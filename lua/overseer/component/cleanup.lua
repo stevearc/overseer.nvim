@@ -2,10 +2,6 @@ local constants = require("overseer.constants")
 local SLOT = constants.SLOT
 local M = {}
 
-M.register_all = function()
-  require("overseer.component").register(M.dispose_delay)
-end
-
 M.dispose_delay = {
   name = "dispose_delay",
   description = "Dispose task after a timeout",
@@ -17,7 +13,7 @@ M.dispose_delay = {
       type = "number",
     },
   },
-  builder = function(opts)
+  constructor = function(opts)
     opts = opts or {}
     vim.validate({
       timeout = { opts.timeout, "n" },

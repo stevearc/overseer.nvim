@@ -6,10 +6,25 @@ local M = {}
 
 local builtin_modules = { "go", "make" }
 
+local Template = {}
+
+M.is_template = function(obj)
+  if type(obj) ~= "table" then
+    return false
+  end
+  if obj._type == "OverseerTemplate" then
+    return true
+  end
+  if obj.name and obj.params and obj.builder then
+    return true
+  end
+  return false
+end
+
 M.register_module = function(path)
   local mod = require(path)
   for _, v in pairs(mod) do
-    if type(v) == "table" and v._type == "OverseerTemplate" then
+    if M.is_template(v) then
       M.register(v)
     end
   end
@@ -33,13 +48,7 @@ M.register_builtin = function()
   }))
 end
 
-local TemplateRegistry = {}
-
-function TemplateRegistry.new()
-  return setmetatable({
-    templates = {},
-  }, { __index = TemplateRegistry })
-end
+local registry = {}
 
 local function tmpl_matches(tmpl, search)
   local condition = tmpl.condition
@@ -87,7 +96,7 @@ local function tmpl_matches(tmpl, search)
   return true
 end
 
-function TemplateRegistry:get_templates(opts)
+M.list = function(opts)
   opts = opts or {}
   vim.validate({
     tags = { opts.tags, "t", true },
@@ -97,7 +106,7 @@ function TemplateRegistry:get_templates(opts)
   })
   local ret = {}
 
-  for _, tmpl in pairs(self.templates) do
+  for _, tmpl in pairs(registry) do
     if tmpl_matches(tmpl, opts) then
       table.insert(ret, tmpl)
     end
@@ -106,22 +115,20 @@ function TemplateRegistry:get_templates(opts)
   return ret
 end
 
-function TemplateRegistry:register(tmpl)
+M.register = function(tmpl)
   vim.validate({
     tmpl = { tmpl, "t" },
   })
-  if vim.tbl_islist(tmpl) then
-    for _, t in ipairs(tmpl) do
-      self.templates[t.name] = t
+  if not vim.tbl_islist(tmpl) then
+    tmpl = { tmpl }
+  end
+  for _, t in ipairs(tmpl) do
+    if t._type ~= "OverseerTemplate" then
+      t = Template.new(t)
     end
-  else
-    self.templates[tmpl.name] = tmpl
+    registry[t.name] = t
   end
 end
-
-local registry = TemplateRegistry.new()
-
-local Template = {}
 
 function Template.new(opts)
   opts = opts or {}
@@ -202,16 +209,8 @@ end
 
 M.new = Template.new
 
-M.register = function(...)
-  registry:register(...)
-end
-
-M.list = function(opts)
-  return registry:get_templates(opts)
-end
-
 M.get_by_name = function(name, opts)
-  local templates = registry:get_templates(opts)
+  local templates = M.list(opts)
   for _, t in ipairs(templates) do
     if t.name == name then
       return t

@@ -5,12 +5,6 @@ local STATUS = constants.STATUS
 
 local M = {}
 
-M.register_all = function()
-  require("overseer.component").register(M.rerun_trigger)
-  require("overseer.component").register(M.rerun_on_result)
-  require("overseer.component").register(M.rerun_on_save)
-end
-
 M.rerun_trigger = {
   name = "rerun_trigger",
   description = "Ability to rerun the task",
@@ -26,7 +20,7 @@ M.rerun_trigger = {
       type = "bool",
     },
   },
-  builder = function(opts)
+  constructor = function(opts)
     vim.validate({
       delay = { opts.delay, "n" },
       interrupt = { opts.interrupt, "b" },
@@ -84,7 +78,7 @@ M.rerun_on_save = {
       default = 500,
     },
   },
-  builder = function(opts)
+  constructor = function(opts)
     vim.validate({
       delay = { opts.delay, "n" },
       dir = { opts.dir, "s", true },
@@ -125,7 +119,7 @@ M.rerun_on_result = {
       default = { STATUS.FAILURE },
     },
   },
-  builder = function(opts)
+  constructor = function(opts)
     if type(opts.statuses) == "string" then
       opts.statuses = { opts.statuses }
     end

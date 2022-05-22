@@ -1,7 +1,7 @@
 local overseer = require("overseer")
 local M = {}
 
-M.make = require("overseer.template").new({
+M.make = {
   name = "make",
   tags = { overseer.TAG.BUILD },
   params = {
@@ -22,10 +22,6 @@ M.make = require("overseer.template").new({
       cmd = cmd,
     }
   end,
-})
-
-M.register_all = function()
-  overseer.template.register(M.make, {})
-end
+}
 
 return M

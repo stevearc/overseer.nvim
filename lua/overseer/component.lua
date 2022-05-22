@@ -4,10 +4,33 @@ local M = {}
 local registry = {}
 local aliases = {}
 
-local builtin_modules = { "cleanup", "notify", "rerun", "result" }
+local builtin_modules = { "cleanup", "notify", "rerun", "result", "summary" }
+
+M.is_component = function(obj)
+  if type(obj) ~= "table" then
+    return false
+  end
+  if obj._type == "OverseerComponent" then
+    return true
+  end
+  if obj.name and obj.constructor then
+    return true
+  end
+  return false
+end
+
+M.register_module = function(path)
+  local mod = require(path)
+  for _, v in pairs(mod) do
+    if M.is_component(v) then
+      M.register(v)
+    end
+  end
+end
+
 M.register_builtin = function()
   for _, mod in ipairs(builtin_modules) do
-    require(string.format("overseer.component.%s", mod)).register_all()
+    M.register_module(string.format("overseer.component.%s", mod))
   end
 end
 
@@ -17,11 +40,12 @@ M.register = function(opts)
     slot = { opts.name, "s", true },
     description = { opts.description, "s", true },
     params = { opts.params, "t", true },
-    builder = { opts.builder, "f" },
+    constructor = { opts.constructor, "f" },
   })
   if opts.name:match("%s") then
     error("Component name cannot have whitespace")
   end
+  opts._type = "OverseerComponent"
   if opts.params then
     for name, param in pairs(opts.params) do
       vim.validate({
@@ -152,7 +176,7 @@ local function instantiate(comp_params, component)
     comp_params = { comp_params }
   end
   validate_params(comp_params, component.params)
-  obj = component.builder(comp_params)
+  obj = component.constructor(comp_params)
   obj.name = getname(comp_params)
   obj.params = comp_params
   obj.description = component.description

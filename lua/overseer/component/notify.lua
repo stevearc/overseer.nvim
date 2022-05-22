@@ -4,11 +4,6 @@ local STATUS = constants.STATUS
 local SLOT = constants.SLOT
 local M = {}
 
-M.register_all = function()
-  require("overseer.component").register(M.notify_result)
-  require("overseer.component").register(M.notify_red_green)
-end
-
 M.notify_result = {
   name = "notify_result",
   description = "notify on result",
@@ -23,7 +18,7 @@ M.notify_result = {
       },
     },
   },
-  builder = function(opts)
+  constructor = function(opts)
     opts = opts or {}
     if type(opts.statuses) == "string" then
       opts.statuses = { opts.statuses }
@@ -46,7 +41,7 @@ M.notify_red_green = {
   description = "notify when task fails, or when it goes from failing to success",
   slot = SLOT.NOTIFY,
   params = {},
-  builder = function()
+  constructor = function()
     return {
       last_status = nil,
       on_result = function(self, task, status)

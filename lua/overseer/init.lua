@@ -7,7 +7,6 @@ local window = require("overseer.window")
 local M = {}
 
 -- TODO
--- * Rethink the register_all logic (see if we can make it more automatic and not need to define templates as .new()
 -- * Many more task templates, especially for tests
 -- * Add extension points to the task list actions
 -- * Add tests
