@@ -313,6 +313,9 @@ M.open = function(task, task_cb)
     for k, v in pairs(task_data) do
       task[k] = v
     end
+    if not util.is_shell_cmd(task_data.cmd) then
+      task.cmd = vim.split(task_data.cmd, "%s+")
+    end
     if not task_name:match("^%s*$") then
       task.name = task_name
     end

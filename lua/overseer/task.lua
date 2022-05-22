@@ -11,9 +11,7 @@ local next_id = 1
 
 Task.ordered_params = { "cmd", "cwd" }
 Task.params = {
-  cmd = {
-    type = "list",
-  },
+  cmd = {},
   cwd = {
     optional = true,
   },
@@ -31,6 +29,10 @@ function Task.new(opts)
   if not opts.components then
     opts.components = { "default" }
   end
+  local name = opts.name
+  if not name then
+    name = type(opts.cmd) == "table" and table.concat(opts.cmd, " ") or opts.cmd
+  end
   -- Build the instance data for the task
   local data = {
     id = next_id,
@@ -40,7 +42,7 @@ function Task.new(opts)
     status = STATUS.PENDING,
     cmd = opts.cmd,
     cwd = opts.cwd,
-    name = opts.name or table.concat(opts.cmd, " "),
+    name = name,
     slots = {},
     components = {},
   }
@@ -393,6 +395,7 @@ function Task:start()
   })
 
   vim.api.nvim_buf_call(self.bufnr, function()
+    print(string.format("termopen: %s", vim.inspect(self.cmd)))
     chan_id = vim.fn.termopen(self.cmd, {
       stdin = "null",
       cwd = self.cwd,

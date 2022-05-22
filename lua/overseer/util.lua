@@ -123,4 +123,15 @@ M.pwrap = function(fn)
   end
 end
 
+-- Attempt to detect if a command should be run by the shell (passed as string
+-- to termopen)  or if it can be run directly (passed as list to termopen)
+M.is_shell_cmd = function(cmd)
+  for arg in vim.gsplit(cmd, "%s+") do
+    if arg == "|" or arg == "||" or arg == "&&" then
+      return true
+    end
+  end
+  return false
+end
+
 return M

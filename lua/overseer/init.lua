@@ -7,23 +7,21 @@ local window = require("overseer.window")
 local M = {}
 
 -- TODO
---
--- BETA
+-- * should we allow duplicate template names? how to handle double-register gracefully?
 -- * Register template with callback conditional (e.g. make only when Makefile exists)
+-- * Many more task templates, especially for tests
 -- * Add extension points to the task list actions
 -- * Add tests
 -- * keybinding help in float
 -- * More schema validations (callback, non-empty list, number greater than,
 -- * Pull as much logic out of the closures as possible
 -- * Better highlight groups (link instead of directly using Keyword/Comment)
--- * Many more task templates, especially for tests
 -- * Load VSCode task definitions
 -- * Basic Readme
 -- * Vim help docs
 -- * Dynamic sizing for task editor
 -- * Architecture doc (Template / Task / Component)
 -- * Extension doc (how to make your own template/component)
--- * should we allow duplicate template names? how to handle double-register gracefully?
 -- * component: parse output and populate quickfix
 -- * Separation of registry and task list feels like it needs refactor
 -- * { } to navigate task list
