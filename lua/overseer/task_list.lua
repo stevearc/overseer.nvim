@@ -187,7 +187,7 @@ function TaskList:_get_task_from_line(lnum)
   lnum = lnum or vim.api.nvim_win_get_cursor(0)[1]
   -- TODO could do binary search here
   for _, v in ipairs(self.task_lines) do
-    if v[1] > lnum then
+    if v[1] >= lnum then
       return v[2]
     end
   end
@@ -306,7 +306,7 @@ function TaskList:run_action(name)
     end
   end
   if name then
-    vim.notify(string.format("No action '%s' found for task", name), vim.log.levels.ERROR)
+    vim.notify(string.format("Cannot %s task", name), vim.log.levels.WARN)
     return
   end
 

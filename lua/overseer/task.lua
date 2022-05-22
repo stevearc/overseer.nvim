@@ -9,6 +9,16 @@ local Task = {}
 
 local next_id = 1
 
+Task.ordered_params = { "cmd", "cwd" }
+Task.params = {
+  cmd = {
+    type = "list",
+  },
+  cwd = {
+    optional = true,
+  },
+}
+
 function Task.new(opts)
   opts = opts or {}
   vim.validate({

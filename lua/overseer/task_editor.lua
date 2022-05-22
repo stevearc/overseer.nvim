@@ -1,5 +1,6 @@
 local component = require("overseer.component")
 local form = require("overseer.form")
+local Task = require("overseer.task")
 local util = require("overseer.util")
 local M = {}
 
@@ -13,6 +14,11 @@ M.open = function(task, callback)
   for _, comp in ipairs(task.components) do
     table.insert(components, vim.deepcopy(comp.params))
   end
+  local task_data = {}
+  for k in pairs(Task.params) do
+    task_data[k] = vim.deepcopy(task[k])
+  end
+  local task_name = task.name
 
   local ns = vim.api.nvim_create_namespace("overseer")
   local vtext_ns = vim.api.nvim_create_namespace("overseer_vtext")
@@ -23,7 +29,7 @@ M.open = function(task, callback)
     local original_cur = vim.deepcopy(cur)
     vim.api.nvim_buf_clear_namespace(bufnr, vtext_ns, 0, -1)
     if not line_to_comp[cur[1]] then
-      cur[1] = next(line_to_comp)
+      return
     end
     local comp, param_name = unpack(line_to_comp[cur[1]])
 
@@ -47,8 +53,20 @@ M.open = function(task, callback)
   local function render()
     vim.api.nvim_buf_clear_namespace(bufnr, ns, 0, -1)
     line_to_comp = {}
-    local lines = { task.name }
-    local highlights = {}
+    local lines = { task_name }
+    local highlights = { { "String", 1, 0, -1 } }
+
+    for _, k in ipairs(Task.ordered_params) do
+      local schema = Task.params[k]
+      local value = task_data[k]
+      table.insert(lines, form.render_field(schema, "", k, value))
+      if form.validate_field(schema, value) then
+        table.insert(highlights, { "Keyword", #lines, 0, string.len(k) })
+      else
+        table.insert(highlights, { "DiagnosticError", #lines, 0, string.len(k) })
+      end
+    end
+
     for _, params in ipairs(components) do
       local comp = component.get(params[1])
       if comp.description then
@@ -135,6 +153,7 @@ M.open = function(task, callback)
   end
 
   local function parse()
+    task_name = vim.api.nvim_buf_get_lines(bufnr, 0, 1, true)[1]
     local buflines = vim.api.nvim_buf_get_lines(bufnr, 1, -1, true)
     local comp_map = {}
     local comp_idx = {}
@@ -160,13 +179,21 @@ M.open = function(task, callback)
     local comp
     local last_idx = 0
     for _, line in ipairs(buflines) do
-      local name, text = line:match("^%s+([^%s]+): ?(.*)$")
-      if name and comp then
+      local prefix, name, text = line:match("^(%s*)([^%s]+): ?(.*)$")
+      if name and comp and prefix == "  " then
         local param_schema = comp.params[name]
         if param_schema then
           local parsed, value = form.parse_value(param_schema, text)
           if parsed then
             comp_map[comp.name][name] = value
+          end
+        end
+      elseif name and prefix == "" then
+        local param_schema = Task.params[name]
+        if param_schema then
+          local parsed, value = form.parse_value(param_schema, text)
+          if parsed then
+            task_data[name] = value
           end
         end
       else
@@ -251,6 +278,12 @@ M.open = function(task, callback)
       end
     end
     task:remove_components(to_remove)
+    for k, v in pairs(task_data) do
+      task[k] = v
+    end
+    if not task_name:match("^%s*$") then
+      task.name = task_name
+    end
     cleanup()
     if callback then
       callback(task)

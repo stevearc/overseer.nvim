@@ -9,20 +9,23 @@ local M = {}
 -- TODO
 -- * Edit a task:
 --   * how to handle slots?
---   * edit cmd and cwd
 --   * motion forwards/backwards
 --   * <c-u> stopped working
 --   * center the title
+--   * Create new task
+--   * Better layout (dynamic sizing)
 --
 -- WISHLIST
 -- * don't dispose a task if we're doing something with it
 -- * task list previews in a float, not a split
 -- * { } to navigate task list
 -- * Timestamp status changes
+-- * Save specific task the same way we save bundles
 -- * More schema validations (callback, non-empty list, number greater than,
 -- etc)
 -- * Register template with callback conditional (e.g. make only when Makefile exists)
 -- * What about task chaining? Do we care?
+-- * Rethink the detail levels
 -- * Definitely going to need some sort of logging system
 -- * Load VSCode task definitions
 -- * Store recent commands in history per-directory
