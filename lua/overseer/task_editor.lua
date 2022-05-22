@@ -170,7 +170,8 @@ M.open = function(task, callback)
 
   local function parse()
     task_name = vim.api.nvim_buf_get_lines(bufnr, 0, 1, true)[1]
-    local buflines = vim.api.nvim_buf_get_lines(bufnr, 1, -1, true)
+    local offset = 1
+    local buflines = vim.api.nvim_buf_get_lines(bufnr, offset, -1, true)
     local comp_map = {}
     local comp_idx = {}
     for i, v in ipairs(components) do
@@ -178,15 +179,17 @@ M.open = function(task, callback)
       comp_idx[v[1]] = i
     end
 
-    local insert_position = #components
+    local insert_position = #components + 1
     for i, line in ipairs(buflines) do
       if line:match("^%s*$") then
-        local comp = line_to_comp[i + 1]
+        local comp = line_to_comp[i + offset]
         if comp then
-          is_adding_component = true
           insert_position = comp_idx[comp[1].name]
-          break
+        elseif i < #buflines / 2 then
+          insert_position = 1
         end
+        is_adding_component = true
+        break
       end
     end
     if is_adding_component then
