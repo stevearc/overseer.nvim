@@ -62,7 +62,15 @@ local function getname(comp_params)
   if type(comp_params) == "string" then
     return comp_params
   else
-    return comp_params[1]
+    local name = comp_params[1]
+    if not name then
+      -- We store these as json, and when we load them again the indexes are
+      -- converted to strings
+      name = comp_params["1"]
+      comp_params[1] = name
+      comp_params["1"] = nil
+    end
+    return name
   end
 end
 
@@ -108,26 +116,25 @@ local function resolve(seen, resolved, names)
 end
 
 local function validate_params(params, schema)
-  if schema then
-    for name, opts in pairs(schema) do
-      local value = params[name]
-      if value == nil then
-        if opts.default ~= nil then
-          params[name] = opts.default
-        elseif not opts.optional then
-          error(string.format("Component '%s' requires param '%s'", getname(params), name))
-        end
-      elseif not form.validate_field(opts, value) then
-        error(string.format("Component '%s' param '%s' is invalid", getname(params), name))
+  for name, opts in pairs(schema) do
+    local value = params[name]
+    if value == nil then
+      if opts.default ~= nil then
+        params[name] = opts.default
+      elseif not opts.optional then
+        error(string.format("Component '%s' requires param '%s'", getname(params), name))
       end
+    elseif not form.validate_field(opts, value) then
+      error(string.format("Component '%s' param '%s' is invalid", getname(params), name))
     end
   end
   for name in pairs(params) do
-    if type(name) == "string" and (not schema or schema[name] == nil) then
+    if type(name) == "string" and schema[name] == nil then
       vim.notify(
         string.format("Component '%s' passed unknown param '%s'", getname(params), name),
         vim.log.levels.WARN
       )
+      params[name] = nil
     end
   end
 end
