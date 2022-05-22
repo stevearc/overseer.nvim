@@ -8,7 +8,6 @@ local M = {}
 
 -- TODO
 -- * Edit a task:
---   * how to handle slots?
 --   * motion forwards/backwards
 --   * <c-u> stopped working
 --   * center the title
@@ -28,6 +27,7 @@ local M = {}
 -- * Rethink the detail levels
 -- * Definitely going to need some sort of logging system
 -- * Load VSCode task definitions
+-- * Better highlight groups (link instead of directly using Keyword/Comment)
 -- * Store recent commands in history per-directory
 --   * Can select & run task from recent history
 -- * Add tests
@@ -56,9 +56,12 @@ M.setup = function(opts)
     hi default link OverseerSUCCESS DiagnosticInfo
     hi default link OverseerCANCELED DiagnosticWarn
     hi default link OverseerFAILURE DiagnosticError
-    hi default link OverseerTask String
+    hi default link OverseerTask Title
     hi default link OverseerTaskBorder FloatBorder
     hi default link OverseerOutput Comment
+    hi default link OverseerSlot String
+    hi default link OverseerComponent Constant
+    hi default link OverseerField Keyword
   ]])
   vim.api.nvim_create_autocmd("User", {
     pattern = "SessionSavePre",

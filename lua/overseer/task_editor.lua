@@ -54,28 +54,37 @@ M.open = function(task, callback)
     vim.api.nvim_buf_clear_namespace(bufnr, ns, 0, -1)
     line_to_comp = {}
     local lines = { task_name }
-    local highlights = { { "String", 1, 0, -1 } }
+    local highlights = { { "OverseerTask", 1, 0, -1 } }
 
     for _, k in ipairs(Task.ordered_params) do
       local schema = Task.params[k]
       local value = task_data[k]
       table.insert(lines, form.render_field(schema, "", k, value))
       if form.validate_field(schema, value) then
-        table.insert(highlights, { "Keyword", #lines, 0, string.len(k) })
+        table.insert(highlights, { "OverseerField", #lines, 0, string.len(k) })
       else
         table.insert(highlights, { "DiagnosticError", #lines, 0, string.len(k) })
       end
     end
 
+    local seen_slots = {}
     for _, params in ipairs(components) do
       local comp = component.get(params[1])
-      if comp.description then
-        table.insert(lines, string.format("%s (%s)", comp.name, comp.description))
-        table.insert(highlights, { "Comment", #lines, string.len(comp.name) + 1, -1 })
-      else
-        table.insert(lines, comp.name)
+      local line = comp.name
+      table.insert(highlights, { "OverseerComponent", #lines + 1, 0, string.len(comp.name) })
+      if comp.slot then
+        local prev_len = string.len(line)
+        line = string.format("%s [%s]", line, comp.slot)
+        local hl = seen_slots[comp.slot] and "DiagnosticError" or "OverseerSlot"
+        table.insert(highlights, { hl, #lines + 1, prev_len + 1, string.len(line) })
+        seen_slots[comp.slot] = true
       end
-      table.insert(highlights, { "Constant", #lines, 0, string.len(comp.name) })
+      if comp.description then
+        local prev_len = string.len(line)
+        line = string.format("%s (%s)", line, comp.description)
+        table.insert(highlights, { "Comment", #lines + 1, prev_len + 1, -1 })
+      end
+      table.insert(lines, line)
       line_to_comp[#lines] = { comp, nil }
 
       local schema = comp.params
@@ -83,7 +92,7 @@ M.open = function(task, callback)
         local value = params[k]
         table.insert(lines, form.render_field(param_schema, "  ", k, value))
         if form.validate_field(param_schema, value) then
-          table.insert(highlights, { "Keyword", #lines, 0, 2 + string.len(k) })
+          table.insert(highlights, { "OverseerField", #lines, 0, 2 + string.len(k) })
         else
           table.insert(highlights, { "DiagnosticError", #lines, 0, 2 + string.len(k) })
         end
@@ -256,8 +265,15 @@ M.open = function(task, callback)
   )
 
   local function submit()
+    local slots = {}
     for _, params in ipairs(components) do
       local comp = component.get(params[1])
+      if comp.slot then
+        if slots[comp.slot] then
+          return
+        end
+        slots[comp.slot] = true
+      end
 
       local schema = comp.params
       for k, param_schema in pairs(schema) do
@@ -267,7 +283,6 @@ M.open = function(task, callback)
         end
       end
     end
-    task:set_components(components)
     local seen = util.list_to_map(vim.tbl_map(function(c)
       return c[1]
     end, components))
@@ -278,6 +293,7 @@ M.open = function(task, callback)
       end
     end
     task:remove_components(to_remove)
+    task:set_components(components)
     for k, v in pairs(task_data) do
       task[k] = v
     end
