@@ -8,10 +8,9 @@ local M = {}
 
 -- TODO
 -- * Edit a task:
---    * view components & params
---    * popup to add new component
---    * remove component
---    * edit existing component
+--   * motion forwards/backwards
+--   * add new component
+--   * how to handle slots / duplicate components?
 --
 -- WISHLIST
 -- * don't dispose a task if we're doing something with it
@@ -33,7 +32,7 @@ local M = {}
 -- * component: parse output and populate quickfix
 -- * task list: bulk actions
 -- * params can be file/dir type and will autocomplete
--- * list params allow escaping / quotes
+-- * list params allow escaping / quotes / specifying delimiter
 -- * ability to require task to be unique (disallow duplicates). Coordinate among all vim instances
 -- * Autostart task on vim open in dir (needs some uniqueness checks)
 -- * Lualine component

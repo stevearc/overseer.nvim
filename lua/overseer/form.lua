@@ -34,6 +34,10 @@ M.parse_field = function(schema, prefix, name, line)
     return false
   end
   local value = string.sub(line, string.len(label) + 1)
+  return M.parse_value(schema, value)
+end
+
+M.parse_value = function(schema, value)
   if value == "" then
     return true, nil
   end
