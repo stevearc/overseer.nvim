@@ -1,6 +1,14 @@
 local default_config = {
   list_sep = "────────────────────────────────────────",
   use_builtin_templates = true,
+  form = {
+    border = "rounded",
+    min_width = 80,
+    max_width = 0.9,
+    min_height = 10,
+    max_height = 0.9,
+    winblend = 10,
+  },
   component_sets = {
     default = {
       "output_summary",

@@ -24,6 +24,6 @@ local schema = {
   },
 }
 
-overseer.form.show("Test form", schema, {}, function(params)
+overseer.template_builder.open("Test template builder", schema, {}, function(params)
   vim.notify(vim.inspect(params))
 end)

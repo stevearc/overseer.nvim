@@ -158,6 +158,16 @@ M.open = function(task, callback)
     end)
   end
 
+  local autocmds = {}
+
+  local cleanup, layout = form.open_form_win(bufnr, {
+    autocmds = autocmds,
+    get_preferred_dim = function()
+      -- TODO this is causing a lot of jumping
+    end,
+  })
+  vim.api.nvim_buf_set_option(bufnr, "filetype", "OverseerTask")
+
   local function parse()
     task_name = vim.api.nvim_buf_get_lines(bufnr, 0, 1, true)[1]
     local buflines = vim.api.nvim_buf_get_lines(bufnr, 1, -1, true)
@@ -237,13 +247,9 @@ M.open = function(task, callback)
       table.remove(components, idx)
     end
 
+    layout()
     render()
   end
-
-  local autocmds = {}
-
-  local cleanup = form.open_form_win(bufnr, { autocmds = autocmds })
-  vim.api.nvim_buf_set_option(bufnr, "filetype", "OverseerTask")
 
   table.insert(
     autocmds,

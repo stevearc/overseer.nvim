@@ -1,5 +1,5 @@
 local Task = require("overseer.task")
-local form = require("overseer.form")
+local template_builder = require("overseer.template_builder")
 local util = require("overseer.util")
 local M = {}
 
@@ -181,7 +181,7 @@ function Template:build(prompt, params, callback)
       schema[k] = v
     end
   end
-  form.show(self.name, schema, params, function(final_params)
+  template_builder.open(self.name, schema, params, function(final_params)
     if final_params then
       callback(Task.new(self.builder(final_params)))
     else
