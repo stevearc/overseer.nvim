@@ -329,7 +329,13 @@ function Task:dispose(force)
     force = { force, "b", true },
   })
   if self.disposed or (self._references > 0 and not force) then
-    return
+    return false
+  end
+  -- Can't dispose if the terminal is open
+  for _, winid in ipairs(vim.api.nvim_list_wins()) do
+    if vim.api.nvim_win_get_buf(winid) == self.bufnr then
+      return false
+    end
   end
   self.disposed = true
   if self:is_running() then
@@ -347,6 +353,7 @@ function Task:dispose(force)
   if self.bufnr and vim.api.nvim_buf_is_valid(self.bufnr) then
     vim.api.nvim_buf_delete(self.bufnr, { force = true })
   end
+  return true
 end
 
 function Task:rerun(force_stop)

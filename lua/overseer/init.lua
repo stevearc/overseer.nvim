@@ -15,27 +15,24 @@ local M = {}
 -- * keybinding help in float
 -- * More schema validations (callback, non-empty list, number greater than,
 -- * Pull as much logic out of the closures as possible
--- * Better highlight groups (link instead of directly using Keyword/Comment)
 -- * Load VSCode task definitions
 -- * Add nearest-test support detecting via treesitter
--- * Basic Readme
--- * Vim help docs
 -- * Dynamic sizing for task editor
--- * Architecture doc (Template / Task / Component)
--- * Extension doc (how to make your own template/component)
 -- * component: parse output and populate quickfix/loclist (or diagnostics? signs? vtext?)
 -- * Separation of registry and task list feels like it needs refactor
 -- * Option to run task and immediately open terminal in (float/split/vsplit)
 -- * { } to navigate task list
------------------------------------------
--- FUTURE
+-- * Basic Readme
+-- * Vim help docs
+-- * Architecture doc (Template / Task / Component)
+-- * Extension doc (how to make your own template/component)
 
 M.setup = function(opts)
   require("overseer.component").register_builtin()
   config.setup(opts)
   commands.create_commands()
-  local aug = vim.api.nvim_create_augroup("Overseer", {})
   vim.cmd([[
+    hi default link OverseerPENDING Normal
     hi default link OverseerRUNNING Constant
     hi default link OverseerSUCCESS DiagnosticInfo
     hi default link OverseerCANCELED DiagnosticWarn
@@ -47,6 +44,7 @@ M.setup = function(opts)
     hi default link OverseerComponent Constant
     hi default link OverseerField Keyword
   ]])
+  local aug = vim.api.nvim_create_augroup("Overseer", {})
   vim.api.nvim_create_autocmd("User", {
     pattern = "SessionSavePre",
     desc = "Save task state when vim-session saves",
@@ -79,9 +77,10 @@ M.save_task_bundles = commands.save_task_bundles
 M.delete_task_bundles = commands.delete_task_bundles
 M.run_template = commands.run_template
 
-M.TAG = constants.TAG
-M.SLOT = constants.SLOT
-M.STATUS = constants.STATUS
+-- Re-export the constants
+for k, v in pairs(constants) do
+  M[k] = v
+end
 
 -- Used for vim-session integration.
 local timer_active = false
