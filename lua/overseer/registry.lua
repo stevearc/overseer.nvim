@@ -39,10 +39,7 @@ end
 M.serialize_tasks = function()
   local ret = {}
   for _, task in ipairs(M.tasks) do
-    -- Don't save tasks that are pending disposal
-    if not task:has_slot(SLOT.DISPOSE) then
-      table.insert(ret, task:serialize())
-    end
+    table.insert(ret, task:serialize())
   end
   return ret
 end
