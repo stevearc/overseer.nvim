@@ -90,15 +90,12 @@ M.run_template = function(opts, params, callback)
     params = { params, "t", true },
     callback = { callback, "f", true },
   })
-  opts.prompt = opts.prompt or "always"
+  opts.prompt = opts.prompt or "missing"
   params = params or {}
   local dir = vim.fn.getcwd(0)
   local ft = vim.api.nvim_buf_get_option(0, "filetype")
-  if opts.name then
-    local tmpl = template.get_by_name(opts.name)
-    if not tmpl then
-      error(string.format("Could not find template '%s'", opts.name))
-    end
+
+  local function handle_tmpl(tmpl)
     tmpl:build(opts.prompt, params, function(task)
       if task and not opts.nostart then
         task:start()
@@ -107,6 +104,14 @@ M.run_template = function(opts, params, callback)
         callback(task)
       end
     end)
+  end
+
+  if opts.name then
+    local tmpl = template.get_by_name(opts.name)
+    if not tmpl then
+      error(string.format("Could not find template '%s'", opts.name))
+    end
+    handle_tmpl(tmpl)
   else
     local templates = template.list({
       dir = dir,
@@ -117,8 +122,7 @@ M.run_template = function(opts, params, callback)
       vim.notify("Could not find any matching task templates", vim.log.levels.ERROR)
       return
     elseif #templates == 1 and (opts.name or not vim.tbl_isempty(opts.tags or {})) then
-      opts.name = templates[1].name
-      M.run_template(opts, params, callback)
+      handle_tmpl(templates[1])
     else
       vim.ui.select(templates, {
         prompt = "Task template:",
@@ -132,8 +136,7 @@ M.run_template = function(opts, params, callback)
         end,
       }, function(tmpl)
         if tmpl then
-          opts.name = tmpl.name
-          M.run_template(opts, params, callback)
+          handle_tmpl(tmpl)
         end
       end)
     end

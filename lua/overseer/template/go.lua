@@ -10,7 +10,7 @@ M.go_test = {
   condition = {
     filetype = "go",
   },
-  builder = function(params)
+  builder = function(self, params)
     return {
       cmd = { "go", "test", params.target },
     }

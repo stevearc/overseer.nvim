@@ -4,7 +4,7 @@ local template_builder = require("overseer.template_builder")
 local util = require("overseer.util")
 local M = {}
 
-local builtin_modules = { "go", "make" }
+local builtin_modules = { "go", "make", "npm" }
 
 local Template = {}
 
@@ -89,7 +89,7 @@ local function tmpl_matches(tmpl, search)
   end
 
   if condition.callback then
-    if not condition.callback(search) then
+    if not condition.callback(tmpl, search) then
       return false
     end
   end
@@ -108,6 +108,11 @@ M.list = function(opts)
   for _, tmpl in pairs(registry) do
     if tmpl_matches(tmpl, opts) then
       table.insert(ret, tmpl)
+      if tmpl.metagen then
+        for _, meta in ipairs(tmpl:metagen(opts)) do
+          table.insert(ret, meta)
+        end
+      end
     end
   end
 
@@ -137,6 +142,7 @@ function Template.new(opts)
     tags = { opts.tags, "t", true },
     params = { opts.params, "t" },
     builder = { opts.builder, "f" },
+    metagen = { opts.metagen, "f", true },
   })
   opts._type = "OverseerTemplate"
   if opts.condition then
@@ -181,7 +187,8 @@ function Template:build(prompt, params, callback)
     or (prompt == "missing" and not any_missing)
     or vim.tbl_isempty(self.params)
   then
-    callback(Task.new(self.builder(params)))
+    callback(Task.new(self:builder(params)))
+    return
   end
 
   local schema = {}
@@ -190,12 +197,24 @@ function Template:build(prompt, params, callback)
   end
   template_builder.open(self.name, schema, params, function(final_params)
     if final_params then
-      callback(Task.new(self.builder(final_params)))
+      callback(Task.new(self:builder(final_params)))
     else
       callback()
     end
   end)
   return
+end
+
+function Template:wrap(name, default_params)
+  return setmetatable({
+    name = name,
+    build = function(newself, prompt, params, callback)
+      for k, v in pairs(default_params) do
+        params[k] = v
+      end
+      return self:build(prompt, params, callback)
+    end,
+  }, { __index = self })
 end
 
 M.new = Template.new

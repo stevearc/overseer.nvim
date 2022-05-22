@@ -7,6 +7,8 @@ local window = require("overseer.window")
 local M = {}
 
 -- TODO
+-- * Load VSCode task definitions
+--   * just, make, tox, basically just need autocomplete for these
 -- * Many more task templates, especially for tests
 -- * Statusline integration for task status
 -- * Add extension points to the task list actions
@@ -14,11 +16,11 @@ local M = {}
 -- * keybinding help in float
 -- * More schema validations (callback, non-empty list, number greater than,
 -- * Pull as much logic out of the closures as possible
--- * Load VSCode task definitions
 -- * Add nearest-test support detecting via treesitter
 -- * Dynamic sizing for task editor
 -- * component: parse output and populate quickfix/loclist (or diagnostics? signs? vtext?)
 -- * Separation of registry and task list feels like it needs refactor
+-- * Summary removes terminal escape chars
 -- * Option to run task and immediately open terminal in (float/split/vsplit)
 -- * { } to navigate task list
 -- * Basic Readme

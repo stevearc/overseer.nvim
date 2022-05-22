@@ -1,4 +1,5 @@
 local overseer = require("overseer")
+local files = require("overseer.files")
 local M = {}
 
 M.make = {
@@ -8,12 +9,12 @@ M.make = {
     args = { optional = true, type = "list" },
   },
   condition = {
-    callback = function(opts)
-      local dir = opts.dir or vim.fn.getcwd(0)
-      return overseer.files.path_exists(overseer.files.join(dir, "Makefile"))
+    callback = function(self, opts)
+      local dir = opts.dir
+      return files.exists(files.join(dir, "Makefile"))
     end,
   },
-  builder = function(params)
+  builder = function(self, params)
     local cmd = { "make" }
     if params.args then
       cmd = vim.list_extend(cmd, params.args)

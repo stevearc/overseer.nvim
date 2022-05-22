@@ -57,6 +57,7 @@ function TaskList.new()
       },
       {
         name = "save",
+        description = "save the task to a bundle file",
         condition = function(task)
           return true
         end,
@@ -106,7 +107,21 @@ function TaskList.new()
         end,
       },
       {
+        name = "ensure",
+        description = "rerun the task if it fails",
+        condition = function(task)
+          return true
+        end,
+        callback = function(task)
+          task:add_components({ "rerun_trigger", "rerun_on_result" })
+          if task.status == STATUS.FAILURE then
+            task:rerun()
+          end
+        end,
+      },
+      {
         name = "watch",
+        description = "rerun the task when you save a file",
         condition = function(task)
           return task:has_component("rerun_trigger") and not task:has_component("rerun_on_save")
         end,

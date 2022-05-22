@@ -4,8 +4,8 @@ M.is_windows = vim.loop.os_uname().version:match("Windows")
 
 local sep = M.is_windows and "\\" or "/"
 
-M.path_exists = function(filename)
-  local stat = vim.loop.fs_stat(filename)
+M.exists = function(filepath)
+  local stat = vim.loop.fs_stat(filepath)
   return stat and stat.type or false
 end
 
@@ -21,9 +21,21 @@ M.get_data_dir = function()
   return M.join(vim.fn.stdpath("data"), "overseer")
 end
 
+M.load_json_file = function(filepath)
+  if not M.exists(filepath) then
+    vim.notify(string.format("No such file %s", filepath), vim.log.levels.ERROR)
+    return
+  end
+  local fd = vim.loop.fs_open(filepath, "r", 420) -- 0644
+  local stat = vim.loop.fs_fstat(fd)
+  local content = vim.loop.fs_read(fd, stat.size)
+  vim.loop.fs_close(fd)
+  return vim.json.decode(content)
+end
+
 M.write_data_file = function(filename, data)
   local data_dir = M.get_data_dir()
-  if not M.path_exists(data_dir) then
+  if not M.exists(data_dir) then
     vim.loop.fs_mkdir(data_dir, 493) -- 0755
   end
   local filepath = M.join(data_dir, filename)
@@ -35,7 +47,7 @@ end
 M.delete_data_file = function(filename)
   local data_dir = M.get_data_dir()
   local filepath = M.join(data_dir, filename)
-  if M.path_exists(filepath) then
+  if M.exists(filepath) then
     vim.loop.fs_unlink(filepath)
     return true
   end
@@ -44,15 +56,7 @@ end
 M.load_data_file = function(filename)
   local data_dir = M.get_data_dir()
   local filepath = M.join(data_dir, filename)
-  if not M.path_exists(filepath) then
-    vim.notify(string.format("No task bundle found at %s", filepath), vim.log.levels.ERROR)
-    return
-  end
-  local fd = vim.loop.fs_open(filepath, "r", 420) -- 0644
-  local stat = vim.loop.fs_fstat(fd)
-  local content = vim.loop.fs_read(fd, stat.size)
-  vim.loop.fs_close(fd)
-  return vim.json.decode(content)
+  return M.load_json_file(filepath)
 end
 
 return M
