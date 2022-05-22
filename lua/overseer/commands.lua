@@ -1,5 +1,6 @@
 local M = {}
 local constants = require("overseer.constants")
+local files = require("overseer.files")
 local registry = require("overseer.registry")
 local util = require("overseer.util")
 local template = require("overseer.template")
@@ -158,7 +159,7 @@ end
 -- TASK BUNDLE
 
 M.list_task_bundles = function()
-  local cache_dir = util.get_cache_dir()
+  local cache_dir = files.get_cache_dir()
   local fd = vim.loop.fs_opendir(cache_dir, nil, 32)
   local entries = vim.loop.fs_readdir(fd)
   local ret = {}
@@ -179,17 +180,7 @@ end
 
 M.load_task_bundle = function(name)
   if name then
-    local cache_dir = util.get_cache_dir()
-    local filename = util.join(cache_dir, string.format("%s.bundle.json", name))
-    if not util.path_exists(filename) then
-      vim.notify(string.format("No task bundle found at %s", filename), vim.log.levels.ERROR)
-      return
-    end
-    local fd = vim.loop.fs_open(filename, "r", 420) -- 0644
-    local stat = vim.loop.fs_fstat(fd)
-    local content = vim.loop.fs_read(fd, stat.size)
-    vim.loop.fs_close(fd)
-    local data = vim.json.decode(content)
+    local data = files.load_cache_data(string.format("%s.bundle.json", name))
     for _, params in ipairs(data) do
       local task = Task.new(params)
       task:start()
@@ -214,14 +205,7 @@ end
 
 M.save_task_bundle = function(name)
   if name then
-    local cache_dir = util.get_cache_dir()
-    if not util.path_exists(cache_dir) then
-      vim.loop.fs_mkdir(cache_dir, 493) -- 0755
-    end
-    local filename = util.join(cache_dir, string.format("%s.bundle.json", name))
-    local fd = vim.loop.fs_open(filename, "w", 420) -- 0644
-    vim.loop.fs_write(fd, vim.json.encode(registry.serialize_tasks()))
-    vim.loop.fs_close(fd)
+    files.write_cache_data(string.format("%s.bundle.json", name), registry.serialize_tasks())
   else
     vim.ui.input({
       prompt = "Task bundle name:",
@@ -235,11 +219,8 @@ end
 
 M.delete_task_bundle = function(name)
   if name then
-    local cache_dir = util.get_cache_dir()
-    local filename = util.join(cache_dir, string.format("%s.bundle.json", name))
-    if util.path_exists(filename) then
-      vim.loop.fs_unlink(filename)
-    else
+    local filename = string.format("%s.bundle.json", name)
+    if not files.delete_cache_file(filename) then
       vim.notify(string.format("No task bundle at %s", filename))
     end
   else

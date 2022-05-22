@@ -1,5 +1,6 @@
 local config = require("overseer.config")
 local constants = require("overseer.constants")
+local files = require("overseer.files")
 local registry = require("overseer.registry")
 local task_editor = require("overseer.task_editor")
 local util = require("overseer.util")
@@ -52,6 +53,23 @@ function TaskList.new()
         end,
         callback = function(task)
           task:stop()
+        end,
+      },
+      {
+        name = "save",
+        condition = function(task)
+          return true
+        end,
+        callback = function(task)
+          local data = task:serialize()
+          vim.ui.input({
+            prompt = "Task bundle name:",
+          }, function(selected)
+            if selected then
+              local filename = string.format("%s.bundle.json", selected)
+              files.write_cache_data(filename, { data })
+            end
+          end)
         end,
       },
       {

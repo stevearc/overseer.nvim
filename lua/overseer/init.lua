@@ -9,8 +9,6 @@ local M = {}
 -- TODO
 --
 -- BETA
--- * don't dispose a task if we're doing something with it
--- * Save specific task the same way we save bundles
 -- * task list previews in a float, not a split
 -- * { } to navigate task list
 -- * Add tests
