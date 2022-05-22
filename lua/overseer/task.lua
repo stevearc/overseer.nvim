@@ -395,7 +395,6 @@ function Task:start()
   })
 
   vim.api.nvim_buf_call(self.bufnr, function()
-    print(string.format("termopen: %s", vim.inspect(self.cmd)))
     chan_id = vim.fn.termopen(self.cmd, {
       stdin = "null",
       cwd = self.cwd,

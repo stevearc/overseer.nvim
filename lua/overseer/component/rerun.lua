@@ -1,4 +1,5 @@
 local constants = require("overseer.constants")
+local files = require("overseer.files")
 local util = require("overseer.util")
 
 local STATUS = constants.STATUS
@@ -94,7 +95,7 @@ M.rerun_on_save = {
             -- Only care about normal files
             if vim.api.nvim_buf_get_option(params.buf, "buftype") == "" then
               local bufname = vim.api.nvim_buf_get_name(params.buf)
-              if not opts.dir or util.is_subpath(opts.dir, bufname) then
+              if not opts.dir or files.is_subpath(opts.dir, bufname) then
                 task:rerun()
               end
             end
