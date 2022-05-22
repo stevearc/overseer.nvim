@@ -17,33 +17,33 @@ M.is_subpath = function(dir, path)
   return string.sub(path, 0, string.len(dir)) == dir
 end
 
-M.get_cache_dir = function()
-  return M.join(vim.fn.stdpath("cache"), "overseer")
+M.get_data_dir = function()
+  return M.join(vim.fn.stdpath("data"), "overseer")
 end
 
-M.write_cache_data = function(filename, data)
-  local cache_dir = M.get_cache_dir()
-  if not M.path_exists(cache_dir) then
-    vim.loop.fs_mkdir(cache_dir, 493) -- 0755
+M.write_data_file = function(filename, data)
+  local data_dir = M.get_data_dir()
+  if not M.path_exists(data_dir) then
+    vim.loop.fs_mkdir(data_dir, 493) -- 0755
   end
-  local filepath = M.join(cache_dir, filename)
+  local filepath = M.join(data_dir, filename)
   local fd = vim.loop.fs_open(filepath, "w", 420) -- 0644
   vim.loop.fs_write(fd, vim.json.encode(data))
   vim.loop.fs_close(fd)
 end
 
-M.delete_cache_file = function(filename)
-  local cache_dir = M.get_cache_dir()
-  local filepath = M.join(cache_dir, filename)
+M.delete_data_file = function(filename)
+  local data_dir = M.get_data_dir()
+  local filepath = M.join(data_dir, filename)
   if M.path_exists(filepath) then
     vim.loop.fs_unlink(filepath)
     return true
   end
 end
 
-M.load_cache_data = function(filename)
-  local cache_dir = M.get_cache_dir()
-  local filepath = M.join(cache_dir, filename)
+M.load_data_file = function(filename)
+  local data_dir = M.get_data_dir()
+  local filepath = M.join(data_dir, filename)
   if not M.path_exists(filepath) then
     vim.notify(string.format("No task bundle found at %s", filepath), vim.log.levels.ERROR)
     return

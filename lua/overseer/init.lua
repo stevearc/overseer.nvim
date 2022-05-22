@@ -7,7 +7,6 @@ local window = require("overseer.window")
 local M = {}
 
 -- TODO
--- * Save bundles to data dir instead of cache?
 -- * Many more task templates, especially for tests
 -- * If task buffer is open in window when it restarts, replace the window with new buffer
 -- * Statusline integration for task status

@@ -157,8 +157,8 @@ end
 -- TASK BUNDLE
 
 M.list_task_bundles = function()
-  local cache_dir = files.get_cache_dir()
-  local fd = vim.loop.fs_opendir(cache_dir, nil, 32)
+  local data_dir = files.get_data_dir()
+  local fd = vim.loop.fs_opendir(data_dir, nil, 32)
   local entries = vim.loop.fs_readdir(fd)
   local ret = {}
   while entries do
@@ -178,7 +178,7 @@ end
 
 M.load_task_bundle = function(name)
   if name then
-    local data = files.load_cache_data(string.format("%s.bundle.json", name))
+    local data = files.load_data_file(string.format("%s.bundle.json", name))
     for _, params in ipairs(data) do
       local task = Task.new(params)
       task:start()
@@ -203,7 +203,7 @@ end
 
 M.save_task_bundle = function(name)
   if name then
-    files.write_cache_data(string.format("%s.bundle.json", name), registry.serialize_tasks())
+    files.write_data_file(string.format("%s.bundle.json", name), registry.serialize_tasks())
   else
     vim.ui.input({
       prompt = "Task bundle name:",
@@ -218,7 +218,7 @@ end
 M.delete_task_bundle = function(name)
   if name then
     local filename = string.format("%s.bundle.json", name)
-    if not files.delete_cache_file(filename) then
+    if not files.delete_data_file(filename) then
       vim.notify(string.format("No task bundle at %s", filename))
     end
   else

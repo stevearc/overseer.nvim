@@ -67,7 +67,7 @@ function TaskList.new()
           }, function(selected)
             if selected then
               local filename = string.format("%s.bundle.json", selected)
-              files.write_cache_data(filename, { data })
+              files.write_data_file(filename, { data })
             end
           end)
         end,
