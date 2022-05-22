@@ -8,7 +8,7 @@ local M = {}
 
 -- TODO
 -- * Load VSCode task definitions
---   * just, make, tox, basically just need autocomplete for these
+--   * just, tox, basically just need autocomplete for these
 -- * Many more task templates, especially for tests
 -- * Statusline integration for task status
 -- * Add extension points to the task list actions

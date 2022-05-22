@@ -21,7 +21,7 @@ M.get_data_dir = function()
   return M.join(vim.fn.stdpath("data"), "overseer")
 end
 
-M.load_json_file = function(filepath)
+M.read_file = function(filepath)
   if not M.exists(filepath) then
     vim.notify(string.format("No such file %s", filepath), vim.log.levels.ERROR)
     return
@@ -30,7 +30,14 @@ M.load_json_file = function(filepath)
   local stat = vim.loop.fs_fstat(fd)
   local content = vim.loop.fs_read(fd, stat.size)
   vim.loop.fs_close(fd)
-  return vim.json.decode(content)
+  return content
+end
+
+M.load_json_file = function(filepath)
+  local content = M.read_file(filepath)
+  if content then
+    return vim.json.decode(content)
+  end
 end
 
 M.write_data_file = function(filename, data)
