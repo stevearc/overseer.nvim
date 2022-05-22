@@ -1,3 +1,5 @@
+local config = require("overseer.config")
+local layout = require("overseer.layout")
 local task_list = require("overseer.task_list")
 local registry = require("overseer.registry")
 local util = require("overseer.util")
@@ -30,7 +32,7 @@ local function create_overseer_window()
   vim.api.nvim_win_set_option(0, "relativenumber", false)
   vim.api.nvim_win_set_option(0, "wrap", false)
   vim.api.nvim_win_set_option(0, "spell", false)
-  vim.api.nvim_win_set_width(0, 60)
+  vim.api.nvim_win_set_width(0, layout.calculate_width(nil, config.sidebar))
   -- Set the filetype only after we enter the buffer so that FileType autocmds
   -- behave properly
   vim.api.nvim_buf_set_option(tl.bufnr, "filetype", "OverseerList")

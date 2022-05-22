@@ -12,7 +12,6 @@ local M = {}
 --   * Pull as much out of the closures as possible
 --
 -- BETA
--- * Better highlight groups in template form
 -- * don't dispose a task if we're doing something with it
 -- * Save specific task the same way we save bundles
 -- * task list previews in a float, not a split

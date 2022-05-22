@@ -1,4 +1,5 @@
 local config = require("overseer.config")
+local layout = require("overseer.layout")
 local util = require("overseer.util")
 local M = {}
 
@@ -63,56 +64,6 @@ M.parse_value = function(schema, value)
   return true, value
 end
 
-local function is_float(value)
-  local _, p = math.modf(value)
-  return p ~= 0
-end
-
-local function calc_float(value, max_value)
-  if value and is_float(value) then
-    return math.min(max_value, value * max_value)
-  else
-    return value
-  end
-end
-
-M.get_editor_width = function()
-  return vim.o.columns
-end
-
-M.get_editor_height = function()
-  return vim.o.lines - vim.o.cmdheight
-end
-
-local function calc_list(values, max_value, aggregator, limit)
-  local ret = limit
-  if type(values) == "table" then
-    for _, v in ipairs(values) do
-      ret = aggregator(ret, calc_float(v, max_value))
-    end
-    return ret
-  else
-    ret = aggregator(ret, calc_float(values, max_value))
-  end
-  return ret
-end
-
-local function calculate_dim(desired_size, exact_size, min_size, max_size, total_size)
-  local ret = calc_float(exact_size, total_size)
-  local min_val = calc_list(min_size, total_size, math.max, 1)
-  local max_val = calc_list(max_size, total_size, math.min, total_size)
-  if not ret then
-    if not desired_size then
-      ret = (min_val + max_val) / 2
-    else
-      ret = calc_float(desired_size, total_size)
-    end
-  end
-  ret = math.min(ret, max_val)
-  ret = math.max(ret, min_val)
-  return math.floor(ret)
-end
-
 M.open_form_win = function(bufnr, opts)
   opts = opts or {}
   vim.validate({
@@ -127,20 +78,8 @@ M.open_form_win = function(bufnr, opts)
     if opts.get_preferred_dim then
       desired_width, desired_height = opts.get_preferred_dim()
     end
-    local width = calculate_dim(
-      desired_width,
-      config.form.width,
-      config.form.min_width,
-      config.form.max_width,
-      M.get_editor_width()
-    )
-    local height = calculate_dim(
-      desired_height,
-      config.form.height,
-      config.form.min_height,
-      config.form.max_height,
-      M.get_editor_height()
-    )
+    local width = layout.calculate_width(desired_width, config.form)
+    local height = layout.calculate_height(desired_height, config.form)
     local win_opts = {
       relative = "editor",
       border = config.form.border,
@@ -148,8 +87,8 @@ M.open_form_win = function(bufnr, opts)
       width = width,
       height = height,
     }
-    win_opts.col = math.floor((M.get_editor_width() - width) / 2)
-    win_opts.row = math.floor((M.get_editor_height() - height) / 2)
+    win_opts.col = math.floor((layout.get_editor_width() - width) / 2)
+    win_opts.row = math.floor((layout.get_editor_height() - height) / 2)
     return win_opts
   end
 
@@ -158,7 +97,7 @@ M.open_form_win = function(bufnr, opts)
   local winid = vim.api.nvim_open_win(bufnr, true, winopt)
   vim.api.nvim_win_set_option(winid, "winblend", config.form.winblend)
 
-  local function layout()
+  local function set_layout()
     vim.api.nvim_win_set_config(winid, calc_layout())
   end
 
@@ -187,7 +126,7 @@ M.open_form_win = function(bufnr, opts)
     vim.api.nvim_create_autocmd("VimResized", {
       desc = "Rerender on vim resize",
       nested = true,
-      callback = layout,
+      callback = set_layout,
     })
   )
   -- This is a little bit of a hack. We force the cursor to be *after the ': '
@@ -219,7 +158,7 @@ M.open_form_win = function(bufnr, opts)
     util.leave_insert()
     vim.api.nvim_win_close(winid, true)
   end
-  return cleanup, layout
+  return cleanup, set_layout
 end
 
 return M

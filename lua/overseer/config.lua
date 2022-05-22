@@ -1,6 +1,10 @@
 local default_config = {
   list_sep = "────────────────────────────────────────",
   use_builtin_templates = true,
+  sidebar = {
+    max_width = { 100, 0.2 },
+    min_width = { 40, 0.1 },
+  },
   form = {
     border = "rounded",
     min_width = 80,
