@@ -8,7 +8,6 @@ local M = {}
 
 -- TODO
 -- * Many more task templates, especially for tests
--- * If task buffer is open in window when it restarts, replace the window with new buffer
 -- * Statusline integration for task status
 -- * Add extension points to the task list actions
 -- * Add tests

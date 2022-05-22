@@ -43,6 +43,8 @@ function Task.new(opts)
     cmd = opts.cmd,
     cwd = opts.cwd,
     name = name,
+    bufnr = nil,
+    prev_bufnr = nil,
     slots = {},
     components = {},
   }
@@ -278,9 +280,13 @@ function Task:reset()
   end
   self.status = STATUS.PENDING
   self.result = nil
-  if self.bufnr and vim.api.nvim_buf_is_valid(self.bufnr) then
-    vim.api.nvim_buf_delete(self.bufnr, { force = true })
-  end
+  local bufnr = self.bufnr
+  self.prev_bufnr = bufnr
+  vim.defer_fn(function()
+    if bufnr and vim.api.nvim_buf_is_valid(bufnr) then
+      vim.api.nvim_buf_delete(bufnr, { force = true })
+    end
+  end, 2000)
   self.bufnr = nil
   self:dispatch("on_reset")
 end
@@ -390,17 +396,6 @@ function Task:start()
   local mode = vim.api.nvim_get_mode().mode
   local stdout_iter = util.get_stdout_line_iter()
 
-  -- We have to create & immediately destroy an editor-sized window because
-  -- termopen() sets the pty width & height based on the current window
-  local winid = vim.api.nvim_open_win(self.bufnr, true, {
-    relative = "editor",
-    row = 0,
-    col = 0,
-    width = vim.o.columns,
-    height = vim.o.lines - vim.o.cmdheight,
-    noautocmd = true,
-  })
-
   vim.api.nvim_buf_call(self.bufnr, function()
     chan_id = vim.fn.termopen(self.cmd, {
       stdin = "null",
@@ -417,8 +412,16 @@ function Task:start()
       end,
     })
   end)
-  vim.api.nvim_win_close(winid, true)
   vim.api.nvim_buf_set_option(self.bufnr, "buflisted", false)
+
+  -- If this task's previous buffer was open in any wins, replace it
+  if self.prev_bufnr then
+    for _, win in ipairs(vim.api.nvim_list_wins()) do
+      if vim.api.nvim_win_get_buf(win) == self.prev_bufnr then
+        vim.api.nvim_win_set_buf(win, self.bufnr)
+      end
+    end
+  end
 
   -- It's common to have autocmds that enter insert mode when opening a terminal
   -- This is a hack so we don't end up in insert mode after starting a task
