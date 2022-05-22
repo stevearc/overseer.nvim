@@ -144,7 +144,7 @@ M.open_form_win = function(bufnr, opts)
         local lnum = cur[1]
         local line = vim.api.nvim_buf_get_lines(bufnr, lnum - 1, lnum, true)[1]
         local name = line:match("^[^%s]+: ")
-        if cur[2] < string.len(name) then
+        if name and cur[2] < string.len(name) then
           vim.api.nvim_win_set_cursor(0, { lnum, string.len(name) })
         end
       end,
