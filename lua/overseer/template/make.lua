@@ -7,6 +7,12 @@ M.make = require("overseer.template").new({
   params = {
     args = { optional = true, type = "list" },
   },
+  condition = {
+    callback = function(opts)
+      local dir = opts.dir or vim.fn.getcwd(0)
+      return overseer.files.path_exists(overseer.files.join(dir, "Makefile"))
+    end,
+  },
   builder = function(params)
     local cmd = { "make" }
     if params.args then
@@ -19,7 +25,7 @@ M.make = require("overseer.template").new({
 })
 
 M.register_all = function()
-  overseer.template.register({ M.make }, {})
+  overseer.template.register(M.make, {})
 end
 
 return M

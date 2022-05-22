@@ -114,11 +114,11 @@ function TaskList.new()
           vim.ui.input({
             prompt = "Directory (files saved here will trigger rerun)",
             default = vim.fn.getcwd(0),
-          }, function(dirname)
+          }, function(dir)
             task:remove_by_slot(SLOT.DISPOSE)
             task:set_components({
               { "rerun_trigger", interrupt = true },
-              { "rerun_on_save", dirname = dirname },
+              { "rerun_on_save", dir = dir },
             })
             registry.update_task(task)
           end)

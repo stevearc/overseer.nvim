@@ -53,7 +53,7 @@ M.setup = function(opts)
   end
 
   if M.use_builtin_templates then
-    require("overseer.template").register_all()
+    require("overseer.template").register_builtin()
   end
 
   local component = require("overseer.component")

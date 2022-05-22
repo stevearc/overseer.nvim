@@ -1,13 +1,23 @@
+local files = require("overseer.files")
 local Task = require("overseer.task")
 local template_builder = require("overseer.template_builder")
 local util = require("overseer.util")
 local M = {}
 
-local builtin_modules = { "go", "make", "shell" }
+local builtin_modules = { "go", "make" }
 
-M.register_all = function()
+M.register_module = function(path)
+  local mod = require(path)
+  for _, v in pairs(mod) do
+    if type(v) == "table" and v._type == "OverseerTemplate" then
+      M.register(v)
+    end
+  end
+end
+
+M.register_builtin = function()
   for _, mod in ipairs(builtin_modules) do
-    require(string.format("overseer.template.%s", mod)).register_all()
+    M.register_module(string.format("overseer.template.%s", mod))
   end
   -- For testing and debugging
   M.register(M.new({
@@ -27,94 +37,85 @@ local TemplateRegistry = {}
 
 function TemplateRegistry.new()
   return setmetatable({
-    global = {},
-    by_dir = {},
+    templates = {},
   }, { __index = TemplateRegistry })
 end
 
-local function tags_match(tags, tmpl)
-  if not tags or vim.tbl_isempty(tags) then
-    return true
+local function tmpl_matches(tmpl, search)
+  local condition = tmpl.condition
+  if condition.filetype then
+    if type(condition.filetype) == "string" then
+      if condition.filetype ~= search.filetype then
+        return false
+      end
+    elseif not vim.tbl_contains(condition.filetype, search.filetype) then
+      return false
+    end
   end
-  if not tmpl.tags then
-    return false
+
+  if condition.dir then
+    if type(condition.dir) == "string" then
+      if not files.is_subpath(condition.dir, search.dir) then
+        return false
+      end
+    elseif
+      not util.list_any(condition.dir, function(d)
+        return files.is_subpath(d, search.dir)
+      end)
+    then
+      return false
+    end
   end
-  local tag_map = util.list_to_map(tmpl.tags)
-  for _, v in ipairs(tags) do
-    if not tag_map[v] then
+
+  if search.tags and not vim.tbl_isempty(search.tags) then
+    if not tmpl.tags then
+      return false
+    end
+    local tag_map = util.list_to_map(tmpl.tags)
+    for _, v in ipairs(search.tags) do
+      if not tag_map[v] then
+        return false
+      end
+    end
+  end
+
+  if condition.callback then
+    if not condition.callback(search) then
       return false
     end
   end
   return true
 end
 
-local function append_matching_templates(ret, ft_map, filetype, tags)
-  for _, ft in ipairs({ filetype, "_" }) do
-    if ft and ft_map[ft] then
-      for _, tmpl in ipairs(ft_map[ft]) do
-        if tags_match(tags, tmpl) then
-          table.insert(ret, tmpl)
-        end
-      end
-    end
-  end
-end
-
 function TemplateRegistry:get_templates(opts)
   opts = opts or {}
   vim.validate({
     tags = { opts.tags, "t", true },
-    dir = { opts.dir, "s", true },
+    dir = { opts.dir, "s" },
+    filename = { opts.filename, "s", true },
     filetype = { opts.filetype, "s", true },
   })
   local ret = {}
-  if opts.dir then
-    local dirs = vim.tbl_keys(self.by_dir)
-    -- Iterate the directories from longest to shortest. We would like to add the
-    -- *most specific* tasks first.
-    table.sort(dirs)
-    for i = 1, #dirs do
-      local tmpl_dir = dirs[#dirs + 1 - i]
-      local ft_map = self.by_dir[tmpl_dir]
-      if util.is_subpath(tmpl_dir, opts.dir) then
-        append_matching_templates(ret, ft_map, opts.filetype, opts.tags)
-      end
+
+  for _, tmpl in pairs(self.templates) do
+    if tmpl_matches(tmpl, opts) then
+      table.insert(ret, tmpl)
     end
   end
-  append_matching_templates(ret, self.global, opts.filetype, opts.tags)
+
   return ret
 end
 
-function TemplateRegistry:register(tmpl, opts)
-  opts = opts or {}
+function TemplateRegistry:register(tmpl)
   vim.validate({
     tmpl = { tmpl, "t" },
-    opts = { opts, "t", true },
   })
-  vim.validate({
-    ["opts.dir"] = { opts.dir, "s", true },
-    ["opts.filetype"] = { opts.filetype, "s", true },
-  })
-  if not vim.tbl_islist(tmpl) then
-    tmpl = { tmpl }
-  end
-  local ft = opts.filetype or "_"
-  local ft_map
-  if opts.dir then
-    if not self.by_dir[opts.dir] then
-      self.by_dir[opts.dir] = {}
-    end
-    ft_map = self.by_dir[opts.dir]
-  else
-    ft_map = self.global
-  end
-
-  if not ft_map[ft] then
-    ft_map[ft] = tmpl
-  else
+  if vim.tbl_islist(tmpl) then
     for _, t in ipairs(tmpl) do
-      table.insert(ft_map[ft], t)
+      self.templates[t.name] = t
     end
+  else
+    self.templates[tmpl.name] = tmpl
   end
 end
 
@@ -131,6 +132,16 @@ function Template.new(opts)
     params = { opts.params, "t" },
     builder = { opts.builder, "f" },
   })
+  opts._type = "OverseerTemplate"
+  if opts.condition then
+    vim.validate({
+      -- filetype can be string or list of strings
+      -- dir can be string or list of strings
+      ["condition.callback"] = { opts.condition.callback, "f", true },
+    })
+  else
+    opts.condition = {}
+  end
   for _, param in pairs(opts.params) do
     vim.validate({
       name = { param.name, "s", true },
@@ -144,7 +155,7 @@ end
 
 -- These params are always passed in, and are not directly user-controlled
 local auto_params = {
-  dirname = true,
+  dir = true,
   bufname = true,
 }
 
@@ -152,17 +163,15 @@ function Template:build(prompt, params, callback)
   local any_missing = false
   local required_missing = false
   for k, schema in pairs(self.params) do
-    if not auto_params[k] then
-      if params[k] == nil then
-        if prompt == "never" then
-          error(string.format("Missing param %s", k))
-        end
-        any_missing = true
-        if not schema.optional then
-          required_missing = true
-        end
-        break
+    if params[k] == nil then
+      if prompt == "never" then
+        error(string.format("Missing param %s", k))
       end
+      any_missing = true
+      if not schema.optional then
+        required_missing = true
+      end
+      break
     end
   end
 

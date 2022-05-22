@@ -5,7 +5,7 @@ local registry = {}
 local aliases = {}
 
 local builtin_modules = { "cleanup", "notify", "rerun", "result" }
-M.register_all = function()
+M.register_builtin = function()
   for _, mod in ipairs(builtin_modules) do
     require(string.format("overseer.component.%s", mod)).register_all()
   end

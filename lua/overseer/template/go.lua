@@ -1,11 +1,14 @@
 local overseer = require("overseer")
 local M = {}
 
-M.go_test = require("overseer.template").new({
+M.go_test = overseer.template.new({
   name = "go test",
   tags = { overseer.TAG.TEST },
   params = {
     target = { default = "./..." },
+  },
+  condition = {
+    filetype = "go",
   },
   builder = function(params)
     return {

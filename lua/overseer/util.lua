@@ -134,4 +134,13 @@ M.is_shell_cmd = function(cmd)
   return false
 end
 
+M.list_any = function(list, cb)
+  for _, v in ipairs(list) do
+    if cb(v) then
+      return true
+    end
+  end
+  return false
+end
+
 return M

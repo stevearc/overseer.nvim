@@ -7,8 +7,7 @@ local window = require("overseer.window")
 local M = {}
 
 -- TODO
--- * should we allow duplicate template names? how to handle double-register gracefully?
--- * Register template with callback conditional (e.g. make only when Makefile exists)
+-- * Rethink the register_all logic (see if we can make it more automatic and not need to define templates as .new()
 -- * Many more task templates, especially for tests
 -- * Add extension points to the task list actions
 -- * Add tests
@@ -45,7 +44,7 @@ local M = {}
 -- * Lualine component
 
 M.setup = function(opts)
-  require("overseer.component").register_all()
+  require("overseer.component").register_builtin()
   config.setup(opts)
   commands.create_commands()
   local aug = vim.api.nvim_create_augroup("Overseer", {})

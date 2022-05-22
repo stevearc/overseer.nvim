@@ -73,7 +73,7 @@ M.rerun_on_save = {
   name = "rerun_on_save",
   description = "Rerun on any buffer :write",
   params = {
-    dirname = {
+    dir = {
       name = "directory",
       description = "Only rerun when writing files in this directory",
       optional = true,
@@ -87,7 +87,7 @@ M.rerun_on_save = {
   builder = function(opts)
     vim.validate({
       delay = { opts.delay, "n" },
-      dirname = { opts.dirname, "s", true },
+      dir = { opts.dir, "s", true },
     })
 
     return {
@@ -100,7 +100,7 @@ M.rerun_on_save = {
             -- Only care about normal files
             if vim.api.nvim_buf_get_option(params.buf, "buftype") == "" then
               local bufname = vim.api.nvim_buf_get_name(params.buf)
-              if not opts.dirname or util.is_subpath(opts.dirname, bufname) then
+              if not opts.dir or util.is_subpath(opts.dir, bufname) then
                 task:rerun()
               end
             end
