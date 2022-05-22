@@ -92,17 +92,10 @@ M.run_template = function(opts, params, callback)
   })
   opts.prompt = opts.prompt or "always"
   params = params or {}
-  params.bufname = vim.api.nvim_buf_get_name(0)
-  params.dir = vim.fn.getcwd(0)
-  if params.bufname == "" then
-    params.bufname = nil
-  end
+  local dir = vim.fn.getcwd(0)
   local ft = vim.api.nvim_buf_get_option(0, "filetype")
   if opts.name then
-    local tmpl = template.get_by_name(
-      opts.name,
-      { dir = params.dir, filename = params.bufname, filetype = ft, tags = opts.tags }
-    )
+    local tmpl = template.get_by_name(opts.name)
     if not tmpl then
       error(string.format("Could not find template '%s'", opts.name))
     end
@@ -116,8 +109,7 @@ M.run_template = function(opts, params, callback)
     end)
   else
     local templates = template.list({
-      dir = params.dir,
-      filename = params.bufname,
+      dir = dir,
       filetype = ft,
       tags = opts.tags,
     })

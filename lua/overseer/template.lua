@@ -101,7 +101,6 @@ M.list = function(opts)
   vim.validate({
     tags = { opts.tags, "t", true },
     dir = { opts.dir, "s" },
-    filename = { opts.filename, "s", true },
     filetype = { opts.filetype, "s", true },
   })
   local ret = {}
@@ -160,12 +159,6 @@ function Template.new(opts)
   return setmetatable(opts, { __index = Template })
 end
 
--- These params are always passed in, and are not directly user-controlled
-local auto_params = {
-  dir = true,
-  bufname = true,
-}
-
 function Template:build(prompt, params, callback)
   local any_missing = false
   local required_missing = false
@@ -193,9 +186,7 @@ function Template:build(prompt, params, callback)
 
   local schema = {}
   for k, v in pairs(self.params) do
-    if not auto_params[k] then
-      schema[k] = v
-    end
+    schema[k] = v
   end
   template_builder.open(self.name, schema, params, function(final_params)
     if final_params then
@@ -209,13 +200,8 @@ end
 
 M.new = Template.new
 
-M.get_by_name = function(name, opts)
-  local templates = M.list(opts)
-  for _, t in ipairs(templates) do
-    if t.name == name then
-      return t
-    end
-  end
+M.get_by_name = function(name)
+  return registry[name]
 end
 
 return M

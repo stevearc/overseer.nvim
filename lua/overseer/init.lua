@@ -7,7 +7,10 @@ local window = require("overseer.window")
 local M = {}
 
 -- TODO
+-- * Save bundles to data dir instead of cache?
 -- * Many more task templates, especially for tests
+-- * If task buffer is open in window when it restarts, replace the window with new buffer
+-- * Statusline integration for task status
 -- * Add extension points to the task list actions
 -- * Add tests
 -- * keybinding help in float
@@ -15,32 +18,18 @@ local M = {}
 -- * Pull as much logic out of the closures as possible
 -- * Better highlight groups (link instead of directly using Keyword/Comment)
 -- * Load VSCode task definitions
+-- * Add nearest-test support detecting via treesitter
 -- * Basic Readme
 -- * Vim help docs
 -- * Dynamic sizing for task editor
 -- * Architecture doc (Template / Task / Component)
 -- * Extension doc (how to make your own template/component)
--- * component: parse output and populate quickfix
+-- * component: parse output and populate quickfix/loclist (or diagnostics? signs? vtext?)
 -- * Separation of registry and task list feels like it needs refactor
+-- * Option to run task and immediately open terminal in (float/split/vsplit)
 -- * { } to navigate task list
 -----------------------------------------
 -- FUTURE
--- * Timestamp status changes
--- etc)
--- * What about task chaining? Do we care?
--- * Rethink the detail levels
--- * Definitely going to need some sort of logging system
--- * when jumping around terminals, somehow the buffers become listed
--- * Store recent commands in history per-directory
---   * Can select & run task from recent history
--- * add debugging helpers for components
--- * task list: bulk actions
--- * params can be file/dir type and will autocomplete
--- * more powerful param schema (e.g. nested types)
--- * list params allow escaping / quotes / specifying delimiter
--- * ability to require task to be unique (disallow duplicates). Coordinate among all vim instances
--- * Autostart task on vim open in dir (needs some uniqueness checks)
--- * Lualine component
 
 M.setup = function(opts)
   require("overseer.component").register_builtin()
