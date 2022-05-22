@@ -2,7 +2,6 @@ local M = {}
 local constants = require("overseer.constants")
 local files = require("overseer.files")
 local registry = require("overseer.registry")
-local util = require("overseer.util")
 local template = require("overseer.template")
 local Task = require("overseer.task")
 local task_editor = require("overseer.task_editor")

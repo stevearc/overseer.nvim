@@ -9,7 +9,6 @@ local M = {}
 -- TODO
 --
 -- BETA
--- * task list previews in a float, not a split
 -- * { } to navigate task list
 -- * Add tests
 -- * keybinding help in float

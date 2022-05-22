@@ -222,9 +222,8 @@ function TaskList:toggle_preview()
     return
   end
 
-  local bufname = vim.api.nvim_buf_get_name(task.bufnr)
-  vim.cmd(string.format("vertical pedit %s", bufname))
-  local winid = util.get_preview_window()
+  local winid = self:open_float(task.bufnr, false)
+  vim.api.nvim_win_set_option(winid, "previewwindow", true)
   if winid then
     util.scroll_to_end(winid)
   end
@@ -257,16 +256,51 @@ function TaskList:update_preview()
   end
   local task = self:_get_task_from_line()
   if not task or not task.bufnr or not vim.api.nvim_buf_is_valid(task.bufnr) then
+    local winbuf = vim.api.nvim_win_get_buf(winid)
+    if vim.api.nvim_buf_get_option(winbuf, "buftype") == "terminal" then
+      local scratch = vim.api.nvim_create_buf(false, true)
+      vim.api.nvim_buf_set_lines(scratch, 0, -1, true, { "--no terminal for task--" })
+      vim.api.nvim_create_autocmd("BufLeave", {
+        buffer = scratch,
+        once = true,
+        nested = true,
+        callback = function()
+          vim.api.nvim_buf_delete(scratch, {})
+        end,
+      })
+      vim.api.nvim_win_set_buf(winid, scratch)
+    end
     return
   end
 
-  local task_buf_name = vim.api.nvim_buf_get_name(task.bufnr)
-  local winbuf = vim.api.nvim_win_get_buf(winid)
-  local preview_buf_name = vim.api.nvim_buf_get_name(winbuf)
-  if task_buf_name ~= preview_buf_name then
-    vim.cmd(string.format("vertical pedit %s", task_buf_name))
+  local preview_buf = vim.api.nvim_win_get_buf(winid)
+  if preview_buf ~= task.bufnr then
+    vim.api.nvim_win_set_buf(winid, task.bufnr)
     util.scroll_to_end(winid)
   end
+end
+
+function TaskList:open_float(bufnr, enter)
+  local width = vim.o.columns - vim.api.nvim_win_get_width(0)
+  local col = vim.fn.winnr() == 1 and width or 0
+  local winid = vim.api.nvim_open_win(bufnr, enter, {
+    relative = "editor",
+    row = 1,
+    col = col,
+    width = width,
+    height = vim.o.lines - vim.o.cmdheight,
+    style = "minimal",
+  })
+  vim.api.nvim_create_autocmd("BufLeave", {
+    desc = "Close float on BufLeave",
+    buffer = bufnr,
+    once = true,
+    nested = true,
+    callback = function()
+      vim.api.nvim_win_close(winid, true)
+    end,
+  })
+  return winid
 end
 
 function TaskList:open_buffer(direction)
@@ -276,25 +310,7 @@ function TaskList:open_buffer(direction)
   end
 
   if direction == "float" then
-    local width = vim.o.columns - vim.api.nvim_win_get_width(0)
-    local col = vim.fn.winnr() == 1 and width or 0
-    local winid = vim.api.nvim_open_win(task.bufnr, true, {
-      relative = "editor",
-      row = 1,
-      col = col,
-      width = width,
-      height = vim.o.lines - vim.o.cmdheight,
-      style = "minimal",
-    })
-    vim.api.nvim_create_autocmd("BufLeave", {
-      desc = "Close float on BufLeave",
-      buffer = task.bufnr,
-      once = true,
-      nested = true,
-      callback = function()
-        vim.api.nvim_win_close(winid, true)
-      end,
-    })
+    self:open_float(task.bufnr, true)
   elseif direction == "vsplit" then
     vim.cmd([[vsplit]])
     vim.api.nvim_win_set_buf(0, task.bufnr)
