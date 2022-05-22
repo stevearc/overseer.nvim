@@ -8,10 +8,10 @@ local M = {}
 
 -- TODO
 -- * Edit a task:
---   * motion forwards/backwards
---   * add new component
---   * how to handle slots / duplicate components?
 --   * save results
+--   * how to handle slots?
+--   * edit cmd and cwd
+--   * motion forwards/backwards
 --   * <c-u> stopped working
 --
 -- WISHLIST
@@ -104,7 +104,6 @@ M._start_tasks = function(str)
   end
   timer_active = true
   vim.defer_fn(function()
-    print(string.format("Running now %s", str))
     local data = vim.json.decode(str)
     for _, params in ipairs(data) do
       local task = Task.new(params)

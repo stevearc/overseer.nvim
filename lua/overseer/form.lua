@@ -154,7 +154,7 @@ M.open_form_win = function(bufnr, opts)
     local win_opts = {
       relative = "editor",
       border = "rounded",
-      zindex = 150,
+      zindex = 40,
       width = math.min(max_width, 100),
       height = math.min(max_height, 10),
     }

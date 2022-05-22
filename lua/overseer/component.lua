@@ -41,10 +41,6 @@ M.register = function(opts)
   registry[opts.name] = opts
 end
 
-M.get = function(name)
-  return registry[name]
-end
-
 M.alias = function(name, components)
   vim.validate({
     name = { name, "s" },
@@ -54,13 +50,12 @@ M.alias = function(name, components)
   aliases[name] = components
 end
 
-M.params_should_replace = function(new_params, existing)
-  for k, v in pairs(new_params) do
-    if existing[k] ~= v then
-      return true
-    end
-  end
-  return false
+M.get = function(name)
+  return registry[name]
+end
+
+M.get_alias = function(name)
+  return aliases[name]
 end
 
 local function getname(comp_params)
@@ -69,6 +64,31 @@ local function getname(comp_params)
   else
     return comp_params[1]
   end
+end
+
+M.stringify_alias = function(name)
+  local strings = {}
+  for _, comp in ipairs(aliases[name]) do
+    table.insert(strings, getname(comp))
+  end
+  return table.concat(strings, ", ")
+end
+
+M.list = function()
+  return vim.tbl_keys(registry)
+end
+
+M.list_aliases = function()
+  return vim.tbl_keys(aliases)
+end
+
+M.params_should_replace = function(new_params, existing)
+  for k, v in pairs(new_params) do
+    if existing[k] ~= v then
+      return true
+    end
+  end
+  return false
 end
 
 local function resolve(seen, resolved, names)
@@ -112,6 +132,13 @@ local function validate_params(params, schema)
   end
 end
 
+M.create_params = function(name)
+  local comp = M.get(name)
+  local params = { name }
+  validate_params(params, comp.params)
+  return params
+end
+
 local function instantiate(comp_params, component)
   local obj
   if type(comp_params) == "string" then
@@ -127,7 +154,7 @@ local function instantiate(comp_params, component)
 end
 
 -- @param components is a list of component names or {name, params=}
--- @param existing is a list of instantiated components
+-- @param existing is a list of instantiated components or component params
 M.resolve = function(components, existing)
   vim.validate({
     components = { components, "t" },
@@ -136,7 +163,11 @@ M.resolve = function(components, existing)
   local seen = {}
   if existing then
     for _, comp in ipairs(existing) do
-      seen[comp.name] = true
+      local name = getname(comp)
+      if not name then
+        name = comp.name
+      end
+      seen[name] = true
     end
   end
   return resolve(seen, {}, components)

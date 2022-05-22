@@ -76,6 +76,20 @@ M.leave_insert = function()
   end
 end
 
+M.tbl_index = function(tbl, needle, extract)
+  for i, v in ipairs(tbl) do
+    if extract then
+      if extract(v) == needle then
+        return i
+      end
+    else
+      if v == needle then
+        return i
+      end
+    end
+  end
+end
+
 M.get_stdout_line_iter = function()
   local pending = ""
   return function(data)

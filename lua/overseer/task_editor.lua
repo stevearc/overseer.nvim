@@ -83,9 +83,82 @@ M.open = function(task)
 
   render()
 
+  local is_adding_component = false
+
+  local function add_new_component(insert_position)
+    local options = {}
+    local existing = {}
+    for _, comp in ipairs(components) do
+      existing[comp[1]] = true
+    end
+    for _, v in ipairs(component.list()) do
+      if not existing[v] then
+        table.insert(options, v)
+      end
+    end
+    for _, v in ipairs(component.list_aliases()) do
+      if not v:match("^default") then
+        table.insert(options, v)
+      end
+    end
+
+    vim.ui.select(options, {
+      prompt = "New component",
+      kind = "overseer_new_component",
+      format_item = function(item)
+        local comp = component.get(item)
+        if comp then
+          if comp.description then
+            return string.format("%s - %s", item, comp.description)
+          else
+            return item
+          end
+        else
+          return string.format("%s [%s]", item, component.stringify_alias(item))
+        end
+      end,
+    }, function(result)
+      is_adding_component = false
+      if result then
+        local alias = component.get_alias(result)
+        if alias then
+          for i, v in ipairs(component.resolve({ result }, components)) do
+            table.insert(components, insert_position - 1 + i, component.create_params(v))
+          end
+        else
+          local params = component.create_params(result)
+          table.insert(components, insert_position, params)
+        end
+      end
+      render()
+    end)
+  end
+
   local function parse()
     local buflines = vim.api.nvim_buf_get_lines(bufnr, 1, -1, true)
+    local comp_map = {}
+    local comp_idx = {}
+    for i, v in ipairs(components) do
+      comp_map[v[1]] = v
+      comp_idx[v[1]] = i
+    end
+
+    local insert_position = #components
+    for i, line in ipairs(buflines) do
+      if line:match("^%s*$") then
+        is_adding_component = true
+        insert_position = 1 + comp_idx[line_to_comp[i][1].name]
+        break
+      end
+    end
+    if is_adding_component then
+      add_new_component(insert_position)
+      return
+    end
+
+    local seen_comps = {}
     local comp
+    local last_idx = 0
     for _, line in ipairs(buflines) do
       local name, text = line:match("^%s+([^%s]+): ?(.*)$")
       if name and comp then
@@ -93,22 +166,41 @@ M.open = function(task)
         if param_schema then
           local parsed, value = form.parse_value(param_schema, text)
           if parsed then
-            -- TODO clean this up
-            for _, v in ipairs(components) do
-              if v[1] == comp.name then
-                v[name] = value
-                break
-              end
-            end
+            comp_map[comp.name][name] = value
           end
         end
       else
         local comp_name = line:match("^([^%s]+) ")
         if comp_name then
           comp = component.get(comp_name)
+          if comp then
+            if not comp_map[comp_name] then
+              -- This is a new component we need to insert
+              last_idx = last_idx + 1
+              local params = component.create_params(comp_name)
+              comp_map[comp_name] = params
+              comp_idx[comp_name] = last_idx
+              table.insert(components, last_idx, params)
+            else
+              last_idx = comp_idx[comp_name]
+            end
+            seen_comps[comp_name] = true
+          end
         end
       end
     end
+
+    -- Remove all the components that we didn't see
+    local to_remove = {}
+    for i, v in ipairs(components) do
+      if not seen_comps[v[1]] then
+        table.insert(to_remove, 1, i)
+      end
+    end
+    for _, idx in ipairs(to_remove) do
+      table.remove(components, idx)
+    end
+
     render()
   end
 
@@ -143,7 +235,11 @@ M.open = function(task)
       buffer = bufnr,
       once = true,
       nested = true,
-      callback = cleanup,
+      callback = function()
+        if not is_adding_component then
+          cleanup()
+        end
+      end,
     })
   )
 end
