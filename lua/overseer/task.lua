@@ -51,7 +51,28 @@ function Task:render(lines, highlights, detail)
 
   -- Render components
   if detail >= 3 then
-    self:_render_components(lines, highlights, detail)
+    for _, comp in ipairs(self.components) do
+      if comp.description then
+        table.insert(lines, string.format("%s (%s)", comp.name, comp.description))
+        table.insert(highlights, { "Keyword", #lines, 0, string.len(comp.name) })
+        table.insert(highlights, { "Comment", #lines, string.len(comp.name) + 1, -1 })
+      else
+        table.insert(lines, comp.name)
+      end
+
+      for k, v in pairs(comp.params) do
+        if k ~= 1 then
+          if type(v) == "table" and vim.tbl_islist(v) then
+            v = table.concat(v, ", ")
+          end
+          table.insert(lines, string.format("  %s: %s", k, v))
+        end
+      end
+
+      if comp.render then
+        comp:render(self, lines, highlights, detail)
+      end
+    end
   else
     if detail == 2 then
       local names = {}
@@ -80,30 +101,6 @@ function Task:render(lines, highlights, detail)
       for k, v in pairs(self.result) do
         table.insert(lines, string.format("  %s = %s", k, v))
       end
-    end
-  end
-end
-
-function Task:_render_components(lines, highlights, detail)
-  for _, comp in ipairs(self.components) do
-    if comp.description then
-      table.insert(lines, string.format("%s: %s", comp.name, comp.description))
-      table.insert(highlights, { "Comment", #lines, string.len(comp.name) + 1, -1 })
-    else
-      table.insert(lines, comp.name)
-    end
-
-    for k, v in pairs(comp.params) do
-      if k ~= 1 then
-        if type(v) == "table" and vim.tbl_islist(v) then
-          v = table.concat(v, ", ")
-        end
-        table.insert(lines, string.format("  %s: %s", k, v))
-      end
-    end
-
-    if detail > 0 and comp.render then
-      comp:render(self, lines, highlights, detail)
     end
   end
 end

@@ -79,7 +79,13 @@ function TaskList.new()
         condition = function(task)
           return task.status ~= STATUS.RUNNING
         end,
-        callback = task_editor.open,
+        callback = function(task)
+          task_editor.open(task, function(t)
+            if t then
+              registry.update_task(t)
+            end
+          end)
+        end,
       },
       {
         name = "rerun on save",
@@ -127,6 +133,9 @@ function TaskList.new()
 
   vim.keymap.set("n", "<CR>", function()
     tl:run_action()
+  end, { buffer = bufnr })
+  vim.keymap.set("n", "e", function()
+    tl:run_action("edit")
   end, { buffer = bufnr })
   vim.keymap.set("n", "o", function()
     tl:open_buffer()

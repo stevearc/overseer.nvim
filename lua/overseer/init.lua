@@ -8,11 +8,11 @@ local M = {}
 
 -- TODO
 -- * Edit a task:
---   * save results
 --   * how to handle slots?
 --   * edit cmd and cwd
 --   * motion forwards/backwards
 --   * <c-u> stopped working
+--   * center the title
 --
 -- WISHLIST
 -- * don't dispose a task if we're doing something with it

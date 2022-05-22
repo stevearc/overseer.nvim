@@ -3,7 +3,7 @@ local form = require("overseer.form")
 local util = require("overseer.util")
 local M = {}
 
-M.open = function(task)
+M.open = function(task, callback)
   local bufnr = vim.api.nvim_create_buf(false, true)
   vim.api.nvim_buf_set_option(bufnr, "swapfile", false)
   vim.api.nvim_buf_set_option(bufnr, "bufhidden", "wipe")
@@ -228,16 +228,55 @@ M.open = function(task)
     })
   )
 
+  local function submit()
+    for _, params in ipairs(components) do
+      local comp = component.get(params[1])
+
+      local schema = comp.params
+      for k, param_schema in pairs(schema) do
+        local value = params[k]
+        if not form.validate_field(param_schema, value) then
+          return
+        end
+      end
+    end
+    task:set_components(components)
+    local seen = util.list_to_map(vim.tbl_map(function(c)
+      return c[1]
+    end, components))
+    local to_remove = {}
+    for _, v in ipairs(task.components) do
+      if not seen[v.name] then
+        table.insert(to_remove, v.name)
+      end
+    end
+    task:remove_components(to_remove)
+    cleanup()
+    if callback then
+      callback(task)
+    end
+  end
+
+  local function cancel()
+    cleanup()
+    if callback then
+      callback()
+    end
+  end
+
+  vim.keymap.set("n", "<CR>", submit, { buffer = bufnr })
+  vim.keymap.set({ "n", "i" }, "<C-r>", submit, { buffer = bufnr })
+  vim.keymap.set({ "n", "i" }, "<C-s>", submit, { buffer = bufnr })
+
   table.insert(
     autocmds,
     vim.api.nvim_create_autocmd("BufLeave", {
       desc = "Close float on BufLeave",
       buffer = bufnr,
-      once = true,
       nested = true,
       callback = function()
         if not is_adding_component then
-          cleanup()
+          cancel()
         end
       end,
     })

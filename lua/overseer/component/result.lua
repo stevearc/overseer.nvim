@@ -32,14 +32,15 @@ M.output_summarizer = {
         end
       end,
       render = function(self, task, lines, highlights, detail)
-        local count = 0
+        if self.summary == "" then
+          return
+        end
         local sum_lines = vim.split(self.summary, "\n")
         local prefix = "out: "
         if detail == 1 then
           table.insert(lines, prefix .. sum_lines[#sum_lines])
           table.insert(highlights, { "Comment", #lines, 0, 4 })
           table.insert(highlights, { "OverseerOutput", #lines, 4, -1 })
-          count = count + 1
         else
           for i = 1, #sum_lines do
             if sum_lines[i] ~= "" then
@@ -48,9 +49,7 @@ M.output_summarizer = {
               table.insert(highlights, { "OverseerOutput", #lines, 4, -1 })
             end
           end
-          count = count + #sum_lines
         end
-        return count
       end,
     }
   end,
