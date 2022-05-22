@@ -117,10 +117,10 @@ M.rerun_on_save = {
 
 M.rerun_on_result = {
   name = "rerun_on_result",
-  description = "Rerun when task ends (default on failure only)",
+  description = "Rerun when task ends",
   params = {
     statuses = {
-      description = "What statuses to notify on",
+      description = "What statuses will trigger a rerun",
       type = "list",
       default = { STATUS.FAILURE },
     },

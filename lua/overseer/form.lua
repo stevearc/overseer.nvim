@@ -68,6 +68,7 @@ M.new_label = function(opts)
     text = { opts.text, "s" },
     align = { opts.align, "s", true },
     nofocus = { opts.nofocus, "b", true },
+    hl = { opts.hl, "s", true },
   })
   opts.align = opts.align or "left"
   return {
@@ -214,9 +215,9 @@ M.open_form_win = function(bufnr, opts)
         local cur = vim.api.nvim_win_get_cursor(0)
         local lnum = cur[1]
         local line = vim.api.nvim_buf_get_lines(bufnr, lnum - 1, lnum, true)[1]
-        local rem = string.sub(line, cur[2] + 1)
-        if rem:match("%s+") then
-          vim.api.nvim_win_set_cursor(0, { lnum, string.len(line) })
+        local name = line:match("^[^%s]+: ")
+        if cur[2] < string.len(name) then
+          vim.api.nvim_win_set_cursor(0, { lnum, string.len(name) })
         end
       end,
     })
@@ -239,7 +240,7 @@ M.show = function(title, schema, params, callback)
   end
 
   local fields = {
-    M.new_label({ text = title, align = "center", nofocus = true }),
+    M.new_label({ text = title, align = "center", nofocus = true, hl = "OverseerTitle" }),
   }
   local keys = vim.tbl_keys(schema)
   -- Sort the params by required, then if they have no value, then by name
@@ -433,13 +434,19 @@ M.show = function(title, schema, params, callback)
   -- Some shenanigans to make <C-u> behave the way we expect
   vim.keymap.set("i", "<C-u>", function()
     local cur = vim.api.nvim_win_get_cursor(0)
-    local field = fields[cur[1]]
-    if field and field.parse_value then
-      local line = vim.api.nvim_buf_get_lines(bufnr, cur[1] - 1, cur[1], true)[1]
+    local line = vim.api.nvim_buf_get_lines(bufnr, cur[1] - 1, cur[1], true)[1]
+    local name = line:match("^[^%s]+: ")
+    if name then
       local rem = string.sub(line, cur[2] + 1)
-      field:parse_value(rem, params)
+      vim.api.nvim_buf_set_lines(
+        bufnr,
+        cur[1] - 1,
+        cur[1],
+        true,
+        { string.format("%s%s", name, rem) }
+      )
+      parse()
       vim.api.nvim_win_set_cursor(0, { cur[1], 0 })
-      render()
     end
   end, { buffer = bufnr })
 

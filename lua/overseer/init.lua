@@ -11,37 +11,47 @@ local M = {}
 --   * <c-u> stopped working
 --   * Better layout (dynamic sizing)
 --
--- WISHLIST
+-- BETA
+-- * Better highlight groups in template form
 -- * don't dispose a task if we're doing something with it
+-- * Save specific task the same way we save bundles
 -- * task list previews in a float, not a split
 -- * { } to navigate task list
--- * Timestamp status changes
--- * Save specific task the same way we save bundles
+-- * Add tests
+-- * keybinding help in float
+-- * when jumping around terminals, somehow the buffers become listed
 -- * More schema validations (callback, non-empty list, number greater than,
--- etc)
 -- * Register template with callback conditional (e.g. make only when Makefile exists)
+-- * Summary stores N most recent lines
+-- * Better highlight groups (link instead of directly using Keyword/Comment)
+-- * Many more task templates, especially for tests
+-- * Load VSCode task definitions
+-- * Add extension points to the task list actions
+-- * Basic Readme
+-- * Vim help docs
+-- * Architecture doc (Template / Task / Component)
+-- * Extension doc (how to make your own template/component)
+-- * should we allow duplicate template names? how to handle double-register gracefully?
+-- * component: parse output and populate quickfix
+-- * Separation of registry and task list feels like it needs refactor
+-- * Form and task editor logic is really messy. IDK about this field shit.
+-----------------------------------------
+-- FUTURE
+-- * Timestamp status changes
+-- etc)
 -- * What about task chaining? Do we care?
 -- * Rethink the detail levels
 -- * Definitely going to need some sort of logging system
--- * Load VSCode task definitions
--- * Better highlight groups (link instead of directly using Keyword/Comment)
 -- * Store recent commands in history per-directory
 --   * Can select & run task from recent history
--- * Add tests
--- * Summary stores N most recent lines
 -- * add debugging helpers for components
--- * should we allow duplicate template names? how to handle double-register gracefully?
--- * component: parse output and populate quickfix
 -- * task list: bulk actions
 -- * params can be file/dir type and will autocomplete
+-- * more powerful param schema (e.g. nested types)
 -- * list params allow escaping / quotes / specifying delimiter
 -- * ability to require task to be unique (disallow duplicates). Coordinate among all vim instances
 -- * Autostart task on vim open in dir (needs some uniqueness checks)
 -- * Lualine component
--- * Separation of registry and task list feels like it needs refactor
--- * docs/helpfile
--- * when jumping around terminals, somehow the buffers become listed
--- * keybinding help in float
 
 M.setup = function(opts)
   require("overseer.component").register_all()
