@@ -1,3 +1,4 @@
+local util = require("overseer.util")
 local M = {}
 
 M.render_field = function(schema, prefix, name, value)
@@ -140,6 +141,97 @@ M.new_input = function(opts, schema)
   }
 end
 
+M.open_form_win = function(bufnr, opts)
+  opts = opts or {}
+  vim.validate({
+    autocmds = { opts.autocmds, "t", true },
+    on_resize = { opts.on_resize, "f", true },
+  })
+  opts.autocmds = opts.autocmds or {}
+  local function calc_layout()
+    local max_width = vim.o.columns
+    local max_height = vim.o.lines - vim.o.cmdheight
+    local win_opts = {
+      relative = "editor",
+      border = "rounded",
+      zindex = 150,
+      width = math.min(max_width, 100),
+      height = math.min(max_height, 10),
+    }
+    win_opts.col = math.floor((max_width - win_opts.width) / 2)
+    win_opts.row = math.floor((max_height - win_opts.height) / 2)
+    return win_opts
+  end
+
+  local winopt = calc_layout()
+  winopt.style = "minimal"
+  local winid = vim.api.nvim_open_win(bufnr, true, winopt)
+  vim.api.nvim_win_set_option(winid, "winblend", 10)
+
+  local function layout()
+    vim.api.nvim_win_set_config(winid, calc_layout())
+  end
+
+  local winwidth = vim.api.nvim_win_get_width(winid)
+  local function on_win_scrolled()
+    local new_width = vim.api.nvim_win_get_width(winid)
+    if winwidth ~= new_width then
+      winwidth = new_width
+      opts.on_resize()
+    end
+  end
+
+  if opts.on_resize then
+    table.insert(
+      opts.autocmds,
+      vim.api.nvim_create_autocmd("WinScrolled", {
+        desc = "Rerender on window resize",
+        pattern = tostring(winid),
+        nested = true,
+        callback = on_win_scrolled,
+      })
+    )
+  end
+  table.insert(
+    opts.autocmds,
+    vim.api.nvim_create_autocmd("VimResized", {
+      desc = "Rerender on vim resize",
+      nested = true,
+      callback = layout,
+    })
+  )
+  -- This is a little bit of a hack. We force the cursor to be *after the ': '
+  -- of the fields, but if the user enters insert mode with "i", the cursor will
+  -- now be before the space. If they type, the parsing will misbehave. So we
+  -- detect that and just...nudge them forwards a bit.
+  table.insert(
+    opts.autocmds,
+    vim.api.nvim_create_autocmd("InsertCharPre", {
+      desc = "Move cursor to end of line when inserting",
+      buffer = bufnr,
+      nested = true,
+      callback = function()
+        local cur = vim.api.nvim_win_get_cursor(0)
+        local lnum = cur[1]
+        local line = vim.api.nvim_buf_get_lines(bufnr, lnum - 1, lnum, true)[1]
+        local rem = string.sub(line, cur[2] + 1)
+        if rem:match("%s+") then
+          vim.api.nvim_win_set_cursor(0, { lnum, string.len(line) })
+        end
+      end,
+    })
+  )
+
+  local function cleanup()
+    for _, id in ipairs(opts.autocmds) do
+      vim.api.nvim_del_autocmd(id)
+    end
+    util.leave_insert()
+    vim.api.nvim_win_close(winid, true)
+  end
+  return cleanup
+end
+
 M.show = function(title, schema, params, callback)
   if vim.tbl_isempty(schema) then
     callback(params)
@@ -248,32 +340,11 @@ M.show = function(title, schema, params, callback)
     on_cursor_move()
   end
 
-  local function calc_layout()
-    local max_width = vim.o.columns
-    local max_height = vim.o.lines - vim.o.cmdheight
-    local opts = {
-      relative = "editor",
-      border = "rounded",
-      zindex = 150,
-      width = math.min(max_width, 100),
-      height = math.min(max_height, math.max(10, #fields)),
-    }
-    opts.col = math.floor((max_width - opts.width) / 2)
-    opts.row = math.floor((max_height - opts.height) / 2)
-    return opts
-  end
-
-  local winopt = calc_layout()
-  winopt.style = "minimal"
-  local winid = vim.api.nvim_open_win(bufnr, true, winopt)
-  vim.api.nvim_win_set_option(winid, "winblend", 10)
-  vim.api.nvim_buf_set_option(bufnr, "filetype", "OverseerForm")
-
-  local function layout()
-    vim.api.nvim_win_set_config(winid, calc_layout())
-  end
-
   render()
+
+  local autocmds = {}
+  local cleanup = M.open_form_win(bufnr, { autocmds = autocmds, on_resize = render })
+  vim.api.nvim_buf_set_option(bufnr, "filetype", "OverseerForm")
 
   local function parse()
     local buflines = vim.api.nvim_buf_get_lines(bufnr, 0, -1, true)
@@ -290,16 +361,6 @@ M.show = function(title, schema, params, callback)
     render()
   end
 
-  local winwidth = vim.api.nvim_win_get_width(winid)
-  local function on_win_scrolled()
-    local new_width = vim.api.nvim_win_get_width(winid)
-    if winwidth ~= new_width then
-      winwidth = new_width
-      render()
-    end
-  end
-
-  local autocmds = {}
   table.insert(
     autocmds,
     vim.api.nvim_create_autocmd({ "TextChanged", "TextChangedI" }, {
@@ -318,50 +379,6 @@ M.show = function(title, schema, params, callback)
       callback = on_cursor_move,
     })
   )
-  table.insert(
-    autocmds,
-    vim.api.nvim_create_autocmd("WinScrolled", {
-      desc = "Rerender on window resize",
-      pattern = tostring(winid),
-      nested = true,
-      callback = on_win_scrolled,
-    })
-  )
-  table.insert(
-    autocmds,
-    vim.api.nvim_create_autocmd("VimResized", {
-      desc = "Rerender on vim resize",
-      nested = true,
-      callback = layout,
-    })
-  )
-  table.insert(
-    autocmds,
-    vim.api.nvim_create_autocmd("InsertCharPre", {
-      desc = "Move cursor to end of line when inserting",
-      buffer = bufnr,
-      nested = true,
-      callback = function()
-        local cur = vim.api.nvim_win_get_cursor(0)
-        local lnum = cur[1]
-        local line = vim.api.nvim_buf_get_lines(bufnr, lnum - 1, lnum, true)[1]
-        local rem = string.sub(line, cur[2] + 1)
-        if rem:match("%s+") then
-          vim.api.nvim_win_set_cursor(0, { lnum, string.len(line) })
-        end
-      end,
-    })
-  )
-
-  local function cleanup()
-    for _, id in ipairs(autocmds) do
-      vim.api.nvim_del_autocmd(id)
-    end
-    if vim.api.nvim_get_mode().mode:match("^i") then
-      vim.api.nvim_feedkeys(vim.api.nvim_replace_termcodes("<ESC>", true, true, true), "n", false)
-    end
-    vim.api.nvim_win_close(winid, true)
-  end
   local function cancel()
     cleanup()
     callback(nil)

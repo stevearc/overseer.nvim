@@ -70,6 +70,12 @@ M.list_to_map = function(list)
   return map
 end
 
+M.leave_insert = function()
+  if vim.api.nvim_get_mode().mode:match("^i") then
+    vim.api.nvim_feedkeys(vim.api.nvim_replace_termcodes("<ESC>", true, true, true), "n", false)
+  end
+end
+
 M.get_stdout_line_iter = function()
   local pending = ""
   return function(data)

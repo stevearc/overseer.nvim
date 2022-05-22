@@ -1,5 +1,6 @@
 local component = require("overseer.component")
 local form = require("overseer.form")
+local util = require("overseer.util")
 local M = {}
 
 M.open = function(task)
@@ -7,27 +8,6 @@ M.open = function(task)
   vim.api.nvim_buf_set_option(bufnr, "swapfile", false)
   vim.api.nvim_buf_set_option(bufnr, "bufhidden", "wipe")
   vim.api.nvim_buf_set_option(bufnr, "buftype", "nofile")
-
-  local function calc_layout()
-    local max_width = vim.o.columns
-    local max_height = vim.o.lines - vim.o.cmdheight
-    local opts = {
-      relative = "editor",
-      border = "rounded",
-      zindex = 150,
-      width = math.min(max_width, 100),
-      height = math.min(max_height, 20),
-    }
-    opts.col = math.floor((max_width - opts.width) / 2)
-    opts.row = math.floor((max_height - opts.height) / 2)
-    return opts
-  end
-
-  local winopt = calc_layout()
-  winopt.style = "minimal"
-  local winid = vim.api.nvim_open_win(bufnr, true, winopt)
-  vim.api.nvim_win_set_option(winid, "winblend", 10)
-  vim.api.nvim_buf_set_option(bufnr, "filetype", "OverseerTask")
 
   local components = {}
   for _, comp in ipairs(task.components) do
@@ -133,6 +113,10 @@ M.open = function(task)
   end
 
   local autocmds = {}
+
+  local cleanup = form.open_form_win(bufnr, { autocmds = autocmds })
+  vim.api.nvim_buf_set_option(bufnr, "filetype", "OverseerTask")
+
   table.insert(
     autocmds,
     vim.api.nvim_create_autocmd({ "TextChanged", "TextChangedI" }, {
@@ -151,16 +135,6 @@ M.open = function(task)
       callback = on_cursor_move,
     })
   )
-
-  local function cleanup()
-    for _, id in ipairs(autocmds) do
-      vim.api.nvim_del_autocmd(id)
-    end
-    if vim.api.nvim_get_mode().mode:match("^i") then
-      vim.api.nvim_feedkeys(vim.api.nvim_replace_termcodes("<ESC>", true, true, true), "n", false)
-    end
-    vim.api.nvim_win_close(winid, true)
-  end
 
   table.insert(
     autocmds,

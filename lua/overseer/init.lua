@@ -11,6 +11,8 @@ local M = {}
 --   * motion forwards/backwards
 --   * add new component
 --   * how to handle slots / duplicate components?
+--   * save results
+--   * <c-u> stopped working
 --
 -- WISHLIST
 -- * don't dispose a task if we're doing something with it
