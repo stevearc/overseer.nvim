@@ -8,10 +8,7 @@ local M = {}
 
 -- TODO
 -- * Edit a task:
---   * motion forwards/backwards
 --   * <c-u> stopped working
---   * center the title
---   * Create new task
 --   * Better layout (dynamic sizing)
 --
 -- WISHLIST

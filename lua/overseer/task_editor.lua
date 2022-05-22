@@ -174,9 +174,12 @@ M.open = function(task, callback)
     local insert_position = #components
     for i, line in ipairs(buflines) do
       if line:match("^%s*$") then
-        is_adding_component = true
-        insert_position = 1 + comp_idx[line_to_comp[i][1].name]
-        break
+        local comp = line_to_comp[i + 1]
+        if comp then
+          is_adding_component = true
+          insert_position = comp_idx[comp[1].name]
+          break
+        end
       end
     end
     if is_adding_component then

@@ -333,7 +333,7 @@ function Task:dispose(force)
   end
   self:dispatch("on_dispose")
   registry.remove_task(self)
-  if vim.api.nvim_buf_is_valid(self.bufnr) then
+  if self.bufnr and vim.api.nvim_buf_is_valid(self.bufnr) then
     vim.api.nvim_buf_delete(self.bufnr, { force = true })
   end
 end

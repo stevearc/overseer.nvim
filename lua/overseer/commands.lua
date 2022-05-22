@@ -4,6 +4,7 @@ local registry = require("overseer.registry")
 local util = require("overseer.util")
 local template = require("overseer.template")
 local Task = require("overseer.task")
+local task_editor = require("overseer.task_editor")
 local window = require("overseer.window")
 
 M.create_commands = function()
@@ -62,6 +63,9 @@ M.create_commands = function()
   end, {
     desc = "Run a task from a template",
     nargs = "*",
+  })
+  vim.api.nvim_create_user_command("OverseerBuild", M.build_task, {
+    desc = "Build a task from scratch",
   })
 end
 
@@ -135,6 +139,20 @@ M.run_template = function(opts, params, callback)
       end)
     end
   end
+end
+
+M.build_task = function()
+  local task = Task.new({
+    name = "New task",
+    cmd = { "ls" },
+  })
+  task_editor.open(task, function(result)
+    if result then
+      task:start()
+    else
+      task:dispose()
+    end
+  end)
 end
 
 -- TASK BUNDLE
