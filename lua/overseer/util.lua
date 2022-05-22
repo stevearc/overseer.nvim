@@ -54,6 +54,25 @@ M.scroll_to_end = function(winid)
   vim.api.nvim_win_set_cursor(winid, { lnum, 0 })
 end
 
+M.add_highlights = function(bufnr, ns, highlights)
+  for _, hl in ipairs(highlights) do
+    local group, lnum, col_start, col_end = unpack(hl)
+    vim.api.nvim_buf_add_highlight(bufnr, ns, group, lnum - 1, col_start, col_end)
+  end
+end
+
+M.align = function(text, width, alignment)
+  if alignment == "center" then
+    local padding = math.floor((width - string.len(text)) / 2)
+    return string.rep(" ", padding) .. text
+  elseif alignment == "right" then
+    local padding = width - string.len(text)
+    return string.rep(" ", padding) .. text
+  else
+    return text
+  end
+end
+
 M.get_preview_window = function()
   for _, winid in ipairs(vim.api.nvim_list_wins()) do
     if vim.api.nvim_win_get_option(winid, "previewwindow") then

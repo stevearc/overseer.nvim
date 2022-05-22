@@ -62,86 +62,6 @@ M.parse_value = function(schema, value)
   return true, value
 end
 
-M.new_label = function(opts)
-  opts = opts or {}
-  vim.validate({
-    text = { opts.text, "s" },
-    align = { opts.align, "s", true },
-    nofocus = { opts.nofocus, "b", true },
-    hl = { opts.hl, "s", true },
-  })
-  opts.align = opts.align or "left"
-  return {
-    adjust_cursor = function(self, cur)
-      if opts.nofocus then
-        return { cur[1] + 1, 1000 }
-      end
-    end,
-    render = function(self, ctx)
-      local width = vim.api.nvim_win_get_width(0)
-      if opts.align == "left" then
-        return opts.text
-      elseif opts.align == "right" then
-        local padding = width - string.len(opts.text)
-        return string.rep(" ", padding) .. opts.text
-      else
-        local padding = math.floor((width - string.len(opts.text)) / 2)
-        return string.rep(" ", padding) .. opts.text
-      end
-    end,
-  }
-end
-
-M.new_input = function(opts, schema)
-  vim.validate({
-    id = { opts.id, "s" },
-    label = { opts.label, "s" },
-  })
-  local label = opts.label
-  if not schema.optional then
-    label = "*" .. label
-  end
-  return {
-    focused = false,
-    ever_focused = false,
-    render = function(self, ctx)
-      local value = ctx.params[opts.id]
-      return M.render_field(schema, "", label, value)
-    end,
-    set_focus = function(self, focus)
-      if self.focused and not focus then
-        self.ever_focused = true
-      end
-      self.focused = focus
-    end,
-    get_vtext = function(self, ctx)
-      if schema.description then
-        return schema.description, "Comment"
-      end
-    end,
-    get_hl = function(self, ctx)
-      if not self:is_valid(ctx.params) and (ctx.ever_submitted or self.ever_focused) then
-        return "DiagnosticError", 0, string.len(label)
-      end
-    end,
-    adjust_cursor = function(self, cur)
-      if cur[2] < string.len(label) + 1 then
-        return { cur[1], string.len(label) + 1 }
-      end
-    end,
-    is_valid = function(self, params)
-      local value = params[opts.id]
-      return M.validate_field(schema, value)
-    end,
-    parse = function(self, line, params)
-      local parsed, val = M.parse_field(schema, "", label, line)
-      if parsed then
-        params[opts.id] = val
-      end
-    end,
-  }
-end
-
 M.open_form_win = function(bufnr, opts)
   opts = opts or {}
   vim.validate({
@@ -239,9 +159,8 @@ M.show = function(title, schema, params, callback)
     return
   end
 
-  local fields = {
-    M.new_label({ text = title, align = "center", nofocus = true, hl = "OverseerTitle" }),
-  }
+  local fields_focused = {}
+  local fields_ever_focused = {}
   local keys = vim.tbl_keys(schema)
   -- Sort the params by required, then if they have no value, then by name
   table.sort(keys, function(a, b)
@@ -259,12 +178,10 @@ M.show = function(title, schema, params, callback)
     local bname = bparam.name or b
     return aname < bname
   end)
-  for _, k in ipairs(keys) do
-    local param = schema[k]
+  for k, v in pairs(schema) do
     if params[k] == nil then
-      params[k] = param.default
+      params[k] = v.default
     end
-    table.insert(fields, M.new_input({ id = k, label = param.name or k }, param))
   end
 
   local bufnr = vim.api.nvim_create_buf(false, true)
@@ -275,88 +192,87 @@ M.show = function(title, schema, params, callback)
   local function line_len(lnum)
     return string.len(vim.api.nvim_buf_get_lines(bufnr, lnum - 1, lnum, true)[1])
   end
+  local function parse_line(line)
+    return line:match("^%*?([^%s]+): ?(.*)$")
+  end
 
   local ns = vim.api.nvim_create_namespace("overseer")
   local ever_submitted = false
   local function on_cursor_move()
-    local ctx = {
-      params = params,
-      ever_submitted = ever_submitted,
-    }
     local cur = vim.api.nvim_win_get_cursor(0)
-    local lnum = cur[1]
+    local original_cur = vim.deepcopy(cur)
     vim.api.nvim_buf_clear_namespace(bufnr, ns, 0, -1)
-    local field = fields[lnum]
-    -- When we first enter the window the cursor may not have updated, and we
-    -- can be off the end of the list
-    if not field then
-      return
+    local num_lines = vim.api.nvim_buf_line_count(bufnr)
+
+    -- Top line is title
+    if cur[1] == 1 and num_lines > 1 then
+      cur[1] = 2
     end
-    -- This logic suuuuuucks but it works
-    local original_cur = cur
-    local new_cur = field:adjust_cursor(cur)
-    while new_cur and (new_cur[1] ~= cur[1] or new_cur[2] ~= cur[2]) do
-      if new_cur[1] > #fields then
-        new_cur[1] = 1
+
+    local buflines = vim.api.nvim_buf_get_lines(bufnr, 0, -1, true)
+    for i, line in ipairs(buflines) do
+      local name, text = parse_line(line)
+      if name and schema[name] then
+        local focused = i == cur[1]
+        local name_end = string.len(line) - string.len(text)
+        -- Move cursor to input section of field
+        if focused then
+          if cur[2] < name_end then
+            cur[2] = name_end
+          end
+        end
+
+        -- Track historical focus for showing errors
+        if focused then
+          fields_focused[name] = true
+        elseif fields_focused[name] then
+          fields_ever_focused[name] = true
+        end
+
+        local group = "OverseerField"
+        if
+          (fields_ever_focused[name] or ever_submitted)
+          and not M.validate_field(schema[name], params[name])
+        then
+          group = "DiagnosticError"
+        end
+        vim.api.nvim_buf_add_highlight(bufnr, ns, group, i - 1, 0, name_end)
       end
-      cur = new_cur
-      field = fields[new_cur[1]]
-      new_cur = field:adjust_cursor(cur)
     end
+
     if cur and (cur[1] ~= original_cur[1] or cur[2] ~= original_cur[2]) then
       vim.api.nvim_win_set_cursor(0, cur)
     end
-
-    for i, v in ipairs(fields) do
-      if v.set_focus then
-        v:set_focus(i == cur[1])
-      end
-      if v.get_hl then
-        local group, col_start, col_end = v:get_hl(ctx)
-        if group then
-          vim.api.nvim_buf_add_highlight(bufnr, ns, group, i - 1, col_start, col_end)
-        end
-      end
-    end
-
-    if field.get_vtext then
-      local text, hl = field:get_vtext(ctx)
-      if text then
-        vim.api.nvim_buf_set_extmark(bufnr, ns, cur[1] - 1, 0, {
-          virt_text = { { text, hl } },
-        })
-      end
-    end
   end
 
+  local title_ns = vim.api.nvim_create_namespace("overseer_title")
   local function render()
-    local ctx = {
-      params = params,
-    }
-    local lines = {}
-    for _, field in ipairs(fields) do
-      table.insert(lines, field:render(ctx))
+    local lines = { util.align(title, vim.api.nvim_win_get_width(0), "center") }
+    local highlights = { { "OverseerTask", 1, 0, -1 } }
+    for _, name in ipairs(keys) do
+      local prefix = schema[name].optional and "" or "*"
+      table.insert(lines, M.render_field(schema[name], prefix, name, params[name]))
     end
     vim.api.nvim_buf_set_lines(bufnr, 0, -1, true, lines)
+    util.add_highlights(bufnr, title_ns, highlights)
     on_cursor_move()
   end
-
-  render()
 
   local autocmds = {}
   local cleanup = M.open_form_win(bufnr, { autocmds = autocmds, on_resize = render })
   vim.api.nvim_buf_set_option(bufnr, "filetype", "OverseerForm")
 
+  render()
+
   local function parse()
     local buflines = vim.api.nvim_buf_get_lines(bufnr, 0, -1, true)
-    if #buflines ~= #fields then
-      render()
-      return
-    end
-    for i, line in ipairs(buflines) do
-      local field = fields[i]
-      if field.parse then
-        field:parse(line, params)
+    for _, line in ipairs(buflines) do
+      local name, text = parse_line(line)
+      if name and schema[name] then
+        local parsed, value = M.parse_value(schema[name], text)
+        if parsed then
+          params[name] = value
+        end
       end
     end
     render()
@@ -387,10 +303,11 @@ M.show = function(title, schema, params, callback)
 
   local function submit()
     ever_submitted = true
-    for i, field in ipairs(fields) do
-      if field.is_valid and not field:is_valid(params) then
-        if vim.api.nvim_win_get_cursor(0)[1] ~= i then
-          vim.api.nvim_win_set_cursor(0, { i, line_len(i) })
+    for i, name in pairs(keys) do
+      if not M.validate_field(schema[name], params[name]) then
+        local lnum = i + 1
+        if vim.api.nvim_win_get_cursor(0)[1] ~= lnum then
+          vim.api.nvim_win_set_cursor(0, { lnum, line_len(lnum) })
         else
           on_cursor_move()
         end
@@ -403,7 +320,7 @@ M.show = function(title, schema, params, callback)
 
   local function next_field()
     local lnum = vim.api.nvim_win_get_cursor(0)[1]
-    if lnum == #fields then
+    if lnum == vim.api.nvim_buf_line_count(0) then
       return false
     else
       vim.api.nvim_win_set_cursor(0, { lnum + 1, line_len(lnum + 1) })

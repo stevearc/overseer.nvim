@@ -8,8 +8,8 @@ local M = {}
 
 -- TODO
 -- * Edit a task:
---   * <c-u> stopped working
 --   * Better layout (dynamic sizing)
+--   * Pull as much out of the closures as possible
 --
 -- BETA
 -- * Better highlight groups in template form

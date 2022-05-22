@@ -101,10 +101,7 @@ M.open = function(task, callback)
     end
 
     vim.api.nvim_buf_set_lines(bufnr, 0, -1, true, lines)
-    for _, hl in ipairs(highlights) do
-      local group, row, col_start, col_end = unpack(hl)
-      vim.api.nvim_buf_add_highlight(bufnr, ns, group, row - 1, col_start, col_end)
-    end
+    util.add_highlights(bufnr, ns, highlights)
     on_cursor_move()
   end
 
