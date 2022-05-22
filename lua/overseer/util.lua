@@ -101,7 +101,7 @@ M.get_stdout_line_iter = function()
         pending = ""
       else
         -- No carriage returns plz
-        chunk = string.gsub(chunk, "\r", "")
+        chunk = string.gsub(chunk, "\r$", "")
         if i ~= last then
           table.insert(ret, pending .. chunk)
           pending = ""

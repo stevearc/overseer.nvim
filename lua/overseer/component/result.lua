@@ -11,40 +11,54 @@ end
 M.output_summarizer = {
   name = "output_summary",
   description = "Summarize stdout/stderr",
-  builder = function()
+  params = {
+    max_lines = { type = "number", default = 4 },
+  },
+  builder = function(params)
     return {
-      summary = "",
+      lines = { "" },
       on_reset = function(self)
-        self.summary = ""
+        self.lines = { "" }
       end,
       on_output = function(self, task, data)
-        for i = #data, 1, -1 do
-          local line = data[i]
-          if line ~= "" then
-            line = string.gsub(line, "\r", "")
-            if i == 1 then
-              self.summary = self.summary .. line
-            else
-              self.summary = line
+        for i, chunk in ipairs(data) do
+          if chunk == "" then
+            if self.lines[#self.lines] ~= "" then
+              table.insert(self.lines, "")
             end
-            break
+          else
+            chunk = string.gsub(chunk, "\r$", "")
+            if i == 1 then
+              local last_line = self.lines[#self.lines]
+              self.lines[#self.lines] = last_line .. chunk
+            else
+              table.insert(self.lines, chunk)
+            end
           end
+        end
+        while #self.lines > params.max_lines + 1 do
+          table.remove(self.lines, 1)
         end
       end,
       render = function(self, task, lines, highlights, detail)
-        if self.summary == "" then
-          return
-        end
-        local sum_lines = vim.split(self.summary, "\n")
         local prefix = "out: "
         if detail == 1 then
-          table.insert(lines, prefix .. sum_lines[#sum_lines])
-          table.insert(highlights, { "Comment", #lines, 0, 4 })
-          table.insert(highlights, { "OverseerOutput", #lines, 4, -1 })
+          local last_line
+          for i = #self.lines, 1, -1 do
+            last_line = self.lines[i]
+            if last_line ~= "" then
+              break
+            end
+          end
+          if last_line ~= "" then
+            table.insert(lines, prefix .. last_line)
+            table.insert(highlights, { "Comment", #lines, 0, 4 })
+            table.insert(highlights, { "OverseerOutput", #lines, 4, -1 })
+          end
         else
-          for i = 1, #sum_lines do
-            if sum_lines[i] ~= "" then
-              table.insert(lines, prefix .. sum_lines[i])
+          for _, line in ipairs(self.lines) do
+            if line ~= "" then
+              table.insert(lines, prefix .. line)
               table.insert(highlights, { "Comment", #lines, 0, 4 })
               table.insert(highlights, { "OverseerOutput", #lines, 4, -1 })
             end

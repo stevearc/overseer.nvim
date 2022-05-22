@@ -297,7 +297,7 @@ function TaskList:open_float(bufnr, enter)
     once = true,
     nested = true,
     callback = function()
-      vim.api.nvim_win_close(winid, true)
+      pcall(vim.api.nvim_win_close, winid, true)
     end,
   })
   return winid

@@ -9,18 +9,15 @@ local M = {}
 -- TODO
 --
 -- BETA
--- * { } to navigate task list
+-- * Register template with callback conditional (e.g. make only when Makefile exists)
+-- * Add extension points to the task list actions
 -- * Add tests
 -- * keybinding help in float
--- * when jumping around terminals, somehow the buffers become listed
 -- * More schema validations (callback, non-empty list, number greater than,
--- * Register template with callback conditional (e.g. make only when Makefile exists)
--- * Summary stores N most recent lines
 -- * Pull as much logic out of the closures as possible
 -- * Better highlight groups (link instead of directly using Keyword/Comment)
 -- * Many more task templates, especially for tests
 -- * Load VSCode task definitions
--- * Add extension points to the task list actions
 -- * Basic Readme
 -- * Vim help docs
 -- * Dynamic sizing for task editor
@@ -29,7 +26,7 @@ local M = {}
 -- * should we allow duplicate template names? how to handle double-register gracefully?
 -- * component: parse output and populate quickfix
 -- * Separation of registry and task list feels like it needs refactor
--- * Form and task editor logic is really messy. IDK about this field shit.
+-- * { } to navigate task list
 -----------------------------------------
 -- FUTURE
 -- * Timestamp status changes
@@ -37,6 +34,7 @@ local M = {}
 -- * What about task chaining? Do we care?
 -- * Rethink the detail levels
 -- * Definitely going to need some sort of logging system
+-- * when jumping around terminals, somehow the buffers become listed
 -- * Store recent commands in history per-directory
 --   * Can select & run task from recent history
 -- * add debugging helpers for components
@@ -60,7 +58,7 @@ M.setup = function(opts)
     hi default link OverseerFAILURE DiagnosticError
     hi default link OverseerTask Title
     hi default link OverseerTaskBorder FloatBorder
-    hi default link OverseerOutput Comment
+    hi default link OverseerOutput Normal
     hi default link OverseerSlot String
     hi default link OverseerComponent Constant
     hi default link OverseerField Keyword
