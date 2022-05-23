@@ -24,6 +24,7 @@ local default_config = {
     default_test = {
       "default",
       "diagnostic_result",
+      "quickfix_stacktrace",
     },
     default_persist = {
       "output_summary",

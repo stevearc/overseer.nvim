@@ -194,7 +194,7 @@ M.load_task_bundle = function(name)
       return
     end
     vim.ui.select(tasks, {
-      prompt = "Task bundle:",
+      prompt = "Load task bundle:",
       kind = "overseer_task_bundle",
     }, function(selected)
       if selected then
@@ -231,7 +231,7 @@ M.delete_task_bundle = function(name)
       return
     end
     vim.ui.select(tasks, {
-      prompt = "Task bundle:",
+      prompt = "Delete task bundle:",
       kind = "overseer_task_bundle",
     }, function(selected)
       if selected then

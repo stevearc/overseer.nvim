@@ -18,6 +18,7 @@ M.exit_code_finalizer = {
   end,
 }
 
+-- Looks for a result value of 'quickfix' that is a list of quickfix items
 M.quickfix_result = {
   name = "quickfix_result",
   description = "Put results into the quickfix",
@@ -33,6 +34,23 @@ M.quickfix_result = {
   end,
 }
 
+-- Looks for a result value of 'stacktrace' that is a list of quickfix items
+M.quickfix_stacktrace = {
+  name = "quickfix_stacktrace",
+  description = "Put stacktrace results into the quickfix",
+  constructor = function()
+    return {
+      on_result = function(self, task, status, result)
+        if not result.stacktrace or vim.tbl_isempty(result.stacktrace) then
+          return
+        end
+        vim.fn.setqflist(result.stacktrace)
+      end,
+    }
+  end,
+}
+
+-- Looks for a result value of 'quickfix' that is a list of quickfix items
 M.diagnostic_result = {
   name = "diagnostic_result",
   description = "Put quickfix results into diagnostics",

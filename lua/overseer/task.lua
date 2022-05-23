@@ -42,6 +42,7 @@ function Task.new(opts)
     status = STATUS.PENDING,
     cmd = opts.cmd,
     cwd = opts.cwd,
+    cmd_dir = nil,
     name = name,
     bufnr = nil,
     prev_bufnr = nil,
@@ -130,6 +131,10 @@ function Task:serialize()
     cwd = self.cwd,
     components = components,
   }
+end
+
+function Task:clone()
+  return Task.new(self:serialize())
 end
 
 function Task:add_component(comp)
@@ -278,6 +283,7 @@ function Task:reset()
   end
   self.status = STATUS.PENDING
   self.result = nil
+  self.cmd_dir = nil
   local bufnr = self.bufnr
   self.prev_bufnr = bufnr
   vim.defer_fn(function()
@@ -410,6 +416,7 @@ function Task:start()
       end,
     })
   end)
+  self.cmd_dir = self.cwd or vim.fn.getcwd(0)
   vim.api.nvim_buf_set_option(self.bufnr, "buflisted", false)
 
   -- If this task's previous buffer was open in any wins, replace it

@@ -303,7 +303,7 @@ function TaskList:open_float(bufnr, enter)
     row = 1,
     col = col,
     width = width,
-    height = vim.o.lines - vim.o.cmdheight,
+    height = vim.api.nvim_win_get_height(0),
     style = "minimal",
   })
   vim.api.nvim_create_autocmd("BufLeave", {
