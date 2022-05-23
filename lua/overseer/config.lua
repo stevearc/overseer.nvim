@@ -21,11 +21,9 @@ local default_config = {
       "rerun_trigger",
       "dispose_delay",
     },
-    default_once = {
-      "output_summary",
-      "exit_code",
-      "notify_result",
-      "dispose_delay",
+    default_test = {
+      "default",
+      "diagnostic_result",
     },
     default_persist = {
       "output_summary",
@@ -33,13 +31,6 @@ local default_config = {
       "notify_result",
       "rerun_trigger",
       "rerun_on_result",
-    },
-    default_watch = {
-      "output_summary",
-      "exit_code",
-      "notify_red_green",
-      { "rerun_trigger", interrupt = true },
-      "rerun_on_save",
     },
   },
 }

@@ -7,7 +7,6 @@ local window = require("overseer.window")
 local M = {}
 
 -- TODO
--- * component: parse output and populate quickfix/loclist (or diagnostics? signs? vtext?)
 -- * something that will parse stacktraces and load into quickfix
 -- * Load VSCode task definitions
 -- * Many more task templates, especially for tests

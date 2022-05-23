@@ -143,4 +143,15 @@ M.list_any = function(list, cb)
   return false
 end
 
+M.tbl_group_by = function(list, key)
+  local ret = {}
+  for _, v in ipairs(list) do
+    if not ret[v[key]] then
+      ret[v[key]] = {}
+    end
+    table.insert(ret[v[key]], v)
+  end
+  return ret
+end
+
 return M

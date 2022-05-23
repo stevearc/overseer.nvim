@@ -1,3 +1,4 @@
+local component = require("overseer.component")
 local files = require("overseer.files")
 local Task = require("overseer.task")
 local template_builder = require("overseer.template_builder")
@@ -22,6 +23,8 @@ M.is_template = function(obj)
 end
 
 M.register_module = function(path)
+  -- Register components in the module too
+  component.register_module(path)
   local mod = require(path)
   for _, v in pairs(mod) do
     if M.is_template(v) then
