@@ -64,6 +64,11 @@ function Task:render(lines, highlights, detail)
   table.insert(highlights, { "Overseer" .. self.status, #lines, 0, string.len(self.status) })
   table.insert(highlights, { "OverseerTask", #lines, string.len(self.status) + 2, -1 })
 
+  if detail > 1 then
+    local cmd_str = type(self.cmd) == "string" and self.cmd or table.concat(self.cmd, " ")
+    table.insert(lines, cmd_str)
+  end
+
   -- Render components
   if detail >= 3 then
     for _, comp in ipairs(self.components) do
@@ -89,13 +94,6 @@ function Task:render(lines, highlights, detail)
       end
     end
   else
-    if detail == 2 then
-      local names = {}
-      for _, comp in ipairs(self.components) do
-        table.insert(names, comp.name)
-      end
-      table.insert(lines, table.concat(names, ", "))
-    end
     for _, comp in ipairs(self.components) do
       if comp.render then
         comp:render(self, lines, highlights, detail)
