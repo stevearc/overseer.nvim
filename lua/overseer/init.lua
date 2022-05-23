@@ -58,8 +58,9 @@ M.setup = function(opts)
       end
       table.insert(cmds, '" overseer.nvim')
       table.insert(
-        cmds,
-        string.format("lua require('overseer')._start_tasks([[ %s ]])", vim.json.encode(tasks))
+      cmds,
+      -- For some reason, vim.json.encode encodes / as \/.
+      string.format("lua require('overseer')._start_tasks('%s')", string.gsub(vim.json.encode(tasks), '\\/', '/'))
       )
       vim.g.session_save_commands = cmds
     end,

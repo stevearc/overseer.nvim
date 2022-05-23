@@ -17,7 +17,7 @@ M.go_test = {
   builder = function(self, params)
     return {
       cmd = { "go", "test", params.target },
-      components = { "go_test_parser", "default_test" },
+      components = {"go_test_parser", "default_test" },
     }
   end,
 }
