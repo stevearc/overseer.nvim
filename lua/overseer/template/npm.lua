@@ -1,7 +1,7 @@
 local files = require("overseer.files")
 local M = {}
 
-M.make = {
+M.npm = {
   name = "npm",
   params = {
     args = { optional = true, type = "list" },

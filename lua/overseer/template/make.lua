@@ -4,7 +4,6 @@ local M = {}
 
 M.make = {
   name = "make",
-  tags = { overseer.TAG.BUILD },
   params = {
     args = { optional = true, type = "list" },
   },
@@ -23,7 +22,7 @@ M.make = {
       else
         local phony = line:match("^%.PHONY%s*: (.+)$")
         if phony then
-          for _, t in vim.gsplit(phony, "%s+") do
+          for t in vim.gsplit(phony, "%s+") do
             -- TODO we could be fancy and try to figure out the variable
             -- substitution, but for now let's just take the easy targets
             if t:match("^[a-zA-Z_]+$") then
