@@ -1,6 +1,3 @@
-local constants = require("overseer.constants")
-local SLOT = constants.SLOT
-
 local M = {}
 
 local callbacks = {}

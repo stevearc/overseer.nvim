@@ -1,4 +1,3 @@
-local overseer = require("overseer")
 local files = require("overseer.files")
 local M = {}
 
