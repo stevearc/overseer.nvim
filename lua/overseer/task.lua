@@ -313,8 +313,8 @@ function Task:_set_result(status, data)
     return
   end
   self.status = status
-  self.result = data
-  self:dispatch("on_result", status, data)
+  self.result = data or {}
+  self:dispatch("on_result", status, self.result)
 
   -- Cleanup
   -- Forcibly stop here because if we set the result before the process has
