@@ -18,17 +18,24 @@ M.exit_code_finalizer = {
   end,
 }
 
--- Looks for a result value of 'quickfix' that is a list of quickfix items
-M.quickfix_result = {
-  name = "quickfix_result",
-  description = "Put results into the quickfix",
-  constructor = function()
+-- Looks for a result value of 'diagnostics' that is a list of quickfix items
+M.diagnostic_quickfix_result = {
+  name = "diagnostic_quickfix_result",
+  description = "Put diagnostics into the quickfix",
+  params = {
+    use_loclist = { type = "bool", optional = true },
+  },
+  constructor = function(params)
     return {
       on_result = function(self, task, status, result)
-        if not result.quickfix or vim.tbl_isempty(result.quickfix) then
+        if not result.diagnostics or vim.tbl_isempty(result.diagnostics) then
           return
         end
-        vim.fn.setqflist(result.quickfix)
+        if params.use_loclist then
+          vim.fn.setloclist(0, result.diagnostics)
+        else
+          vim.fn.setqflist(result.diagnostics)
+        end
       end,
     }
   end,
@@ -50,10 +57,10 @@ M.quickfix_stacktrace = {
   end,
 }
 
--- Looks for a result value of 'quickfix' that is a list of quickfix items
+-- Looks for a result value of 'diagnostics' that is a list of quickfix items
 M.diagnostic_result = {
   name = "diagnostic_result",
-  description = "Put quickfix results into diagnostics",
+  description = "Display the diagnostics results",
   params = {
     virtual_text = { type = "bool", optional = true },
     signs = { type = "bool", optional = true },
@@ -71,10 +78,10 @@ M.diagnostic_result = {
         self.ns = vim.api.nvim_create_namespace(task.name)
       end,
       on_result = function(self, task, status, result)
-        if not result.quickfix or vim.tbl_isempty(result.quickfix) then
+        if not result.diagnostics or vim.tbl_isempty(result.diagnostics) then
           return
         end
-        local grouped = util.tbl_group_by(result.quickfix, "filename")
+        local grouped = util.tbl_group_by(result.diagnostics, "filename")
         for filename, items in pairs(grouped) do
           local diagnostics = {}
           for _, item in ipairs(items) do
@@ -89,11 +96,8 @@ M.diagnostic_result = {
               source = task.name,
             })
           end
-          local bufnr = vim.fn.bufload(filename)
+          local bufnr = vim.fn.bufadd(filename)
           if bufnr then
-            if bufnr == 0 then
-              bufnr = vim.api.nvim_get_current_buf()
-            end
             vim.diagnostic.set(self.ns, bufnr, diagnostics, {
               virtual_text = params.virtual_text,
               signs = params.signs,

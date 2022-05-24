@@ -154,4 +154,25 @@ M.tbl_group_by = function(list, key)
   return ret
 end
 
+M.iter_as_list = function(list_or_obj)
+  if list_or_obj == nil then
+    return function() end
+  end
+  if type(list_or_obj) ~= "table" then
+    local i = 0
+    return function()
+      if i == 0 then
+        i = i + 1
+        return i, list_or_obj
+      end
+    end
+  else
+    return ipairs(list_or_obj)
+  end
+end
+
+M.pack = function(...)
+  return { n = select("#", ...), ... }
+end
+
 return M

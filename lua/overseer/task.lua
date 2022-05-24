@@ -56,6 +56,18 @@ function Task.new(opts)
   return task
 end
 
+local function stringify_result(res)
+  if type(res) == "table" then
+    if vim.tbl_isempty(res) then
+      return "{}"
+    else
+      return string.format("{<%d items>}", vim.tbl_count(res))
+    end
+  else
+    return string.format("%s", res)
+  end
+end
+
 function Task:render(lines, highlights, detail)
   vim.validate({
     lines = { lines, "t" },
@@ -107,13 +119,13 @@ function Task:render(lines, highlights, detail)
     if detail == 1 then
       local pieces = {}
       for k, v in pairs(self.result) do
-        table.insert(pieces, string.format("%s=%s", k, v))
+        table.insert(pieces, string.format("%s=%s", k, stringify_result(v)))
       end
       table.insert(lines, "Result: " .. table.concat(pieces, ", "))
     else
       table.insert(lines, "Result:")
       for k, v in pairs(self.result) do
-        table.insert(lines, string.format("  %s = %s", k, v))
+        table.insert(lines, string.format("  %s = %s", k, stringify_result(v)))
       end
     end
   end
