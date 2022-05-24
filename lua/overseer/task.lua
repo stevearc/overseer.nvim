@@ -389,7 +389,11 @@ end
 
 function Task:start()
   if self:is_complete() then
-    vim.notify("Cannot start a task that has completed", vim.log.levels.ERROR)
+    vim.notify(string.format("Cannot start task '%s' that has completed", self.name), vim.log.levels.ERROR)
+    return false
+  end
+  if self.disposed then
+    vim.notify(string.format("Cannot start task '%s' that has been disposed", self.name), vim.log.levels.ERROR)
     return false
   end
   if self:is_running() then
