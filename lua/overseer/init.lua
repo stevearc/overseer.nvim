@@ -7,6 +7,7 @@ local window = require("overseer.window")
 local M = {}
 
 -- TODO
+-- * Create some better tools for parsing output
 -- * Add a command to pick a completed task and rerun. Include disposed tasks.
 -- * Statusline integration for task status
 -- * Add extension points to the task list actions
@@ -57,10 +58,12 @@ M.setup = function(opts)
         return
       end
       table.insert(cmds, '" overseer.nvim')
+      local data = string.gsub(vim.json.encode(tasks), '\\/', '/')
+      data = string.gsub(data, "'", "\\'")
       table.insert(
       cmds,
       -- For some reason, vim.json.encode encodes / as \/.
-      string.format("lua require('overseer')._start_tasks('%s')", string.gsub(vim.json.encode(tasks), '\\/', '/'))
+      string.format("lua require('overseer')._start_tasks('%s')", data)
       )
       vim.g.session_save_commands = cmds
     end,
