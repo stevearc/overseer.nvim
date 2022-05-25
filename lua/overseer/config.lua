@@ -5,6 +5,7 @@ local default_config = {
     max_width = { 100, 0.2 },
     min_width = { 40, 0.1 },
   },
+  actions = {},
   form = {
     border = "rounded",
     min_width = 80,
@@ -39,10 +40,25 @@ local default_config = {
 local M = vim.deepcopy(default_config)
 
 M.setup = function(opts)
-  local newconf = vim.tbl_deep_extend("force", default_config, opts or {})
+  opts = opts or {}
+  local newconf = vim.tbl_deep_extend("force", default_config, opts)
   for k, v in pairs(newconf) do
     M[k] = v
   end
+
+  -- Merge actions with actions.lua
+  local actions = {}
+  for k, v in pairs(require("overseer.actions")) do
+    actions[k] = v
+  end
+  for k, v in pairs(opts.actions or {}) do
+    if not v then
+      actions[k] = nil
+    else
+      actions[k] = v
+    end
+  end
+  M.actions = actions
 
   if M.use_builtin_templates then
     require("overseer.template").register_builtin()
