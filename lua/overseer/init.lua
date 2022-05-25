@@ -9,7 +9,6 @@ local M = {}
 -- TODO
 -- * Add a command to pick a completed task and rerun. Include disposed tasks.
 -- * Statusline integration for task status
--- * Add actions to set quickfix/loclist from diagnostics or stacktrace
 -- * Many more task templates, especially for tests
 -- * Add a command to quick-action on the last task (and an action to open the terminal). Possibly add a picker to quick-action any task?
 -- * Load VSCode task definitions
@@ -20,7 +19,6 @@ local M = {}
 -- * Add nearest-test support detecting via treesitter
 -- * Dynamic sizing for task editor
 -- * Separation of registry and task list feels like it needs refactor
--- * Summary removes terminal escape chars
 -- * Option to run task and immediately open terminal in (float/split/vsplit)
 -- * { } to navigate task list
 -- * Integration with system notifications

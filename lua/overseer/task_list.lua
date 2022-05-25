@@ -226,12 +226,18 @@ function TaskList:run_action(name)
   end
 
   local actions = {}
+  local longest_name = 1
   for k, action in pairs(config.actions) do
     if action.condition(task, self) then
       if k == name then
-        action.callback(task, self)
+        action.run(task, self)
         registry.update_task(task)
         return
+      end
+      action.name = k
+      local name_len = vim.api.nvim_strwidth(k)
+      if name_len > longest_name then
+        longest_name = name_len
       end
       table.insert(actions, action)
     end
@@ -246,13 +252,17 @@ function TaskList:run_action(name)
     prompt = "Task actions",
     kind = "overseer_task_options",
     format_item = function(action)
-      return action.name
+      if action.description then
+        return string.format("%s (%s)", util.ljust(action.name, longest_name), action.description)
+      else
+        return action.name
+      end
     end,
   }, function(action)
     task:dec_reference()
     if action then
       if action.condition(task, self) then
-        action.callback(task, self)
+        action.run(task, self)
         registry.update_task(task)
       else
         vim.notify(

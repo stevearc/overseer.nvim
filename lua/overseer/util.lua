@@ -14,6 +14,19 @@ M.get_fixed_wins = function(bufnr)
   return wins
 end
 
+M.find_code_window = function()
+  if vim.api.nvim_buf_get_option(0, "buftype") == "" then
+    return vim.api.nvim_get_current_win()
+  end
+  for _, winid in ipairs(M.get_fixed_wins()) do
+    local bufnr = vim.api.nvim_win_get_buf(winid)
+    if vim.api.nvim_buf_get_option(bufnr, "buftype") == "" then
+      return winid
+    end
+  end
+  return 0
+end
+
 M.go_win_no_au = function(winid)
   if winid == nil or winid == vim.api.nvim_get_current_win() then
     return
@@ -38,6 +51,14 @@ M.add_highlights = function(bufnr, ns, highlights)
     local group, lnum, col_start, col_end = unpack(hl)
     vim.api.nvim_buf_add_highlight(bufnr, ns, group, lnum - 1, col_start, col_end)
   end
+end
+
+M.ljust = function(text, size)
+  local len = vim.api.nvim_strwidth(text)
+  if len < size then
+    return string.format("%s%s", text, string.rep(" ", size - len))
+  end
+  return text
 end
 
 M.align = function(text, width, alignment)
