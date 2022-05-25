@@ -88,6 +88,10 @@ M.tbl_index = function(tbl, needle, extract)
   end
 end
 
+M.remove_ansi = function(str)
+  return str:gsub("\x1b%[[%d;]*%dm", "")
+end
+
 M.get_stdout_line_iter = function()
   local pending = ""
   return function(data)
@@ -102,6 +106,7 @@ M.get_stdout_line_iter = function()
       else
         -- No carriage returns plz
         chunk = string.gsub(chunk, "\r$", "")
+        chunk = M.remove_ansi(chunk)
         if i ~= last then
           table.insert(ret, pending .. chunk)
           pending = ""

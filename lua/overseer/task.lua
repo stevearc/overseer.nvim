@@ -424,7 +424,6 @@ function Task:start()
 
   vim.api.nvim_buf_call(self.bufnr, function()
     chan_id = vim.fn.termopen(self.cmd, {
-      stdin = "null",
       cwd = self.cwd,
       on_stdout = function(j, d)
         self:dispatch("on_output", d)

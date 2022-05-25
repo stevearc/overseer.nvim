@@ -1,3 +1,4 @@
+local util = require("overseer.util")
 local M = {}
 
 M.output_summarizer = {
@@ -19,7 +20,7 @@ M.output_summarizer = {
               table.insert(self.lines, "")
             end
           else
-            chunk = string.gsub(chunk, "\r$", "")
+            chunk = util.remove_ansi(string.gsub(chunk, "\r$", ""))
             if i == 1 then
               local last_line = self.lines[#self.lines]
               self.lines[#self.lines] = last_line .. chunk
