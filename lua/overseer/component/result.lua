@@ -65,6 +65,11 @@ M.diagnostic_result = {
     virtual_text = { type = "bool", optional = true },
     signs = { type = "bool", optional = true },
     underline = { type = "bool", optional = true },
+    remove_during_rerun = {
+      type = "bool",
+      optional = true,
+      description = "Remove diagnostics while task is rerunning",
+    },
   },
   constructor = function(params)
     local function remove_diagnostics(self)
@@ -110,7 +115,9 @@ M.diagnostic_result = {
         end
       end,
       on_reset = function(self, task)
-        remove_diagnostics(self)
+        if params.remove_during_rerun then
+          remove_diagnostics(self)
+        end
         self.bufnrs = {}
       end,
       on_dispose = function(self, task)

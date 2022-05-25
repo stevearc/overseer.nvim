@@ -24,6 +24,7 @@ local M = {}
 -- * Summary removes terminal escape chars
 -- * Option to run task and immediately open terminal in (float/split/vsplit)
 -- * { } to navigate task list
+-- * Integration with system notifications
 -- * Basic Readme
 -- * Vim help docs
 -- * Architecture doc (Template / Task / Component)
