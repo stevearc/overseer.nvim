@@ -76,6 +76,7 @@ M.diagnostic_result = {
       for _, bufnr in ipairs(self.bufnrs) do
         vim.diagnostic.reset(self.ns, bufnr)
       end
+      self.bufnrs = {}
     end
     return {
       bufnrs = {},
@@ -83,6 +84,7 @@ M.diagnostic_result = {
         self.ns = vim.api.nvim_create_namespace(task.name)
       end,
       on_result = function(self, task, status, result)
+        remove_diagnostics(self)
         if not result.diagnostics or vim.tbl_isempty(result.diagnostics) then
           return
         end
@@ -118,7 +120,6 @@ M.diagnostic_result = {
         if params.remove_during_rerun then
           remove_diagnostics(self)
         end
-        self.bufnrs = {}
       end,
       on_dispose = function(self, task)
         remove_diagnostics(self)

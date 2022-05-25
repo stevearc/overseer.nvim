@@ -24,7 +24,7 @@ M.go_test = {
 
 M.go_stack_parser = {
   parser.skip_until("^panic: "),
-  parser.skip_lines(4),
+  parser.skip_lines(3),
   parser.loop(
     { ignore_failure = false },
     parser.sequence(

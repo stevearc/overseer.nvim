@@ -2,7 +2,7 @@ local M = {}
 
 M.is_windows = vim.loop.os_uname().version:match("Windows")
 
-local sep = M.is_windows and "\\" or "/"
+M.sep = M.is_windows and "\\" or "/"
 
 M.exists = function(filepath)
   local stat = vim.loop.fs_stat(filepath)
@@ -10,7 +10,7 @@ M.exists = function(filepath)
 end
 
 M.join = function(...)
-  return table.concat({ ... }, sep)
+  return table.concat({ ... }, M.sep)
 end
 
 M.is_subpath = function(dir, path)

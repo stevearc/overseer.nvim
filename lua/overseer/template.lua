@@ -5,7 +5,7 @@ local template_builder = require("overseer.template_builder")
 local util = require("overseer.util")
 local M = {}
 
-local builtin_modules = { "go", "make", "npm", "tox" }
+local builtin_modules = { "go", "make", "npm", "nvim_lua", "tox" }
 
 local Template = {}
 

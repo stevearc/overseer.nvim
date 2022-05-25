@@ -3,17 +3,25 @@ local STATUS = parser.STATUS
 
 describe("skip_until", function()
   it("skips lines that do not match", function()
-    local node = parser.skip_until("apple")
+    local node = parser.skip_until({ skip_matching_line = false }, "apple")
     assert.equals(STATUS.RUNNING, node:ingest("foo"))
     assert.equals(STATUS.RUNNING, node:ingest("bar"))
     assert.equals(STATUS.SUCCESS, node:ingest("pineapple"))
   end)
 
   it("can match multiple patterns", function()
-    local node = parser.skip_until("foo", "bar")
+    local node = parser.skip_until({ skip_matching_line = false }, "foo", "bar")
     assert.equals(STATUS.RUNNING, node:ingest("baz"))
     assert.equals(STATUS.SUCCESS, node:ingest("foo"))
     assert.equals(STATUS.SUCCESS, node:ingest("bar"))
+  end)
+
+  it("skips the matching line by default", function()
+    local node = parser.skip_until("apple")
+    assert.equals(STATUS.RUNNING, node:ingest("foo"))
+    assert.equals(STATUS.RUNNING, node:ingest("bar"))
+    assert.equals(STATUS.RUNNING, node:ingest("pineapple"))
+    assert.equals(STATUS.SUCCESS, node:ingest(""))
   end)
 end)
 
@@ -138,6 +146,36 @@ describe("extract", function()
     assert.is_true(vim.tbl_isempty(item))
     assert.equals("hello", results.single.action)
     assert.equals("world", results.single.name)
+  end)
+end)
+
+describe("extract_multiline", function()
+  it("extracts lines into a single field until no match", function()
+    local node = parser.extract_multiline("^.+$", "text")
+    local results = {}
+    local item = {}
+    assert.equals(STATUS.RUNNING, node:ingest("hello", item, results))
+    assert.equals(STATUS.RUNNING, node:ingest("world", item, results))
+    assert.equals(STATUS.SUCCESS, node:ingest("", item, results))
+    assert.are.same({ { text = "hello\nworld" } }, results)
+  end)
+
+  it("returns FAILURE when no lines match", function()
+    local node = parser.extract_multiline("^.+$", "text")
+    local results = {}
+    local item = {}
+    assert.equals(STATUS.FAILURE, node:ingest("", item, results))
+  end)
+
+  it("modifies item in-place if append = false", function()
+    local node = parser.extract_multiline({ append = false }, "^.+$", "text")
+    local results = {}
+    local item = {}
+    assert.equals(STATUS.RUNNING, node:ingest("hello", item, results))
+    assert.equals(STATUS.RUNNING, node:ingest("world", item, results))
+    assert.equals(STATUS.SUCCESS, node:ingest("", item, results))
+    assert.are.same({ text = "hello\nworld" }, item)
+    assert.are.same({}, results)
   end)
 end)
 

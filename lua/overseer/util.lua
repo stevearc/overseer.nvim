@@ -95,6 +95,20 @@ M.leave_insert = function()
   end
 end
 
+M.tbl_slice = function(tbl, start_idx, end_idx)
+  local ret = {}
+  if not start_idx then
+    start_idx = 1
+  end
+  if not end_idx then
+    end_idx = #tbl
+  end
+  for i = start_idx, end_idx do
+    table.insert(ret, tbl[i])
+  end
+  return ret
+end
+
 M.tbl_index = function(tbl, needle, extract)
   for i, v in ipairs(tbl) do
     if extract then

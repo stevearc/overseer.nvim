@@ -220,7 +220,9 @@ function TaskList.new()
 
   for _, binding in ipairs(M.keys) do
     for _, lhs in util.iter_as_list(binding.lhs) do
-      vim.keymap.set(binding.mode, lhs, binding.rhs, { buffer = bufnr, desc = binding.desc })
+      vim.keymap.set(binding.mode, lhs, function()
+        binding.rhs(tl)
+      end, { buffer = bufnr, desc = binding.desc })
     end
   end
 

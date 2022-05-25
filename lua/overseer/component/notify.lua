@@ -47,7 +47,7 @@ M.notify_red_green = {
       on_result = function(self, task, status)
         if
           status == STATUS.FAILURE
-          or (status == STATUS.SUCCESS and self.last_status == STATUS.FAILURE)
+          or (status == STATUS.SUCCESS and self.last_status ~= STATUS.SUCCESS)
         then
           local level = M.get_level_from_status(status)
           vim.notify(string.format("%s %s", status, task.name), level)

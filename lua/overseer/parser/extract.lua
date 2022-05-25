@@ -18,7 +18,6 @@ function Extract.new(opts, pattern, ...)
   return setmetatable({
     consume = opts.consume,
     append = opts.append,
-    discard = opts.discard,
     done = nil,
     pattern = pattern,
     fields = fields,
@@ -59,7 +58,7 @@ function Extract:ingest(line, item, results)
           key = field
           postprocess = default_postprocess
         end
-        item[key] = postprocess(result[i])
+        item[key] = postprocess(result[i], self)
       end
     end
     if any_match then
