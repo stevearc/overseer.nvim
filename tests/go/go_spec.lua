@@ -14,7 +14,7 @@ my_test.go:307: Expected 'Something' received 'Nothing'
     local expected = {
       { filename = "my_test.go", lnum = 307, text = "Expected 'Something' received 'Nothing'" },
     }
-    assert.equals(true, vim.deep_equal(expected, result))
+    assert.are.same(expected, result)
   end)
 
   it("can parse stack traces", function()
@@ -72,6 +72,6 @@ FAIL    github.com/stevearc/text-crdt   0.295s
       {text = "testing.tRunner", filename = "/home/stevearc/.local/share/go/src/testing/testing.go", lnum = 1439},
       {text = "testing.(*T).Run", filename = "/home/stevearc/.local/share/go/src/testing/testing.go", lnum = 1486},
     }
-    assert.equals(true, vim.deep_equal(expected, result))
+    assert.are.same(expected, result)
   end)
 end)

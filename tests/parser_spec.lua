@@ -41,7 +41,7 @@ describe("extract", function()
     local node = parser.extract("hello (.+)", "name")
     local item = {}
     assert.equals(STATUS.FAILURE, node:ingest("foo", item))
-    assert.equals(true, vim.tbl_isempty(item))
+    assert.is_true(vim.tbl_isempty(item))
   end)
 
   it("extracts fields when they match", function()
@@ -49,7 +49,7 @@ describe("extract", function()
     local item = {}
     local results = {}
     assert.equals(STATUS.RUNNING, node:ingest("hello world", item, results))
-    assert.equals(true, vim.tbl_isempty(item))
+    assert.is_true(vim.tbl_isempty(item))
     assert.equals(1, vim.tbl_count(results))
     assert.equals("hello", results[1].action)
     assert.equals("world", results[1].name)
@@ -61,10 +61,8 @@ describe("extract", function()
     local item = {}
     local results = {}
     assert.equals(STATUS.RUNNING, node:ingest("/tmp:123", item, results))
-    assert.equals(true, vim.tbl_isempty(item))
-    assert.equals(1, vim.tbl_count(results))
-    assert.equals("/tmp", results[1].file)
-    assert.equals(123, results[1].lnum)
+    assert.is_true(vim.tbl_isempty(item))
+    assert.are.same({ { file = "/tmp", lnum = 123 } }, results)
   end)
 
   it("returns success if consume = false", function()
@@ -137,7 +135,7 @@ describe("extract", function()
     local item = {}
     local results = {}
     assert.equals(STATUS.RUNNING, node:ingest("hello world", item, results))
-    assert.equals(true, vim.tbl_isempty(item))
+    assert.is_true(vim.tbl_isempty(item))
     assert.equals("hello", results.single.action)
     assert.equals("world", results.single.name)
   end)
@@ -198,7 +196,7 @@ describe("append", function()
     assert.equals(STATUS.SUCCESS, node:ingest("foo", item, results))
     assert.equals(1, vim.tbl_count(results))
     assert.equals("bar", results[1].foo)
-    assert.equals(true, vim.tbl_isempty(item))
+    assert.is_true(vim.tbl_isempty(item))
   end)
 end)
 
@@ -245,9 +243,7 @@ describe("sequence", function()
     assert.equals(STATUS.RUNNING, node:ingest("hello there", item, results))
     assert.equals(STATUS.RUNNING, node:ingest("seal party", item, results))
     assert.equals(STATUS.SUCCESS, node:ingest("", item, results))
-    assert.equals(2, vim.tbl_count(results))
-    assert.equals("hello", results[1].word)
-    assert.equals("party", results[2].word)
+    assert.are.same({ { word = "hello" }, { word = "party" } }, results)
   end)
 
   it("stops running on first failure", function()
@@ -256,8 +252,7 @@ describe("sequence", function()
     local item = {}
     assert.equals(STATUS.RUNNING, node:ingest("hello there", item, results))
     assert.equals(STATUS.FAILURE, node:ingest("Kansas", item, results))
-    assert.equals(1, vim.tbl_count(results))
-    assert.equals("hello", results[1].word)
+    assert.are.same({ { word = "hello" } }, results)
   end)
 
   it("has option to ignore failure", function()
@@ -272,9 +267,7 @@ describe("sequence", function()
     assert.equals(STATUS.RUNNING, node:ingest("hello there", item, results))
     assert.equals(STATUS.RUNNING, node:ingest("Kansas", item, results))
     assert.equals(STATUS.FAILURE, node:ingest("", item, results))
-    assert.equals(2, vim.tbl_count(results))
-    assert.equals("hello", results[1].word)
-    assert.equals("Kansas", results[2].word)
+    assert.are.same({ { word = "hello" }, { word = "Kansas" } }, results)
   end)
 
   it("has option to finish on first success", function()
@@ -310,7 +303,7 @@ describe("parallel", function()
     local results = {}
     local item = {}
     assert.equals(STATUS.FAILURE, node:ingest("hello", item, results))
-    assert.equals(true, vim.tbl_isempty(results))
+    assert.is_true(vim.tbl_isempty(results))
   end)
 
   it("has option to ignore failure", function()
@@ -351,10 +344,7 @@ describe("parallel", function()
     assert.equals(STATUS.RUNNING, node:ingest("hello123", item, results))
     assert.equals(STATUS.RUNNING, node:ingest("hello123", item, results))
     assert.equals(STATUS.RUNNING, node:ingest("hello123", item, results))
-    assert.equals(3, vim.tbl_count(results))
-    assert.equals("hello", results[1].word)
-    assert.equals("hello", results[2].word)
-    assert.equals("hello", results[3].word)
+    assert.are.same({ { word = "hello" }, { word = "hello" }, { word = "hello" } }, results)
   end)
 end)
 
@@ -434,13 +424,10 @@ describe("parser", function()
       "bar",
     })
     local result = p:get_result()
-    assert.equals(
-      true,
-      vim.deep_equal({
-        { filename = "/file.lua", lnum = 23 },
-        { filename = "/other.cpp", lnum = 128 },
-      }, result)
-    )
+    assert.are.same({
+      { filename = "/file.lua", lnum = 23 },
+      { filename = "/other.cpp", lnum = 128 },
+    }, result)
   end)
 
   it("creates namespaced results for map-like args", function()
@@ -453,12 +440,9 @@ describe("parser", function()
       "/other.cpp:128",
     })
     local result = p:get_result()
-    assert.equals(
-      true,
-      vim.deep_equal({
-        filenames = { { filename = "/file.lua" }, { filename = "/other.cpp" } },
-        lnums = { { lnum = 23 }, { lnum = 128 } },
-      }, result)
-    )
+    assert.are.same({
+      filenames = { { filename = "/file.lua" }, { filename = "/other.cpp" } },
+      lnums = { { lnum = 23 }, { lnum = 128 } },
+    }, result)
   end)
 end)
