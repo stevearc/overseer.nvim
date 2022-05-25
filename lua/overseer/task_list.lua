@@ -7,6 +7,169 @@ local TaskList = {}
 
 local ref
 
+M.keys = {
+  {
+    lhs = "g?",
+    mode = "n",
+    desc = "Open task action menu",
+    rhs = function(task_list)
+      task_list:run_action()
+    end,
+  },
+  {
+    lhs = "<CR>",
+    mode = "n",
+    desc = "Open task action menu",
+    rhs = function(task_list)
+      task_list:run_action()
+    end,
+  },
+  {
+    lhs = "e",
+    mode = "n",
+    desc = "Edit task",
+    rhs = function(task_list)
+      task_list:run_action("edit")
+    end,
+  },
+  {
+    lhs = "o",
+    mode = "n",
+    desc = "Open task terminal in current window",
+    rhs = function(task_list)
+      task_list:open_buffer()
+    end,
+  },
+  {
+    lhs = "v",
+    mode = "n",
+    desc = "Open task terminal in a vsplit",
+    rhs = function(task_list)
+      task_list:open_buffer("vsplit")
+    end,
+  },
+  {
+    lhs = "f",
+    mode = "n",
+    desc = "Open task terminal in a floating window",
+    rhs = function(task_list)
+      task_list:open_buffer("float")
+    end,
+  },
+  {
+    lhs = "p",
+    mode = "n",
+    desc = "Toggle task terminal in a preview window",
+    rhs = function(task_list)
+      task_list:toggle_preview()
+    end,
+  },
+  {
+    lhs = "l",
+    mode = "n",
+    desc = "Increase task detail level",
+    rhs = function(task_list)
+      task_list:change_task_detail(1)
+    end,
+  },
+  {
+    lhs = "h",
+    mode = "n",
+    desc = "Decrease task detail level",
+    rhs = function(task_list)
+      task_list:change_task_detail(-1)
+    end,
+  },
+  {
+    lhs = "L",
+    mode = "n",
+    desc = "Increase all task detail levels",
+    rhs = function(task_list)
+      task_list:change_default_detail(1)
+    end,
+  },
+  {
+    lhs = "H",
+    mode = "n",
+    desc = "Decrease all task detail levels",
+    rhs = function(task_list)
+      task_list:change_default_detail(-1)
+    end,
+  },
+  {
+    lhs = "[",
+    mode = "n",
+    desc = "Decrease window width",
+    rhs = function()
+      local width = vim.api.nvim_win_get_width(0)
+      vim.api.nvim_win_set_width(0, math.max(10, width - 10))
+    end,
+  },
+  {
+    lhs = "]",
+    mode = "n",
+    desc = "Increase window width",
+    rhs = function()
+      local width = vim.api.nvim_win_get_width(0)
+      vim.api.nvim_win_set_width(0, math.max(10, width + 10))
+    end,
+  },
+}
+
+M.show = function()
+  local lhs = {}
+  local rhs = {}
+  local max_left = 1
+  for _, binding in ipairs(M.keys) do
+    local keys, _, desc = unpack(binding)
+    if type(keys) ~= "table" then
+      keys = { keys }
+    end
+    local keystr = table.concat(keys, "/")
+    max_left = math.max(max_left, vim.api.nvim_strwidth(keystr))
+    table.insert(lhs, keystr)
+    table.insert(rhs, desc)
+  end
+
+  local lines = {}
+  local max_line = 1
+  for i = 1, #lhs do
+    local left = lhs[i]
+    local right = rhs[i]
+    local line = string.format(" %s   %s", util.rpad(left, max_left), right)
+    max_line = math.max(max_line, vim.api.nvim_strwidth(line))
+    table.insert(lines, line)
+  end
+
+  local bufnr = vim.api.nvim_create_buf(false, true)
+  vim.api.nvim_buf_set_lines(bufnr, 0, -1, true, lines)
+  local ns = vim.api.nvim_create_namespace("AerialKeymap")
+  for i = 1, #lhs do
+    vim.api.nvim_buf_set_extmark(bufnr, ns, i - 1, 0, {
+      end_col = max_left + 1,
+      hl_group = "Special",
+    })
+  end
+  local opts = { noremap = true, silent = true }
+  vim.api.nvim_buf_set_keymap(bufnr, "n", "q", "<cmd>close<CR>", opts)
+  vim.api.nvim_buf_set_keymap(bufnr, "n", "<c-c>", "<cmd>close<CR>", opts)
+  vim.api.nvim_buf_set_option(bufnr, "modifiable", false)
+  vim.api.nvim_buf_set_option(bufnr, "bufhidden", "wipe")
+
+  local editor_width = vim.o.columns
+  local editor_height = vim.o.lines - vim.o.cmdheight
+  vim.api.nvim_open_win(bufnr, true, {
+    relative = "editor",
+    row = math.max(0, (editor_height - #lines) / 2),
+    col = math.max(0, (editor_width - max_line - 1) / 2),
+    width = math.min(editor_width, max_line + 1),
+    height = math.min(editor_height, #lines),
+    zindex = 150,
+    style = "minimal",
+    border = "rounded",
+  })
+end
+
 M.get_or_create = function()
   if not ref then
     ref = TaskList.new()
@@ -55,44 +218,11 @@ function TaskList.new()
     end,
   })
 
-  vim.keymap.set("n", "<CR>", function()
-    tl:run_action()
-  end, { buffer = bufnr })
-  vim.keymap.set("n", "e", function()
-    tl:run_action("edit")
-  end, { buffer = bufnr })
-  vim.keymap.set("n", "o", function()
-    tl:open_buffer()
-  end, { buffer = bufnr })
-  vim.keymap.set("n", "v", function()
-    tl:open_buffer("vsplit")
-  end, { buffer = bufnr })
-  vim.keymap.set("n", "f", function()
-    tl:open_buffer("float")
-  end, { buffer = bufnr })
-  vim.keymap.set("n", "p", function()
-    tl:toggle_preview()
-  end, { buffer = bufnr })
-  vim.keymap.set("n", "l", function()
-    tl:change_task_detail(1)
-  end, { buffer = bufnr })
-  vim.keymap.set("n", "h", function()
-    tl:change_task_detail(-1)
-  end, { buffer = bufnr })
-  vim.keymap.set("n", "L", function()
-    tl:change_default_detail(1)
-  end, { buffer = bufnr })
-  vim.keymap.set("n", "H", function()
-    tl:change_default_detail(-1)
-  end, { buffer = bufnr })
-  vim.keymap.set("n", "[", function()
-    local width = vim.api.nvim_win_get_width(0)
-    vim.api.nvim_win_set_width(0, math.max(10, width - 10))
-  end, { buffer = bufnr })
-  vim.keymap.set("n", "]", function()
-    local width = vim.api.nvim_win_get_width(0)
-    vim.api.nvim_win_set_width(0, math.max(10, width + 10))
-  end, { buffer = bufnr })
+  for _, binding in ipairs(M.keys) do
+    for _, lhs in util.iter_as_list(binding.lhs) do
+      vim.keymap.set(binding.mode, lhs, binding.rhs, { buffer = bufnr, desc = binding.desc })
+    end
+  end
 
   ref = tl
   return tl
