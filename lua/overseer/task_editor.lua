@@ -35,6 +35,20 @@ M.open = function(task, task_cb)
     local cur = vim.api.nvim_win_get_cursor(0)
     local original_cur = vim.deepcopy(cur)
     vim.api.nvim_buf_clear_namespace(bufnr, vtext_ns, 0, -1)
+
+    -- First line is task name, successive lines are task params
+    -- If cursor is on the task params, make sure it's past the label
+    if cur[1] > 1 and cur[1] <= #Task.ordered_params + 1 then
+      local param_name = Task.ordered_params[cur[1] - 1]
+      local schema = Task.params[param_name]
+      local label = form.render_field(schema, "", param_name, "")
+      if cur[2] < string.len(label) then
+        cur[2] = string.len(label)
+        vim.api.nvim_win_set_cursor(0, cur)
+      end
+      return
+    end
+
     if not line_to_comp[cur[1]] then
       return
     end
