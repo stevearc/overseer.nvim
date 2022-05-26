@@ -19,6 +19,7 @@ local M = {}
 -- * Add nearest-test support detecting via treesitter
 -- * Dynamic sizing for task editor
 -- * Separation of registry and task list feels like it needs refactor
+-- * Canonical naming scheme for components
 -- * Option to run task and immediately open terminal in (float/split/vsplit)
 -- * { } to navigate task list
 -- * Integration with system notifications

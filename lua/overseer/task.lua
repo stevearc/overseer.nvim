@@ -20,7 +20,7 @@ Task.params = {
 function Task.new(opts)
   opts = opts or {}
   vim.validate({
-    cmd = { opts.cmd, "t" },
+    -- cmd can be table or string
     cwd = { opts.cwd, "s", true },
     name = { opts.name, "s", true },
     components = { opts.components, "t", true },
