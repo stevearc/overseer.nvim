@@ -1,11 +1,8 @@
-local component = require("overseer.component")
 local files = require("overseer.files")
 local Task = require("overseer.task")
 local template_builder = require("overseer.template_builder")
 local util = require("overseer.util")
 local M = {}
-
-local builtin_modules = { "go", "make", "npm", "nvim_lua", "tox" }
 
 local Template = {}
 
@@ -23,32 +20,12 @@ M.is_template = function(obj)
 end
 
 M.register_module = function(path)
-  -- Register components in the module too
-  component.register_module(path)
   local mod = require(path)
   for _, v in pairs(mod) do
     if M.is_template(v) then
       M.register(v)
     end
   end
-end
-
-M.register_builtin = function()
-  for _, mod in ipairs(builtin_modules) do
-    M.register_module(string.format("overseer.template.%s", mod))
-  end
-  -- For testing and debugging
-  M.register(M.new({
-    name = "sleep",
-    builder = function(params)
-      return {
-        cmd = { "sleep", params.duration },
-      }
-    end,
-    params = {
-      duration = {},
-    },
-  }))
 end
 
 local registry = {}

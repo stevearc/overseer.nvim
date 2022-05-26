@@ -19,7 +19,7 @@ local M = {}
 -- * More schema validations (callback, non-empty list, number greater than)
 -- * Pull as much logic out of the closures as possible
 -- * Add nearest-test support detecting via treesitter
--- * Dynamic sizing for task editor
+-- * Dynamic window sizing for task editor
 -- * Separation of registry and task list feels like it needs refactor
 -- * Canonical naming scheme for components
 -- * Option to run task and immediately open terminal in (float/split/vsplit)
@@ -31,7 +31,6 @@ local M = {}
 -- * Extension doc (how to make your own template/component)
 
 M.setup = function(opts)
-  require("overseer.component").register_builtin()
   config.setup(opts)
   commands.create_commands()
   vim.cmd([[

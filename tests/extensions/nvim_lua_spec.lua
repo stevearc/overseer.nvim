@@ -1,16 +1,16 @@
-local nvim_lua = require("overseer.template.nvim_lua")
+local nvim_lua = require("overseer.extensions.nvim_lua")
 local parser = require("overseer.parser")
 
 describe("nvim_lua", function()
   it("can parse test failures", function()
     local p = parser.new(nvim_lua.plenary_busted_test_parser)
     p:ingest(vim.split(
-      [[Starting...Scheduling: tests/template/nvim_lua/nvim_lua_spec.lua
+      [[Starting...Scheduling: tests/extensions/nvim_lua_spec.lua
 
 ========================================
 Testing:        /home/stevearc/dotfiles/vimplugins/overseer.nvim/tests/template/nvim_lua/nvim_lua_spec.lua
 Fail    ||      lua can parse test failures
-            .../overseer.nvim/tests/template/nvim_lua/nvim_lua_spec.lua:17: Expected objects to be the same.
+            .../overseer.nvim/tests/extensions/nvim_lua_spec.lua:17: Expected objects to be the same.
             Passed in:
             (table: 0x7f0d8a8f2c90) { }
             Expected:
@@ -29,7 +29,7 @@ Fail    ||      lua can parse test failures
     local result = p:get_result()
     local expected = {
       {
-        filename = "tests/template/nvim_lua/nvim_lua_spec.lua",
+        filename = "tests/extensions/nvim_lua_spec.lua",
         lnum = 17,
         text = [[Expected objects to be the same.
 Passed in:

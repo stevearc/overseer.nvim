@@ -1,4 +1,4 @@
-local go = require("overseer.template.go")
+local go = require("overseer.extensions.go")
 local parser = require("overseer.parser")
 
 describe("go", function()

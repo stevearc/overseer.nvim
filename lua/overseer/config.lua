@@ -1,6 +1,6 @@
 local default_config = {
   list_sep = "────────────────────────────────────────",
-  use_builtin_templates = true,
+  extensions = { "builtin" },
   sidebar = {
     max_width = { 100, 0.2 },
     min_width = { 40, 0.1 },
@@ -40,6 +40,9 @@ local default_config = {
 local M = vim.deepcopy(default_config)
 
 M.setup = function(opts)
+  local component = require("overseer.component")
+  local extensions = require("overseer.extensions")
+  local util = require("overseer.util")
   opts = opts or {}
   local newconf = vim.tbl_deep_extend("force", default_config, opts)
   for k, v in pairs(newconf) do
@@ -60,11 +63,11 @@ M.setup = function(opts)
   end
   M.actions = actions
 
-  if M.use_builtin_templates then
-    require("overseer.template").register_builtin()
+  for _, v in util.iter_as_list(M.extensions) do
+    extensions.register(v)
   end
 
-  local component = require("overseer.component")
+  component.register_builtin()
   for k, v in pairs(M.component_sets) do
     component.alias(k, v)
   end
