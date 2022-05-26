@@ -1,7 +1,7 @@
 local commands = require("overseer.commands")
 local config = require("overseer.config")
 local constants = require("overseer.constants")
-local registry = require("overseer.registry")
+local task_list = require("overseer.task_list")
 local Task = require("overseer.task")
 local window = require("overseer.window")
 local M = {}
@@ -20,7 +20,6 @@ local M = {}
 -- * Pull as much logic out of the closures as possible
 -- * Add nearest-test support detecting via treesitter
 -- * Dynamic window sizing for task editor
--- * Separation of registry and task list feels like it needs refactor
 -- * Canonical naming scheme for components
 -- * Option to run task and immediately open terminal in (float/split/vsplit)
 -- * { } to navigate task list
@@ -53,7 +52,7 @@ M.setup = function(opts)
     group = aug,
     callback = function()
       local cmds = vim.g.session_save_commands
-      local tasks = registry.serialize_tasks()
+      local tasks = task_list.serialize_tasks()
       if vim.tbl_isempty(tasks) then
         return
       end

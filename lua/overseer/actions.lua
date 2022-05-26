@@ -2,7 +2,7 @@ local config = require("overseer.config")
 local constants = require("overseer.constants")
 local files = require("overseer.files")
 local layout = require("overseer.layout")
-local registry = require("overseer.registry")
+local task_list = require("overseer.task_list")
 local task_editor = require("overseer.task_editor")
 local util = require("overseer.util")
 local STATUS = constants.STATUS
@@ -69,7 +69,7 @@ M.actions = {
     run = function(task)
       task_editor.open(task, function(t)
         if t then
-          registry.update_task(t)
+          task_list.update(t)
         end
       end)
     end,
@@ -101,7 +101,7 @@ M.actions = {
           { "rerun_trigger", interrupt = true },
           { "rerun_on_save", dir = dir },
         })
-        registry.update_task(task)
+        task_list.update(task)
       end)
     end,
   },
@@ -208,7 +208,7 @@ M.run_action = function(task, name)
     if action.condition(task) then
       if k == name then
         action.run(task)
-        registry.update_task(task)
+        task_list.update(task)
         return
       end
       action.name = k
@@ -243,7 +243,7 @@ M.run_action = function(task, name)
     if action then
       if action.condition(task) then
         action.run(task)
-        registry.update_task(task)
+        task_list.update(task)
       else
         vim.notify(
           string.format("Can no longer perform action '%s' on task", action.name),

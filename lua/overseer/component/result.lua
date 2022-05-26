@@ -12,7 +12,7 @@ M.exit_code_finalizer = {
     return {
       on_exit = function(self, task, code)
         local status = code == 0 and STATUS.SUCCESS or STATUS.FAILURE
-        task:_set_result(status, {})
+        task:set_result(status, {})
       end,
     }
   end,

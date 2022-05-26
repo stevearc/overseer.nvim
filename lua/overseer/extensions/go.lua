@@ -56,7 +56,7 @@ M.go_test_parser = {
       end,
       on_exit = function(self, task, code)
         local status = code == 0 and STATUS.SUCCESS or STATUS.FAILURE
-        task:_set_result(status, self.parser:get_result())
+        task:set_result(status, self.parser:get_result())
       end,
     }
   end,

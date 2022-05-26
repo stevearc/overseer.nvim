@@ -1,6 +1,6 @@
 local component = require("overseer.component")
 local constants = require("overseer.constants")
-local registry = require("overseer.registry")
+local task_list = require("overseer.task_list")
 local util = require("overseer.util")
 
 local STATUS = constants.STATUS
@@ -313,10 +313,10 @@ function Task:dispatch(name, ...)
       comp[name](comp, self, ...)
     end
   end
-  registry.update_task(self)
+  task_list.update(self)
 end
 
-function Task:_set_result(status, data)
+function Task:set_result(status, data)
   vim.validate({
     status = { status, "s" },
     data = { data, "t", true },
@@ -371,7 +371,7 @@ function Task:dispose(force)
     end
   end
   self:dispatch("on_dispose")
-  registry.remove_task(self)
+  task_list.remove(self)
   if self.bufnr and vim.api.nvim_buf_is_valid(self.bufnr) then
     vim.api.nvim_buf_delete(self.bufnr, { force = true })
   end
@@ -395,7 +395,7 @@ function Task:__on_exit(_job_id, code)
   -- We shouldn't hit this unless the components are missing a finalizer or
   -- they errored
   if self:is_running() then
-    self:_set_result(STATUS.FAILURE, { error = "Task did not produce a result before exiting" })
+    self:set_result(STATUS.FAILURE, { error = "Task did not produce a result before exiting" })
   end
 end
 
@@ -484,7 +484,7 @@ function Task:stop()
   if not self:is_running() then
     return false
   end
-  self:_set_result(STATUS.CANCELED)
+  self:set_result(STATUS.CANCELED)
   return true
 end
 

@@ -1,7 +1,7 @@
 local actions = require("overseer.actions")
 local constants = require("overseer.constants")
 local files = require("overseer.files")
-local registry = require("overseer.registry")
+local task_list = require("overseer.task_list")
 local template = require("overseer.template")
 local Task = require("overseer.task")
 local task_editor = require("overseer.task_editor")
@@ -214,7 +214,7 @@ end
 
 M.save_task_bundle = function(name)
   if name then
-    files.write_data_file(string.format("%s.bundle.json", name), registry.serialize_tasks())
+    files.write_data_file(string.format("%s.bundle.json", name), task_list.serialize_tasks())
   else
     vim.ui.input({
       prompt = "Task bundle name:",
@@ -251,14 +251,14 @@ end
 
 M.quick_action = function(index)
   if index then
-    local task = registry.get_by_index(index)
+    local task = task_list.get_by_index(index)
     if not task then
       vim.notify(string.format("No task at index %s", index), vim.log.levels.ERROR)
       return
     end
     actions.run_action(task)
   else
-    local tasks = registry.list_unique_tasks()
+    local tasks = task_list.list_unique_tasks()
     vim.ui.select(tasks, {
       prompt = "Select task",
       kind = "overseer_task",

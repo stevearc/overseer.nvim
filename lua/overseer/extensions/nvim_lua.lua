@@ -69,7 +69,7 @@ M.plenary_busted_test_parser_defn = {
       end,
       on_exit = function(self, task, code)
         local status = code == 0 and STATUS.SUCCESS or STATUS.FAILURE
-        task:_set_result(status, self.parser:get_result())
+        task:set_result(status, self.parser:get_result())
       end,
     }
   end,

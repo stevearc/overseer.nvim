@@ -1,17 +1,16 @@
 local config = require("overseer.config")
 local layout = require("overseer.layout")
 local task_list = require("overseer.task_list")
-local registry = require("overseer.registry")
 local util = require("overseer.util")
 local M = {}
 
 local function create_overseer_window()
-  local tl = task_list.get_or_create()
+  local bufnr = task_list.get_or_create_bufnr()
 
   local my_winid = vim.api.nvim_get_current_win()
   local direction = "left"
   local modifier = direction == "left" and "topleft" or "botright"
-  local winids = util.get_fixed_wins(tl.bufnr)
+  local winids = util.get_fixed_wins(bufnr)
   local split_target
   if direction == "left" then
     split_target = winids[1]
@@ -23,7 +22,7 @@ local function create_overseer_window()
   end
   vim.cmd(string.format("noau vertical %s split", modifier))
 
-  util.go_buf_no_au(tl.bufnr)
+  util.go_buf_no_au(bufnr)
   vim.api.nvim_win_set_option(0, "listchars", "tab:> ")
   vim.api.nvim_win_set_option(0, "winfixwidth", true)
   vim.api.nvim_win_set_option(0, "number", false)
@@ -35,11 +34,10 @@ local function create_overseer_window()
   vim.api.nvim_win_set_width(0, layout.calculate_width(nil, config.sidebar))
   -- Set the filetype only after we enter the buffer so that FileType autocmds
   -- behave properly
-  vim.api.nvim_buf_set_option(tl.bufnr, "filetype", "OverseerList")
+  vim.api.nvim_buf_set_option(bufnr, "filetype", "OverseerList")
 
   local winid = vim.api.nvim_get_current_win()
   util.go_win_no_au(my_winid)
-  registry.add_view(tl)
   return winid
 end
 
