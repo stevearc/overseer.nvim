@@ -16,7 +16,7 @@ local M = {}
 -- * Load VSCode task definitions
 -- * Add tests
 -- * keybinding help in float
--- * More schema validations (callback, non-empty list, number greater than,
+-- * More schema validations (callback, non-empty list, number greater than)
 -- * Pull as much logic out of the closures as possible
 -- * Add nearest-test support detecting via treesitter
 -- * Dynamic sizing for task editor

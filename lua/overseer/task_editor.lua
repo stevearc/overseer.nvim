@@ -123,6 +123,11 @@ M.open = function(task, task_cb)
 
     vim.api.nvim_buf_set_lines(bufnr, 0, -1, true, lines)
     util.add_highlights(bufnr, ns, highlights)
+    if task_name:match("^%s*$") then
+      vim.api.nvim_buf_set_extmark(bufnr, ns, 0, 0, {
+        virt_text = { { "Task name is required", "DiagnosticError" } },
+      })
+    end
     on_cursor_move()
   end
 
@@ -295,6 +300,9 @@ M.open = function(task, task_cb)
   )
 
   local function submit()
+    if task_name:match("^%s*$") then
+      return
+    end
     local slots = {}
     for _, params in ipairs(components) do
       local comp = component.get(params[1])
