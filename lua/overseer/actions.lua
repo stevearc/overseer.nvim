@@ -1,6 +1,7 @@
 local config = require("overseer.config")
 local constants = require("overseer.constants")
 local files = require("overseer.files")
+local layout = require("overseer.layout")
 local registry = require("overseer.registry")
 local task_editor = require("overseer.task_editor")
 local util = require("overseer.util")
@@ -104,6 +105,38 @@ M.actions = {
       end)
     end,
   },
+  ["open fullscreen"] = {
+    description = "open terminal in a fullscreen floating window",
+    condition = function(task)
+      return task.bufnr and vim.api.nvim_buf_is_valid(task.bufnr)
+    end,
+    run = function(task)
+      local padding = 2
+      local width = layout.get_editor_width() - 2 - 2 * padding
+      local height = layout.get_editor_height() - 2 * padding
+      local row = padding
+      local col = padding
+      local winid = vim.api.nvim_open_win(task.bufnr, true, {
+        relative = "editor",
+        row = row,
+        col = col,
+        width = width,
+        height = height,
+        border = "rounded",
+        style = "minimal",
+      })
+      vim.api.nvim_win_set_option(winid, "winblend", 10)
+      vim.api.nvim_create_autocmd("BufLeave", {
+        desc = "Close float on BufLeave",
+        buffer = task.bufnr,
+        once = true,
+        nested = true,
+        callback = function()
+          pcall(vim.api.nvim_win_close, winid, true)
+        end,
+      })
+    end,
+  },
   ["set quickfix diagnostics"] = {
     description = "put the diagnostics results into quickfix",
     condition = function(task)
@@ -170,6 +203,9 @@ M.run_action = function(task, name)
     vim.notify(string.format("Cannot %s task", name), vim.log.levels.WARN)
     return
   end
+  table.sort(actions, function(a, b)
+    return a.name < b.name
+  end)
 
   task:inc_reference()
   vim.ui.select(actions, {

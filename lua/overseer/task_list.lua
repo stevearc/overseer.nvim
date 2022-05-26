@@ -54,7 +54,7 @@ M.keys = {
     mode = "n",
     desc = "Open task terminal in a floating window",
     rhs = function(task_list)
-      task_list:open_buffer("float")
+      task_list:run_action("open fullscreen")
     end,
   },
   {
@@ -339,9 +339,7 @@ function TaskList:open_buffer(direction)
     return
   end
 
-  if direction == "float" then
-    self:open_float(task.bufnr, true)
-  elseif direction == "vsplit" then
+  if direction == "vsplit" then
     vim.cmd([[vsplit]])
     vim.api.nvim_win_set_buf(0, task.bufnr)
   else
