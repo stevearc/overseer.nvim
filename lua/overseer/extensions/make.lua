@@ -32,7 +32,7 @@ M.make = {
       end
     end
 
-    local ret = {}
+    local ret = { self }
     for k in pairs(targets) do
       table.insert(ret, self:wrap(string.format("make %s", k), { args = { k } }))
     end

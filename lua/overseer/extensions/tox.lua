@@ -30,7 +30,7 @@ M.tox = {
       end
     end
 
-    local ret = {}
+    local ret = { self }
     for k in pairs(targets) do
       table.insert(ret, self:wrap(string.format("tox -e %s", k), { args = { "-e", k } }))
     end

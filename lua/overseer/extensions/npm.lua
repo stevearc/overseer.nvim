@@ -26,9 +26,7 @@ M.npm = {
         )
       end
     end
-    if use_yarn then
-      table.insert(ret, self:wrap(bin, { use_yarn = true }))
-    end
+    table.insert(ret, self:wrap(bin, { use_yarn = use_yarn }))
     return ret
   end,
   builder = function(self, params)

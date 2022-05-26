@@ -87,11 +87,12 @@ M.list = function(opts)
 
   for _, tmpl in pairs(registry) do
     if tmpl_matches(tmpl, opts) then
-      table.insert(ret, tmpl)
       if tmpl.metagen then
         for _, meta in ipairs(tmpl:metagen(opts)) do
           table.insert(ret, meta)
         end
+      else
+        table.insert(ret, tmpl)
       end
     end
   end

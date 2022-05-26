@@ -6,7 +6,7 @@ M.sep = M.is_windows and "\\" or "/"
 
 M.exists = function(filepath)
   local stat = vim.loop.fs_stat(filepath)
-  return stat and stat.type or false
+  return stat ~= nil and stat.type ~= nil
 end
 
 M.join = function(...)
