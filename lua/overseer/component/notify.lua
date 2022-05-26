@@ -1,7 +1,6 @@
 local constants = require("overseer.constants")
 local util = require("overseer.util")
 local STATUS = constants.STATUS
-local SLOT = constants.SLOT
 local M = {}
 
 M.on_result_notify = {
