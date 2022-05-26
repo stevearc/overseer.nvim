@@ -38,7 +38,7 @@ M.keys = {
     mode = "n",
     desc = "Open task terminal in current window",
     rhs = function(task_list)
-      task_list:open_buffer()
+      task_list:run_action("open")
     end,
   },
   {
@@ -46,7 +46,7 @@ M.keys = {
     mode = "n",
     desc = "Open task terminal in a vsplit",
     rhs = function(task_list)
-      task_list:open_buffer("vsplit")
+      task_list:run_action("open vsplit")
     end,
   },
   {
@@ -54,7 +54,7 @@ M.keys = {
     mode = "n",
     desc = "Open task terminal in a floating window",
     rhs = function(task_list)
-      task_list:run_action("open fullscreen")
+      task_list:run_action("open float")
     end,
   },
   {
@@ -331,22 +331,6 @@ function TaskList:open_float(bufnr, enter)
     end,
   })
   return winid
-end
-
-function TaskList:open_buffer(direction)
-  local task = self:_get_task_from_line()
-  if not task or not task.bufnr or not vim.api.nvim_buf_is_valid(task.bufnr) then
-    return
-  end
-
-  if direction == "vsplit" then
-    vim.cmd([[vsplit]])
-    vim.api.nvim_win_set_buf(0, task.bufnr)
-  else
-    vim.cmd([[normal! m']])
-    vim.api.nvim_win_set_buf(0, task.bufnr)
-  end
-  util.scroll_to_end(0)
 end
 
 function TaskList:run_action(name)

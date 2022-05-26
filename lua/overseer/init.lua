@@ -7,7 +7,6 @@ local window = require("overseer.window")
 local M = {}
 
 -- TODO
--- * Add an action to open the terminal
 -- * Add a command to pick a completed task and rerun. Include disposed tasks.
 -- * Statusline integration for task status
 -- * Many more task templates, especially for tests

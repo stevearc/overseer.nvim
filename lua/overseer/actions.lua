@@ -105,8 +105,8 @@ M.actions = {
       end)
     end,
   },
-  ["open fullscreen"] = {
-    description = "open terminal in a fullscreen floating window",
+  ["open float"] = {
+    description = "open terminal in a floating window",
     condition = function(task)
       return task.bufnr and vim.api.nvim_buf_is_valid(task.bufnr)
     end,
@@ -135,6 +135,26 @@ M.actions = {
           pcall(vim.api.nvim_win_close, winid, true)
         end,
       })
+    end,
+  },
+  open = {
+    description = "open terminal in the current window",
+    condition = function(task)
+      return task.bufnr and vim.api.nvim_buf_is_valid(task.bufnr)
+    end,
+    run = function(task)
+      vim.cmd([[normal! m']])
+      vim.api.nvim_win_set_buf(0, task.bufnr)
+    end,
+  },
+  ["open vsplit"] = {
+    description = "open terminal in a vertical split",
+    condition = function(task)
+      return task.bufnr and vim.api.nvim_buf_is_valid(task.bufnr)
+    end,
+    run = function(task)
+      vim.cmd([[vsplit]])
+      vim.api.nvim_win_set_buf(0, task.bufnr)
     end,
   },
   ["set quickfix diagnostics"] = {
