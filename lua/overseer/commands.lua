@@ -1,4 +1,4 @@
-local M = {}
+local actions = require("overseer.actions")
 local constants = require("overseer.constants")
 local files = require("overseer.files")
 local registry = require("overseer.registry")
@@ -6,6 +6,8 @@ local template = require("overseer.template")
 local Task = require("overseer.task")
 local task_editor = require("overseer.task_editor")
 local window = require("overseer.window")
+
+local M = {}
 
 M.create_commands = function()
   vim.api.nvim_create_user_command("OverseerOpen", function()
@@ -66,6 +68,12 @@ M.create_commands = function()
   })
   vim.api.nvim_create_user_command("OverseerBuild", M.build_task, {
     desc = "Build a task from scratch",
+  })
+  vim.api.nvim_create_user_command("OverseerQuickAction", function(params)
+    M.quick_action(tonumber(params.fargs[1]))
+  end, {
+    nargs = "?",
+    desc = "Run an action on a task",
   })
 end
 
@@ -236,6 +244,30 @@ M.delete_task_bundle = function(name)
     }, function(selected)
       if selected then
         M.delete_task_bundle(selected)
+      end
+    end)
+  end
+end
+
+M.quick_action = function(index)
+  if index then
+    local task = registry.get_by_index(index)
+    if not task then
+      vim.notify(string.format("No task at index %s", index), vim.log.levels.ERROR)
+      return
+    end
+    actions.run_action(task)
+  else
+    local tasks = registry.list_unique_tasks()
+    vim.ui.select(tasks, {
+      prompt = "Select task",
+      kind = "overseer_task",
+      format_item = function(task)
+        return task.name
+      end,
+    }, function(task)
+      if task then
+        actions.run_action(task)
       end
     end)
   end

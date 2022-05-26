@@ -1,3 +1,4 @@
+local config = require("overseer.config")
 local constants = require("overseer.constants")
 local files = require("overseer.files")
 local registry = require("overseer.registry")
@@ -6,7 +7,9 @@ local util = require("overseer.util")
 local STATUS = constants.STATUS
 local SLOT = constants.SLOT
 
-local M = {
+local M = {}
+
+M.actions = {
   start = {
     condition = function(task)
       return task.status == STATUS.PENDING
@@ -144,5 +147,55 @@ local M = {
     end,
   },
 }
+
+M.run_action = function(task, name)
+  local actions = {}
+  local longest_name = 1
+  for k, action in pairs(config.actions) do
+    if action.condition(task) then
+      if k == name then
+        action.run(task)
+        registry.update_task(task)
+        return
+      end
+      action.name = k
+      local name_len = vim.api.nvim_strwidth(k)
+      if name_len > longest_name then
+        longest_name = name_len
+      end
+      table.insert(actions, action)
+    end
+  end
+  if name then
+    vim.notify(string.format("Cannot %s task", name), vim.log.levels.WARN)
+    return
+  end
+
+  task:inc_reference()
+  vim.ui.select(actions, {
+    prompt = string.format("Actions: %s", task.name),
+    kind = "overseer_task_options",
+    format_item = function(action)
+      if action.description then
+        return string.format("%s (%s)", util.ljust(action.name, longest_name), action.description)
+      else
+        return action.name
+      end
+    end,
+  }, function(action)
+    task:dec_reference()
+    if action then
+      if action.condition(task) then
+        action.run(task)
+        registry.update_task(task)
+      else
+        vim.notify(
+          string.format("Can no longer perform action '%s' on task", action.name),
+          vim.log.levels.WARN
+        )
+      end
+    end
+  end)
+end
 
 return M

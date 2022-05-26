@@ -48,7 +48,7 @@ M.setup = function(opts)
 
   -- Merge actions with actions.lua
   local actions = {}
-  for k, v in pairs(require("overseer.actions")) do
+  for k, v in pairs(require("overseer.actions").actions) do
     actions[k] = v
   end
   for k, v in pairs(opts.actions or {}) do

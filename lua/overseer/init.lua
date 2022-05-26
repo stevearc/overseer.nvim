@@ -7,7 +7,7 @@ local window = require("overseer.window")
 local M = {}
 
 -- TODO
--- * Add a command to quick-action on the last task (and an action to open the terminal). Possibly add a picker to quick-action any task?
+-- * Add an action to open the terminal
 -- * Add a command to pick a completed task and rerun. Include disposed tasks.
 -- * Statusline integration for task status
 -- * Many more task templates, especially for tests

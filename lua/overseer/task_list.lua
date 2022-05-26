@@ -1,3 +1,4 @@
+local actions = require("overseer.actions")
 local config = require("overseer.config")
 local registry = require("overseer.registry")
 local util = require("overseer.util")
@@ -357,53 +358,7 @@ function TaskList:run_action(name)
     return
   end
 
-  local actions = {}
-  local longest_name = 1
-  for k, action in pairs(config.actions) do
-    if action.condition(task, self) then
-      if k == name then
-        action.run(task, self)
-        registry.update_task(task)
-        return
-      end
-      action.name = k
-      local name_len = vim.api.nvim_strwidth(k)
-      if name_len > longest_name then
-        longest_name = name_len
-      end
-      table.insert(actions, action)
-    end
-  end
-  if name then
-    vim.notify(string.format("Cannot %s task", name), vim.log.levels.WARN)
-    return
-  end
-
-  task:inc_reference()
-  vim.ui.select(actions, {
-    prompt = "Task actions",
-    kind = "overseer_task_options",
-    format_item = function(action)
-      if action.description then
-        return string.format("%s (%s)", util.ljust(action.name, longest_name), action.description)
-      else
-        return action.name
-      end
-    end,
-  }, function(action)
-    task:dec_reference()
-    if action then
-      if action.condition(task, self) then
-        action.run(task, self)
-        registry.update_task(task)
-      else
-        vim.notify(
-          string.format("Can no longer perform action '%s' on task", action.name),
-          vim.log.levels.WARN
-        )
-      end
-    end
-  end)
+  actions.run_action(task, name)
 end
 
 function TaskList:render(tasks)

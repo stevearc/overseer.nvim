@@ -71,4 +71,21 @@ M.get_by_name = function(name)
   end
 end
 
+M.get_by_index = function(index)
+  return M.tasks[#M.tasks + 1 - index]
+end
+
+M.list_unique_tasks = function()
+  local ret = {}
+  local seen = {}
+  for i = #M.tasks, 1, -1 do
+    local task = M.tasks[i]
+    if not seen[task.name] then
+      seen[task.name] = true
+      table.insert(ret, task)
+    end
+  end
+  return ret
+end
+
 return M
