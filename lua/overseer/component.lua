@@ -1,6 +1,10 @@
 local form = require("overseer.form")
 local M = {}
 
+-- Canonical naming scheme
+-- generally <event>_* means "triggers <event> under some condition"
+-- and on_<event>_* means "does something when <event> is fired
+
 local registry = {}
 local aliases = {}
 

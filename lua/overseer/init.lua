@@ -7,20 +7,23 @@ local window = require("overseer.window")
 local M = {}
 
 -- TODO
+-- * bulk actions on task list
 -- * Create a task history. Save history to file, and add command to quick-rerun tasks from history
 -- * Would be nice if task bundle loader could preview the tasks. Add extensions to dressing that allow plugin authors to call vim.ui.select with *specific options* that will customize the telescope, or the fzf, or the whatever backend.
--- * bulk actions on task list
+-- * OverseerSaveBundle should prompt before overwrite
+-- * OverseerSaveBundle should have completefunc that autocompletes existing bundle names
+-- * Save task should prompt to append to existing bundle file
 -- * Bump task to top when rerunning
 -- * Statusline integration for task status
 -- * Many more task templates, especially for tests
 -- * Load VSCode task definitions
 -- * Add tests
 -- * keybinding help in float
--- * More schema validations (callback, non-empty list, number greater than)
+-- * More schema validations (callback, non-empty list, number greater than, enum, list[enum])
+-- * List fields should allow configurable sep (e.g. ' ' for cmd, but ', ' for others)
 -- * Pull as much logic out of the closures as possible
 -- * Add nearest-test support detecting via treesitter
 -- * Dynamic window sizing for task editor
--- * Canonical naming scheme for components
 -- * Option to run task and immediately open terminal in (float/split/vsplit)
 -- * { } to navigate task list
 -- * Integration with system notifications

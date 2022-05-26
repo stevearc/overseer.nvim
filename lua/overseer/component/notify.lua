@@ -4,10 +4,9 @@ local STATUS = constants.STATUS
 local SLOT = constants.SLOT
 local M = {}
 
-M.notify_result = {
-  name = "notify_result",
-  description = "notify on result",
-  slot = SLOT.NOTIFY,
+M.on_result_notify = {
+  name = "on_result_notify",
+  description = "vim.notify on result",
   params = {
     statuses = {
       description = "What statuses to notify on",
@@ -36,10 +35,9 @@ M.notify_result = {
   end,
 }
 
-M.notify_red_green = {
-  name = "notify_red_green",
+M.on_result_notify_red_green = {
+  name = "on_result_notify_red_green",
   description = "notify when task fails, or when it goes from failing to success",
-  slot = SLOT.NOTIFY,
   params = {},
   constructor = function()
     return {

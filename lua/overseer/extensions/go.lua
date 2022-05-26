@@ -17,7 +17,7 @@ M.go_test = {
   builder = function(self, params)
     return {
       cmd = { "go", "test", params.target },
-      components = { "go_test_parser", "default_test" },
+      components = { "result_go_test", "default_test" },
     }
   end,
 }
@@ -38,8 +38,8 @@ M.go_test_fail_parser = {
   parser.extract("^%s*([^:]+.go):([0-9]+):%s*(.+)$", "filename", "lnum", "text"),
 }
 
-M.go_test_parser = {
-  name = "go_test_parser",
+M.result_go_test = {
+  name = "result_go_test",
   description = "Parse go test output",
   slot = SLOT.RESULT,
   constructor = function()

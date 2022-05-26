@@ -4,8 +4,8 @@ local STATUS = constants.STATUS
 local SLOT = constants.SLOT
 local M = {}
 
-M.exit_code_finalizer = {
-  name = "exit_code",
+M.result_exit_code = {
+  name = "result_exit_code",
   description = "Exit code finalizer",
   slot = SLOT.RESULT,
   constructor = function()
@@ -19,9 +19,9 @@ M.exit_code_finalizer = {
 }
 
 -- Looks for a result value of 'diagnostics' that is a list of quickfix items
-M.diagnostic_quickfix_result = {
-  name = "diagnostic_quickfix_result",
-  description = "Put diagnostics into the quickfix",
+M.on_result_diagnostic_quickfix = {
+  name = "on_result_diagnostic_quickfix",
+  description = "Put result diagnostics into the quickfix",
   params = {
     use_loclist = { type = "bool", optional = true },
   },
@@ -42,9 +42,9 @@ M.diagnostic_quickfix_result = {
 }
 
 -- Looks for a result value of 'stacktrace' that is a list of quickfix items
-M.quickfix_stacktrace = {
-  name = "quickfix_stacktrace",
-  description = "Put stacktrace results into the quickfix",
+M.on_result_stacktrace_quickfix = {
+  name = "on_result_stacktrace_quickfix",
+  description = "Put result stacktrace into the quickfix",
   constructor = function()
     return {
       on_result = function(self, task, status, result)
@@ -58,9 +58,9 @@ M.quickfix_stacktrace = {
 }
 
 -- Looks for a result value of 'diagnostics' that is a list of quickfix items
-M.diagnostic_result = {
-  name = "diagnostic_result",
-  description = "Display the diagnostics results",
+M.on_result_diagnostics = {
+  name = "on_result_diagnostics",
+  description = "Display the result diagnostics",
   params = {
     virtual_text = { type = "bool", optional = true },
     signs = { type = "bool", optional = true },

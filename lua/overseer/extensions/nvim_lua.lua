@@ -17,7 +17,7 @@ M.busted_test = {
   builder = function(self, params)
     return {
       cmd = { "nvim", "--headless", "-c", "PlenaryBustedFile " .. params.filename },
-      components = { "plenary_busted_test_parser", "default_test" },
+      components = { "result_plenary_busted_test", "default_test" },
     }
   end,
 }
@@ -52,8 +52,8 @@ M.plenary_busted_test_parser = {
   parser.extract_multiline("^            (.+)$", "text"),
 }
 
-M.plenary_busted_test_parser_defn = {
-  name = "plenary_busted_test_parser",
+M.result_plenary_busted_test = {
+  name = "result_plenary_busted_test",
   description = "Parse busted test output from plenary.nvim",
   slot = SLOT.RESULT,
   constructor = function()

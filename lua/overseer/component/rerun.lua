@@ -6,8 +6,8 @@ local STATUS = constants.STATUS
 
 local M = {}
 
-M.rerun_trigger = {
-  name = "rerun_trigger",
+M.on_rerun_handler = {
+  name = "on_rerun_handler",
   description = "Ability to rerun the task",
   params = {
     delay = {

@@ -4,7 +4,7 @@ local M = {}
 
 M.STATUS = Enum.new({ "PENDING", "RUNNING", "CANCELED", "SUCCESS", "FAILURE" })
 
-M.SLOT = Enum.new({ "RESULT", "NOTIFY", "DISPOSE" })
+M.SLOT = Enum.new({ "RESULT", "DISPOSE" })
 
 M.TAG = Enum.new({ "TEST" })
 
