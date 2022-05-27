@@ -12,7 +12,6 @@ local M = {}
 -- * Many more task templates, especially for tests
 -- * Load VSCode task definitions
 -- * Add tests
--- * keybinding help in float
 -- * More schema validations (callback, non-empty list, number greater than, enum, list[enum])
 --   * list params allow escaping / quotes / specifying delimiter
 -- * Pull as much logic out of the closures as possible

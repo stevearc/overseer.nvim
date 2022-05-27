@@ -23,7 +23,9 @@ end
 
 local function calc_list(values, max_value, aggregator, limit)
   local ret = limit
-  if type(values) == "table" then
+  if not max_value or not values then
+    return nil
+  elseif type(values) == "table" then
     for _, v in ipairs(values) do
       ret = aggregator(ret, calc_float(v, max_value))
     end
@@ -40,13 +42,21 @@ local function calculate_dim(desired_size, exact_size, min_size, max_size, total
   local max_val = calc_list(max_size, total_size, math.min, total_size)
   if not ret then
     if not desired_size then
-      ret = (min_val + max_val) / 2
+      if min_val and max_val then
+        ret = (min_val + max_val) / 2
+      else
+        ret = 80
+      end
     else
       ret = calc_float(desired_size, total_size)
     end
   end
-  ret = math.min(ret, max_val)
-  ret = math.max(ret, min_val)
+  if max_val then
+    ret = math.min(ret, max_val)
+  end
+  if min_val then
+    ret = math.max(ret, min_val)
+  end
   return math.floor(ret)
 end
 

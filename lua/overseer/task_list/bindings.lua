@@ -2,6 +2,14 @@ local M = {}
 
 M.keys = {
   {
+    lhs = "?",
+    mode = "n",
+    desc = "Show default key bindings",
+    rhs = function(sidebar)
+      sidebar:show_bindings()
+    end,
+  },
+  {
     lhs = "<CR>",
     mode = "n",
     desc = "Open task action menu",
