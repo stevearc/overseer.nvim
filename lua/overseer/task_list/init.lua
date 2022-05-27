@@ -1,3 +1,4 @@
+local util = require("overseer.util")
 local M = {}
 
 local tasks = {}
@@ -31,6 +32,19 @@ M.update = function(task)
     lookup[task.id] = task
     table.insert(tasks, task)
   end
+  rerender()
+end
+
+M.touch_task = function(task)
+  if not lookup[task.id] then
+    return
+  end
+  local idx = util.tbl_index(tasks, task.id, function(t)
+    return t.id
+  end)
+  print(string.format("Resetting %s", task.id))
+  table.remove(tasks, idx)
+  table.insert(tasks, task)
   rerender()
 end
 

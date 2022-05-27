@@ -309,6 +309,7 @@ function Task:reset()
     end
   end, 2000)
   self.bufnr = nil
+  task_list.touch_task(self)
   self:dispatch("on_reset")
 end
 

@@ -8,7 +8,6 @@ local window = require("overseer.window")
 local M = {}
 
 -- TODO
--- * Bump task to top when rerunning
 -- * Statusline integration for task status
 -- * { } to navigate task list
 -- * Many more task templates, especially for tests
