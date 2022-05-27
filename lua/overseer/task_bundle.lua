@@ -1,3 +1,4 @@
+local confirm = require("overseer.confirm")
 local files = require("overseer.files")
 local Task = require("overseer.task")
 local task_list = require("overseer.task_list")
@@ -91,16 +92,51 @@ M.load_task_bundle = function(name)
   end
 end
 
-M.save_task_bundle = function(name)
+M.save_task_bundle = function(name, tasks)
   if name then
-    files.write_data_file(string.format("%s.bundle.json", name), task_list.serialize_tasks())
+    local filename = string.format("%s.bundle.json", name)
+    local serialized
+    if tasks then
+      serialized = {}
+      for _, task in ipairs(tasks) do
+        table.insert(serialized, task:serialize())
+      end
+    else
+      serialized = task_list.serialize_tasks()
+    end
+    if files.data_file_exists(filename) then
+      confirm({
+        message = string.format(
+          "%s exists.\nWould you like to overwrite it or append to it?",
+          filename
+        ),
+        choices = {
+          "&Overwrite",
+          "&Append",
+          "Cancel",
+        },
+        default = 3,
+      }, function(idx)
+        if idx == 1 then
+          files.write_data_file(filename, serialized)
+        elseif idx == 2 then
+          local data = files.load_data_file(filename)
+          for _, new_task in ipairs(serialized) do
+            table.insert(data, new_task)
+          end
+          files.write_data_file(filename, data)
+        end
+      end)
+    else
+      files.write_data_file(filename, serialized)
+    end
   else
     vim.ui.input({
       prompt = "Task bundle name:",
       completion = "customlist,overseer#task_bundle_completelist",
     }, function(selected)
       if selected then
-        M.save_task_bundle(selected)
+        M.save_task_bundle(selected, tasks)
       end
     end)
   end

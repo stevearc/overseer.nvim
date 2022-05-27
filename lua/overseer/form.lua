@@ -86,9 +86,9 @@ M.open_form_win = function(bufnr, opts)
       zindex = 40,
       width = width,
       height = height,
+      col = math.floor((layout.get_editor_width() - width) / 2),
+      row = math.floor((layout.get_editor_height() - height) / 2),
     }
-    win_opts.col = math.floor((layout.get_editor_width() - width) / 2)
-    win_opts.row = math.floor((layout.get_editor_height() - height) / 2)
     return win_opts
   end
 

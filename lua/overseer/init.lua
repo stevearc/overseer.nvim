@@ -8,19 +8,16 @@ local window = require("overseer.window")
 local M = {}
 
 -- TODO
--- * OverseerSaveBundle should prompt before overwrite
--- * { } to navigate task list
 -- * Integration with system notifications
--- * Create a task history. Save history to file, and add command to quick-rerun tasks from history
--- * Save task should prompt to append to existing bundle file
 -- * Bump task to top when rerunning
 -- * Statusline integration for task status
+-- * { } to navigate task list
 -- * Many more task templates, especially for tests
 -- * Load VSCode task definitions
 -- * Add tests
 -- * keybinding help in float
 -- * More schema validations (callback, non-empty list, number greater than, enum, list[enum])
--- * List fields should allow configurable sep (e.g. ' ' for cmd, but ', ' for others)
+--   * list params allow escaping / quotes / specifying delimiter
 -- * Pull as much logic out of the closures as possible
 -- * Add nearest-test support detecting via treesitter
 -- * Dynamic window sizing for task editor

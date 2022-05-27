@@ -1,7 +1,7 @@
 local config = require("overseer.config")
 local constants = require("overseer.constants")
-local files = require("overseer.files")
 local layout = require("overseer.layout")
+local task_bundle = require("overseer.task_bundle")
 local task_list = require("overseer.task_list")
 local task_editor = require("overseer.task_editor")
 local util = require("overseer.util")
@@ -33,16 +33,7 @@ M.actions = {
       return true
     end,
     run = function(task)
-      local data = task:serialize()
-      vim.ui.input({
-        prompt = "Task bundle name:",
-        completion = "customlist,overseer#task_bundle_completelist",
-      }, function(selected)
-        if selected then
-          local filename = string.format("%s.bundle.json", selected)
-          files.write_data_file(filename, { data })
-        end
-      end)
+      task_bundle.save_task_bundle(nil, { task })
     end,
   },
   rerun = {

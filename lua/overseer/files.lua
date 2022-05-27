@@ -42,6 +42,12 @@ M.load_json_file = function(filepath)
   end
 end
 
+M.data_file_exists = function(filename)
+  local data_dir = M.get_data_dir()
+  local filepath = M.join(data_dir, filename)
+  return M.exists(filepath)
+end
+
 M.write_data_file = function(filename, data)
   local data_dir = M.get_data_dir()
   if not M.exists(data_dir) then
