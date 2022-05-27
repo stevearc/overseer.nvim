@@ -174,7 +174,7 @@ M.quick_action = function(index)
     end
     actions.run_action(task)
   else
-    local tasks = task_list.list_unique_tasks()
+    local tasks = task_list.list_tasks({ unique = true, recent_first = true })
     vim.ui.select(tasks, {
       prompt = "Select task",
       kind = "overseer_task",

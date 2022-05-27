@@ -83,8 +83,12 @@ end
 
 M.list_to_map = function(list)
   local map = {}
-  for _, v in ipairs(list) do
-    map[v] = true
+  if type(list) == "string" then
+    map[list] = true
+  else
+    for _, v in ipairs(list) do
+      map[v] = true
+    end
   end
   return map
 end
@@ -93,6 +97,17 @@ M.leave_insert = function()
   if vim.api.nvim_get_mode().mode:match("^i") then
     vim.api.nvim_feedkeys(vim.api.nvim_replace_termcodes("<ESC>", true, true, true), "n", false)
   end
+end
+
+M.tbl_reverse = function(tbl)
+  local len = #tbl
+  for i = 1, math.floor(len / 2) do
+    local j = len - i + 1
+    local swp = tbl[i]
+    tbl[i] = tbl[j]
+    tbl[j] = swp
+  end
+  return tbl
 end
 
 M.tbl_slice = function(tbl, start_idx, end_idx)

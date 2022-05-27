@@ -80,16 +80,36 @@ M.get_by_index = function(index)
   return tasks[#tasks + 1 - index]
 end
 
--- List tasks, unique by name
-M.list_unique_tasks = function()
-  local ret = {}
+M.list_tasks = function(opts)
+  opts = opts or {}
+  vim.validate({
+    unique = { opts.unique, "b", true },
+    -- name is string or list
+    name_not = { opts.name_not, "b", true },
+    -- status is string or list
+    status_not = { opts.name_not, "b", true },
+    recent_first = { opts.recent_first, "b", true },
+  })
+  local name = util.list_to_map(opts.name or {})
+  local status = util.list_to_map(opts.status or {})
   local seen = {}
-  for i = #tasks, 1, -1 do
-    local task = tasks[i]
-    if not seen[task.name] then
+  local ret = {}
+  for _, task in ipairs(tasks) do
+    if
+      (
+        not opts.name
+        or (name[task.name] and not opts.name_not)
+        or (not name[task.name] and opts.name_not)
+      )
+      and (not opts.status or (status[task.status] and not opts.status_not) or (not status[task.status] and opts.status_not))
+      and (not opts.unique or not seen[task.name])
+    then
       seen[task.name] = true
       table.insert(ret, task)
     end
+  end
+  if opts.recent_first then
+    util.tbl_reverse(ret)
   end
   return ret
 end

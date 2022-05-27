@@ -18,6 +18,7 @@ function Enum.new(values)
   for _, v in ipairs(values) do
     ret[v] = v
   end
+  ret.values = values
   return setmetatable(ret, { __index = Enum })
 end
 
