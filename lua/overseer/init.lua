@@ -8,12 +8,10 @@ local window = require("overseer.window")
 local M = {}
 
 -- TODO
--- * integrate with vim-test as a strategy
--- * bulk actions on task list
--- * Create a task history. Save history to file, and add command to quick-rerun tasks from history
--- * Would be nice if task bundle loader could preview the tasks. Add extensions to dressing that allow plugin authors to call vim.ui.select with *specific options* that will customize the telescope, or the fzf, or the whatever backend.
 -- * OverseerSaveBundle should prompt before overwrite
--- * OverseerSaveBundle should have completefunc that autocompletes existing bundle names
+-- * { } to navigate task list
+-- * Integration with system notifications
+-- * Create a task history. Save history to file, and add command to quick-rerun tasks from history
 -- * Save task should prompt to append to existing bundle file
 -- * Bump task to top when rerunning
 -- * Statusline integration for task status
@@ -26,9 +24,7 @@ local M = {}
 -- * Pull as much logic out of the closures as possible
 -- * Add nearest-test support detecting via treesitter
 -- * Dynamic window sizing for task editor
--- * Option to run task and immediately open terminal in (float/split/vsplit)
--- * { } to navigate task list
--- * Integration with system notifications
+-- * integrate with vim-test as a strategy
 -- * Basic Readme
 -- * Vim help docs
 -- * Architecture doc (Template / Task / Component)

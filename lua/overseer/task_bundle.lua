@@ -39,6 +39,10 @@ local function get_bundle_previewer()
   })
 end
 
+_G.overseer_task_bundle_completion = function()
+  return M.list_task_bundles()
+end
+
 M.list_task_bundles = function()
   local data_dir = files.get_data_dir()
   local fd = vim.loop.fs_opendir(data_dir, nil, 32)
@@ -93,6 +97,7 @@ M.save_task_bundle = function(name)
   else
     vim.ui.input({
       prompt = "Task bundle name:",
+      completion = "customlist,overseer#task_bundle_completelist",
     }, function(selected)
       if selected then
         M.save_task_bundle(selected)

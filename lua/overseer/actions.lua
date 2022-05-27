@@ -36,6 +36,7 @@ M.actions = {
       local data = task:serialize()
       vim.ui.input({
         prompt = "Task bundle name:",
+        completion = "customlist,overseer#task_bundle_completelist",
       }, function(selected)
         if selected then
           local filename = string.format("%s.bundle.json", selected)
@@ -94,6 +95,7 @@ M.actions = {
     run = function(task)
       vim.ui.input({
         prompt = "Directory (watch these files)",
+        completion = "file",
         default = vim.fn.getcwd(0),
       }, function(dir)
         task:remove_by_slot(SLOT.DISPOSE)
