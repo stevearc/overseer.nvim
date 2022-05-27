@@ -7,6 +7,7 @@ local window = require("overseer.window")
 local M = {}
 
 -- TODO
+-- * integrate with vim-test as a strategy
 -- * bulk actions on task list
 -- * Create a task history. Save history to file, and add command to quick-rerun tasks from history
 -- * Would be nice if task bundle loader could preview the tasks. Add extensions to dressing that allow plugin authors to call vim.ui.select with *specific options* that will customize the telescope, or the fzf, or the whatever backend.

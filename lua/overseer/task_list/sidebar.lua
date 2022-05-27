@@ -11,6 +11,7 @@ local Sidebar = {}
 local ref
 
 M.get_or_create = function()
+  local created = not ref
   if not ref then
     ref = Sidebar.new()
     vim.api.nvim_create_autocmd("BufUnload", {
@@ -22,7 +23,7 @@ M.get_or_create = function()
       once = true,
     })
   end
-  return ref
+  return ref, created
 end
 
 M.get = function()

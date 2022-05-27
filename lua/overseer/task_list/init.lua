@@ -4,7 +4,10 @@ local tasks = {}
 local lookup = {}
 
 M.get_or_create_bufnr = function()
-  local sidebar = require("overseer.task_list.sidebar")
+  local sidebar, created = require("overseer.task_list.sidebar")
+  if created then
+    sidebar:render(tasks)
+  end
   return sidebar.get_or_create().bufnr
 end
 
@@ -19,6 +22,7 @@ end
 M.update = function(task)
   if not task then
     rerender()
+    return
   end
   if task.disposed then
     return
@@ -50,7 +54,7 @@ M.remove = function(task)
 end
 
 M.get_by_name = function(name)
-  for _, task in ipairs(M.tasks) do
+  for _, task in ipairs(tasks) do
     if task.name == name then
       return task
     end
@@ -59,15 +63,15 @@ end
 
 -- 1-indexed, most recent first
 M.get_by_index = function(index)
-  return M.tasks[#M.tasks + 1 - index]
+  return tasks[#tasks + 1 - index]
 end
 
 -- List tasks, unique by name
 M.list_unique_tasks = function()
   local ret = {}
   local seen = {}
-  for i = #M.tasks, 1, -1 do
-    local task = M.tasks[i]
+  for i = #tasks, 1, -1 do
+    local task = tasks[i]
     if not seen[task.name] then
       seen[task.name] = true
       table.insert(ret, task)

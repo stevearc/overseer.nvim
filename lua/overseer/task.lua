@@ -364,7 +364,7 @@ function Task:dispose(force)
     if force then
       -- If we're forcing the dispose, remove the ability to rerun, then stop,
       -- then dispose
-      self:remove_component("rerun_trigger")
+      self:remove_component("on_rerun_handler")
       self:stop()
     else
       error("Cannot call dispose on running task")

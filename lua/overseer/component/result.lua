@@ -19,8 +19,8 @@ M.result_exit_code = {
 }
 
 -- Looks for a result value of 'diagnostics' that is a list of quickfix items
-M.on_result_diagnostic_quickfix = {
-  name = "on_result_diagnostic_quickfix",
+M.on_result_diagnostics_quickfix = {
+  name = "on_result_diagnostics_quickfix",
   description = "Put result diagnostics into the quickfix",
   params = {
     use_loclist = { type = "bool", optional = true },

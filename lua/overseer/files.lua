@@ -2,6 +2,8 @@ local M = {}
 
 M.is_windows = vim.loop.os_uname().version:match("Windows")
 
+M.is_mac = vim.loop.os_uname().sysname == "Darwin"
+
 M.sep = M.is_windows and "\\" or "/"
 
 M.exists = function(filepath)

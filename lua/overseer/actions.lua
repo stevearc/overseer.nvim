@@ -46,7 +46,7 @@ M.actions = {
   },
   rerun = {
     condition = function(task)
-      return task:has_component("rerun_trigger")
+      return task:has_component("on_rerun_handler")
         and task.status ~= STATUS.PENDING
         and task.status ~= STATUS.RUNNING
     end,
@@ -80,7 +80,7 @@ M.actions = {
       return true
     end,
     run = function(task)
-      task:add_components({ "rerun_trigger", "rerun_on_result" })
+      task:add_components({ "on_rerun_handler", "on_result_rerun" })
       if task.status == STATUS.FAILURE then
         task:rerun()
       end
@@ -89,7 +89,7 @@ M.actions = {
   watch = {
     description = "rerun the task when you save a file",
     condition = function(task)
-      return task:has_component("rerun_trigger") and not task:has_component("rerun_on_save")
+      return task:has_component("on_rerun_handler") and not task:has_component("rerun_on_save")
     end,
     run = function(task)
       vim.ui.input({
@@ -98,7 +98,7 @@ M.actions = {
       }, function(dir)
         task:remove_by_slot(SLOT.DISPOSE)
         task:set_components({
-          { "rerun_trigger", interrupt = true },
+          { "on_rerun_handler", interrupt = true },
           { "rerun_on_save", dir = dir },
         })
         task_list.update(task)
