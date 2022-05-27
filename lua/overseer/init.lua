@@ -1,6 +1,7 @@
 local commands = require("overseer.commands")
 local config = require("overseer.config")
 local constants = require("overseer.constants")
+local task_bundle = require("overseer.task_bundle")
 local task_list = require("overseer.task_list")
 local Task = require("overseer.task")
 local window = require("overseer.window")
@@ -79,10 +80,11 @@ M.toggle = window.toggle
 M.open = window.open
 M.close = window.close
 
-M.list_task_bundles = commands.list_task_bundles
-M.load_task_bundles = commands.load_task_bundles
-M.save_task_bundles = commands.save_task_bundles
-M.delete_task_bundles = commands.delete_task_bundles
+M.list_task_bundles = task_bundle.list_task_bundles
+M.load_task_bundle = task_bundle.load_task_bundle
+M.save_task_bundle = task_bundle.save_task_bundle
+M.delete_task_bundle = task_bundle.delete_task_bundle
+
 M.run_template = commands.run_template
 
 -- Re-export the constants

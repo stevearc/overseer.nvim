@@ -1,6 +1,6 @@
 local actions = require("overseer.actions")
 local constants = require("overseer.constants")
-local files = require("overseer.files")
+local task_bundle = require("overseer.task_bundle")
 local task_list = require("overseer.task_list")
 local template = require("overseer.template")
 local Task = require("overseer.task")
@@ -26,19 +26,19 @@ M.create_commands = function()
     desc = "Toggle the overseer window",
   })
   vim.api.nvim_create_user_command("OverseerSaveBundle", function(params)
-    M.save_task_bundle(params.args ~= "" and params.args or nil)
+    task_bundle.save_task_bundle(params.args ~= "" and params.args or nil)
   end, {
     desc = "Serialize the current tasks to disk",
     nargs = "?",
   })
   vim.api.nvim_create_user_command("OverseerLoadBundle", function(params)
-    M.load_task_bundle(params.args ~= "" and params.args or nil)
+    task_bundle.load_task_bundle(params.args ~= "" and params.args or nil)
   end, {
     desc = "Load tasks that were serialized to disk",
     nargs = "?",
   })
   vim.api.nvim_create_user_command("OverseerDeleteBundle", function(params)
-    M.delete_task_bundle(params.args ~= "" and params.args or nil)
+    task_bundle.delete_task_bundle(params.args ~= "" and params.args or nil)
   end, {
     desc = "Delete a saved task bundle",
     nargs = "?",
@@ -163,90 +163,6 @@ M.build_task = function()
       task:dispose()
     end
   end)
-end
-
--- TASK BUNDLE
-
-M.list_task_bundles = function()
-  local data_dir = files.get_data_dir()
-  local fd = vim.loop.fs_opendir(data_dir, nil, 32)
-  local entries = vim.loop.fs_readdir(fd)
-  local ret = {}
-  while entries do
-    for _, entry in ipairs(entries) do
-      if entry.type == "file" then
-        local name = entry.name:match("^(.+)%.bundle%.json$")
-        if name then
-          table.insert(ret, name)
-        end
-      end
-    end
-    entries = vim.loop.fs_readdir(fd)
-  end
-  vim.loop.fs_closedir(fd)
-  return ret
-end
-
-M.load_task_bundle = function(name)
-  if name then
-    local data = files.load_data_file(string.format("%s.bundle.json", name))
-    for _, params in ipairs(data) do
-      local task = Task.new(params)
-      task:start()
-    end
-    vim.notify(string.format("Started %d tasks", #data))
-  else
-    local tasks = M.list_task_bundles()
-    if #tasks == 0 then
-      vim.notify("No saved task bundles", vim.log.levels.WARN)
-      return
-    end
-    vim.ui.select(tasks, {
-      prompt = "Load task bundle:",
-      kind = "overseer_task_bundle",
-    }, function(selected)
-      if selected then
-        M.load_task_bundle(selected)
-      end
-    end)
-  end
-end
-
-M.save_task_bundle = function(name)
-  if name then
-    files.write_data_file(string.format("%s.bundle.json", name), task_list.serialize_tasks())
-  else
-    vim.ui.input({
-      prompt = "Task bundle name:",
-    }, function(selected)
-      if selected then
-        M.save_task_bundle(selected)
-      end
-    end)
-  end
-end
-
-M.delete_task_bundle = function(name)
-  if name then
-    local filename = string.format("%s.bundle.json", name)
-    if not files.delete_data_file(filename) then
-      vim.notify(string.format("No task bundle at %s", filename))
-    end
-  else
-    local tasks = M.list_task_bundles()
-    if #tasks == 0 then
-      vim.notify("No saved task bundles", vim.log.levels.WARN)
-      return
-    end
-    vim.ui.select(tasks, {
-      prompt = "Delete task bundle:",
-      kind = "overseer_task_bundle",
-    }, function(selected)
-      if selected then
-        M.delete_task_bundle(selected)
-      end
-    end)
-  end
 end
 
 M.quick_action = function(index)

@@ -17,7 +17,7 @@ Task.params = {
   },
 }
 
-function Task.new(opts)
+function Task.new_uninitialized(opts)
   opts = opts or {}
   vim.validate({
     -- cmd can be table or string
@@ -35,7 +35,6 @@ function Task.new(opts)
   end
   -- Build the instance data for the task
   local data = {
-    id = next_id,
     result = nil,
     _references = 0,
     disposed = false,
@@ -49,9 +48,15 @@ function Task.new(opts)
     slots = {},
     components = {},
   }
-  next_id = next_id + 1
   local task = setmetatable(data, { __index = Task })
   task:add_components(opts.components)
+  return task
+end
+
+function Task.new(opts)
+  local task = Task.new_uninitialized(opts)
+  task.id = next_id
+  next_id = next_id + 1
   task:dispatch("on_init")
   return task
 end
@@ -313,7 +318,9 @@ function Task:dispatch(name, ...)
       comp[name](comp, self, ...)
     end
   end
-  task_list.update(self)
+  if self.id and not self.disposed then
+    task_list.update(self)
+  end
 end
 
 function Task:set_result(status, data)
