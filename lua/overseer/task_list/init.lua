@@ -5,11 +5,11 @@ local tasks = {}
 local lookup = {}
 
 M.get_or_create_bufnr = function()
-  local sidebar, created = require("overseer.task_list.sidebar")
+  local sidebar, created = require("overseer.task_list.sidebar").get_or_create()
   if created then
     sidebar:render(tasks)
   end
-  return sidebar.get_or_create().bufnr
+  return sidebar.bufnr
 end
 
 local function rerender()
