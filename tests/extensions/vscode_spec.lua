@@ -1,5 +1,7 @@
 local constants = require("overseer.constants")
+local parser = require("overseer.parser")
 local vscode = require("overseer.extensions.vscode")
+local problem_matcher = require("overseer.extensions.vscode.problem_matcher")
 
 describe("vscode", function()
   it("parses process command and args", function()
@@ -83,5 +85,97 @@ describe("vscode", function()
       group = { kind = "build", isDefault = true },
     })
     assert.are.same({ constants.TAG.BUILD }, tmpl.tags)
+  end)
+
+  describe("problem matcher", function()
+    it("can parse simple line output", function()
+      local parse = parser.new(problem_matcher.get_parser_from_problem_matcher({
+        pattern = {
+          regexp = "^(.*):(\\d+):(\\d+):\\s+(warning|error):\\s+(.*)$",
+          file = 1,
+          line = 2,
+          column = 3,
+          severity = 4,
+          message = 5,
+        },
+      }))
+      parse:ingest({ "helloWorld.c:5:3: warning: implicit declaration of function 'prinft'" })
+      local results = parse:get_result()
+      assert.are.same({
+        {
+          lnum = 5,
+          col = 3,
+          filename = "helloWorld.c",
+          text = "implicit declaration of function 'prinft'",
+          type = "W",
+        },
+      }, results)
+    end)
+
+    it("can set the default severity level", function()
+      local parse = parser.new(problem_matcher.get_parser_from_problem_matcher({
+        severity = "warning",
+        pattern = {
+          regexp = "^(.*):(\\d+):(\\d+):\\s+(.*)$",
+          file = 1,
+          line = 2,
+          column = 3,
+          message = 4,
+        },
+      }))
+      parse:ingest({ "helloWorld.c:5:3: implicit declaration of function 'prinft'" })
+      local results = parse:get_result()
+      assert.are.same({
+        {
+          lnum = 5,
+          col = 3,
+          filename = "helloWorld.c",
+          text = "implicit declaration of function 'prinft'",
+          type = "W",
+        },
+      }, results)
+    end)
+
+    it("can parse a file location", function()
+      local parse = parser.new(problem_matcher.get_parser_from_problem_matcher({
+        pattern = {
+          regexp = "^(.*):([0-9,]+):\\s+(.*)$",
+          file = 1,
+          location = 2,
+          message = 3,
+        },
+      }))
+      parse:ingest({ "helloWorld.c:5,3,5,8: implicit declaration of function 'prinft'" })
+      local results = parse:get_result()
+      assert.are.same({
+        {
+          lnum = 5,
+          col = 3,
+          end_lnum = 5,
+          end_col = 8,
+          filename = "helloWorld.c",
+          text = "implicit declaration of function 'prinft'",
+        },
+      }, results)
+    end)
+
+    it("uses full line as message by default", function()
+      local parse = parser.new(problem_matcher.get_parser_from_problem_matcher({
+        pattern = {
+          regexp = "^(.*):(\\d+):.*$",
+          file = 1,
+          location = 2,
+        },
+      }))
+      parse:ingest({ "helloWorld.c:5: implicit declaration of function 'prinft'" })
+      local results = parse:get_result()
+      assert.are.same({
+        {
+          lnum = 5,
+          filename = "helloWorld.c",
+          text = "helloWorld.c:5: implicit declaration of function 'prinft'",
+        },
+      }, results)
+    end)
   end)
 end)

@@ -30,7 +30,7 @@ function Extract:reset()
   self.done = nil
 end
 
-local function default_postprocess(value)
+local function default_postprocess(value, _)
   if value:match("^%d+$") then
     return tonumber(value)
   end
@@ -65,7 +65,7 @@ function Extract:ingest(line, item, results)
           key = field
           postprocess = default_postprocess
         end
-        item[key] = postprocess(result[i], self)
+        item[key] = postprocess(result[i], item)
       end
     end
     if any_match then
@@ -79,7 +79,7 @@ function Extract:ingest(line, item, results)
   end
   if self.append then
     if type(self.append) == "function" then
-      self.append(results, vim.deepcopy(item))
+      self.append(results, vim.deepcopy(item), { line = line })
     else
       table.insert(results, vim.deepcopy(item))
     end
