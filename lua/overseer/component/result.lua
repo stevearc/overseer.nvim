@@ -11,7 +11,7 @@ M.result_exit_code = {
     return {
       on_exit = function(self, task, code)
         local status = code == 0 and STATUS.SUCCESS or STATUS.FAILURE
-        task:set_result(status, {})
+        task:set_result(status, task.result or {})
       end,
     }
   end,

@@ -9,8 +9,6 @@ local M = {}
 
 -- TODO
 -- * Load VSCode task definitions
---   * isBackground
---   * enum schema for pickString
 --   * dependsOn/dependsOrder
 --   * isDefault
 --   * Auto tasks for npm, gulp, grunt, jake, and typescript.
@@ -19,6 +17,7 @@ local M = {}
 -- * Add tests
 -- * More schema validations (callback, non-empty list, number greater than, enum, list[enum])
 --   * list params allow escaping / quotes / specifying delimiter
+--   * enum support for vscode pickString
 -- * Pull as much logic out of the closures as possible
 -- * Add nearest-test support detecting via treesitter
 -- * Dynamic window sizing for task editor

@@ -274,15 +274,18 @@ function Task:is_disposed()
 end
 
 function Task:reset(soft)
-  if self:is_running() or self:is_disposed() then
+  if self:is_disposed() then
+    error(string.format("Cannot reset %s task", self.status))
+    return
+  elseif not soft and self:is_running() then
     error(string.format("Cannot reset %s task", self.status))
     return
   end
-  self.status = STATUS.PENDING
   self.result = nil
   -- Soft reset allows components & state to be reset without affecting the
   -- underlying process & buffer
   if not soft or not self:is_running() then
+    self.status = STATUS.PENDING
     local bufnr = self.bufnr
     self.prev_bufnr = bufnr
     vim.defer_fn(function()
@@ -297,7 +300,7 @@ function Task:reset(soft)
     end
   end
   task_list.touch_task(self)
-  self:dispatch("on_reset")
+  self:dispatch("on_reset", soft)
 end
 
 function Task:dispatch(name, ...)
@@ -339,10 +342,12 @@ function Task:dispose(force)
   if self:is_disposed() or (self._references > 0 and not force) then
     return false
   end
-  -- Can't dispose if the terminal is open
-  for _, winid in ipairs(vim.api.nvim_list_wins()) do
-    if vim.api.nvim_win_get_buf(winid) == self.bufnr then
-      return false
+  if not force then
+    -- Can't dispose if the terminal is open
+    for _, winid in ipairs(vim.api.nvim_list_wins()) do
+      if vim.api.nvim_win_get_buf(winid) == self.bufnr then
+        return false
+      end
     end
   end
   if self:is_running() then

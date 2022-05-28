@@ -43,7 +43,7 @@ local function parse_params(params, str, inputs)
     local schema = inputs[name]
     if schema then
       if schema.type == "pickString" then
-        -- FIXME encode the options
+        -- TODO encode the options as an enum
         params[name] = { description = schema.description, default = schema.default }
       elseif schema.type == "promptString" then
         params[name] = { description = schema.description, default = schema.default }
@@ -104,8 +104,17 @@ M.convert_vscode_task = function(defn)
       local task = {
         name = defn.label,
         cmd = variables.replace_vars(cmd, params),
-        components = { { "result_vscode_task", defn.problemMatcher }, "default" },
+        components = {
+          { "result_vscode_task", problem_matcher = defn.problemMatcher },
+          "default",
+        },
       }
+      if defn.problemMatcher then
+        table.insert(task.components, "on_result_diagnostics")
+      end
+      if defn.isBackground then
+        table.insert(task.components, "rerun_on_result")
+      end
       if opt then
         if opt.cwd then
           task.cwd = variables.replace_vars(opt.cwd, params)
@@ -132,12 +141,24 @@ M.convert_vscode_task = function(defn)
     end
   end
 
-  -- TODO defn.isBackground
   -- NOTE: we ignore defn.presentation
   -- NOTE: we intentionally do nothing with defn.runOptions.
   -- runOptions.reevaluateOnRun unfortunately doesn't mesh with how we re-run tasks
   -- runOptions.runOn allows tasks to auto-run, which I philosophically oppose
   return template.new(tmpl)
+end
+
+local function pattern_to_test(pattern)
+  if not pattern then
+    return nil
+  elseif type(pattern) == "string" then
+    local pat = "\\v" .. pattern
+    return function(line)
+      return vim.fn.match(line, pat) ~= -1
+    end
+  else
+    return pattern_to_test(pattern.regexp)
+  end
 end
 
 M.result_vscode_task = {
@@ -148,16 +169,46 @@ M.result_vscode_task = {
   },
   constructor = function(params)
     local parser_defn = problem_matcher.get_parser_from_problem_matcher(params.problem_matcher)
+    local p
+    local begin_test
+    local end_test
+    local active_on_start = true
+    if parser_defn then
+      p = parser.new({ diagnostics = parser_defn })
+      local background = params.problem_matcher and params.problem_matcher.background
+      if background then
+        active_on_start = background.activeOnStart
+        begin_test = pattern_to_test(background.beginsPattern)
+        end_test = pattern_to_test(background.endsPattern)
+      end
+    end
     return {
-      parser = parser_defn and parser.new(parser_defn) or nil,
-      on_reset = function(self)
+      parser = p,
+      active = active_on_start,
+      on_reset = function(self, task, soft)
+        if not soft then
+          self.active = active_on_start
+        end
         if self.parser then
           self.parser:reset()
         end
       end,
       on_output_lines = function(self, task, lines)
         if self.parser then
-          self.parser:ingest(lines)
+          for _, line in ipairs(lines) do
+            if self.active then
+              if end_test and end_test(line) then
+                task:set_result(constants.STATUS.RUNNING, self.parser:get_result())
+                self.active = false
+              end
+            elseif begin_test and begin_test(line) then
+              self.active = true
+              task:reset(true)
+            end
+            if self.active then
+              self.parser:ingest({ line })
+            end
+          end
         end
       end,
       on_exit = function(self, task, code)
@@ -196,9 +247,12 @@ M.vscode_tasks = {
     else
       os_key = "linux"
     end
+    if content[os_key] then
+      global_defaults = vim.tbl_deep_extend("force", global_defaults, content[os_key])
+    end
     local ret = {}
     for _, task in ipairs(content.tasks) do
-      local defn = vim.tbl_deep_extend("keep", task, global_defaults)
+      local defn = vim.tbl_deep_extend("force", global_defaults, task)
       defn = vim.tbl_deep_extend("force", defn, task[os_key] or {})
       local tmpl = M.convert_vscode_task(defn)
       if tmpl then

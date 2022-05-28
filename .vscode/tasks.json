@@ -20,6 +20,24 @@
       "group": "test",
       "command": "echo",
       "args": ["${input:word}"]
+    },
+    {
+      "type": "process",
+      "label": "(vscode) background",
+      "command": "./tests/fake_background_task.sh",
+      "isBackground": true,
+      "problemMatcher": {
+        "pattern": {
+          "regexp": "^([^:]+):(\\d+)",
+          "file": 1,
+          "line": 2
+        },
+        "background": {
+          "activeOnStart": false,
+          "beginsPattern": "^START$",
+          "endsPattern": "^END$"
+        }
+      }
     }
   ],
   "inputs": [

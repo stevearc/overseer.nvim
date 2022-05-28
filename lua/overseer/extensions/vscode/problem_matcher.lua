@@ -178,6 +178,7 @@ local function convert_match_name(name)
 end
 
 local function convert_pattern(pattern, opts)
+  opts = opts or {}
   local args = {}
   local full_line_key
   local max_arg = 0
@@ -229,30 +230,38 @@ M.get_parser_from_problem_matcher = function(problem_matcher)
   if not problem_matcher then
     return nil
   end
-  local pattern = problem_matcher.pattern
   if type(problem_matcher) == "string" then
-    pattern = default_patterns[problem_matcher]
-  elseif problem_matcher.pattern then
-    pattern = problem_matcher.pattern
-  elseif problem_matcher.base then
-    pattern = default_patterns[problem_matcher.base]
+    return { convert_pattern(default_patterns[problem_matcher]) }
+  elseif type(problem_matcher.pattern) == "string" then
+    return { convert_pattern(default_patterns[problem_matcher.pattern]) }
   end
   -- NOTE: we ignore matcher.owner
   -- TODO: support matcher.fileLocation
   local qf_type = severity_to_type[problem_matcher.severity]
-  if not pattern then
-    return nil
+  local pattern = {}
+  if problem_matcher.base then
+    pattern = vim.deepcopy(default_patterns[problem_matcher.base])
   end
-  if type(pattern) == "string" then
-    pattern = default_patterns[pattern]
+
+  if not problem_matcher.pattern then
+    return { convert_pattern(pattern, { qf_type = qf_type }) }
   end
-  if vim.tbl_islist(pattern) then
+
+  if vim.tbl_islist(problem_matcher.pattern) then
     local ret = {}
-    for i, v in ipairs(pattern) do
-      table.insert(ret, convert_pattern(v, { append = i == #pattern, qf_type = qf_type }))
+    for i, v in ipairs(problem_matcher.pattern) do
+      local pat
+      if type(v) == "string" then
+        pat = vim.deepcopy(default_patterns[v])
+      else
+        pat = vim.tbl_extend("force", pattern, v)
+      end
+      local append = i == #problem_matcher.pattern
+      table.insert(ret, convert_pattern(pat, { append = append, qf_type = qf_type }))
     end
     return ret
   else
+    pattern = vim.tbl_extend("force", pattern, problem_matcher.pattern)
     return { convert_pattern(pattern, { qf_type = qf_type }) }
   end
 end
