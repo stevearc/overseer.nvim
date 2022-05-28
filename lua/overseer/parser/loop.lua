@@ -12,9 +12,6 @@ function Loop.new(opts, child)
     ignore_failure = { opts.ignore_failure, "b", true },
     repetitions = { opts.repetitions, "n", true },
   })
-  if opts.ignore_failure == nil then
-    opts.ignore_failure = true
-  end
   return setmetatable({
     ignore_failure = opts.ignore_failure,
     repetitions = opts.repetitions,

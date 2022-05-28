@@ -236,21 +236,21 @@ describe("append", function()
 end)
 
 describe("loop", function()
-  it("repeats the child, ignoring failures", function()
+  it("can propagate failures", function()
     local node = parser.loop(parser.extract("^a.*", "word"))
+    local ctx = { item = {}, results = {} }
+    assert.equals(STATUS.RUNNING, node:ingest("apple", ctx))
+    assert.equals(STATUS.FAILURE, node:ingest("foo", ctx))
+  end)
+
+  it("can ignore failures", function()
+    local node = parser.loop({ ignore_failure = true }, parser.extract("^a.*", "word"))
     local ctx = { item = {}, results = {} }
     assert.equals(STATUS.RUNNING, node:ingest("foo", ctx))
     assert.equals(STATUS.RUNNING, node:ingest("apple", ctx))
     assert.equals(STATUS.RUNNING, node:ingest("foo", ctx))
     assert.equals(STATUS.RUNNING, node:ingest("antlers", ctx))
     assert.are.same({ { word = "apple" }, { word = "antlers" } }, ctx.results)
-  end)
-
-  it("can propagate failures", function()
-    local node = parser.loop({ ignore_failure = false }, parser.extract("^a.*", "word"))
-    local ctx = { item = {}, results = {} }
-    assert.equals(STATUS.RUNNING, node:ingest("apple", ctx))
-    assert.equals(STATUS.FAILURE, node:ingest("foo", ctx))
   end)
 
   it("can loop a specific number of times", function()

@@ -24,7 +24,6 @@ M.go_stack_parser = {
   parser.skip_until("^panic: "),
   parser.skip_lines(3),
   parser.loop(
-    { ignore_failure = false },
     parser.sequence(
       parser.extract({ append = false }, { "^(.+)%(.*%)$", "^created by (.+)$" }, "text"),
       parser.extract("^%s+([^:]+.go):([0-9]+)", "filename", "lnum")

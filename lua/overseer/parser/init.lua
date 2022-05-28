@@ -38,7 +38,7 @@ local ListParser = {}
 
 function ListParser.new(children)
   return setmetatable({
-    tree = M.loop(M.sequence(unpack(children))),
+    tree = M.loop({ ignore_failure = true }, M.sequence(unpack(children))),
     results = {},
     item = {},
   }, { __index = ListParser })
@@ -70,7 +70,7 @@ function MapParser.new(children)
   for k, v in pairs(children) do
     results[k] = {}
     items[k] = {}
-    wrapped_children[k] = M.loop(M.sequence(unpack(v)))
+    wrapped_children[k] = M.loop({ ignore_failure = true }, M.sequence(unpack(v)))
   end
   return setmetatable({
     children = wrapped_children,
