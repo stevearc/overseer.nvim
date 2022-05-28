@@ -14,10 +14,12 @@ function Extract.new(opts, pattern, ...)
   opts = vim.tbl_deep_extend("keep", opts, {
     consume = true,
     append = true,
+    regex = false,
   })
   return setmetatable({
     consume = opts.consume,
     append = opts.append,
+    regex = opts.regex,
     done = nil,
     pattern = pattern,
     fields = fields,
@@ -44,7 +46,12 @@ function Extract:ingest(line, item, results)
   for _, pattern in util.iter_as_list(self.pattern) do
     local result
     if type(pattern) == "string" then
-      result = util.pack(line:match(pattern))
+      if self.regex then
+        result = vim.fn.matchlist(line, pattern)
+        table.remove(result, 1)
+      else
+        result = util.pack(line:match(pattern))
+      end
     else
       result = util.pack(pattern(line))
     end

@@ -64,6 +64,16 @@ describe("extract", function()
     assert.equals(STATUS.SUCCESS, node:ingest("next", item, results))
   end)
 
+  it("can extract via vim regex", function()
+    local node = parser.extract({ regex = true }, "\\v(\\d+):(a|b)$", "lnum", "char")
+    local item = {}
+    local results = {}
+    assert.equals(STATUS.RUNNING, node:ingest("123:b", item, results))
+    assert.is_true(vim.tbl_isempty(item))
+    assert.are.same({ { lnum = 123, char = "b" } }, results)
+    assert.equals(STATUS.SUCCESS, node:ingest("next", item, results))
+  end)
+
   it("converts extracted integers by default", function()
     local node = parser.extract("(.+):(%d+)", "file", "lnum")
     local item = {}
