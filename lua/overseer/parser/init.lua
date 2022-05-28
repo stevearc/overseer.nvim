@@ -51,8 +51,9 @@ function ListParser:reset()
 end
 
 function ListParser:ingest(lines)
+  local ctx = { item = self.item, results = self.results }
   for _, line in ipairs(lines) do
-    self.tree:ingest(line, self.item, self.results)
+    self.tree:ingest(line, ctx)
   end
 end
 
@@ -89,7 +90,8 @@ end
 function MapParser:ingest(lines)
   for _, line in ipairs(lines) do
     for k, v in pairs(self.children) do
-      v:ingest(line, self.items[k], self.results[k])
+      local ctx = { item = self.items[k], results = self.results[k] }
+      v:ingest(line, ctx)
     end
   end
 end

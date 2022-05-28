@@ -47,53 +47,48 @@ end)
 describe("extract", function()
   it("extracts nothing when no match", function()
     local node = parser.extract("hello (.+)", "name")
-    local item = {}
-    assert.equals(STATUS.FAILURE, node:ingest("foo", item))
-    assert.is_true(vim.tbl_isempty(item))
+    local ctx = { item = {} }
+    assert.equals(STATUS.FAILURE, node:ingest("foo", ctx))
+    assert.is_true(vim.tbl_isempty(ctx.item))
   end)
 
   it("extracts fields when they match", function()
     local node = parser.extract("(.+) (.+)", "action", "name")
-    local item = {}
-    local results = {}
-    assert.equals(STATUS.RUNNING, node:ingest("hello world", item, results))
-    assert.is_true(vim.tbl_isempty(item))
-    assert.equals(1, vim.tbl_count(results))
-    assert.equals("hello", results[1].action)
-    assert.equals("world", results[1].name)
-    assert.equals(STATUS.SUCCESS, node:ingest("next", item, results))
+    local ctx = { item = {}, results = {} }
+    assert.equals(STATUS.RUNNING, node:ingest("hello world", ctx))
+    assert.is_true(vim.tbl_isempty(ctx.item))
+    assert.are.same({ { action = "hello", name = "world" } }, ctx.results)
+    assert.equals(STATUS.SUCCESS, node:ingest("next", ctx))
   end)
 
   it("can extract via vim regex", function()
     local node = parser.extract({ regex = true }, "\\v(\\d+):(a|b)$", "lnum", "char")
-    local item = {}
-    local results = {}
-    assert.equals(STATUS.RUNNING, node:ingest("123:b", item, results))
-    assert.is_true(vim.tbl_isempty(item))
-    assert.are.same({ { lnum = 123, char = "b" } }, results)
-    assert.equals(STATUS.SUCCESS, node:ingest("next", item, results))
+    local ctx = { item = {}, results = {} }
+    assert.equals(STATUS.RUNNING, node:ingest("123:b", ctx))
+    assert.is_true(vim.tbl_isempty(ctx.item))
+    assert.are.same({ { lnum = 123, char = "b" } }, ctx.results)
+    assert.equals(STATUS.SUCCESS, node:ingest("next", ctx))
   end)
 
   it("converts extracted integers by default", function()
     local node = parser.extract("(.+):(%d+)", "file", "lnum")
-    local item = {}
-    local results = {}
-    assert.equals(STATUS.RUNNING, node:ingest("/tmp:123", item, results))
-    assert.is_true(vim.tbl_isempty(item))
-    assert.are.same({ { file = "/tmp", lnum = 123 } }, results)
+    local ctx = { item = {}, results = {} }
+    assert.equals(STATUS.RUNNING, node:ingest("/tmp:123", ctx))
+    assert.is_true(vim.tbl_isempty(ctx.item))
+    assert.are.same({ { file = "/tmp", lnum = 123 } }, ctx.results)
   end)
 
   it("returns success if consume = false", function()
     local node = parser.extract({ consume = false }, "(.+) (.+)", "action", "name")
-    assert.equals(STATUS.SUCCESS, node:ingest("hello world", {}, {}))
+    local ctx = { item = {}, results = {} }
+    assert.equals(STATUS.SUCCESS, node:ingest("hello world", ctx))
   end)
 
   it("modifies item in-place if append = false", function()
     local node = parser.extract({ append = false }, "(.+) (.+)", "action", "name")
-    local item = {}
-    assert.equals(STATUS.RUNNING, node:ingest("hello world", item))
-    assert.equals("hello", item.action)
-    assert.equals("world", item.name)
+    local ctx = { item = {}, results = {} }
+    assert.equals(STATUS.RUNNING, node:ingest("hello world", ctx))
+    assert.are.same({ action = "hello", name = "world" }, ctx.item)
   end)
 
   it("can use a list of strings match", function()
@@ -101,24 +96,23 @@ describe("extract", function()
       "^(a.+)$",
       "^(z.+)$",
     }, "word")
-    local item = {}
-    assert.equals(STATUS.FAILURE, node:ingest("something", item))
+    local ctx = { item = {}, results = {} }
+    assert.equals(STATUS.FAILURE, node:ingest("something", ctx))
     node:reset()
-    assert.equals(STATUS.SUCCESS, node:ingest("apple", item))
-    assert.equals("apple", item.word)
+    assert.equals(STATUS.SUCCESS, node:ingest("apple", ctx))
+    assert.equals("apple", ctx.item.word)
     node:reset()
-    assert.equals(STATUS.SUCCESS, node:ingest("zero", item))
-    assert.equals("zero", item.word)
+    assert.equals(STATUS.SUCCESS, node:ingest("zero", ctx))
+    assert.equals("zero", ctx.item.word)
   end)
 
   it("can use a function match", function()
     local node = parser.extract({ append = false }, function()
       return "greetings", "Paul"
     end, "action", "name")
-    local item = {}
-    assert.equals(STATUS.RUNNING, node:ingest("hello world", item))
-    assert.equals("greetings", item.action)
-    assert.equals("Paul", item.name)
+    local ctx = { item = {}, results = {} }
+    assert.equals(STATUS.RUNNING, node:ingest("hello world", ctx))
+    assert.are.same({ action = "greetings", name = "Paul" }, ctx.item)
   end)
 
   it("can use a list of functions match", function()
@@ -134,14 +128,14 @@ describe("extract", function()
         end
       end,
     }, "type")
-    local item = {}
-    assert.equals(STATUS.FAILURE, node:ingest("something", item))
+    local ctx = { item = {}, results = {} }
+    assert.equals(STATUS.FAILURE, node:ingest("something", ctx))
     node:reset()
-    assert.equals(STATUS.SUCCESS, node:ingest("apple", item))
-    assert.equals("alpha", item.type)
+    assert.equals(STATUS.SUCCESS, node:ingest("apple", ctx))
+    assert.equals("alpha", ctx.item.type)
     node:reset()
-    assert.equals(STATUS.SUCCESS, node:ingest("zero", item))
-    assert.equals("zeta", item.type)
+    assert.equals(STATUS.SUCCESS, node:ingest("zero", ctx))
+    assert.equals("zeta", ctx.item.type)
   end)
 
   it("can use a function to append", function()
@@ -150,42 +144,37 @@ describe("extract", function()
         results.single = item
       end,
     }, "(.+) (.+)", "action", "name")
-    local item = {}
-    local results = {}
-    assert.equals(STATUS.RUNNING, node:ingest("hello world", item, results))
-    assert.is_true(vim.tbl_isempty(item))
-    assert.equals("hello", results.single.action)
-    assert.equals("world", results.single.name)
+    local ctx = { item = {}, results = {} }
+    assert.equals(STATUS.RUNNING, node:ingest("hello world", ctx))
+    assert.is_true(vim.tbl_isempty(ctx.item))
+    assert.are.same({ action = "hello", name = "world" }, ctx.results.single)
   end)
 end)
 
 describe("extract_multiline", function()
   it("extracts lines into a single field until no match", function()
     local node = parser.extract_multiline("^.+$", "text")
-    local results = {}
-    local item = {}
-    assert.equals(STATUS.RUNNING, node:ingest("hello", item, results))
-    assert.equals(STATUS.RUNNING, node:ingest("world", item, results))
-    assert.equals(STATUS.SUCCESS, node:ingest("", item, results))
-    assert.are.same({ { text = "hello\nworld" } }, results)
+    local ctx = { item = {}, results = {} }
+    assert.equals(STATUS.RUNNING, node:ingest("hello", ctx))
+    assert.equals(STATUS.RUNNING, node:ingest("world", ctx))
+    assert.equals(STATUS.SUCCESS, node:ingest("", ctx))
+    assert.are.same({ { text = "hello\nworld" } }, ctx.results)
   end)
 
   it("returns FAILURE when no lines match", function()
     local node = parser.extract_multiline("^.+$", "text")
-    local results = {}
-    local item = {}
-    assert.equals(STATUS.FAILURE, node:ingest("", item, results))
+    local ctx = { item = {}, results = {} }
+    assert.equals(STATUS.FAILURE, node:ingest("", ctx))
   end)
 
   it("modifies item in-place if append = false", function()
     local node = parser.extract_multiline({ append = false }, "^.+$", "text")
-    local results = {}
-    local item = {}
-    assert.equals(STATUS.RUNNING, node:ingest("hello", item, results))
-    assert.equals(STATUS.RUNNING, node:ingest("world", item, results))
-    assert.equals(STATUS.SUCCESS, node:ingest("", item, results))
-    assert.are.same({ text = "hello\nworld" }, item)
-    assert.are.same({}, results)
+    local ctx = { item = {}, results = {} }
+    assert.equals(STATUS.RUNNING, node:ingest("hello", ctx))
+    assert.equals(STATUS.RUNNING, node:ingest("world", ctx))
+    assert.equals(STATUS.SUCCESS, node:ingest("", ctx))
+    assert.are.same({ text = "hello\nworld" }, ctx.item)
+    assert.are.same({}, ctx.results)
   end)
 end)
 
@@ -239,35 +228,29 @@ end)
 describe("append", function()
   it("appends item to the results", function()
     local node = parser.append()
-    local item = { foo = "bar" }
-    local results = {}
-    assert.equals(STATUS.SUCCESS, node:ingest("foo", item, results))
-    assert.equals(1, vim.tbl_count(results))
-    assert.equals("bar", results[1].foo)
-    assert.is_true(vim.tbl_isempty(item))
+    local ctx = { item = { foo = "bar" }, results = {} }
+    assert.equals(STATUS.SUCCESS, node:ingest("foo", ctx))
+    assert.are.same({ { foo = "bar" } }, ctx.results)
+    assert.is_true(vim.tbl_isempty(ctx.item))
   end)
 end)
 
 describe("loop", function()
   it("repeats the child, ignoring failures", function()
     local node = parser.loop(parser.extract("^a.*", "word"))
-    local results = {}
-    local item = {}
-    assert.equals(STATUS.RUNNING, node:ingest("foo", item, results))
-    assert.equals(STATUS.RUNNING, node:ingest("apple", item, results))
-    assert.equals(STATUS.RUNNING, node:ingest("foo", item, results))
-    assert.equals(STATUS.RUNNING, node:ingest("antlers", item, results))
-    assert.equals(2, vim.tbl_count(results))
-    assert.equals("apple", results[1].word)
-    assert.equals("antlers", results[2].word)
+    local ctx = { item = {}, results = {} }
+    assert.equals(STATUS.RUNNING, node:ingest("foo", ctx))
+    assert.equals(STATUS.RUNNING, node:ingest("apple", ctx))
+    assert.equals(STATUS.RUNNING, node:ingest("foo", ctx))
+    assert.equals(STATUS.RUNNING, node:ingest("antlers", ctx))
+    assert.are.same({ { word = "apple" }, { word = "antlers" } }, ctx.results)
   end)
 
   it("can propagate failures", function()
     local node = parser.loop({ ignore_failure = false }, parser.extract("^a.*", "word"))
-    local results = {}
-    local item = {}
-    assert.equals(STATUS.RUNNING, node:ingest("apple", item, results))
-    assert.equals(STATUS.FAILURE, node:ingest("foo", item, results))
+    local ctx = { item = {}, results = {} }
+    assert.equals(STATUS.RUNNING, node:ingest("apple", ctx))
+    assert.equals(STATUS.FAILURE, node:ingest("foo", ctx))
   end)
 
   it("can loop a specific number of times", function()
@@ -286,21 +269,19 @@ end)
 describe("sequence", function()
   it("runs child nodes in succession", function()
     local node = parser.sequence(parser.extract("^(.+) ", "word"), parser.extract(" (.+)$", "word"))
-    local results = {}
-    local item = {}
-    assert.equals(STATUS.RUNNING, node:ingest("hello there", item, results))
-    assert.equals(STATUS.RUNNING, node:ingest("seal party", item, results))
-    assert.equals(STATUS.SUCCESS, node:ingest("", item, results))
-    assert.are.same({ { word = "hello" }, { word = "party" } }, results)
+    local ctx = { item = {}, results = {} }
+    assert.equals(STATUS.RUNNING, node:ingest("hello there", ctx))
+    assert.equals(STATUS.RUNNING, node:ingest("seal party", ctx))
+    assert.equals(STATUS.SUCCESS, node:ingest("", ctx))
+    assert.are.same({ { word = "hello" }, { word = "party" } }, ctx.results)
   end)
 
   it("stops running on first failure", function()
     local node = parser.sequence(parser.extract("^(.+) ", "word"), parser.extract(" (.+)$", "word"))
-    local results = {}
-    local item = {}
-    assert.equals(STATUS.RUNNING, node:ingest("hello there", item, results))
-    assert.equals(STATUS.FAILURE, node:ingest("Kansas", item, results))
-    assert.are.same({ { word = "hello" } }, results)
+    local ctx = { item = {}, results = {} }
+    assert.equals(STATUS.RUNNING, node:ingest("hello there", ctx))
+    assert.equals(STATUS.FAILURE, node:ingest("Kansas", ctx))
+    assert.are.same({ { word = "hello" } }, ctx.results)
   end)
 
   it("has option to ignore failure", function()
@@ -310,12 +291,11 @@ describe("sequence", function()
       parser.extract(" (.+)$", "word"),
       parser.extract("(.+)$", "word")
     )
-    local results = {}
-    local item = {}
-    assert.equals(STATUS.RUNNING, node:ingest("hello there", item, results))
-    assert.equals(STATUS.RUNNING, node:ingest("Kansas", item, results))
-    assert.equals(STATUS.FAILURE, node:ingest("", item, results))
-    assert.are.same({ { word = "hello" }, { word = "Kansas" } }, results)
+    local ctx = { item = {}, results = {} }
+    assert.equals(STATUS.RUNNING, node:ingest("hello there", ctx))
+    assert.equals(STATUS.RUNNING, node:ingest("Kansas", ctx))
+    assert.equals(STATUS.FAILURE, node:ingest("", ctx))
+    assert.are.same({ { word = "hello" }, { word = "Kansas" } }, ctx.results)
   end)
 
   it("has option to finish on first success", function()
@@ -325,33 +305,27 @@ describe("sequence", function()
       parser.extract("^%d+$", "word"),
       parser.extract("(.+)$", "word")
     )
-    local results = {}
-    local item = {}
-    assert.equals(STATUS.RUNNING, node:ingest("123", item, results))
-    assert.equals(STATUS.SUCCESS, node:ingest("Kansas", item, results))
-    assert.equals(1, vim.tbl_count(results))
-    assert.equals(123, results[1].word)
+    local ctx = { item = {}, results = {} }
+    assert.equals(STATUS.RUNNING, node:ingest("123", ctx))
+    assert.equals(STATUS.SUCCESS, node:ingest("Kansas", ctx))
+    assert.are.same({ { word = 123 } }, ctx.results)
   end)
 end)
 
 describe("parallel", function()
   it("runs children in parallel", function()
     local node = parser.parallel(parser.extract("%a+", "word"), parser.extract("%d+", "num"))
-    local results = {}
-    local item = {}
-    assert.equals(STATUS.RUNNING, node:ingest("hello123", item, results))
-    assert.equals(STATUS.SUCCESS, node:ingest("", item, results))
-    assert.equals(2, vim.tbl_count(results))
-    assert.equals("hello", results[1].word)
-    assert.equals(123, results[2].num)
+    local ctx = { item = {}, results = {} }
+    assert.equals(STATUS.RUNNING, node:ingest("hello123", ctx))
+    assert.equals(STATUS.SUCCESS, node:ingest("", ctx))
+    assert.are.same({ { word = "hello" }, { num = 123 } }, ctx.results)
   end)
 
   it("stops running on first failure", function()
     local node = parser.parallel(parser.extract("%d+", "num"), parser.extract("%a+", "word"))
-    local results = {}
-    local item = {}
-    assert.equals(STATUS.FAILURE, node:ingest("hello", item, results))
-    assert.is_true(vim.tbl_isempty(results))
+    local ctx = { item = {}, results = {} }
+    assert.equals(STATUS.FAILURE, node:ingest("hello", ctx))
+    assert.is_true(vim.tbl_isempty(ctx.results))
   end)
 
   it("has option to ignore failure", function()
@@ -360,12 +334,10 @@ describe("parallel", function()
       parser.extract("%d+", "num"),
       parser.extract("%a+", "word")
     )
-    local results = {}
-    local item = {}
-    assert.equals(STATUS.RUNNING, node:ingest("hello", item, results))
-    assert.equals(STATUS.FAILURE, node:ingest("", item, results))
-    assert.equals(1, vim.tbl_count(results))
-    assert.equals("hello", results[1].word)
+    local ctx = { item = {}, results = {} }
+    assert.equals(STATUS.RUNNING, node:ingest("hello", ctx))
+    assert.equals(STATUS.FAILURE, node:ingest("", ctx))
+    assert.are.same({ { word = "hello" } }, ctx.results)
   end)
 
   it("has option to finish on first success", function()
@@ -374,12 +346,10 @@ describe("parallel", function()
       parser.extract("%a+", "word"),
       parser.extract("%d+", "num")
     )
-    local results = {}
-    local item = {}
-    assert.equals(STATUS.RUNNING, node:ingest("hello", item, results))
-    assert.equals(STATUS.SUCCESS, node:ingest("", item, results))
-    assert.equals(1, vim.tbl_count(results))
-    assert.equals("hello", results[1].word)
+    local ctx = { item = {}, results = {} }
+    assert.equals(STATUS.RUNNING, node:ingest("hello", ctx))
+    assert.equals(STATUS.SUCCESS, node:ingest("", ctx))
+    assert.are.same({ { word = "hello" } }, ctx.results)
   end)
 
   it("has option to restart children on each run", function()
@@ -387,12 +357,11 @@ describe("parallel", function()
       { restart_children = true },
       parser.sequence(parser.extract("%a+", "word"), parser.extract("%d+", "word"))
     )
-    local results = {}
-    local item = {}
-    assert.equals(STATUS.RUNNING, node:ingest("hello123", item, results))
-    assert.equals(STATUS.RUNNING, node:ingest("hello123", item, results))
-    assert.equals(STATUS.RUNNING, node:ingest("hello123", item, results))
-    assert.are.same({ { word = "hello" }, { word = "hello" }, { word = "hello" } }, results)
+    local ctx = { item = {}, results = {} }
+    assert.equals(STATUS.RUNNING, node:ingest("hello123", ctx))
+    assert.equals(STATUS.RUNNING, node:ingest("hello123", ctx))
+    assert.equals(STATUS.RUNNING, node:ingest("hello123", ctx))
+    assert.are.same({ { word = "hello" }, { word = "hello" }, { word = "hello" } }, ctx.results)
   end)
 end)
 
@@ -405,7 +374,8 @@ describe("always", function()
 
   it("propagates RUNNING", function()
     local node = parser.always(parser.extract("^(a.*)", "word"))
-    assert.equals(STATUS.RUNNING, node:ingest("apple", {}, {}))
+    local ctx = { item = {}, results = {} }
+    assert.equals(STATUS.RUNNING, node:ingest("apple", ctx))
   end)
 end)
 
@@ -437,26 +407,30 @@ end)
 describe("invert", function()
   it("Turns a failure into a success", function()
     local node = parser.invert(parser.extract({ consume = false }, "apple", "fruit"))
-    assert.equals(STATUS.SUCCESS, node:ingest("bees", {}, {}))
+    local ctx = { item = {}, results = {} }
+    assert.equals(STATUS.SUCCESS, node:ingest("bees", ctx))
   end)
 
   it("Turns a success into a failure", function()
     local node = parser.invert(parser.extract({ consume = false }, "apple", "fruit"))
-    assert.equals(STATUS.FAILURE, node:ingest("apple", {}, {}))
+    local ctx = { item = {}, results = {} }
+    assert.equals(STATUS.FAILURE, node:ingest("apple", ctx))
   end)
 
   it("Passes RUNNING through unchanged", function()
     local node = parser.invert(parser.extract("apple", "fruit"))
-    assert.equals(STATUS.RUNNING, node:ingest("apple", {}, {}))
+    local ctx = { item = {}, results = {} }
+    assert.equals(STATUS.RUNNING, node:ingest("apple", ctx))
   end)
 end)
 
 describe("until", function()
   it("returns RUNNING until child succeeds", function()
     local node = parser.ensure(parser.extract({ consume = false }, "apple", "fruit"))
-    assert.equals(STATUS.RUNNING, node:ingest("bees", {}, {}))
-    assert.equals(STATUS.RUNNING, node:ingest("Stanley", {}, {}))
-    assert.equals(STATUS.SUCCESS, node:ingest("apple", {}, {}))
+    local ctx = { item = {}, results = {} }
+    assert.equals(STATUS.RUNNING, node:ingest("bees", ctx))
+    assert.equals(STATUS.RUNNING, node:ingest("Stanley", ctx))
+    assert.equals(STATUS.SUCCESS, node:ingest("apple", ctx))
   end)
 end)
 

@@ -38,10 +38,11 @@ local function default_postprocess_field(value, _)
   return value
 end
 
-function Extract:ingest(line, item, results)
+function Extract:ingest(line, ctx)
   if self.done then
     return self.done
   end
+  local item = ctx.item
 
   local any_match = false
   for _, pattern in util.iter_as_list(self.pattern) do
@@ -83,9 +84,9 @@ function Extract:ingest(line, item, results)
   end
   if self.append then
     if type(self.append) == "function" then
-      self.append(results, vim.deepcopy(item), { line = line })
+      self.append(ctx.results, vim.deepcopy(item), { line = line })
     else
-      table.insert(results, vim.deepcopy(item))
+      table.insert(ctx.results, vim.deepcopy(item))
     end
 
     for k in pairs(item) do

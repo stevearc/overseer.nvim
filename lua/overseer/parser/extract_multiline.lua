@@ -32,10 +32,11 @@ local function append_line(item, key, value)
   end
 end
 
-function ExtractMultiline:ingest(line, item, results)
+function ExtractMultiline:ingest(line, ctx)
   if self.done then
     return self.done
   end
+  local item = ctx.item
 
   local result
   if type(self.pattern) == "string" then
@@ -57,9 +58,9 @@ function ExtractMultiline:ingest(line, item, results)
       self.done = parser.STATUS.SUCCESS
       if self.append then
         if type(self.append) == "function" then
-          self.append(results, vim.deepcopy(item))
+          self.append(ctx.results, vim.deepcopy(item))
         else
-          table.insert(results, vim.deepcopy(item))
+          table.insert(ctx.results, vim.deepcopy(item))
         end
 
         for k in pairs(item) do
