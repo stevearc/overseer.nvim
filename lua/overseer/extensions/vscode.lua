@@ -175,7 +175,6 @@ M.interpolate = function(str, params)
     -- TODO does not support ${workspacefolder:VALUE}
     -- TODO does not support ${config:VALUE}
     -- TODO does not support ${command:VALUE}
-    -- TODO INPUT
     if name == "userHome" then
       return os.getenv("HOME")
     elseif name == "workspaceFolder" then

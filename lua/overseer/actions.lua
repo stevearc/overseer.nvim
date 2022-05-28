@@ -6,7 +6,6 @@ local task_list = require("overseer.task_list")
 local task_editor = require("overseer.task_editor")
 local util = require("overseer.util")
 local STATUS = constants.STATUS
-local SLOT = constants.SLOT
 
 local M = {}
 
@@ -89,7 +88,6 @@ M.actions = {
         completion = "file",
         default = vim.fn.getcwd(0),
       }, function(dir)
-        task:remove_by_slot(SLOT.DISPOSE)
         task:set_components({
           { "on_rerun_handler", interrupt = true },
           { "rerun_on_save", dir = dir },

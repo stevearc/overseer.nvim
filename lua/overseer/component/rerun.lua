@@ -88,6 +88,7 @@ M.rerun_on_save = {
     return {
       id = nil,
       on_init = function(self, task)
+        task:inc_reference()
         self.id = vim.api.nvim_create_autocmd("BufWritePost", {
           pattern = "*",
           desc = string.format("Rerun task %s on save", task.name),
@@ -103,6 +104,7 @@ M.rerun_on_save = {
         })
       end,
       on_dispose = function(self, task)
+        task:dec_reference()
         vim.api.nvim_del_autocmd(self.id)
         self.id = nil
       end,

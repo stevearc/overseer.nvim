@@ -25,7 +25,7 @@ M.update = function(task)
     rerender()
     return
   end
-  if task.disposed then
+  if task:is_disposed() then
     return
   end
   if not lookup[task.id] then

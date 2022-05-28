@@ -1,4 +1,5 @@
 local constants = require("overseer.constants")
+local parser = require("overseer.parser")
 local util = require("overseer.util")
 local STATUS = constants.STATUS
 local SLOT = constants.SLOT
@@ -6,7 +7,7 @@ local M = {}
 
 M.result_exit_code = {
   name = "result_exit_code",
-  description = "Exit code finalizer",
+  description = "Sets status based on exit code",
   slot = SLOT.RESULT,
   constructor = function()
     return {
@@ -17,6 +18,24 @@ M.result_exit_code = {
     }
   end,
 }
+
+M.result_with_parser_constructor = function(parser_defn)
+  return function()
+    return {
+      parser = parser.new(parser_defn),
+      on_reset = function(self)
+        self.parser:reset()
+      end,
+      on_output_lines = function(self, task, lines)
+        self.parser:ingest(lines)
+      end,
+      on_exit = function(self, task, code)
+        local status = code == 0 and STATUS.SUCCESS or STATUS.FAILURE
+        task:set_result(status, self.parser:get_result())
+      end,
+    }
+  end
+end
 
 -- Looks for a result value of 'diagnostics' that is a list of quickfix items
 M.on_result_diagnostics_quickfix = {

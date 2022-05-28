@@ -1,7 +1,7 @@
 local overseer = require("overseer")
 local constants = require("overseer.constants")
 local parser = require("overseer.parser")
-local STATUS = constants.STATUS
+local result = require("overseer.component.result")
 local SLOT = constants.SLOT
 local M = {}
 
@@ -42,24 +42,10 @@ M.result_go_test = {
   name = "result_go_test",
   description = "Parse go test output",
   slot = SLOT.RESULT,
-  constructor = function()
-    return {
-      parser = overseer.parser.new({
-        stacktrace = M.go_stack_parser,
-        diagnostics = M.go_test_fail_parser,
-      }),
-      on_reset = function(self)
-        self.parser:reset()
-      end,
-      on_output_lines = function(self, task, lines)
-        self.parser:ingest(lines)
-      end,
-      on_exit = function(self, task, code)
-        local status = code == 0 and STATUS.SUCCESS or STATUS.FAILURE
-        task:set_result(status, self.parser:get_result())
-      end,
-    }
-  end,
+  constructor = result.result_with_parser_constructor({
+    stacktrace = M.go_stack_parser,
+    diagnostics = M.go_test_fail_parser,
+  }),
 }
 
 return M

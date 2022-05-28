@@ -38,7 +38,6 @@ function Task.new_uninitialized(opts)
   local data = {
     result = nil,
     _references = 0,
-    disposed = false,
     status = STATUS.PENDING,
     cmd = opts.cmd,
     cwd = opts.cwd,
@@ -287,12 +286,20 @@ function Task:has_component(name)
   return vim.tbl_isempty(new_comps)
 end
 
+function Task:is_pending()
+  return self.status == STATUS.PENDING
+end
+
 function Task:is_running()
   return self.status == STATUS.RUNNING
 end
 
 function Task:is_complete()
   return self.status ~= STATUS.PENDING and self.status ~= STATUS.RUNNING
+end
+
+function Task:is_disposed()
+  return self.status == STATUS.DISPOSED
 end
 
 function Task:reset()
@@ -310,6 +317,10 @@ function Task:reset()
     end
   end, 2000)
   self.bufnr = nil
+  if self.chan_id then
+    vim.fn.jobstop(self.chan_id)
+    self.chan_id = nil
+  end
   task_list.touch_task(self)
   self:dispatch("on_reset")
 end
@@ -320,7 +331,7 @@ function Task:dispatch(name, ...)
       comp[name](comp, self, ...)
     end
   end
-  if self.id and not self.disposed then
+  if self.id and not self:is_disposed() then
     task_list.update(self)
   end
 end
@@ -336,14 +347,6 @@ function Task:set_result(status, data)
   self.status = status
   self.result = data or {}
   self:dispatch("on_result", status, self.result)
-
-  -- Cleanup
-  -- Forcibly stop here because if we set the result before the process has
-  -- exited, then we need to stop the process. Otherwise if we re-run the task
-  -- the previous job may still be ongoing, and its callbacks will interfere
-  -- with ours.
-  vim.fn.jobstop(self.chan_id)
-  self.chan_id = nil
   self:dispatch("on_finalize")
 end
 
@@ -359,7 +362,7 @@ function Task:dispose(force)
   vim.validate({
     force = { force, "b", true },
   })
-  if self.disposed or (self._references > 0 and not force) then
+  if self:is_disposed() or (self._references > 0 and not force) then
     return false
   end
   -- Can't dispose if the terminal is open
@@ -368,7 +371,6 @@ function Task:dispose(force)
       return false
     end
   end
-  self.disposed = true
   if self:is_running() then
     if force then
       -- If we're forcing the dispose, remove the ability to rerun, then stop,
@@ -378,6 +380,11 @@ function Task:dispose(force)
     else
       error("Cannot call dispose on running task")
     end
+  end
+  self.status = STATUS.DISPOSED
+  if self.chan_id then
+    vim.fn.jobstop(self.chan_id)
+    self.chan_id = nil
   end
   self:dispatch("on_dispose")
   task_list.remove(self)
@@ -395,7 +402,8 @@ function Task:rerun(force_stop)
   self:dispatch("on_request_rerun")
 end
 
-function Task:__on_exit(_job_id, code)
+function Task:_on_exit(_job_id, code)
+  self.chan_id = nil
   if not self:is_running() then
     -- We've already finalized, so we probably canceled this task
     return
@@ -416,7 +424,7 @@ function Task:start()
     )
     return false
   end
-  if self.disposed then
+  if self:is_disposed() then
     vim.notify(
       string.format("Cannot start task '%s' that has been disposed", self.name),
       vim.log.levels.ERROR
@@ -443,7 +451,7 @@ function Task:start()
         end
       end,
       on_exit = function(j, c)
-        self:__on_exit(j, c)
+        self:_on_exit(j, c)
       end,
     })
   end)

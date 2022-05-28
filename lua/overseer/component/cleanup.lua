@@ -1,11 +1,8 @@
-local constants = require("overseer.constants")
-local SLOT = constants.SLOT
 local M = {}
 
 M.dispose_delay = {
   name = "dispose_delay",
   description = "Dispose task after a timeout",
-  slot = SLOT.DISPOSE,
   params = {
     timeout = {
       description = "Time to wait (in seconds) before disposing",

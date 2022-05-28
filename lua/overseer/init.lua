@@ -8,12 +8,15 @@ local window = require("overseer.window")
 local M = {}
 
 -- TODO
--- * Many more task templates, especially for tests
+-- * Maybe get rid of component slots. Just make result setters idempotent
 -- * Load VSCode task definitions
 --   * problemMatcher
+--     * schema type 'opaque'
 --   * Auto tasks for npm, gulp, grunt, jake, and typescript.
---   * Background/watching tasks
+--   * Background/watching tasks (results streaming?)
 --   * dependsOn/dependsOrder
+-- * Components can set serializable = false
+-- * Many more task templates, especially for tests
 -- * Add tests
 -- * More schema validations (callback, non-empty list, number greater than, enum, list[enum])
 --   * list params allow escaping / quotes / specifying delimiter
