@@ -1,6 +1,121 @@
 local parser = require("overseer.parser")
 local M = {}
 
+-- Taken from https://github.com/microsoft/vscode/blob/main/src/vs/workbench/contrib/tasks/common/problemMatcher.ts#L1207
+local default_patterns = {
+  ["$msCompile"] = {
+    regexp = "^(?:\\s+\\d+>)?(\\S.*)\\((\\d+|\\d+,\\d+|\\d+,\\d+,\\d+,\\d+)\\)\\s*:\\s+(error|warning|info)\\s+(\\w+\\d+)\\s*:\\s*(.*)$",
+    kind = "location",
+    file = 1,
+    location = 2,
+    severity = 3,
+    code = 4,
+    message = 5,
+  },
+  ["$gulp-tsc"] = {
+    regexp = "^([^\\s].*)\\((\\d+|\\d+,\\d+|\\d+,\\d+,\\d+,\\d+)\\):\\s+(\\d+)\\s+(.*)$",
+    kind = "location",
+    file = 1,
+    location = 2,
+    code = 3,
+    message = 4,
+  },
+  ["$cpp"] = {
+    regexp = "^(\\S.*)\\((\\d+|\\d+,\\d+|\\d+,\\d+,\\d+,\\d+)\\):\\s+(error|warning|info)\\s+(C\\d+)\\s*:\\s*(.*)$",
+    kind = "location",
+    file = 1,
+    location = 2,
+    severity = 3,
+    code = 4,
+    message = 5,
+  },
+  ["$csc"] = {
+    regexp = "^(\\S.*)\\((\\d+|\\d+,\\d+|\\d+,\\d+,\\d+,\\d+)\\):\\s+(error|warning|info)\\s+(CS\\d+)\\s*:\\s*(.*)$",
+    kind = "location",
+    file = 1,
+    location = 2,
+    severity = 3,
+    code = 4,
+    message = 5,
+  },
+  ["$vb"] = {
+    regexp = "^(\\S.*)\\((\\d+|\\d+,\\d+|\\d+,\\d+,\\d+,\\d+)\\):\\s+(error|warning|info)\\s+(BC\\d+)\\s*:\\s*(.*)$",
+    kind = "location",
+    file = 1,
+    location = 2,
+    severity = 3,
+    code = 4,
+    message = 5,
+  },
+  ["$lessCompile"] = {
+    regexp = "^\\s*(.*) in file (.*) line no. (\\d+)$",
+    kind = "location",
+    message = 1,
+    file = 2,
+    line = 3,
+  },
+  ["$jshint"] = {
+    regexp = "^(.*):\\s+line\\s+(\\d+),\\s+col\\s+(\\d+),\\s(.+?)(?:\\s+\\((\\w)(\\d+)\\))?$",
+    kind = "location",
+    file = 1,
+    line = 2,
+    character = 3,
+    message = 4,
+    severity = 5,
+    code = 6,
+  },
+  ["$jshint-stylish"] = {
+    {
+      regexp = "^(.+)$",
+      kind = "location",
+      file = 1,
+    },
+    {
+      regexp = "^\\s+line\\s+(\\d+)\\s+col\\s+(\\d+)\\s+(.+?)(?:\\s+\\((\\w)(\\d+)\\))?$",
+      line = 1,
+      character = 2,
+      message = 3,
+      severity = 4,
+      code = 5,
+      loop = true,
+    },
+  },
+  ["$eslint-compact"] = {
+    regexp = "^(.+):\\sline\\s(\\d+),\\scol\\s(\\d+),\\s(Error|Warning|Info)\\s-\\s(.+)\\s\\((.+)\\)$",
+    file = 1,
+    kind = "location",
+    line = 2,
+    character = 3,
+    severity = 4,
+    message = 5,
+    code = 6,
+  },
+  ["$eslint-stylish"] = {
+    {
+      regexp = "^((?:[a-zA-Z]:)*[./\\\\]+.*?)$",
+      kind = "location",
+      file = 1,
+    },
+    {
+      regexp = "^\\s+(\\d+):(\\d+)\\s+(error|warning|info)\\s+(.+?)(?:\\s\\s+(.*))?$",
+      line = 1,
+      character = 2,
+      severity = 3,
+      message = 4,
+      code = 5,
+      loop = true,
+    },
+  },
+  ["$go"] = {
+    regexp = "^([^:]*: )?((.:)?[^:]*):(\\d+)(:(\\d+))?: (.*)$",
+    kind = "location",
+    file = 2,
+    line = 4,
+    character = 6,
+    message = 7,
+  },
+}
+
 local severity_to_type = {
   error = "E",
   warning = "W",
@@ -53,7 +168,7 @@ local function convert_match_name(name)
       end,
     }
   elseif name == "code" then
-    -- TODO this won't do anything
+    -- TODO we don't have a use for the code at the moment
     return "code"
   elseif name == "message" then
     return "text"
@@ -65,6 +180,7 @@ end
 local function convert_pattern(pattern, opts)
   local args = {}
   local full_line_key
+  local max_arg = 0
   for _, v in ipairs(match_names) do
     local i = pattern[v]
     if not i then
@@ -77,7 +193,17 @@ local function convert_pattern(pattern, opts)
         full_line_key = "text"
       end
     else
+      if i > max_arg then
+        max_arg = i
+      end
       args[i] = convert_match_name(v)
+    end
+  end
+  -- We have to fill in the holes, otherwise this won't be treated as a
+  -- list-like table
+  for i = 1, max_arg do
+    if not args[i] then
+      args[i] = "_"
     end
   end
   local extract_opts = {
@@ -103,24 +229,22 @@ M.get_parser_from_problem_matcher = function(problem_matcher)
   if not problem_matcher then
     return nil
   end
+  local pattern = problem_matcher.pattern
   if type(problem_matcher) == "string" then
-    -- TODO support builtin matchers
-    return nil
-  end
-  if problem_matcher.base then
-    -- TODO support builtin matchers
-    return nil
+    pattern = default_patterns[problem_matcher]
+  elseif problem_matcher.pattern then
+    pattern = problem_matcher.pattern
+  elseif problem_matcher.base then
+    pattern = default_patterns[problem_matcher.base]
   end
   -- NOTE: we ignore matcher.owner
   -- TODO: support matcher.fileLocation
   local qf_type = severity_to_type[problem_matcher.severity]
-  local pattern = problem_matcher.pattern
   if not pattern then
     return nil
   end
   if type(pattern) == "string" then
-    -- TODO support builtin matchers
-    return nil
+    pattern = default_patterns[pattern]
   end
   if vim.tbl_islist(pattern) then
     local ret = {}

@@ -248,5 +248,20 @@ describe("vscode", function()
         },
       }, parse:get_result())
     end)
+
+    it("can use built in parsers", function()
+      local parse = parser.new(problem_matcher.get_parser_from_problem_matcher({
+        pattern = "$go",
+      }))
+      parse:ingest({ "my_test.go:307: Expected 'Something' received 'Nothing'" })
+      local results = parse:get_result()
+      assert.are.same({
+        {
+          lnum = 307,
+          filename = "my_test.go",
+          text = "Expected 'Something' received 'Nothing'",
+        },
+      }, results)
+    end)
   end)
 end)

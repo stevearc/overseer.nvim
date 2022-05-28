@@ -67,7 +67,9 @@ function Extract:ingest(line, ctx)
           key = field
           postprocess = default_postprocess_field
         end
-        item[key] = postprocess(result[i], { item = item, field = key })
+        if key ~= "_" then
+          item[key] = postprocess(result[i], { item = item, field = key })
+        end
       end
     end
     if any_match then
