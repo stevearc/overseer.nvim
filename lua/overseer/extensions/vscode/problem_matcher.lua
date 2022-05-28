@@ -114,8 +114,100 @@ local default_patterns = {
     character = 6,
     message = 7,
   },
+  -- from https://github.com/microsoft/vscode/blob/main/extensions/typescript-language-features/package.json#L1396
+  ["$tsc"] = {
+    regexp = "^([^\\s].*)[\\( =](\\d+)[, =](\\d+)(? =\\) =\\s+|\\s+-\\s+)(error|warning|info)\\s+TS(\\d+)\\s* =\\s*(.*)$",
+    file = 1,
+    line = 2,
+    column = 3,
+    severity = 4,
+    code = 5,
+    message = 6,
+  },
+  -- from https://github.com/microsoft/vscode/blob/main/extensions/cpp/package.json#L95
+  ["$nvcc-location"] = {
+    regexp = "^(.*)\\((\\d+)\\):\\s+(warning|error):\\s+(.*)",
+    kind = "location",
+    file = 1,
+    location = 2,
+    severity = 3,
+    message = 4,
+  },
 }
-local default_matchers = {}
+
+local default_matchers = {
+  -- from https://github.com/microsoft/vscode/blob/main/extensions/typescript-language-features/package.json#L1396
+  ["$tsc"] = {
+    owner = "typescript",
+    source = "ts",
+    applyTo = "closedDocuments",
+    fileLocation = { "relative", "${cwd}" },
+    pattern = "$tsc",
+  },
+  ["$tsc-watch"] = {
+    fileLocation = { "relative", "${cwd}" },
+    pattern = "$tsc",
+    background = {
+      activeOnStart = true,
+      beginsPattern = {
+        regexp = "^\\s*(?:message TS6032:|\\[?\\D*.{1,2}[:.].{1,2}[:.].{1,2}\\D*(├\\D*\\d{1,2}\\D+┤)?(?:\\]| -)) File change detected\\. Starting incremental compilation\\.\\.\\.",
+      },
+      endsPattern = {
+        regexp = "^\\s*(?:message TS6042:|\\[?\\D*.{1,2}[:.].{1,2}[:.].{1,2}\\D*(├\\D*\\d{1,2}\\D+┤)?(?:\\]| -)) (?:Compilation complete\\.|Found \\d+ errors?\\.) Watching for file changes\\.",
+      },
+    },
+  },
+  -- from https://github.com/microsoft/vscode/blob/main/extensions/cpp/package.json#L95
+  ["$nvcc"] = {
+    fileLocation = { "relative", "${workspaceFolder}" },
+    pattern = "$nvcc-location",
+  },
+  -- from https://github.com/microsoft/vscode/blob/main/extensions/scss/package.json#L43
+  ["$node-sass"] = {
+    fileLocation = "absolute",
+    pattern = {
+      {
+        regexp = "^{$",
+      },
+      {
+        regexp = '\\s*"status":\\s\\d+,',
+      },
+      {
+        regexp = '\\s*"file":\\s"(.*)",',
+        file = 1,
+      },
+      {
+        regexp = '\\s*"line":\\s(\\d+),',
+        line = 1,
+      },
+      {
+        regexp = '\\s*"column":\\s(\\d+),',
+        column = 1,
+      },
+      {
+        regexp = '\\s*"message":\\s"(.*)",',
+        message = 1,
+      },
+      {
+        regexp = '\\s*"formatted":\\s(.*)',
+      },
+      {
+        regexp = "^}$",
+      },
+    },
+  },
+  -- from https://github.com/microsoft/vscode/blob/main/extensions/less/package.json#L39
+  ["$lessc"] = {
+    fileLocation = "absolute",
+    pattern = {
+      regexp = "(.*)\\sin\\s(.*)\\son line\\s(\\d+),\\scolumn\\s(\\d+)",
+      message = 1,
+      file = 2,
+      line = 3,
+      column = 4,
+    },
+  },
+}
 
 local severity_to_type = {
   error = "E",
