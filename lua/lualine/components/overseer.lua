@@ -43,6 +43,7 @@ local M = require("lualine.component"):extend()
 local constants = require("overseer.constants")
 local task_list = require("overseer.task_list")
 local util = require("overseer.util")
+local utils = require("lualine.utils.utils")
 
 local default_icons = {
   [constants.STATUS.FAILURE] = " ",
@@ -65,6 +66,14 @@ function M:init(options)
   if self.options.colored == nil then
     self.options.colored = true
   end
+  if self.options.colored then
+    self.highlight_groups = {}
+    for _, status in ipairs(constants.STATUS.values) do
+      local hl = string.format("Overseer%s", status)
+      local color = { fg = utils.extract_color_from_hllist("fg", { hl }) }
+      self.highlight_groups[status] = self:create_hl(color, status)
+    end
+  end
   self.symbols = vim.tbl_extend(
     "keep",
     self.options.symbols or {},
@@ -82,13 +91,9 @@ function M:update_status()
   for _, status in ipairs(constants.STATUS.values) do
     local status_tasks = tasks_by_status[status]
     if self.symbols[status] and status_tasks then
-      local hl_start = "%#" .. string.format("Overseer%s", status) .. "#"
-      local hl_end = "%0"
       if self.options.colored then
-        table.insert(
-          pieces,
-          string.format("%s%s%s %s", hl_start, self.symbols[status], hl_end, #status_tasks)
-        )
+        local hl_start = self:format_hl(self.highlight_groups[status])
+        table.insert(pieces, string.format("%s%s%s", hl_start, self.symbols[status], #status_tasks))
       else
         table.insert(pieces, string.format("%s %s", self.symbols[status], #status_tasks))
       end

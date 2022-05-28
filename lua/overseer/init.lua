@@ -8,7 +8,6 @@ local window = require("overseer.window")
 local M = {}
 
 -- TODO
--- * fix lualine bg color
 -- * { } to navigate task list
 -- * Many more task templates, especially for tests
 -- * Load VSCode task definitions
