@@ -1,8 +1,6 @@
 local overseer = require("overseer")
-local constants = require("overseer.constants")
 local parser = require("overseer.parser")
 local result = require("overseer.component.result")
-local SLOT = constants.SLOT
 local M = {}
 
 M.go_test = {
@@ -41,7 +39,6 @@ M.go_test_fail_parser = {
 M.result_go_test = {
   name = "result_go_test",
   description = "Parse go test output",
-  slot = SLOT.RESULT,
   constructor = result.result_with_parser_constructor({
     stacktrace = M.go_stack_parser,
     diagnostics = M.go_test_fail_parser,

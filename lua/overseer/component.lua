@@ -41,7 +41,6 @@ end
 M.register = function(opts)
   vim.validate({
     name = { opts.name, "s" },
-    slot = { opts.name, "s", true },
     description = { opts.description, "s", true },
     params = { opts.params, "t", true },
     constructor = { opts.constructor, "f" },
@@ -184,7 +183,6 @@ local function instantiate(comp_params, component)
   obj.name = getname(comp_params)
   obj.params = comp_params
   obj.description = component.description
-  obj.slot = component.slot
   return obj
 end
 

@@ -45,7 +45,6 @@ function Task.new_uninitialized(opts)
     name = name,
     bufnr = nil,
     prev_bufnr = nil,
-    slots = {},
     components = {},
   }
   local task = setmetatable(data, { __index = Task })
@@ -165,15 +164,9 @@ function Task:add_components(components)
   })
   local new_comps = component.resolve(components, self.components)
   for _, v in ipairs(component.load(new_comps)) do
-    -- Only add the component if the slot isn't taken
-    if not v.slot or not self.slots[v.slot] then
-      if v.slot then
-        self.slots[v.slot] = v.name
-      end
-      table.insert(self.components, v)
-      if v.on_init then
-        v:on_init(self)
-      end
+    table.insert(self.components, v)
+    if v.on_init then
+      v:on_init(self)
     end
   end
 end
@@ -203,9 +196,6 @@ function Task:set_components(components)
       end
     end
     if replaced or not found then
-      if new_comp.slot then
-        self.slots[new_comp.slot] = new_comp.name
-      end
       if not replaced then
         table.insert(self.components, new_comp)
       end
@@ -254,30 +244,11 @@ function Task:remove_components(names)
   for i = #indexes, 1, -1 do
     local idx = indexes[i]
     local comp = table.remove(self.components, idx)
-    if comp.slot then
-      self.slots[comp.slot] = nil
-    end
     if comp.on_dispose then
       comp:on_dispose(self)
     end
   end
   return ret
-end
-
-function Task:remove_by_slot(slot)
-  vim.validate({
-    slot = { slot, "s" },
-  })
-  if self.slots[slot] then
-    self:remove_component(self.slots[slot])
-  end
-end
-
-function Task:has_slot(slot)
-  vim.validate({
-    slot = { slot, "s" },
-  })
-  return self.slots[slot] ~= nil
 end
 
 function Task:has_component(name)

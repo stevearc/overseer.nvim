@@ -88,18 +88,10 @@ M.open = function(task, task_cb)
       end
     end
 
-    local seen_slots = {}
     for _, params in ipairs(components) do
       local comp = component.get(params[1])
       local line = comp.name
       table.insert(highlights, { "OverseerComponent", #lines + 1, 0, string.len(comp.name) })
-      if comp.slot then
-        local prev_len = string.len(line)
-        line = string.format("%s [%s]", line, comp.slot)
-        local hl = seen_slots[comp.slot] and "DiagnosticError" or "OverseerSlot"
-        table.insert(highlights, { hl, #lines + 1, prev_len + 1, string.len(line) })
-        seen_slots[comp.slot] = true
-      end
       if comp.description then
         local prev_len = string.len(line)
         line = string.format("%s (%s)", line, comp.description)
@@ -303,15 +295,8 @@ M.open = function(task, task_cb)
     if task_name:match("^%s*$") then
       return
     end
-    local slots = {}
     for _, params in ipairs(components) do
       local comp = component.get(params[1])
-      if comp.slot then
-        if slots[comp.slot] then
-          return
-        end
-        slots[comp.slot] = true
-      end
 
       local schema = comp.params
       for k, param_schema in pairs(schema) do

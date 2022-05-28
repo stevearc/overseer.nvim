@@ -2,13 +2,11 @@ local constants = require("overseer.constants")
 local parser = require("overseer.parser")
 local util = require("overseer.util")
 local STATUS = constants.STATUS
-local SLOT = constants.SLOT
 local M = {}
 
 M.result_exit_code = {
   name = "result_exit_code",
   description = "Sets status based on exit code",
-  slot = SLOT.RESULT,
   constructor = function()
     return {
       on_exit = function(self, task, code)

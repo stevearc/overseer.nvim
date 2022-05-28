@@ -8,7 +8,6 @@ local window = require("overseer.window")
 local M = {}
 
 -- TODO
--- * Maybe get rid of component slots. Just make result setters idempotent
 -- * Load VSCode task definitions
 --   * problemMatcher
 --     * schema type 'opaque'
@@ -42,7 +41,6 @@ M.setup = function(opts)
     hi default link OverseerTask Title
     hi default link OverseerTaskBorder FloatBorder
     hi default link OverseerOutput Normal
-    hi default link OverseerSlot String
     hi default link OverseerComponent Constant
     hi default link OverseerField Keyword
   ]])

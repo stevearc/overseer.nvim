@@ -4,7 +4,6 @@ local files = require("overseer.files")
 local parser = require("overseer.parser")
 local util = require("overseer.util")
 local STATUS = constants.STATUS
-local SLOT = constants.SLOT
 local M = {}
 
 M.busted_test = {
@@ -55,7 +54,6 @@ M.plenary_busted_test_parser = {
 M.result_plenary_busted_test = {
   name = "result_plenary_busted_test",
   description = "Parse busted test output from plenary.nvim",
-  slot = SLOT.RESULT,
   constructor = function()
     return {
       parser = overseer.parser.new({
