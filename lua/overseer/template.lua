@@ -13,7 +13,7 @@ M.is_template = function(obj)
   if obj._type == "OverseerTemplate" then
     return true
   end
-  if obj.name and obj.params and obj.builder then
+  if obj.name and obj.params and (obj.builder or obj.metagen) then
     return true
   end
   return false
@@ -122,9 +122,12 @@ function Template.new(opts)
     description = { opts.description, "s", true },
     tags = { opts.tags, "t", true },
     params = { opts.params, "t" },
-    builder = { opts.builder, "f" },
+    builder = { opts.builder, "f", true },
     metagen = { opts.metagen, "f", true },
   })
+  if not opts.builder and not opts.metagen then
+    error("Template must have one of: builder, metagen")
+  end
   opts._type = "OverseerTemplate"
   if opts.condition then
     vim.validate({

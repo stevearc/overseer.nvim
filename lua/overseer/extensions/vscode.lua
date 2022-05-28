@@ -99,16 +99,16 @@ M.convert_vscode_task = function(defn)
     builder = function(self, params)
       local task = {
         name = defn.label,
-        cmd = M.interpolate(cmd, params),
+        cmd = M.replace_vars(cmd, params),
       }
       if opt then
         if opt.cwd then
-          task.cwd = M.interpolate(opt.cwd, params)
+          task.cwd = M.replace_vars(opt.cwd, params)
         end
         if opt.env then
           local env = {}
           for k, v in pairs(opt.env) do
-            env[k] = M.interpolate(v, params)
+            env[k] = M.replace_vars(v, params)
           end
           task.env = env
         end
@@ -161,11 +161,11 @@ M.get_selected_text = function()
   return table.concat(lines, "\n")
 end
 
-M.interpolate = function(str, params)
+M.replace_vars = function(str, params)
   if type(str) == "table" then
     local ret = {}
     for _, substr in ipairs(str) do
-      local interp = M.interpolate(substr, params)
+      local interp = M.replace_vars(substr, params)
       table.insert(ret, interp)
     end
     return ret
@@ -206,7 +206,7 @@ M.interpolate = function(str, params)
     elseif name == "execPath" then
       return "code"
     elseif name == "defaultBuildTask" then
-      -- FIXME
+      -- FIXME dynamic call to find default build task
       return "BUILD"
     elseif name == "pathSeparator" then
       return files.sep
