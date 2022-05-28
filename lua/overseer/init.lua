@@ -9,10 +9,11 @@ local M = {}
 
 -- TODO
 -- * Load VSCode task definitions
---   * problemMatcher
---   * Auto tasks for npm, gulp, grunt, jake, and typescript.
---   * Background/watching tasks (results streaming?)
+--   * isBackground
+--   * enum schema for pickString
 --   * dependsOn/dependsOrder
+--   * isDefault
+--   * Auto tasks for npm, gulp, grunt, jake, and typescript.
 -- * Components can set serializable = false
 -- * Many more task templates, especially for tests
 -- * Add tests
@@ -37,6 +38,7 @@ M.setup = function(opts)
     hi default link OverseerSUCCESS DiagnosticInfo
     hi default link OverseerCANCELED DiagnosticWarn
     hi default link OverseerFAILURE DiagnosticError
+    hi default link OverseerDISPOSED Comment
     hi default link OverseerTask Title
     hi default link OverseerTaskBorder FloatBorder
     hi default link OverseerOutput Normal

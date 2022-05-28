@@ -136,7 +136,7 @@ M.convert_vscode_task = function(defn)
   -- NOTE: we ignore defn.presentation
   -- NOTE: we intentionally do nothing with defn.runOptions.
   -- runOptions.reevaluateOnRun unfortunately doesn't mesh with how we re-run tasks
-  -- runOptions.runOn allows tasks ot auto-run, which I philosophically oppose
+  -- runOptions.runOn allows tasks to auto-run, which I philosophically oppose
   return template.new(tmpl)
 end
 

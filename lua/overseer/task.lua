@@ -476,6 +476,10 @@ function Task:stop()
     return false
   end
   self:set_result(STATUS.CANCELED)
+  if self.chan_id then
+    vim.fn.jobstop(self.chan_id)
+    self.chan_id = nil
+  end
   return true
 end
 
