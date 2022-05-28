@@ -2,7 +2,7 @@ local component = require("overseer.component")
 local template = require("overseer.template")
 local M = {}
 
-local builtin_modules = { "go", "make", "npm", "nvim_lua", "tox" }
+local builtin_modules = { "go", "make", "npm", "nvim_lua", "tox", "vscode" }
 
 M.register = function(name)
   if name == "builtin" then

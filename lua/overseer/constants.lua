@@ -6,6 +6,6 @@ M.STATUS = Enum.new({ "PENDING", "RUNNING", "CANCELED", "SUCCESS", "FAILURE" })
 
 M.SLOT = Enum.new({ "RESULT", "DISPOSE" })
 
-M.TAG = Enum.new({ "TEST" })
+M.TAG = Enum.new({ "BUILD", "TEST" })
 
 return M

@@ -10,6 +10,11 @@ local M = {}
 -- TODO
 -- * Many more task templates, especially for tests
 -- * Load VSCode task definitions
+--   * command options
+--   * problemMatcher
+--   * Auto tasks for npm, gulp, grunt, jake, and typescript.
+--   * Background/watching tasks
+--   * dependsOn/dependsOrder
 -- * Add tests
 -- * More schema validations (callback, non-empty list, number greater than, enum, list[enum])
 --   * list params allow escaping / quotes / specifying delimiter

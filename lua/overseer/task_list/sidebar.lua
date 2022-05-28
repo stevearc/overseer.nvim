@@ -46,7 +46,7 @@ function Sidebar.new()
 
   local tl = setmetatable({
     bufnr = bufnr,
-    default_detail = config.default_detail,
+    default_detail = config.sidebar.default_detail,
     task_detail = {},
     task_lines = {},
   }, { __index = Sidebar })
