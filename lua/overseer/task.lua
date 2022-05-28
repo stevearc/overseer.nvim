@@ -22,6 +22,7 @@ function Task.new_uninitialized(opts)
   vim.validate({
     -- cmd can be table or string
     cwd = { opts.cwd, "s", true },
+    env = { opts.env, "t", true },
     name = { opts.name, "s", true },
     components = { opts.components, "t", true },
   })
@@ -41,7 +42,7 @@ function Task.new_uninitialized(opts)
     status = STATUS.PENDING,
     cmd = opts.cmd,
     cwd = opts.cwd,
-    cmd_dir = nil,
+    env = opts.env,
     name = name,
     bufnr = nil,
     prev_bufnr = nil,
@@ -146,6 +147,7 @@ function Task:serialize()
     name = self.name,
     cmd = self.cmd,
     cwd = self.cwd,
+    env = self.env,
     components = components,
   }
 end
@@ -300,7 +302,6 @@ function Task:reset()
   end
   self.status = STATUS.PENDING
   self.result = nil
-  self.cmd_dir = nil
   local bufnr = self.bufnr
   self.prev_bufnr = bufnr
   vim.defer_fn(function()
@@ -433,6 +434,7 @@ function Task:start()
   vim.api.nvim_buf_call(self.bufnr, function()
     chan_id = vim.fn.termopen(self.cmd, {
       cwd = self.cwd,
+      env = self.env,
       on_stdout = function(j, d)
         self:dispatch("on_output", d)
         local lines = stdout_iter(d)
@@ -445,7 +447,6 @@ function Task:start()
       end,
     })
   end)
-  self.cmd_dir = self.cwd or vim.fn.getcwd(0)
   vim.api.nvim_buf_set_option(self.bufnr, "buflisted", false)
 
   -- If this task's previous buffer was open in any wins, replace it

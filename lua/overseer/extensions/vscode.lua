@@ -32,6 +32,9 @@ M.get_cmd = function(defn)
 end
 
 local function parse_params(params, str, inputs)
+  if not str then
+    return
+  end
   for name in string.gmatch(str, "%${input:(%a+)}") do
     local schema = inputs[name]
     if schema then
@@ -62,7 +65,17 @@ M.parse_params = function(defn)
       parse_params(params, arg, input_lookup)
     end
   end
-  -- FIXME find input variables in opts
+
+  local opt = defn.options
+  if opt then
+    parse_params(params, opt.cwd, input_lookup)
+    if opt.env then
+      for _, v in pairs(opt.env) do
+        parse_params(params, v, input_lookup)
+      end
+    end
+  end
+  -- TODO opt.shell not supported yet
 
   return params
 end
@@ -78,15 +91,30 @@ M.convert_vscode_task = function(defn)
     return nil
   end
   local cmd = M.get_cmd(defn)
+  local opt = defn.options
 
   local tmpl = {
     name = defn.label,
     params = M.parse_params(defn),
     builder = function(self, params)
-      return {
+      local task = {
         name = defn.label,
         cmd = M.interpolate(cmd, params),
       }
+      if opt then
+        if opt.cwd then
+          task.cwd = M.interpolate(opt.cwd, params)
+        end
+        if opt.env then
+          local env = {}
+          for k, v in pairs(opt.env) do
+            env[k] = M.interpolate(v, params)
+          end
+          task.env = env
+        end
+      end
+
+      return task
     end,
   }
 
@@ -99,7 +127,6 @@ M.convert_vscode_task = function(defn)
     end
   end
 
-  -- FIXME options (commandOptions)
   -- FIXME problemMatcher
 
   -- TODO defn.isBackground

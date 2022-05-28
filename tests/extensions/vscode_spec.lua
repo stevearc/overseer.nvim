@@ -24,16 +24,24 @@ describe("vscode", function()
     assert.are.same("'space command'", cmd)
   end)
 
-  it("interpolates variables in command and args", function()
+  it("interpolates variables in command, args, and opts", function()
     local tmpl = vscode.convert_vscode_task({
       label = "task",
       type = "shell",
       command = "${workspaceFolder}/script",
       args = { "${execPath}" },
+      options = {
+        cwd = "${cwd}",
+        env = {
+          FOO = "${execPath}",
+        },
+      },
     })
     local task = tmpl:builder({})
     local dir = vim.fn.getcwd(0)
     assert.equals(string.format("%s/script 'code'", dir), task.cmd)
+    assert.equals(dir, task.cwd)
+    assert.are.same({ FOO = "code" }, task.env)
   end)
 
   it("interpolates input variables in command", function()
