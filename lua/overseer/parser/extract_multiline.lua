@@ -53,7 +53,7 @@ function ExtractMultiline:ingest(line, item, results)
     end
     return parser.STATUS.RUNNING
   else
-    if self.any_match then
+    if self.any_match or not vim.tbl_isempty(item) then
       self.done = parser.STATUS.SUCCESS
       if self.append then
         if type(self.append) == "function" then
