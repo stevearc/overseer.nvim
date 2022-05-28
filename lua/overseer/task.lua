@@ -273,24 +273,28 @@ function Task:is_disposed()
   return self.status == STATUS.DISPOSED
 end
 
-function Task:reset()
-  if self:is_running() then
-    error("Cannot reset task while running")
+function Task:reset(soft)
+  if self:is_running() or self:is_disposed() then
+    error(string.format("Cannot reset %s task", self.status))
     return
   end
   self.status = STATUS.PENDING
   self.result = nil
-  local bufnr = self.bufnr
-  self.prev_bufnr = bufnr
-  vim.defer_fn(function()
-    if bufnr and vim.api.nvim_buf_is_valid(bufnr) then
-      vim.api.nvim_buf_delete(bufnr, { force = true })
+  -- Soft reset allows components & state to be reset without affecting the
+  -- underlying process & buffer
+  if not soft or not self:is_running() then
+    local bufnr = self.bufnr
+    self.prev_bufnr = bufnr
+    vim.defer_fn(function()
+      if bufnr and vim.api.nvim_buf_is_valid(bufnr) then
+        vim.api.nvim_buf_delete(bufnr, { force = true })
+      end
+    end, 2000)
+    self.bufnr = nil
+    if self.chan_id then
+      vim.fn.jobstop(self.chan_id)
+      self.chan_id = nil
     end
-  end, 2000)
-  self.bufnr = nil
-  if self.chan_id then
-    vim.fn.jobstop(self.chan_id)
-    self.chan_id = nil
   end
   task_list.touch_task(self)
   self:dispatch("on_reset")
@@ -318,7 +322,6 @@ function Task:set_result(status, data)
   self.status = status
   self.result = data or {}
   self:dispatch("on_result", status, self.result)
-  self:dispatch("on_finalize")
 end
 
 function Task:inc_reference()

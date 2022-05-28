@@ -27,7 +27,7 @@ M.on_rerun_handler = {
       interrupt = { opts.interrupt, "b" },
     })
     return {
-      rerun_after_finalize = false,
+      rerun_after_result = false,
       _trigger_active = false,
       _trigger_rerun = function(self, task)
         if self._trigger_active then
@@ -35,7 +35,7 @@ M.on_rerun_handler = {
         end
         self._trigger_active = true
         vim.defer_fn(function()
-          if not task:is_running() and task:is_complete() then
+          if not task:is_running() and task:is_complete() and not task:is_disposed() then
             task:reset()
             task:start()
           end
@@ -43,11 +43,11 @@ M.on_rerun_handler = {
         end, opts.delay)
       end,
       on_reset = function(self, task)
-        self.rerun_after_finalize = false
+        self.rerun_after_result = false
       end,
       on_request_rerun = function(self, task)
         if task:is_running() then
-          self.rerun_after_finalize = true
+          self.rerun_after_result = true
           if opts.interrupt then
             task:stop()
           end
@@ -55,8 +55,8 @@ M.on_rerun_handler = {
           self:_trigger_rerun(task)
         end
       end,
-      on_finalize = function(self, task)
-        if self.rerun_after_finalize then
+      on_result = function(self, task)
+        if self.rerun_after_result then
           self:_trigger_rerun(task)
         end
       end,
@@ -128,8 +128,8 @@ M.rerun_on_result = {
     end
     local lookup = util.list_to_map(opts.statuses)
     return {
-      on_finalize = function(self, task)
-        if lookup[task.status] then
+      on_result = function(self, task, status)
+        if lookup[status] then
           task:rerun()
         end
       end,
