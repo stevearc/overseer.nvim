@@ -35,7 +35,7 @@ function Context:ingest(line, ctx)
   if not self.status and self.hoist_item then
     self.ctx = vim.tbl_extend("force", self.ctx, ctx.item)
   end
-  ctx.context = vim.tbl_deep_extend("keep", ctx.context, self.ctx)
+  ctx.default_values = vim.tbl_deep_extend("keep", ctx.default_values, self.ctx)
   self.status = self.child:ingest(line, ctx)
   return self.status
 end

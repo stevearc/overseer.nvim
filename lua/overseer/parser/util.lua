@@ -4,7 +4,7 @@ M.append_item = function(append, line, ctx)
   if not append then
     return
   end
-  local item = vim.tbl_deep_extend("keep", ctx.item, ctx.context or {})
+  local item = vim.tbl_deep_extend("keep", ctx.item, ctx.default_values or {})
   if type(append) == "function" then
     append(ctx.results, vim.deepcopy(item), { line = line })
   else

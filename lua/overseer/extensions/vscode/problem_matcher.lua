@@ -115,6 +115,7 @@ local default_patterns = {
     message = 7,
   },
 }
+local default_matchers = {}
 
 local severity_to_type = {
   error = "E",
@@ -179,6 +180,9 @@ end
 
 local function convert_pattern(pattern, opts)
   opts = opts or {}
+  if type(pattern) == "string" then
+    pattern = vim.deepcopy(default_patterns[pattern])
+  end
   local args = {}
   local full_line_key
   local max_arg = 0
@@ -231,37 +235,34 @@ M.get_parser_from_problem_matcher = function(problem_matcher)
     return nil
   end
   if type(problem_matcher) == "string" then
-    return { convert_pattern(default_patterns[problem_matcher]) }
-  elseif type(problem_matcher.pattern) == "string" then
-    return { convert_pattern(default_patterns[problem_matcher.pattern]) }
+    return M.get_parser_from_problem_matcher(default_matchers[problem_matcher])
+  elseif vim.tbl_islist(problem_matcher) then
+    local children = {}
+    for _, v in ipairs(problem_matcher) do
+      table.insert(children, M.get_parser_from_problem_matcher(v))
+    end
+    return { parser.parallel({ break_on_first_failure = false }, unpack(children)) }
   end
   -- NOTE: we ignore matcher.owner
   -- TODO: support matcher.fileLocation
   local qf_type = severity_to_type[problem_matcher.severity]
-  local pattern = {}
   if problem_matcher.base then
-    pattern = vim.deepcopy(default_patterns[problem_matcher.base])
+    problem_matcher = vim.tbl_deep_extend(
+      "force",
+      problem_matcher,
+      default_matchers[problem_matcher.base]
+    )
   end
 
-  if not problem_matcher.pattern then
-    return { convert_pattern(pattern, { qf_type = qf_type }) }
-  end
-
-  if vim.tbl_islist(problem_matcher.pattern) then
+  local pattern = problem_matcher.pattern
+  if vim.tbl_islist(pattern) then
     local ret = {}
-    for i, v in ipairs(problem_matcher.pattern) do
-      local pat
-      if type(v) == "string" then
-        pat = vim.deepcopy(default_patterns[v])
-      else
-        pat = vim.tbl_extend("force", pattern, v)
-      end
-      local append = i == #problem_matcher.pattern
-      table.insert(ret, convert_pattern(pat, { append = append, qf_type = qf_type }))
+    for i, v in ipairs(pattern) do
+      local append = i == #pattern
+      table.insert(ret, convert_pattern(v, { append = append, qf_type = qf_type }))
     end
     return ret
   else
-    pattern = vim.tbl_extend("force", pattern, problem_matcher.pattern)
     return { convert_pattern(pattern, { qf_type = qf_type }) }
   end
 end
