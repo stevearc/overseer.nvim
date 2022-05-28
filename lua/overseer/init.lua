@@ -10,7 +10,6 @@ local M = {}
 -- TODO
 -- * Load VSCode task definitions
 --   * problemMatcher
---     * schema type 'opaque'
 --   * Auto tasks for npm, gulp, grunt, jake, and typescript.
 --   * Background/watching tasks (results streaming?)
 --   * dependsOn/dependsOrder

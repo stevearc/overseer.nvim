@@ -7,7 +7,9 @@ M.render_field = function(schema, prefix, name, value)
   if value == nil then
     value = ""
   end
-  if type(value) == "table" then
+  if schema.type == "opaque" then
+    value = "<opaque>"
+  elseif type(value) == "table" then
     value = table.concat(value, " ")
   end
 
@@ -18,6 +20,8 @@ M.validate_field = function(schema, value)
   local ptype = schema.type or "string"
   if value == nil then
     return schema.optional
+  elseif ptype == "opaque" then
+    return true
   elseif ptype == "list" then
     return type(value) == "table" and vim.tbl_islist(value)
   elseif ptype == "number" then
@@ -41,10 +45,11 @@ M.parse_field = function(schema, prefix, name, line)
 end
 
 M.parse_value = function(schema, value)
-  if value == "" then
+  if schema.type == "opaque" then
+    return false
+  elseif value == "" then
     return true, nil
-  end
-  if schema.type == "list" then
+  elseif schema.type == "list" then
     -- TODO escaping? configurable delimiter? quoting?
     return true, vim.split(value, "%s+")
   elseif schema.type == "number" then
