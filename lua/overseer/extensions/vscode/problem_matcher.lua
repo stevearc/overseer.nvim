@@ -23,11 +23,11 @@ local function convert_match_name(name)
   elseif name == "location" then
     return {
       "lnum",
-      function(value, item)
+      function(value, ctx)
         local lnum, col, end_lnum, end_col = unpack(vim.split(value, ","))
-        item.col = tonumber(col)
-        item.end_lnum = tonumber(end_lnum)
-        item.end_col = tonumber(end_col)
+        ctx.item.col = tonumber(col)
+        ctx.item.end_lnum = tonumber(end_lnum)
+        ctx.item.end_col = tonumber(end_col)
         return tonumber(lnum)
       end,
     }
@@ -61,6 +61,40 @@ local function convert_match_name(name)
     error(string.format("Unknown match name %s", name))
   end
 end
+
+local function convert_pattern(pattern, opts)
+  local args = {}
+  local full_line_key
+  for _, v in ipairs(match_names) do
+    local i = pattern[v]
+    if not i then
+      i = 0
+    end
+    if i == 0 then
+      -- Technically the schema supports using 0 for other fields, but it only
+      -- really makes sense for the message
+      if v == "message" then
+        full_line_key = "text"
+      end
+    else
+      args[i] = convert_match_name(v)
+    end
+  end
+  local extract_opts = {
+    regex = true,
+    append = opts.append,
+    postprocess = function(item, ctx)
+      if not item.type then
+        item.type = opts.qf_type
+      end
+      if full_line_key then
+        item[full_line_key] = ctx.line
+      end
+    end,
+  }
+  return parser.extract(extract_opts, "\\v" .. pattern.regexp, unpack(args))
+end
+
 M.get_parser_from_problem_matcher = function(problem_matcher)
   if not problem_matcher then
     return nil
@@ -85,43 +119,14 @@ M.get_parser_from_problem_matcher = function(problem_matcher)
     return nil
   end
   if vim.tbl_islist(pattern) then
-    -- FIXME support multiline problem matcher
-  else
-    local args = {}
-    local full_line_key
-    for _, v in ipairs(match_names) do
-      local i = pattern[v]
-      if not i then
-        i = 0
-      end
-      if i == 0 then
-        -- Technically the schema supports using 0 for other fields, but it only
-        -- really makes sense for the message
-        if v == "message" then
-          full_line_key = "text"
-        end
-      else
-        args[i] = convert_match_name(v)
-      end
+    local ret = {}
+    for i, v in ipairs(pattern) do
+      table.insert(ret, convert_pattern(v, { append = i == #pattern, qf_type = qf_type }))
     end
-    local opts = {
-      regex = true,
-      append = function(results, item, ctx)
-        if not item.type then
-          item.type = qf_type
-        end
-        if full_line_key then
-          item[full_line_key] = ctx.line
-        end
-        table.insert(results, item)
-      end,
-    }
-    return {
-      parser.extract(opts, "\\v" .. pattern.regexp, unpack(args)),
-    }
+    return ret
+  else
+    return { convert_pattern(pattern, { qf_type = qf_type }) }
   end
-
-  return nil
 end
 
 return M

@@ -177,5 +177,36 @@ describe("vscode", function()
         },
       }, results)
     end)
+
+    it("can match multiline patterns", function()
+      local parse = parser.new(problem_matcher.get_parser_from_problem_matcher({
+        pattern = {
+          {
+            regexp = "^([^\\s].*)$",
+            file = 1,
+          },
+          {
+            regexp = "^\\s+(\\d+):(\\d+)\\s+(error|warning|info)\\s+(.*)$",
+            line = 1,
+            column = 2,
+            severity = 3,
+            message = 4,
+          },
+        },
+      }))
+      parse:ingest({
+        { "test.js" },
+        { '  1:0   error  Missing "use strict" statement' },
+      })
+      assert.are.same({
+        {
+          filename = "test.js",
+          lnum = 1,
+          col = 0,
+          type = "E",
+          text = 'Missing "use strict" statement',
+        },
+      }, parse:get_result())
+    end)
   end)
 end)

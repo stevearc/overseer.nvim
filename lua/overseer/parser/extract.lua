@@ -20,6 +20,7 @@ function Extract.new(opts, pattern, ...)
     consume = opts.consume,
     append = opts.append,
     regex = opts.regex,
+    postprocess = opts.postprocess,
     done = nil,
     pattern = pattern,
     fields = fields,
@@ -30,7 +31,7 @@ function Extract:reset()
   self.done = nil
 end
 
-local function default_postprocess(value, _)
+local function default_postprocess_field(value, _)
   if value:match("^%d+$") then
     return tonumber(value)
   end
@@ -63,9 +64,9 @@ function Extract:ingest(line, item, results)
           key, postprocess = unpack(field)
         else
           key = field
-          postprocess = default_postprocess
+          postprocess = default_postprocess_field
         end
-        item[key] = postprocess(result[i], item)
+        item[key] = postprocess(result[i], { item = item, field = key })
       end
     end
     if any_match then
@@ -76,6 +77,9 @@ function Extract:ingest(line, item, results)
   if not any_match then
     self.done = parser.STATUS.FAILURE
     return parser.STATUS.FAILURE
+  end
+  if self.postprocess then
+    self.postprocess(item, { line = line })
   end
   if self.append then
     if type(self.append) == "function" then

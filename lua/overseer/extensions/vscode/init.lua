@@ -147,8 +147,9 @@ M.result_vscode_task = {
     problem_matcher = { type = "opaque", optional = true },
   },
   constructor = function(params)
+    local parser_defn = problem_matcher.get_parser_from_problem_matcher(params.problem_matcher)
     return {
-      parser = parser.new(problem_matcher.get_parser_from_problem_matcher(params.problem_matcher)),
+      parser = parser_defn and parser.new(parser_defn) or nil,
       on_reset = function(self)
         if self.parser then
           self.parser:reset()
