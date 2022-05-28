@@ -18,14 +18,16 @@ M.dispose_delay = {
     return {
       timer = nil,
       on_result = function(self, task)
-        self.timer = vim.loop.new_timer()
-        self.timer:start(
-          1000 * opts.timeout,
-          1000 * opts.timeout,
-          vim.schedule_wrap(function()
-            task:dispose()
-          end)
-        )
+        if task:is_complete() then
+          self.timer = vim.loop.new_timer()
+          self.timer:start(
+            1000 * opts.timeout,
+            1000 * opts.timeout,
+            vim.schedule_wrap(function()
+              task:dispose()
+            end)
+          )
+        end
       end,
       on_reset = function(self, task)
         if self.timer then

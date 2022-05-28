@@ -19,6 +19,9 @@ local M = {}
 --   * list params allow escaping / quotes / specifying delimiter
 --   * enum support for vscode pickString
 -- * Pull as much logic out of the closures as possible
+-- * Sandbox calls and log errors
+--   * metagen
+--   * task dispatch
 -- * Add nearest-test support detecting via treesitter
 -- * Dynamic window sizing for task editor
 -- * integrate with vim-test as a strategy
