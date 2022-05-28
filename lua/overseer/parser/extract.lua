@@ -82,17 +82,7 @@ function Extract:ingest(line, ctx)
   if self.postprocess then
     self.postprocess(item, { line = line })
   end
-  if self.append then
-    if type(self.append) == "function" then
-      self.append(ctx.results, vim.deepcopy(item), { line = line })
-    else
-      table.insert(ctx.results, vim.deepcopy(item))
-    end
-
-    for k in pairs(item) do
-      item[k] = nil
-    end
-  end
+  parser.util.append_item(self.append, line, ctx)
   self.done = parser.STATUS.SUCCESS
   return self.consume and parser.STATUS.RUNNING or parser.STATUS.SUCCESS
 end

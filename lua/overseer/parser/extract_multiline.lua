@@ -56,17 +56,7 @@ function ExtractMultiline:ingest(line, ctx)
   else
     if self.any_match or not vim.tbl_isempty(item) then
       self.done = parser.STATUS.SUCCESS
-      if self.append then
-        if type(self.append) == "function" then
-          self.append(ctx.results, vim.deepcopy(item))
-        else
-          table.insert(ctx.results, vim.deepcopy(item))
-        end
-
-        for k in pairs(item) do
-          item[k] = nil
-        end
-      end
+      parser.util.append_item(self.append, line, ctx)
     else
       self.done = parser.STATUS.FAILURE
     end

@@ -92,7 +92,11 @@ local function convert_pattern(pattern, opts)
       end
     end,
   }
-  return parser.extract(extract_opts, "\\v" .. pattern.regexp, unpack(args))
+  local extract = parser.extract(extract_opts, "\\v" .. pattern.regexp, unpack(args))
+  if pattern.loop then
+    return parser.context(parser.loop({ ignore_failure = false }, extract))
+  end
+  return extract
 end
 
 M.get_parser_from_problem_matcher = function(problem_matcher)
