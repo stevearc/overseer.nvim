@@ -4,13 +4,14 @@ local M = {}
 -- Taken from https://github.com/microsoft/vscode/blob/main/src/vs/workbench/contrib/tasks/common/problemMatcher.ts#L1207
 local default_patterns = {
   ["$msCompile"] = {
-    regexp = "^(?:\\s+\\d+>)?(\\S.*)\\((\\d+|\\d+,\\d+|\\d+,\\d+,\\d+,\\d+)\\)\\s*:\\s+(error|warning|info)\\s+(\\w+\\d+)\\s*:\\s*(.*)$",
+    -- removed non-capturing groups (?:)
+    regexp = "^(\\s+\\d+>)?(\\S.*)\\((\\d+|\\d+,\\d+|\\d+,\\d+,\\d+,\\d+)\\)\\s*:\\s+(error|warning|info)\\s+(\\w+\\d+)\\s*:\\s*(.*)$",
     kind = "location",
-    file = 1,
-    location = 2,
-    severity = 3,
-    code = 4,
-    message = 5,
+    file = 2,
+    location = 3,
+    severity = 4,
+    code = 5,
+    message = 6,
   },
   ["$gulp-tsc"] = {
     regexp = "^([^\\s].*)\\((\\d+|\\d+,\\d+|\\d+,\\d+,\\d+,\\d+)\\):\\s+(\\d+)\\s+(.*)$",
@@ -55,14 +56,15 @@ local default_patterns = {
     line = 3,
   },
   ["$jshint"] = {
-    regexp = "^(.*):\\s+line\\s+(\\d+),\\s+col\\s+(\\d+),\\s(.+?)(?:\\s+\\((\\w)(\\d+)\\))?$",
+    -- removed non-capturing groups (?:)
+    regexp = "^(.*):\\s+line\\s+(\\d+),\\s+col\\s+(\\d+),\\s(.+?)(\\s+\\((\\w)(\\d+)\\))?$",
     kind = "location",
     file = 1,
     line = 2,
     character = 3,
     message = 4,
-    severity = 5,
-    code = 6,
+    severity = 6,
+    code = 7,
   },
   ["$jshint-stylish"] = {
     {
@@ -71,12 +73,13 @@ local default_patterns = {
       file = 1,
     },
     {
-      regexp = "^\\s+line\\s+(\\d+)\\s+col\\s+(\\d+)\\s+(.+?)(?:\\s+\\((\\w)(\\d+)\\))?$",
+      -- removed non-capturing groups (?:)
+      regexp = "^\\s+line\\s+(\\d+)\\s+col\\s+(\\d+)\\s+(.+?)(\\s+\\((\\w)(\\d+)\\))?$",
       line = 1,
       character = 2,
       message = 3,
-      severity = 4,
-      code = 5,
+      severity = 5,
+      code = 6,
       loop = true,
     },
   },
@@ -92,17 +95,19 @@ local default_patterns = {
   },
   ["$eslint-stylish"] = {
     {
-      regexp = "^((?:[a-zA-Z]:)*[./\\\\]+.*?)$",
+      -- removed non-capturing groups (?:)
+      regexp = "^(([a-zA-Z]:)*[./\\\\]+.*?)$",
       kind = "location",
       file = 1,
     },
     {
-      regexp = "^\\s+(\\d+):(\\d+)\\s+(error|warning|info)\\s+(.+?)(?:\\s\\s+(.*))?$",
+      -- removed non-capturing groups (?:)
+      regexp = "^\\s+(\\d+):(\\d+)\\s+(error|warning|info)\\s+(.+?)(\\s\\s+(.*))?$",
       line = 1,
       character = 2,
       severity = 3,
       message = 4,
-      code = 5,
+      code = 6,
       loop = true,
     },
   },
@@ -116,13 +121,14 @@ local default_patterns = {
   },
   -- from https://github.com/microsoft/vscode/blob/main/extensions/typescript-language-features/package.json#L1396
   ["$tsc"] = {
-    regexp = "^([^\\s].*)[\\( =](\\d+)[, =](\\d+)(? =\\) =\\s+|\\s+-\\s+)(error|warning|info)\\s+TS(\\d+)\\s* =\\s*(.*)$",
+    -- modified to remove non-capturing groups (?:)
+    regexp = "^([^\\s].*)[\\(:](\\d+)[,:](\\d+)(\\):\\s+|\\s+-\\s+)(error|warning|info)\\s+TS(\\d+)\\s*:\\s*(.*)$",
     file = 1,
     line = 2,
     column = 3,
-    severity = 4,
-    code = 5,
-    message = 6,
+    severity = 5,
+    code = 6,
+    message = 7,
   },
   -- from https://github.com/microsoft/vscode/blob/main/extensions/cpp/package.json#L95
   ["$nvcc-location"] = {
@@ -150,10 +156,10 @@ local default_matchers = {
     background = {
       activeOnStart = true,
       beginsPattern = {
-        regexp = "^\\s*(?:message TS6032:|\\[?\\D*.{1,2}[:.].{1,2}[:.].{1,2}\\D*(├\\D*\\d{1,2}\\D+┤)?(?:\\]| -)) File change detected\\. Starting incremental compilation\\.\\.\\.",
+        regexp = "^\\s*(message TS6032:|\\[?\\D*.{1,2}[:.].{1,2}[:.].{1,2}\\D*(├\\D*\\d{1,2}\\D+┤)?(\\]| -)) File change detected\\. Starting incremental compilation\\.\\.\\.",
       },
       endsPattern = {
-        regexp = "^\\s*(?:message TS6042:|\\[?\\D*.{1,2}[:.].{1,2}[:.].{1,2}\\D*(├\\D*\\d{1,2}\\D+┤)?(?:\\]| -)) (?:Compilation complete\\.|Found \\d+ errors?\\.) Watching for file changes\\.",
+        regexp = "^\\s*(message TS6042:|\\[?\\D*.{1,2}[:.].{1,2}[:.].{1,2}\\D*(├\\D*\\d{1,2}\\D+┤)?(\\]| -)) (Compilation complete\\.|Found \\d+ errors?\\.) Watching for file changes\\.",
       },
     },
   },
