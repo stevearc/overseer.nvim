@@ -18,7 +18,7 @@ M.keys = {
     end,
   },
   {
-    lhs = "e",
+    lhs = "<C-e>",
     mode = "n",
     desc = "Edit task",
     rhs = function(sidebar)
@@ -34,7 +34,7 @@ M.keys = {
     end,
   },
   {
-    lhs = "v",
+    lhs = "<C-v>",
     mode = "n",
     desc = "Open task terminal in a vsplit",
     rhs = function(sidebar)
@@ -42,7 +42,7 @@ M.keys = {
     end,
   },
   {
-    lhs = "f",
+    lhs = "<C-f>",
     mode = "n",
     desc = "Open task terminal in a floating window",
     rhs = function(sidebar)
@@ -58,7 +58,7 @@ M.keys = {
     end,
   },
   {
-    lhs = "l",
+    lhs = "<C-l>",
     mode = "n",
     desc = "Increase task detail level",
     rhs = function(sidebar)
@@ -66,7 +66,7 @@ M.keys = {
     end,
   },
   {
-    lhs = "h",
+    lhs = "<C-h>",
     mode = "n",
     desc = "Decrease task detail level",
     rhs = function(sidebar)

@@ -42,7 +42,6 @@ M.touch_task = function(task)
   local idx = util.tbl_index(tasks, task.id, function(t)
     return t.id
   end)
-  print(string.format("Resetting %s", task.id))
   table.remove(tasks, idx)
   table.insert(tasks, task)
   rerender()
