@@ -8,7 +8,6 @@ local window = require("overseer.window")
 local M = {}
 
 -- TODO
--- * { } to navigate task list
 -- * Many more task templates, especially for tests
 -- * Load VSCode task definitions
 -- * Add tests
@@ -22,6 +21,7 @@ local M = {}
 -- * Vim help docs
 -- * Architecture doc (Template / Task / Component)
 -- * Extension doc (how to make your own template/component)
+-- * Extension names could collide. Namespace internal & external extensions separately
 
 M.setup = function(opts)
   config.setup(opts)

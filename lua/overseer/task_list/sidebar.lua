@@ -46,7 +46,7 @@ function Sidebar.new()
 
   local tl = setmetatable({
     bufnr = bufnr,
-    default_detail = 1,
+    default_detail = config.default_detail,
     task_detail = {},
     task_lines = {},
   }, { __index = Sidebar })
@@ -179,6 +179,25 @@ function Sidebar:open_float(bufnr, enter)
     end,
   })
   return winid
+end
+
+function Sidebar:jump(direction)
+  local lnum = vim.api.nvim_win_get_cursor(0)[1]
+  local prev = 1
+  local cur = 1
+  for _, v in ipairs(self.task_lines) do
+    local next = v[1] + 2
+    if v[1] >= lnum then
+      if direction < 0 then
+        vim.api.nvim_win_set_cursor(0, { prev, 0 })
+      else
+        pcall(vim.api.nvim_win_set_cursor, 0, { next, 0 })
+      end
+      return
+    end
+    prev = cur
+    cur = next
+  end
 end
 
 function Sidebar:run_action(name)

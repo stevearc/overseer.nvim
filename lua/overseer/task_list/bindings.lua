@@ -107,6 +107,22 @@ M.keys = {
       vim.api.nvim_win_set_width(0, math.max(10, width + 10))
     end,
   },
+  {
+    lhs = "{",
+    mode = { "n", "v" },
+    desc = "Jump to previous task",
+    rhs = function(sidebar)
+      sidebar:jump(-1)
+    end,
+  },
+  {
+    lhs = "}",
+    mode = { "n", "v" },
+    desc = "Jump to next task",
+    rhs = function(sidebar)
+      sidebar:jump(1)
+    end,
+  },
 }
 
 return M

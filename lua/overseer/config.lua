@@ -2,6 +2,7 @@ local default_config = {
   list_sep = "────────────────────────────────────────",
   extensions = { "builtin" },
   sidebar = {
+    default_detail = 1,
     max_width = { 100, 0.2 },
     min_width = { 40, 0.1 },
   },
