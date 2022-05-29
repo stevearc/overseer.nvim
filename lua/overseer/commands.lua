@@ -1,5 +1,6 @@
 local actions = require("overseer.actions")
 local constants = require("overseer.constants")
+local sidebar = require("overseer.task_list.sidebar")
 local task_bundle = require("overseer.task_bundle")
 local task_list = require("overseer.task_list")
 local template = require("overseer.template")
@@ -86,10 +87,10 @@ M.create_commands = function()
     desc = "Build a task from scratch",
   })
   vim.api.nvim_create_user_command("OverseerQuickAction", function(params)
-    M.quick_action(tonumber(params.fargs[1]))
+    M.quick_action(params.fargs[1])
   end, {
     nargs = "?",
-    desc = "Run an action on a task",
+    desc = "Run an action on the most recent task",
   })
 end
 
@@ -188,28 +189,24 @@ M.build_task = function()
   end)
 end
 
-M.quick_action = function(index)
-  if index then
-    local task = task_list.get_by_index(index)
-    if not task then
-      vim.notify(string.format("No task at index %s", index), vim.log.levels.ERROR)
-      return
-    end
-    actions.run_action(task)
-  else
-    local tasks = task_list.list_tasks({ unique = true, recent_first = true })
-    vim.ui.select(tasks, {
-      prompt = "Select task",
-      kind = "overseer_task",
-      format_item = function(task)
-        return task.name
-      end,
-    }, function(task)
-      if task then
-        actions.run_action(task)
-      end
-    end)
+M.quick_action = function(name)
+  if vim.api.nvim_buf_get_option(0, "filetype") == "OverseerList" then
+    local sb = sidebar.get_or_create()
+    sb:run_action(name)
+    return
   end
+  local tasks = task_list.list_tasks({ unique = true, recent_first = true })
+  vim.ui.select(tasks, {
+    prompt = "Select task",
+    kind = "overseer_task",
+    format_item = function(task)
+      return task.name
+    end,
+  }, function(task)
+    if task then
+      actions.run_action(task)
+    end
+  end)
 end
 
 return M
