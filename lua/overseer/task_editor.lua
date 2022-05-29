@@ -4,6 +4,61 @@ local Task = require("overseer.task")
 local util = require("overseer.util")
 local M = {}
 
+-- Telescope-specific settings for picking a new component
+local function get_telescope_new_component(options)
+  local has_telescope = pcall(require, "telescope")
+  if not has_telescope then
+    return
+  end
+
+  local themes = require("telescope.themes")
+  local finders = require("telescope.finders")
+  local entry_display = require("telescope.pickers.entry_display")
+  local picker_opts = themes.get_dropdown()
+  local max_name = 1
+  for _, name in ipairs(options) do
+    local len = string.len(name)
+    if len > max_name then
+      max_name = len
+    end
+  end
+
+  local displayer = entry_display.create({
+    separator = " ",
+    items = {
+      { width = max_name },
+      { remaining = true },
+    },
+  })
+
+  local function make_display(entry)
+    local columns = {
+      entry.value,
+    }
+    if entry.description then
+      table.insert(columns, { entry.description, "Comment" })
+    end
+    return displayer(columns)
+  end
+  picker_opts.finder = finders.new_table({
+    results = options,
+    entry_maker = function(item)
+      local comp = component.get(item)
+      local ordinal = item
+      if comp.description then
+        ordinal = ordinal .. " " .. comp.description
+      end
+      return {
+        display = make_display,
+        ordinal = ordinal,
+        description = comp.description,
+        value = item,
+      }
+    end,
+  })
+  return picker_opts
+end
+
 M.open = function(task, task_cb)
   task:inc_reference()
   local function callback(...)
@@ -143,6 +198,7 @@ M.open = function(task, task_cb)
         table.insert(options, v)
       end
     end
+    table.sort(options)
 
     vim.ui.select(options, {
       prompt = "New component",
@@ -159,6 +215,7 @@ M.open = function(task, task_cb)
           return string.format("%s [%s]", item, component.stringify_alias(item))
         end
       end,
+      telescope = get_telescope_new_component(options),
     }, function(result)
       is_adding_component = false
       if result then

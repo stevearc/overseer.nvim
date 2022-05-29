@@ -11,7 +11,7 @@ local M = {}
 -- * Load VSCode task definitions
 --   * isDefault
 --   * Auto tasks for npm, gulp, grunt, jake, and typescript.
--- * Components can set serializable = false
+-- * Components can set serializable = false (either fail serialization or silently exclude component)
 -- * Many more task templates, especially for tests
 -- * Add tests
 -- * More schema validations (callback, non-empty list, number greater than, enum, list[enum])
