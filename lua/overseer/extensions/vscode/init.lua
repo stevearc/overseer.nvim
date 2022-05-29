@@ -162,8 +162,10 @@ M.convert_vscode_task = function(defn)
       tmpl.tags = { group_to_tag[defn.group] }
     else
       tmpl.tags = { group_to_tag[defn.group.kind] }
-      -- TODO handle isDefault
     end
+  end
+  if defn.isDefault then
+    tmpl.priority = 40
   end
 
   -- NOTE: we ignore defn.presentation

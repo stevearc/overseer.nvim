@@ -6,6 +6,8 @@ local M = {}
 
 local Template = {}
 
+local DEFAULT_PRIORITY = 50
+
 M.is_template = function(obj)
   if type(obj) ~= "table" then
     return false
@@ -96,6 +98,9 @@ M.list = function(opts)
       end
     end
   end
+  table.sort(ret, function(a, b)
+    return a.priority < b.priority
+  end)
 
   return ret
 end
@@ -122,12 +127,14 @@ function Template.new(opts)
     description = { opts.description, "s", true },
     tags = { opts.tags, "t", true },
     params = { opts.params, "t" },
+    priority = { opts.priority, "n", true },
     builder = { opts.builder, "f", true },
     metagen = { opts.metagen, "f", true },
   })
   if not opts.builder and not opts.metagen then
     error("Template must have one of: builder, metagen")
   end
+  opts.priority = opts.priority or DEFAULT_PRIORITY
   opts._type = "OverseerTemplate"
   if opts.condition then
     vim.validate({

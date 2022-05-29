@@ -3,6 +3,7 @@ local M = {}
 
 M.tox = {
   name = "tox",
+  priority = 60,
   params = {
     args = { optional = true, type = "list" },
   },

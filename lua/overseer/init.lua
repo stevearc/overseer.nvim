@@ -9,7 +9,6 @@ local M = {}
 
 -- TODO
 -- * Load VSCode task definitions
---   * isDefault
 --   * Auto tasks for npm, gulp, grunt, jake, and typescript.
 -- * Components can set serializable = false (either fail serialization or silently exclude component)
 -- * Many more task templates, especially for tests

@@ -3,6 +3,7 @@ local M = {}
 
 M.make = {
   name = "make",
+  priority = 60,
   params = {
     args = { optional = true, type = "list" },
   },

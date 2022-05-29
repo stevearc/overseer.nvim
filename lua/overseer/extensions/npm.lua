@@ -3,6 +3,7 @@ local M = {}
 
 M.npm = {
   name = "npm",
+  priority = 60,
   params = {
     args = { optional = true, type = "list" },
     use_yarn = { optional = true, type = "bool" },
