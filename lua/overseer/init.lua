@@ -17,12 +17,11 @@ local M = {}
 -- optionally fall back to vim-test if no test task found
 
 -- TODO
--- * when task restarts and preview or float window is open, that window closes instead of replacing the buffer
 -- * figure out the best way to run tests
 --   * allowlist/blocklist certain built-in templates
 --   * May want to add custom arguments. Maybe even per-project
 --   * How does user say that in *this* project, *this* is the default test? (e.g. use tox in python project)
--- * detect test status and include in output
+-- * detect test pass/fail status and include in result. Add to diagnostics
 -- * make a suite of built-in parsers
 -- * Components can set serializable = false (either fail serialization or silently exclude component)
 -- * Many more task templates, especially for tests

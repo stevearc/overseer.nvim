@@ -117,9 +117,8 @@ M.actions = {
         style = "minimal",
       })
       vim.api.nvim_win_set_option(winid, "winblend", 10)
-      vim.api.nvim_create_autocmd("BufLeave", {
-        desc = "Close float on BufLeave",
-        buffer = task.bufnr,
+      vim.api.nvim_create_autocmd("WinLeave", {
+        desc = "Close float on WinLeave",
         once = true,
         nested = true,
         callback = function()

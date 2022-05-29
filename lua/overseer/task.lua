@@ -438,8 +438,14 @@ function Task:start()
 
   -- If this task's previous buffer was open in any wins, replace it
   if self.prev_bufnr then
+    local prev_bufnr = self.prev_bufnr
     for _, win in ipairs(vim.api.nvim_list_wins()) do
-      if vim.api.nvim_win_get_buf(win) == self.prev_bufnr then
+      if vim.api.nvim_win_get_buf(win) == prev_bufnr then
+        -- If stickybuf is installed, make sure it doesn't interfere
+        pcall(vim.api.nvim_win_del_var, win, "sticky_original_bufnr")
+        pcall(vim.api.nvim_win_del_var, win, "sticky_bufnr")
+        pcall(vim.api.nvim_win_del_var, win, "sticky_buftype")
+        pcall(vim.api.nvim_win_del_var, win, "sticky_filetype")
         vim.api.nvim_win_set_buf(win, self.bufnr)
       end
     end

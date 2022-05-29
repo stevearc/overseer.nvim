@@ -100,8 +100,21 @@ function Sidebar:toggle_preview()
     return
   end
 
-  local winid = self:open_float(task.bufnr, false)
+  local win_width = vim.api.nvim_win_get_width(0)
+  local padding = 1
+  local width = vim.o.columns - win_width - 2 - 2 * padding
+  local col = (vim.fn.winnr() == 1 and (win_width + padding) or padding)
+  local winid = vim.api.nvim_open_win(task.bufnr, false, {
+    relative = "editor",
+    border = "rounded",
+    row = 1,
+    col = col,
+    width = width,
+    height = vim.api.nvim_win_get_height(0),
+    style = "minimal",
+  })
   vim.api.nvim_win_set_option(winid, "previewwindow", true)
+  vim.api.nvim_win_set_option(winid, "winblend", 10)
   if winid then
     util.scroll_to_end(winid)
   end
@@ -156,29 +169,6 @@ function Sidebar:update_preview()
     vim.api.nvim_win_set_buf(winid, task.bufnr)
     util.scroll_to_end(winid)
   end
-end
-
-function Sidebar:open_float(bufnr, enter)
-  local width = vim.o.columns - vim.api.nvim_win_get_width(0)
-  local col = vim.fn.winnr() == 1 and width or 0
-  local winid = vim.api.nvim_open_win(bufnr, enter, {
-    relative = "editor",
-    row = 1,
-    col = col,
-    width = width,
-    height = vim.api.nvim_win_get_height(0),
-    style = "minimal",
-  })
-  vim.api.nvim_create_autocmd("BufLeave", {
-    desc = "Close float on BufLeave",
-    buffer = bufnr,
-    once = true,
-    nested = true,
-    callback = function()
-      pcall(vim.api.nvim_win_close, winid, true)
-    end,
-  })
-  return winid
 end
 
 function Sidebar:jump(direction)
