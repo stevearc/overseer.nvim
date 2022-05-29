@@ -114,18 +114,19 @@ M.run_template = function(opts, params, callback)
     end)
   end
 
+  local tmpl_opts = {
+    dir = dir,
+    filetype = ft,
+    tags = opts.tags,
+  }
   if opts.name then
-    local tmpl = template.get_by_name(opts.name)
+    local tmpl = template.get_by_name(opts.name, tmpl_opts)
     if not tmpl then
       error(string.format("Could not find template '%s'", opts.name))
     end
     handle_tmpl(tmpl)
   else
-    local templates = template.list({
-      dir = dir,
-      filetype = ft,
-      tags = opts.tags,
-    })
+    local templates = template.list(tmpl_opts)
     if #templates == 0 then
       vim.notify("Could not find any matching task templates", vim.log.levels.ERROR)
       return

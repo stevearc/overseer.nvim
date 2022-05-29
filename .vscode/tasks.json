@@ -8,6 +8,13 @@
       "command": "./run_tests.sh"
     },
     {
+      "type": "shell",
+      "label": "(vscode) sleep",
+      "group": "test",
+      "command": "sleep",
+      "args": ["10"]
+    },
+    {
       "type": "process",
       "label": "(vscode) test file",
       "group": "test",
@@ -38,6 +45,15 @@
           "endsPattern": "^END$"
         }
       }
+    },
+    {
+      "label": "(vscode) compound parallel",
+      "dependsOn": ["(vscode) test", "(vscode) sleep"]
+    },
+    {
+      "label": "(vscode) compound sequence",
+      "dependsOn": ["(vscode) sleep", "(vscode) test", "(vscode) prompt input"],
+      "dependsOrder": "sequence"
     }
   ],
   "inputs": [

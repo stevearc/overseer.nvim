@@ -90,6 +90,31 @@ local group_to_tag = {
 }
 
 M.convert_vscode_task = function(defn)
+  if defn.dependsOn then
+    local sequence = defn.dependsOrder == "sequence"
+    return template.new({
+      name = defn.label,
+      params = {},
+      builder = function(self, params)
+        return {
+          name = defn.label,
+          -- TODO this is kind of a hack
+          cmd = "sleep 1",
+          components = {
+            "result_exit_code",
+            { "dispose_delay", timeout = 1 },
+            {
+              "on_status_run_task",
+              status = sequence and STATUS.SUCCESS or STATUS.RUNNING,
+              task_names = defn.dependsOn,
+              once = true,
+              sequence = sequence,
+            },
+          },
+        }
+      end,
+    })
+  end
   -- TODO we only support shell & process tasks
   if defn.type ~= "shell" and defn.type ~= "process" then
     return nil

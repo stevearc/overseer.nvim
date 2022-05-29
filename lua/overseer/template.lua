@@ -203,8 +203,16 @@ end
 
 M.new = Template.new
 
-M.get_by_name = function(name)
-  return registry[name]
+M.get_by_name = function(name, opts)
+  local ret = registry[name]
+  if ret then
+    return ret
+  end
+  for _, tmpl in ipairs(M.list(opts)) do
+    if tmpl.name == name then
+      return tmpl
+    end
+  end
 end
 
 return M

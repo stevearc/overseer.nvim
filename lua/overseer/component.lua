@@ -8,7 +8,7 @@ local M = {}
 local registry = {}
 local aliases = {}
 
-local builtin_modules = { "cleanup", "notify", "rerun", "result", "summary" }
+local builtin_modules = { "cleanup", "misc", "notify", "rerun", "result", "summary" }
 
 M.is_component = function(obj)
   if type(obj) ~= "table" then
