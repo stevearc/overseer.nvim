@@ -99,7 +99,11 @@ M.list = function(opts)
     end
   end
   table.sort(ret, function(a, b)
-    return a.priority < b.priority
+    if a.priority == b.priority then
+      return a.name < b.name
+    else
+      return a.priority < b.priority
+    end
   end)
 
   return ret
@@ -196,16 +200,17 @@ function Template:build(prompt, params, callback)
   return
 end
 
-function Template:wrap(name, default_params)
-  return setmetatable({
-    name = name,
-    build = function(newself, prompt, params, callback)
-      for k, v in pairs(default_params) do
-        params[k] = v
-      end
-      return self:build(prompt, params, callback)
-    end,
-  }, { __index = self })
+function Template:wrap(override, default_params)
+  if type(override) == "string" then
+    override = { name = override }
+  end
+  override.build = function(newself, prompt, params, callback)
+    for k, v in pairs(default_params) do
+      params[k] = v
+    end
+    return self:build(prompt, params, callback)
+  end
+  return setmetatable(override, { __index = self })
 end
 
 M.new = Template.new

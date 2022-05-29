@@ -1,14 +1,14 @@
-local overseer = require("overseer")
 local constants = require("overseer.constants")
 local files = require("overseer.files")
 local parser = require("overseer.parser")
 local util = require("overseer.util")
 local STATUS = constants.STATUS
+local TAG = constants.TAG
 local M = {}
 
 M.busted_test = {
   name = "busted test (plenary)",
-  tags = { overseer.TAG.TEST },
+  tags = { TAG.TEST },
   params = { filename = {} },
   condition = {
     filetype = "lua",
@@ -56,7 +56,7 @@ M.result_plenary_busted_test = {
   description = "Parse busted test output from plenary.nvim",
   constructor = function()
     return {
-      parser = overseer.parser.new({
+      parser = parser.new({
         diagnostics = M.plenary_busted_test_parser,
       }),
       on_reset = function(self)

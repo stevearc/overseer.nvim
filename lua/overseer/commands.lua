@@ -43,6 +43,22 @@ M.create_commands = function()
     desc = "Delete a saved task bundle",
     nargs = "?",
   })
+  vim.api.nvim_create_user_command("OverseerRunCmd", function(params)
+    if params.args ~= "" then
+      M.run_cmd({ cmd = params.args })
+    else
+      vim.ui.input({
+        prompt = "Command:",
+      }, function(cmd)
+        if cmd then
+          M.run_cmd({ cmd = cmd })
+        end
+      end)
+    end
+  end, {
+    desc = "Run a raw shell command",
+    nargs = "?",
+  })
   vim.api.nvim_create_user_command("OverseerRun", function(params)
     local name
     local tags = {}
@@ -150,6 +166,12 @@ M.run_template = function(opts, params, callback)
       end)
     end
   end
+end
+
+M.run_cmd = function(opts)
+  local task = Task.new(opts)
+  task:start()
+  return task
 end
 
 M.build_task = function()

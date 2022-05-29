@@ -7,22 +7,35 @@ local Task = require("overseer.task")
 local window = require("overseer.window")
 local M = {}
 
+-- OverseerTest:
+--   * if test file is open, run the test file
+--   * else, run the tests for cwd
+-- OverseerTestFile: run tests on file (requires file to be test file)
+-- OverseerTestNearest run nearest test in file (requires file to be test file)
+-- OverseerTestSuite: run the tests for cwd (possibly using the framework detected by current file)
+-- OverseerTestLast mostly an alias to rerun the last test command (tag tasks as well?)
+-- optionally fall back to vim-test if no test task found
+
 -- TODO
--- * Load VSCode task definitions
---   * Auto tasks for npm, gulp, grunt, jake, and typescript.
+-- * when task restarts and preview or float window is open, that window closes instead of replacing the buffer
+-- * figure out the best way to run tests
+--   * allowlist/blocklist certain built-in templates
+--   * May want to add custom arguments. Maybe even per-project
+--   * How does user say that in *this* project, *this* is the default test? (e.g. use tox in python project)
+-- * detect test status and include in output
+-- * make a suite of built-in parsers
 -- * Components can set serializable = false (either fail serialization or silently exclude component)
 -- * Many more task templates, especially for tests
 -- * Add tests
 -- * More schema validations (callback, non-empty list, number greater than, enum, list[enum])
 --   * list params allow escaping / quotes / specifying delimiter
---   * enum support for vscode pickString
 -- * Pull as much logic out of the closures as possible
 -- * Sandbox calls and log errors
 --   * metagen
 --   * task dispatch
 -- * Add nearest-test support detecting via treesitter
 -- * Dynamic window sizing for task editor
--- * integrate with vim-test as a strategy
+-- * _maybe_ support other run strategies besides terminal
 -- * Basic Readme
 -- * Vim help docs
 -- * Architecture doc (Template / Task / Component)
