@@ -178,6 +178,46 @@ describe("extract_multiline", function()
   end)
 end)
 
+describe("extract_nested", function()
+  it("extracts children into a nested key", function()
+    local node = parser.extract_nested(
+      "child",
+      parser.sequence(parser.extract("(%a+)", "word"), parser.extract("(%d+)", "num"))
+    )
+    local ctx = { item = {}, results = {} }
+    assert.equals(STATUS.RUNNING, node:ingest("hello 123", ctx))
+    assert.equals(STATUS.RUNNING, node:ingest("world 456", ctx))
+    assert.equals(STATUS.SUCCESS, node:ingest("", ctx))
+    assert.are.same({ { child = { { word = "hello" }, { num = 456 } } } }, ctx.results)
+  end)
+
+  it("returns FAILURE when no children match", function()
+    local node = parser.extract_nested("child", parser.extract("(%d+)", "num"))
+    local ctx = { item = {}, results = {} }
+    assert.equals(STATUS.FAILURE, node:ingest("hello", ctx))
+  end)
+
+  it("can return SUCCESS even when no children match", function()
+    local node = parser.extract_nested(
+      { fail_on_empty = false },
+      "child",
+      parser.extract("(%d+)", "num")
+    )
+    local ctx = { item = {}, results = {} }
+    assert.equals(STATUS.SUCCESS, node:ingest("hello", ctx))
+    assert.are.same({ { child = {} } }, ctx.results)
+  end)
+
+  it("modifies item in-place if append = false", function()
+    local node = parser.extract_nested({ append = false }, "child", parser.extract("(%d+)", "num"))
+    local ctx = { item = {}, results = {} }
+    assert.equals(STATUS.RUNNING, node:ingest("123", ctx))
+    assert.equals(STATUS.SUCCESS, node:ingest("", ctx))
+    assert.are.same({}, ctx.results)
+    assert.are.same({ child = { { num = 123 } } }, ctx.item)
+  end)
+end)
+
 describe("test", function()
   it("returns FAILURE when no match", function()
     local node = parser.test("hello (.+)")
