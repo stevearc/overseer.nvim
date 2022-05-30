@@ -7,24 +7,11 @@ local Task = require("overseer.task")
 local window = require("overseer.window")
 local M = {}
 
--- OverseerTest:
---   * if test file is open, run the test file
---   * else, run the tests for cwd
--- OverseerTestFile: run tests on file (requires file to be test file)
--- OverseerTestNearest run nearest test in file (requires file to be test file)
--- OverseerTestSuite: run the tests for cwd (possibly using the framework detected by current file)
--- OverseerTestLast mostly an alias to rerun the last test command (tag tasks as well?)
--- optionally fall back to vim-test if no test task found
-
 -- TODO
--- * figure out the best way to run tests
---   * allowlist/blocklist certain built-in templates
---   * May want to add custom arguments. Maybe even per-project
---   * How does user say that in *this* project, *this* is the default test? (e.g. use tox in python project)
--- * detect test pass/fail status and include in result. Add to diagnostics
 -- * make a suite of built-in parsers
 -- * Components can set serializable = false (either fail serialization or silently exclude component)
 -- * Many more task templates, especially for tests
+-- * Right now we only support a single stacktrace. Might be nice to support potentially one per test?
 -- * Add tests
 -- * More comments
 -- * More schema validations (callback, non-empty list, number greater than, enum, list[enum])
@@ -45,6 +32,9 @@ local M = {}
 M.setup = function(opts)
   config.setup(opts)
   commands.create_commands()
+  -- TODO probably want to move this
+  require("overseer.testing").create_commands()
+  require("overseer.testing").register_builtin()
   vim.cmd([[
     hi default link OverseerPENDING Normal
     hi default link OverseerRUNNING Constant
