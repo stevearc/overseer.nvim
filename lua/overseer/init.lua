@@ -26,6 +26,7 @@ local M = {}
 -- * Components can set serializable = false (either fail serialization or silently exclude component)
 -- * Many more task templates, especially for tests
 -- * Add tests
+-- * More comments
 -- * More schema validations (callback, non-empty list, number greater than, enum, list[enum])
 --   * list params allow escaping / quotes / specifying delimiter
 -- * Pull as much logic out of the closures as possible
@@ -102,7 +103,7 @@ end
 -- Used for vim-session integration.
 local timer_active = false
 M._start_tasks = function(str)
-  -- HACK for some reason vim-session first SessionSavePre multiple times, which
+  -- HACK for some reason vim-session fires SessionSavePre multiple times, which
   -- can lead to multiple 'load' lines in the same session file. We need to make
   -- sure we only take the first one.
   if timer_active then

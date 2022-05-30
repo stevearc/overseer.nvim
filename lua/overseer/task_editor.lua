@@ -15,6 +15,16 @@ local function get_telescope_new_component(options)
   local finders = require("telescope.finders")
   local entry_display = require("telescope.pickers.entry_display")
   local picker_opts = themes.get_dropdown()
+
+  local width = vim.api.nvim_win_get_width(0) - 2
+  local height = vim.api.nvim_win_get_height(0) - 2
+  picker_opts.layout_config.width = function(_, max_columns, _)
+    return math.min(max_columns, width)
+  end
+  picker_opts.layout_config.height = function(_, _, max_lines)
+    return math.min(max_lines, height)
+  end
+
   local max_name = 1
   for _, name in ipairs(options) do
     local len = string.len(name)
