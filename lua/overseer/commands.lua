@@ -92,6 +92,11 @@ M.create_commands = function()
     nargs = "?",
     desc = "Run an action on the most recent task",
   })
+  vim.api.nvim_create_user_command("OverseerTaskAction", function(params)
+    M.task_action()
+  end, {
+    desc = "Select a task to run an action on",
+  })
 end
 
 -- TEMPLATE LOADING/RUNNING
@@ -196,6 +201,26 @@ M.quick_action = function(name)
     return
   end
   local tasks = task_list.list_tasks({ unique = true, recent_first = true })
+  local task
+  if #tasks == 0 then
+    vim.notify("No tasks available", vim.log.levels.WARN)
+    return
+  else
+    task = tasks[1]
+  end
+  actions.run_action(task)
+end
+
+M.task_action = function()
+  local tasks = task_list.list_tasks({ unique = true, recent_first = true })
+  if #tasks == 0 then
+    vim.notify("No tasks available", vim.log.levels.WARN)
+    return
+  elseif #tasks == 1 then
+    actions.run_action(tasks[1])
+    return
+  end
+
   vim.ui.select(tasks, {
     prompt = "Select task",
     kind = "overseer_task",
