@@ -111,7 +111,7 @@ M.clear_results = function()
   do_callbacks()
 end
 
-M.set_test_results = function(results)
+M.set_test_results = function(task, results)
   remove_diagnostics()
   if not results.tests then
     return
@@ -139,7 +139,7 @@ M.set_test_results = function(results)
         end_lnum = item.end_lnum and (item.end_lnum - 1),
         col = item.col or 0,
         end_col = item.end_col,
-        source = "overseer", -- TODO use the test integration name
+        source = task.metadata.test_integration,
       })
     end
     local bufnr = vim.fn.bufadd(filename)

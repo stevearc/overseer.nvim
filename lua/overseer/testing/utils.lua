@@ -67,11 +67,13 @@ M.find_nearest_test = function(tests, lnum)
   end
 end
 
-M.create_and_start_task = function(task_data)
+M.create_and_start_task = function(integration_name, task_data)
   -- TODO adjust data through user config
   if not task_data.components then
     task_data.components = { "default_test" }
   end
+  task_data.metadata = task_data.metadata or {}
+  task_data.metadata.test_integration = integration_name
   local task = Task.new(task_data)
   task:start()
 end

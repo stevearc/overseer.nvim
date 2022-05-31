@@ -25,6 +25,7 @@ function Task.new_uninitialized(opts)
     env = { opts.env, "t", true },
     name = { opts.name, "s", true },
     components = { opts.components, "t", true },
+    metadata = { opts.metadata, "t", true },
   })
 
   if not opts.components then
@@ -37,6 +38,7 @@ function Task.new_uninitialized(opts)
   -- Build the instance data for the task
   local data = {
     result = nil,
+    metadata = opts.metadata or {},
     _references = 0,
     status = STATUS.PENDING,
     cmd = opts.cmd,

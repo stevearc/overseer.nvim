@@ -178,7 +178,7 @@ M.on_result_report_tests = {
   constructor = function(params)
     return {
       on_result = function(self, task, status, result)
-        require("overseer.testing.data").set_test_results(result)
+        require("overseer.testing.data").set_test_results(task, result)
       end,
     }
   end,

@@ -19,6 +19,9 @@ Test for SubResource ... FAIL
 
 Stdout:
 Hello world
+
+Stderr:
+This is error
 test_vector2 (tests.test_objects.TestGDObjects)
 Test for Vector2 ... ok
 
@@ -33,6 +36,9 @@ AssertionError: 2 != 3
 
 Stdout:
 Hello world
+
+Stderr:
+This is error
 
 ----------------------------------------------------------------------
 Ran 7 tests in 0.001s]]

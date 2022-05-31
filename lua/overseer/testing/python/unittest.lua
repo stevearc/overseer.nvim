@@ -2,6 +2,7 @@ local files = require("overseer.files")
 local tutils = require("overseer.testing.utils")
 
 local M = {
+  name = "python_unittest",
   is_filename_test = function(self, filename)
     return filename:match("^test_.*%.py$")
   end,

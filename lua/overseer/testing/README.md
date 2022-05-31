@@ -3,6 +3,7 @@
 - View results inline (popup preview window of error/stacktrace/details)
 - Set stacktrace in quickfix
 - Signs in the test files
+- Parse stdout/stderr
 
 ## Test window
 
@@ -11,16 +12,11 @@
 - Filter by status
 - Panel for _file_ tests
 - parse and display duration
-- Probably need 2 modes:
-
-1. show me the tests in this file. Run them, or some subset of them.
-2. run the tests for this _project_. Maybe show them? Definitely show the results.
-   Do I want to have a test explorer like VS Code? For whole project, or just file?
 
 ## Commands
 
 - OverseerTestLast
-- rerun failed (set limit on number of concurrent jobs)
+- rerun failed tests (set limit on number of concurrent jobs)
 
 ## Future
 

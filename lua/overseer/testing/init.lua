@@ -66,7 +66,7 @@ M.test_dir = function(dirname)
   end
   data.reset_dir_results(dirname)
   for _, v in ipairs(integrations) do
-    utils.create_and_start_task(v:run_test_dir(dirname))
+    utils.create_and_start_task(v.name, v:run_test_dir(dirname))
   end
   data.touch()
 end
@@ -82,7 +82,7 @@ M.test_file = function(bufnr)
     for _, test in ipairs(v:find_tests(bufnr)) do
       data.reset_test_status(test.id)
     end
-    utils.create_and_start_task(v:run_test_file(vim.api.nvim_buf_get_name(bufnr)))
+    utils.create_and_start_task(v.name, v:run_test_file(vim.api.nvim_buf_get_name(bufnr)))
   end
   data.touch()
 end
@@ -102,7 +102,10 @@ M.test_nearest = function(bufnr, lnum)
     if test then
       ran_any = true
       data.reset_test_status(test.id)
-      utils.create_and_start_task(v:run_test_in_file(vim.api.nvim_buf_get_name(bufnr), test))
+      utils.create_and_start_task(
+        v.name,
+        v:run_test_in_file(vim.api.nvim_buf_get_name(bufnr), test)
+      )
     end
   end
   data.touch()
