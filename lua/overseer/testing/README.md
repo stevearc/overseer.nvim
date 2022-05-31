@@ -7,6 +7,7 @@
 
 ## Test window
 
+- Rerun group of tests
 - Stream results
 - Collapsing
 - Filter by status
@@ -20,6 +21,7 @@
 
 ## Future
 
+- Maybe put the test result resetting logic into an on_init component
 - Fall back to vim-test if integration not found
 - Run after build
 - Test playlists

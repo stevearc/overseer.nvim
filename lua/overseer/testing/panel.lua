@@ -1,5 +1,7 @@
 local data = require("overseer.testing.data")
+local integrations = require("overseer.testing.integrations")
 local util = require("overseer.util")
+local utils = require("overseer.testing.utils")
 local TEST_STATUS = data.TEST_STATUS
 local M = {}
 
@@ -129,6 +131,23 @@ local function create_test_panel_buf()
     nested = true,
   })
   update()
+
+  vim.keymap.set("n", "<C-r>", function()
+    local lnum = vim.api.nvim_win_get_cursor(0)[1]
+    local entry = reverse_map[lnum]
+    if entry and entry.type == "test" then
+      local test = entry.test
+      local integ = integrations.get_by_name(test.integration)
+      -- TODO don't duplicate this logic
+      data.reset_test_status(test.id)
+      utils.create_and_start_task(
+        integ.name,
+        integ:run_test_in_file(vim.api.nvim_buf_get_name(bufnr), test)
+      )
+      data.touch()
+    end
+  end, { buffer = bufnr })
+
   return bufnr
 end
 

@@ -122,6 +122,7 @@ M.set_test_results = function(task, results)
     reset_on_next_results = false
   end
   for _, v in ipairs(results.tests) do
+    v.integration = task.metadata.test_integration
     M.results[v.id] = v
   end
   cached_workspace_results = nil
