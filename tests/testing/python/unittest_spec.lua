@@ -1,8 +1,10 @@
 local parser = require("overseer.parser")
+local integration = require("overseer.testing.python.unittest")
+local parser = require("overseer.parser")
 local TEST_STATUS = require("overseer.testing.data").TEST_STATUS
 
 local function run_parser(name, output)
-  local defn = require("overseer.parsers.python")[name]()
+  local defn = integration.parser()
   local p = parser.new(defn)
   p:ingest(vim.split(output, "\n"))
   return p:get_result()

@@ -3,7 +3,7 @@ local M = {}
 
 local registry = {}
 
-local builtin_modules = { "python" }
+local builtin_modules = {}
 
 M.register_builtin = function()
   for _, path in ipairs(builtin_modules) do
@@ -12,6 +12,10 @@ M.register_builtin = function()
       registry[k] = v
     end
   end
+end
+
+M.register_parser = function(name, factory)
+  registry[name] = factory
 end
 
 M.get_parser = function(name)

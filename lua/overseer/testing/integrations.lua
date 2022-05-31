@@ -1,3 +1,4 @@
+local parsers = require("overseer.parsers")
 local M = {}
 
 M.registry = {}
@@ -5,7 +6,11 @@ M.registry = {}
 local builtin_tests = { "python.unittest" }
 M.register_builtin = function()
   for _, mod in ipairs(builtin_tests) do
-    table.insert(M.registry, require(string.format("overseer.testing.%s", mod)))
+    local integration = require(string.format("overseer.testing.%s", mod))
+    table.insert(M.registry, integration)
+    if integration.parser then
+      parsers.register_parser(integration.name, integration.parser)
+    end
   end
 end
 
