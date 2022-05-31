@@ -1,8 +1,8 @@
 # TODO
 
 - View results inline (popup preview window of error/stacktrace/details)
-- View diagnostics
 - Set stacktrace in quickfix
+- Signs in the test files
 
 ## Test window
 

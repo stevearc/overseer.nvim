@@ -1,4 +1,5 @@
 local Enum = require("overseer.enum")
+local util = require("overseer.util")
 local M = {}
 
 local TEST_STATUS = Enum.new({ "NONE", "RUNNING", "SUCCESS", "FAILURE", "SKIPPED" })
@@ -94,10 +95,28 @@ M.remove_callback = function(cb)
 end
 
 local reset_on_next_results = false
+local test_ns = vim.api.nvim_create_namespace("OverseerTests")
+local diagnostics_bufnrs = {}
+local function remove_diagnostics()
+  for _, bufnr in ipairs(diagnostics_bufnrs) do
+    vim.diagnostic.reset(test_ns, bufnr)
+  end
+  diagnostics_bufnrs = {}
+end
+
+M.clear_results = function()
+  M.results = {}
+  remove_diagnostics()
+  cached_workspace_results = nil
+  do_callbacks()
+end
+
 M.set_test_results = function(results)
+  remove_diagnostics()
   if not results.tests then
     return
   end
+  -- Set test results
   if reset_on_next_results then
     M.results = {}
     reset_on_next_results = false
@@ -106,6 +125,37 @@ M.set_test_results = function(results)
     M.results[v.id] = v
   end
   cached_workspace_results = nil
+
+  -- Set diagnostics
+  local grouped = util.tbl_group_by(results.diagnostics, "filename")
+  for filename, items in pairs(grouped) do
+    local diagnostics = {}
+    for _, item in ipairs(items) do
+      table.insert(diagnostics, {
+        message = item.text,
+        severity = item.type == "W" and vim.diagnostic.severity.WARN
+          or vim.diagnostic.severity.ERROR,
+        lnum = (item.lnum or 1) - 1,
+        end_lnum = item.end_lnum and (item.end_lnum - 1),
+        col = item.col or 0,
+        end_col = item.end_col,
+        source = "overseer", -- TODO use the test integration name
+      })
+    end
+    local bufnr = vim.fn.bufadd(filename)
+    if bufnr then
+      vim.diagnostic.set(test_ns, bufnr, diagnostics, {
+        -- TODO configure these
+        -- virtual_text = params.virtual_text,
+        -- signs = params.signs,
+        -- underline = params.underline,
+      })
+      table.insert(diagnostics_bufnrs, bufnr)
+    else
+      vim.notify(string.format("Could not find file '%s'", filename), vim.log.levels.WARN)
+    end
+  end
+
   do_callbacks()
 end
 

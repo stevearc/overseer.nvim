@@ -128,6 +128,7 @@ local function create_test_panel_buf()
     once = true,
     nested = true,
   })
+  update()
   return bufnr
 end
 
