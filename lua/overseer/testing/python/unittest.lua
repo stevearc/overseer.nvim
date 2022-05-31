@@ -32,6 +32,13 @@ local M = {
       components = { { "result_exit_code", parser = "python_unittest" }, "default_test" },
     }
   end,
+  get_test_file_from_id = function(self, test_id)
+    local pieces = vim.split(test_id, "%.")
+    -- Get rid of the test method and test class names
+    table.remove(pieces)
+    table.remove(pieces)
+    return files.join(unpack(pieces)) .. ".py"
+  end,
   find_tests = function(self, bufnr)
     local filename = vim.api.nvim_buf_get_name(bufnr)
     local relfile = vim.fn.fnamemodify(filename, ":.:r")

@@ -1,4 +1,5 @@
 local Enum = require("overseer.enum")
+local integrations = require("overseer.testing.integrations")
 local util = require("overseer.util")
 local M = {}
 
@@ -95,13 +96,19 @@ M.remove_callback = function(cb)
 end
 
 local reset_on_next_results = false
-local test_ns = vim.api.nvim_create_namespace("OverseerTests")
+local test_ns = vim.api.nvim_create_namespace("OverseerTestsErrors")
+local sign_group = "OverseerTestSigns"
 local diagnostics_bufnrs = {}
+local sign_bufnrs = {}
 local function remove_diagnostics()
   for _, bufnr in ipairs(diagnostics_bufnrs) do
     vim.diagnostic.reset(test_ns, bufnr)
   end
+  for _, bufnr in ipairs(sign_bufnrs) do
+    vim.fn.sign_unplace(sign_group, { buffer = bufnr })
+  end
   diagnostics_bufnrs = {}
+  sign_bufnrs = {}
 end
 
 M.clear_results = function()
@@ -111,21 +118,53 @@ M.clear_results = function()
   do_callbacks()
 end
 
+local function set_test_result_signs(bufnr, integration_name)
+  local integ = integrations.get_by_name(integration_name)
+  local tests = integ:find_tests(bufnr)
+  for _, test in ipairs(tests) do
+    local result = M.results[test.id]
+    if result and result.status ~= TEST_STATUS.NONE then
+      vim.fn.sign_place(0, sign_group, string.format("OverseerTest%s", result.status), bufnr, {
+        priority = 8,
+        lnum = test.lnum + 1,
+      })
+    end
+  end
+end
+
 M.set_test_results = function(task, results)
   remove_diagnostics()
   if not results.tests then
     return
   end
+  local integration_name = task.metadata.test_integration
+  local integ = integrations.get_by_name(integration_name)
   -- Set test results
   if reset_on_next_results then
     M.results = {}
     reset_on_next_results = false
   end
+  local files_with_results = {}
   for _, v in ipairs(results.tests) do
-    v.integration = task.metadata.test_integration
+    v.integration = integration_name
     M.results[v.id] = v
+    if v.status ~= TEST_STATUS.NONE then
+      local file = integ:get_test_file_from_id(v.id)
+      files_with_results[file] = true
+    end
   end
   cached_workspace_results = nil
+
+  -- Set test result signs
+  for filename in pairs(files_with_results) do
+    local bufnr = vim.fn.bufadd(filename)
+    if bufnr then
+      util.run_once_buf_loaded(bufnr, "test_signs", function()
+        set_test_result_signs(bufnr, integration_name)
+      end)
+      table.insert(sign_bufnrs, bufnr)
+    end
+  end
 
   -- Set diagnostics
   local grouped = util.tbl_group_by(results.diagnostics, "filename")
@@ -140,7 +179,7 @@ M.set_test_results = function(task, results)
         end_lnum = item.end_lnum and (item.end_lnum - 1),
         col = item.col or 0,
         end_col = item.end_col,
-        source = task.metadata.test_integration,
+        source = integration_name,
       })
     end
     local bufnr = vim.fn.bufadd(filename)
@@ -153,15 +192,9 @@ M.set_test_results = function(task, results)
       })
       table.insert(diagnostics_bufnrs, bufnr)
       if not vim.api.nvim_buf_is_loaded(bufnr) then
-        vim.api.nvim_create_autocmd("BufEnter", {
-          desc = "Set overseer test diagnostics on first enter",
-          callback = function()
-            vim.diagnostic.show(test_ns, bufnr)
-          end,
-          buffer = bufnr,
-          once = true,
-          nested = true,
-        })
+        util.set_bufenter_callback(bufnr, "diagnostics_show", function()
+          vim.diagnostic.show(test_ns, bufnr)
+        end)
       end
     else
       vim.notify(string.format("Could not find file '%s'", filename), vim.log.levels.WARN)

@@ -15,6 +15,13 @@ local default_config = {
     max_height = 0.9,
     winblend = 10,
   },
+  test_icons = {
+    ["NONE"] = " ",
+    ["RUNNING"] = " ",
+    ["SUCCESS"] = " ",
+    ["FAILURE"] = " ",
+    ["SKIPPED"] = " ",
+  },
   component_sets = {
     default = {
       "on_output_summarize",
@@ -62,6 +69,16 @@ M.setup = function(opts)
     end
   end
   M.actions = actions
+
+  for k, v in pairs(newconf.test_icons) do
+    local hl_name = string.format("OverseerTest%s", k)
+    vim.fn.sign_define(hl_name, {
+      text = v,
+      texthl = hl_name,
+      linehl = "",
+      numhl = "",
+    })
+  end
 
   for _, v in util.iter_as_list(M.extensions) do
     extensions.register(v)

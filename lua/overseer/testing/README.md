@@ -1,32 +1,31 @@
 # TODO
 
 - View results inline (popup preview window of error/stacktrace/details)
-- Signs in the test files
 - Parse stdout/stderr
+- Rerun group of tests
+- More test integrations (and figure out how to simplify)
 
 ## Test window
 
-- Rerun group of tests
 - Collapsing
 - Filter by status
 - Panel for _file_ tests
 - parse and display duration
 
-## Commands
-
-- OverseerTestLast
-- rerun failed tests (set limit on number of concurrent jobs)
-- Populate workspace tests (crawl directory)
-
 ## Future
 
+- OverseerTestLast
 - Show running status when test is in progress
+- Only process result deltas so we don't have to re-render ALL signs and ALL test statuses
+- The parsers are test-specific (b/c of the id logic). Keep them co-located.
 - Maybe put the test result resetting logic into an on_init component
 - Fall back to vim-test if integration not found
 - Run after build
 - Test playlists
 - Debug test integration
 - Code coverage integration
+- Populate workspace tests (crawl directory)
+- command to rerun failed tests (set limit on number of concurrent jobs)
 
 ### Open questions
 

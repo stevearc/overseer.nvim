@@ -1,17 +1,10 @@
+local config = require("overseer.config")
 local data = require("overseer.testing.data")
 local integrations = require("overseer.testing.integrations")
 local util = require("overseer.util")
 local utils = require("overseer.testing.utils")
 local TEST_STATUS = data.TEST_STATUS
 local M = {}
-
-local status_icons = {
-  [TEST_STATUS.NONE] = " ",
-  [TEST_STATUS.RUNNING] = " ",
-  [TEST_STATUS.SUCCESS] = " ",
-  [TEST_STATUS.FAILURE] = " ",
-  [TEST_STATUS.SKIPPED] = " ",
-}
 
 local function render_summary(summary, lnum, col_start)
   lnum = lnum or 1
@@ -20,7 +13,7 @@ local function render_summary(summary, lnum, col_start)
   local highlights = {}
   for _, v in ipairs(TEST_STATUS.values) do
     if summary[v] > 0 then
-      local icon = status_icons[v]
+      local icon = config.test_icons[v]
       table.insert(pieces, string.format("%s%d", icon, summary[v]))
       local col_end = col_start + string.len(pieces[#pieces]) + 1
       table.insert(highlights, {
@@ -61,7 +54,7 @@ local function render(bufnr)
         current_path[i] = v
         local sum = get_path(results.summaries, current_path, i)
         local status = sum:get_status()
-        local icon = status_icons[status]
+        local icon = config.test_icons[status]
         local padding = string.rep("  ", i - 1)
         table.insert(lines, string.format("%s%s%s", padding, icon, v))
         table.insert(highlights, {
@@ -80,7 +73,7 @@ local function render(bufnr)
       table.remove(current_path)
     end
 
-    local icon = status_icons[result.status]
+    local icon = config.test_icons[result.status]
     local padding = string.rep("  ", #result.path)
     table.insert(lines, string.format("%s%s%s", padding, icon, result.name))
     table.insert(highlights, {

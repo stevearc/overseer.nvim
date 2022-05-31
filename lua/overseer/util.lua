@@ -230,4 +230,37 @@ M.pack = function(...)
   return { n = select("#", ...), ... }
 end
 
+local bufenter_callbacks = {}
+M.set_bufenter_callback = function(bufnr, key, callback)
+  local cbs = bufenter_callbacks[bufnr]
+  if not cbs then
+    cbs = {}
+    bufenter_callbacks[bufnr] = cbs
+  end
+  if cbs[key] then
+    vim.api.nvim_del_autocmd(cbs[key])
+  end
+  cbs[key] = vim.api.nvim_create_autocmd("BufEnter", {
+    desc = "Set overseer test diagnostics on first enter",
+    callback = function()
+      cbs[key] = nil
+      if vim.tbl_isempty(bufenter_callbacks[bufnr]) then
+        bufenter_callbacks[bufnr] = nil
+      end
+      callback(bufnr)
+    end,
+    buffer = bufnr,
+    once = true,
+    nested = true,
+  })
+end
+
+M.run_once_buf_loaded = function(bufnr, key, callback)
+  if vim.api.nvim_buf_is_loaded(bufnr) then
+    callback(bufnr)
+  else
+    M.set_bufenter_callback(bufnr, key, callback)
+  end
+end
+
 return M
