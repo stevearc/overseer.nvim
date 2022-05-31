@@ -35,6 +35,7 @@ M.setup = function(opts)
   -- TODO probably want to move this
   require("overseer.testing").create_commands()
   require("overseer.testing").register_builtin()
+  require("overseer.parsers").register_builtin()
   vim.cmd([[
     hi default link OverseerPENDING Normal
     hi default link OverseerRUNNING Constant
@@ -47,6 +48,11 @@ M.setup = function(opts)
     hi default link OverseerOutput Normal
     hi default link OverseerComponent Constant
     hi default link OverseerField Keyword
+    hi default link OverseerTestNONE Normal
+    hi default link OverseerTestRUNNING Constant
+    hi default link OverseerTestSUCCESS DiagnosticInfo
+    hi default link OverseerTestFAILURE DiagnosticError
+    hi default link OverseerTestSKIPPED DiagnosticWarn
   ]])
   local aug = vim.api.nvim_create_augroup("Overseer", {})
   vim.api.nvim_create_autocmd("User", {

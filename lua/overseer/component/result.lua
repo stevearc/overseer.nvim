@@ -1,5 +1,6 @@
 local constants = require("overseer.constants")
 local parser = require("overseer.parser")
+local parsers = require("overseer.parsers")
 local util = require("overseer.util")
 local STATUS = constants.STATUS
 local M = {}
@@ -7,11 +8,36 @@ local M = {}
 M.result_exit_code = {
   name = "result_exit_code",
   description = "Sets status based on exit code",
-  constructor = function()
+  params = {
+    success_codes = { type = "list", optional = true },
+    parser = { optional = true },
+  },
+  constructor = function(params)
+    local success_codes = vim.tbl_map(function(code)
+      return tonumber(code)
+    end, params.success_codes or {})
+    table.insert(success_codes, 0)
     return {
+      parser = parsers.get_parser(params.parser),
+      on_reset = function(self)
+        if self.parser then
+          self.parser:reset()
+        end
+      end,
+      on_output_lines = function(self, task, lines)
+        if self.parser then
+          self.parser:ingest(lines)
+        end
+      end,
       on_exit = function(self, task, code)
-        local status = code == 0 and STATUS.SUCCESS or STATUS.FAILURE
-        task:set_result(status, task.result or {})
+        local status = vim.tbl_contains(success_codes, code) and STATUS.SUCCESS or STATUS.FAILURE
+        local result
+        if self.parser then
+          result = self.parser:get_result()
+        else
+          result = task.result or {}
+        end
+        task:set_result(status, result)
       end,
     }
   end,
@@ -140,6 +166,19 @@ M.on_result_diagnostics = {
       end,
       on_dispose = function(self, task)
         remove_diagnostics(self)
+      end,
+    }
+  end,
+}
+
+M.on_result_report_tests = {
+  name = "on_result_report_tests",
+  description = "Report all test results",
+  params = {},
+  constructor = function(params)
+    return {
+      on_result = function(self, task, status, result)
+        require("overseer.testing.data").set_test_results(result)
       end,
     }
   end,

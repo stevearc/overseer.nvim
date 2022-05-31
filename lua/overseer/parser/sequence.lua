@@ -7,8 +7,22 @@ function Sequence.new(opts, ...)
   if opts.ingest then
     children = util.pack(opts, ...)
     opts = {}
+  elseif vim.tbl_islist(opts) then
+    -- children are passed in as a list
+    children = opts
+    opts = {}
   else
-    children = util.pack(...)
+    if select("#", ...) == 1 then
+      local arg1 = select(1, ...)
+      -- we got opts, and children are passed in as a list
+      if vim.tbl_islist(arg1) then
+        children = arg1
+      end
+    end
+    if not children then
+      -- children are passed in as args
+      children = util.pack(...)
+    end
   end
   vim.validate({
     break_on_first_failure = { opts.break_on_first_failure, "b", true },

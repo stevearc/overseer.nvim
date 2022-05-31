@@ -16,16 +16,21 @@ function Loop.new(opts, child)
     ignore_failure = opts.ignore_failure,
     repetitions = opts.repetitions,
     count = 0,
+    done = nil,
     child = child,
   }, { __index = Loop })
 end
 
 function Loop:reset()
   self.count = 0
+  self.done = nil
   self.child:reset()
 end
 
 function Loop:ingest(...)
+  if self.done then
+    return self.done
+  end
   local loop_count = 0
   local st
   repeat
@@ -40,12 +45,16 @@ function Loop:ingest(...)
       self.child:reset()
       self.count = self.count + 1
       if not self.ignore_failure then
+        self.done = st
         return st
       end
+      return parser.STATUS.RUNNING
     end
     loop_count = loop_count + 1
   until st == parser.STATUS.RUNNING or loop_count >= MAX_LOOP
-  -- TODO log warning if loop_count >= MAX_LOOP
+  if loop_count >= MAX_LOOP then
+    error("Max loop count exceeded")
+  end
   return parser.STATUS.RUNNING
 end
 

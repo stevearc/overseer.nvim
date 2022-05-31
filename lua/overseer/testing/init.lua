@@ -1,3 +1,4 @@
+local panel = require("overseer.testing.panel")
 local utils = require("overseer.testing.utils")
 local M = {}
 
@@ -16,6 +17,11 @@ M.create_commands = function()
     M.test_nearest()
   end, {
     desc = "Run the nearest test in the current test file",
+  })
+  vim.api.nvim_create_user_command("OverseerToggleTestPanel", function()
+    panel.toggle()
+  end, {
+    desc = "Toggle the test panel",
   })
 end
 

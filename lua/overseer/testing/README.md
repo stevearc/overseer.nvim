@@ -2,12 +2,18 @@
 
 ## Data structure and API
 
-- Defines output parser (stacktrace, error line, individual test status, duration)
+- parse duration
 
 ## Test window
 
+- Reset test results on run
+- Icon for test groups
+- Show test info on hover
+- Collapsing
 - Summary of results at the top
+- Diagnostics should be controlled by test, not component
 - Filter by status
+- Panel for _file_ tests
 - View results inline (popup preview window of error/stacktrace/details)
 - Probably need 2 modes:
 
@@ -18,6 +24,7 @@
 ## Commands
 
 - OverseerTestLast
+- rerun failed (set limit on number of concurrent jobs)
 
 ## Future
 
