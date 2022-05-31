@@ -53,7 +53,10 @@ function Loop:ingest(...)
     loop_count = loop_count + 1
   until st == parser.STATUS.RUNNING or loop_count >= MAX_LOOP
   if loop_count >= MAX_LOOP then
-    error("Max loop count exceeded")
+    local line = select(1, ...)
+    vim.api.nvim_err_writeln(
+      string.format("Max loop count exceeded for line %s\n%s", line, debug.traceback())
+    )
   end
   return parser.STATUS.RUNNING
 end
