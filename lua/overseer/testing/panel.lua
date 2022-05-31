@@ -11,17 +11,67 @@ local status_icons = {
   [TEST_STATUS.SKIPPED] = " ",
 }
 
+local function render_summary(summary, lnum, col_start)
+  lnum = lnum or 1
+  col_start = col_start or 0
+  local pieces = {}
+  local highlights = {}
+  for _, v in ipairs(TEST_STATUS.values) do
+    if summary[v] > 0 then
+      local icon = status_icons[v]
+      table.insert(pieces, string.format("%s%d", icon, summary[v]))
+      local col_end = col_start + string.len(pieces[#pieces]) + 1
+      table.insert(highlights, {
+        string.format("OverseerTest%s", v),
+        lnum,
+        col_start,
+        col_end,
+      })
+      col_start = col_end
+    end
+  end
+  return table.concat(pieces, " "), highlights
+end
+
+local function get_path(obj, path, max)
+  for i, v in ipairs(path) do
+    obj = obj[v]
+    if max and i >= max then
+      break
+    end
+  end
+  return obj
+end
+
 local reverse_map = {}
 local function render(bufnr)
   reverse_map = {}
   local lines = {}
   local highlights = {}
   local current_path = {}
-  for _, result in ipairs(data.get_workspace_results()) do
+  local results = data.get_workspace_results()
+  local total_summary, sum_hl = render_summary(results.summaries["_"])
+  table.insert(lines, total_summary)
+  vim.list_extend(highlights, sum_hl)
+  for _, result in ipairs(results.tests) do
     for i, v in ipairs(result.path) do
       if not current_path[i] or current_path[i] ~= v then
-        table.insert(lines, string.format("%s%s", string.rep("  ", i), v))
         current_path[i] = v
+        local sum = get_path(results.summaries, current_path, i)
+        local status = sum:get_status()
+        local icon = status_icons[status]
+        local padding = string.rep("  ", i - 1)
+        table.insert(lines, string.format("%s%s%s", padding, icon, v))
+        table.insert(highlights, {
+          string.format("OverseerTest%s", status),
+          #lines,
+          0,
+          string.len(padding) + string.len(icon),
+        })
+        reverse_map[#lines] = {
+          type = "group",
+          path = util.tbl_slice(current_path, 1, i),
+        }
       end
     end
     while #current_path > #result.path do
@@ -32,11 +82,15 @@ local function render(bufnr)
     local padding = string.rep("  ", #result.path)
     table.insert(lines, string.format("%s%s%s", padding, icon, result.name))
     table.insert(highlights, {
-      group = string.format("OverseerTest%s", result.status),
-      row = #lines,
-      col_start = 0,
-      col_end = string.len(padding) + string.len(icon),
+      string.format("OverseerTest%s", result.status),
+      #lines,
+      0,
+      string.len(padding) + string.len(icon),
     })
+    reverse_map[#lines] = {
+      type = "test",
+      test = result,
+    }
   end
 
   vim.api.nvim_buf_set_option(bufnr, "modifiable", true)
@@ -46,7 +100,8 @@ local function render(bufnr)
   local ns = vim.api.nvim_create_namespace("OverseerTest")
   vim.api.nvim_buf_clear_namespace(bufnr, ns, 0, -1)
   for _, hl in ipairs(highlights) do
-    vim.api.nvim_buf_add_highlight(bufnr, ns, hl.group, hl.row - 1, hl.col_start, hl.col_end)
+    local group, lnum, col_start, col_end = unpack(hl)
+    vim.api.nvim_buf_add_highlight(bufnr, ns, group, lnum - 1, col_start, col_end)
   end
 end
 

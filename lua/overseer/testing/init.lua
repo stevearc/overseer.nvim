@@ -1,3 +1,4 @@
+local data = require("overseer.testing.data")
 local panel = require("overseer.testing.panel")
 local utils = require("overseer.testing.utils")
 local M = {}
@@ -63,9 +64,11 @@ M.test_dir = function(dirname)
     vim.cmd([[TestSuite]])
     return
   end
+  data.reset_dir_results(dirname)
   for _, v in ipairs(integrations) do
     utils.create_and_start_task(v:run_test_dir(dirname))
   end
+  data.touch()
 end
 
 M.test_file = function(bufnr)
@@ -76,8 +79,12 @@ M.test_file = function(bufnr)
     return
   end
   for _, v in ipairs(integrations) do
+    for _, test in ipairs(v:find_tests(bufnr)) do
+      data.reset_test_status(test.id)
+    end
     utils.create_and_start_task(v:run_test_file(vim.api.nvim_buf_get_name(bufnr)))
   end
+  data.touch()
 end
 
 M.test_nearest = function(bufnr, lnum)
@@ -94,9 +101,11 @@ M.test_nearest = function(bufnr, lnum)
     local test = utils.find_nearest_test(tests, lnum)
     if test then
       ran_any = true
+      data.reset_test_status(test.id)
       utils.create_and_start_task(v:run_test_in_file(vim.api.nvim_buf_get_name(bufnr), test))
     end
   end
+  data.touch()
   if not ran_any then
     vim.notify("Could not find nearest test", vim.log.levels.WARN)
   end

@@ -26,7 +26,6 @@ local default_config = {
     default_test = {
       "default",
       "on_result_report_tests",
-      "on_result_diagnostics",
     },
     default_persist = {
       "on_output_summarize",

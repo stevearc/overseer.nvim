@@ -1,20 +1,16 @@
 # TODO
 
-## Data structure and API
-
-- parse duration
+- View results inline (popup preview window of error/stacktrace/details)
+- View diagnostics
+- Set stacktrace in quickfix
 
 ## Test window
 
-- Reset test results on run
-- Icon for test groups
-- Show test info on hover
+- Stream results
 - Collapsing
-- Summary of results at the top
-- Diagnostics should be controlled by test, not component
 - Filter by status
 - Panel for _file_ tests
-- View results inline (popup preview window of error/stacktrace/details)
+- parse and display duration
 - Probably need 2 modes:
 
 1. show me the tests in this file. Run them, or some subset of them.
