@@ -154,6 +154,17 @@ M.on_result_diagnostics = {
               underline = params.underline,
             })
             table.insert(self.bufnrs, bufnr)
+            if not vim.api.nvim_buf_is_loaded(bufnr) then
+              vim.api.nvim_create_autocmd("BufEnter", {
+                desc = "Set overseer test diagnostics on first enter",
+                callback = function()
+                  vim.diagnostic.show(self.ns, bufnr)
+                end,
+                buffer = bufnr,
+                once = true,
+                nested = true,
+              })
+            end
           else
             vim.notify(string.format("Could not find file '%s'", filename), vim.log.levels.WARN)
           end

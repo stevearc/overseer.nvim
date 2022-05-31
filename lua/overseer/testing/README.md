@@ -1,5 +1,6 @@
 # TODO
 
+- Stream results
 - View results inline (popup preview window of error/stacktrace/details)
 - Signs in the test files
 - Parse stdout/stderr
@@ -7,7 +8,6 @@
 ## Test window
 
 - Rerun group of tests
-- Stream results
 - Collapsing
 - Filter by status
 - Panel for _file_ tests
