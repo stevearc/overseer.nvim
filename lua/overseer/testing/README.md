@@ -1,7 +1,6 @@
 # TODO
 
 - View results inline (popup preview window of error/stacktrace/details)
-- Set stacktrace in quickfix
 - Signs in the test files
 - Parse stdout/stderr
 
@@ -18,6 +17,7 @@
 
 - OverseerTestLast
 - rerun failed tests (set limit on number of concurrent jobs)
+- Populate workspace tests (crawl directory)
 
 ## Future
 

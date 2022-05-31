@@ -148,6 +148,17 @@ local function create_test_panel_buf()
     end
   end, { buffer = bufnr })
 
+  vim.keymap.set("n", "<C-s>", function()
+    local lnum = vim.api.nvim_win_get_cursor(0)[1]
+    local entry = reverse_map[lnum]
+    if entry and entry.type == "test" then
+      local test = entry.test
+      if test.stacktrace then
+        vim.fn.setqflist(test.stacktrace)
+      end
+    end
+  end, { buffer = bufnr })
+
   return bufnr
 end
 
