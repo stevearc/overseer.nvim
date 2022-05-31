@@ -26,7 +26,9 @@ M.result_exit_code = {
       end,
       on_output_lines = function(self, task, lines)
         if self.parser then
-          self.parser:ingest(lines)
+          if self.parser:ingest(lines) then
+            task:dispatch("on_partial_result", self.parser:get_result())
+          end
         end
       end,
       on_exit = function(self, task, code)
@@ -188,6 +190,9 @@ M.on_result_report_tests = {
   params = {},
   constructor = function(params)
     return {
+      on_partial_result = function(self, task, result)
+        require("overseer.testing.data").set_test_results(task, result)
+      end,
       on_result = function(self, task, status, result)
         require("overseer.testing.data").set_test_results(task, result)
       end,

@@ -51,10 +51,12 @@ function ListParser:reset()
 end
 
 function ListParser:ingest(lines)
+  local num_results = #self.results
   local ctx = { item = self.item, results = self.results, default_values = {} }
   for _, line in ipairs(lines) do
     self.tree:ingest(line, ctx)
   end
+  return #self.results ~= num_results
 end
 
 function ListParser:get_result()
@@ -88,12 +90,16 @@ function MapParser:reset()
 end
 
 function MapParser:ingest(lines)
+  local any_changed = false
   for _, line in ipairs(lines) do
     for k, v in pairs(self.children) do
       local ctx = { item = self.items[k], results = self.results[k], default_values = {} }
+      local num_results = #ctx.results
       v:ingest(line, ctx)
+      any_changed = any_changed or #ctx.results ~= num_results
     end
   end
+  return any_changed
 end
 
 function MapParser:get_result()

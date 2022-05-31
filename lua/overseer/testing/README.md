@@ -1,6 +1,5 @@
 # TODO
 
-- Stream results
 - View results inline (popup preview window of error/stacktrace/details)
 - Signs in the test files
 - Parse stdout/stderr
@@ -21,6 +20,7 @@
 
 ## Future
 
+- Show running status when test is in progress
 - Maybe put the test result resetting logic into an on_init component
 - Fall back to vim-test if integration not found
 - Run after build
