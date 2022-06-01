@@ -138,6 +138,17 @@ describe("extract", function()
     assert.equals("zeta", ctx.item.type)
   end)
 
+  it("can postprocess item", function()
+    local node = parser.extract({
+      postprocess = function(item)
+        item.extra = true
+      end,
+    }, "(.+) (.+)", "action", "name")
+    local ctx = { item = {}, results = {} }
+    assert.equals(STATUS.RUNNING, node:ingest("hello world", ctx))
+    assert.are.same({ { action = "hello", name = "world", extra = true } }, ctx.results)
+  end)
+
   it("can use a function to append", function()
     local node = parser.extract({
       append = function(results, item)
@@ -215,6 +226,58 @@ describe("extract_nested", function()
     assert.equals(STATUS.SUCCESS, node:ingest("", ctx))
     assert.are.same({}, ctx.results)
     assert.are.same({ child = { { num = 123 } } }, ctx.item)
+  end)
+end)
+
+describe("extract_json", function()
+  it("extracts json values", function()
+    local node = parser.extract_json()
+    local ctx = { item = {}, results = {} }
+    assert.equals(STATUS.RUNNING, node:ingest('{"msg": "hello"}', ctx))
+    assert.are.same({ { msg = "hello" } }, ctx.results)
+    assert.equals(STATUS.SUCCESS, node:ingest("next", ctx))
+  end)
+
+  it("modifies item in-place if append = false", function()
+    local node = parser.extract_json({ append = false })
+    local ctx = { item = {}, results = {} }
+    assert.equals(STATUS.RUNNING, node:ingest('{"msg": "hello"}', ctx))
+    assert.are.same({ msg = "hello" }, ctx.item)
+  end)
+
+  it("can use a function to append", function()
+    local node = parser.extract_json({
+      append = function(results, item)
+        results.single = item
+      end,
+    })
+    local ctx = { item = {}, results = {} }
+    assert.equals(STATUS.RUNNING, node:ingest('{"msg": "hello"}', ctx))
+    assert.are.same({ single = { msg = "hello" } }, ctx.results)
+  end)
+
+  it("can test the values before appending", function()
+    local node = parser.extract_json({
+      test = function(values)
+        return values.action == "pass"
+      end,
+    })
+    local ctx = { item = {}, results = {} }
+    assert.equals(STATUS.RUNNING, node:ingest('{"action": "pass", "msg": "hello"}', ctx))
+    node:reset()
+    assert.equals(STATUS.FAILURE, node:ingest('{"action": "fail", "msg": "bye"}', ctx))
+    assert.are.same({ { action = "pass", msg = "hello" } }, ctx.results)
+  end)
+
+  it("can postprocess item", function()
+    local node = parser.extract_json({
+      postprocess = function(item)
+        item.extra = true
+      end,
+    })
+    local ctx = { item = {}, results = {} }
+    assert.equals(STATUS.RUNNING, node:ingest('{"msg": "hello"}', ctx))
+    assert.are.same({ { msg = "hello", extra = true } }, ctx.results)
   end)
 end)
 
