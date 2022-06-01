@@ -42,16 +42,13 @@ local M = {
     local filename = vim.api.nvim_buf_get_name(bufnr)
     local relfile = vim.fn.fnamemodify(filename, ":.:r")
     local path_to_file = vim.split(relfile, files.sep)
+    local file_prefix = table.concat(path_to_file, ".")
+    if file_prefix ~= "" then
+      file_prefix = file_prefix .. "."
+    end
     return vim.tbl_map(
       function(item)
-        item.fullpath = vim.list_extend(vim.deepcopy(path_to_file), item.path)
-        local id = table.concat(item.fullpath, ".")
-        if id ~= "" then
-          id = id .. "." .. item.name
-        else
-          id = item.name
-        end
-        item.id = id
+        item.id = string.format("%s%s.%s", file_prefix, table.concat(item.path, "."), item.name)
         return item
       end,
       tutils.get_tests_from_ts_query(

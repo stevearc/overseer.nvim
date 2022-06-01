@@ -4,6 +4,7 @@
 - Parse stdout/stderr
 - Rerun group of tests
 - More test integrations (and figure out how to simplify)
+- Results streaming
 
 ## Test window
 
