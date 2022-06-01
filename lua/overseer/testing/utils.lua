@@ -1,4 +1,3 @@
-local Task = require("overseer.task")
 local M = {}
 
 local query_cache = {}
@@ -65,17 +64,6 @@ M.find_nearest_test = function(tests, lnum)
       return test
     end
   end
-end
-
-M.create_and_start_task = function(integration_name, task_data)
-  -- TODO adjust data through user config
-  if not task_data.components then
-    task_data.components = { "default_test" }
-  end
-  task_data.metadata = task_data.metadata or {}
-  task_data.metadata.test_integration = integration_name
-  local task = Task.new(task_data)
-  task:start()
 end
 
 return M

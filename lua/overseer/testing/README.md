@@ -25,6 +25,7 @@
 - Code coverage integration
 - Populate workspace tests (crawl directory)
 - command to rerun failed tests (set limit on number of concurrent jobs)
+- smart-detect a green color to use for the success icon
 
 ### Open questions
 

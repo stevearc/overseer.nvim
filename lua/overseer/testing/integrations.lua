@@ -1,4 +1,5 @@
 local parsers = require("overseer.parsers")
+local Task = require("overseer.task")
 local M = {}
 
 M.registry = {}
@@ -42,6 +43,20 @@ M.get_by_name = function(name)
       return integration
     end
   end
+end
+
+M.create_and_start_task = function(integ, task_data)
+  -- TODO adjust data through user config
+  if not task_data.components then
+    task_data.components = { "default_test" }
+    if integ.parser then
+      table.insert(task_data.components, 1, { "result_exit_code", parser = "python_unittest" })
+    end
+  end
+  task_data.metadata = task_data.metadata or {}
+  task_data.metadata.test_integration = integ.name
+  local task = Task.new(task_data)
+  task:start()
 end
 
 return M

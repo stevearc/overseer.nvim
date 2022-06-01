@@ -28,6 +28,7 @@ local M = {}
 -- * Architecture doc (Template / Task / Component)
 -- * Extension doc (how to make your own template/component)
 -- * Extension names could collide. Namespace internal & external extensions separately
+-- * Figure out some clever way to lazy-load everything
 
 M.setup = function(opts)
   config.setup(opts)

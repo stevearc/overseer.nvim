@@ -19,19 +19,16 @@ local M = {
   run_test_dir = function(self, dirname)
     return {
       cmd = { "python", "-m", "unittest", "discover", "-b", "-v", "-s", dirname },
-      components = { { "result_exit_code", parser = "python_unittest" }, "default_test" },
     }
   end,
   run_test_file = function(self, filename)
     return {
       cmd = { "python", "-m", "unittest", "-b", "-v", filename },
-      components = { { "result_exit_code", parser = "python_unittest" }, "default_test" },
     }
   end,
   run_test_in_file = function(self, filename, test)
     return {
       cmd = { "python", "-m", "unittest", "-b", "-v", test.id },
-      components = { { "result_exit_code", parser = "python_unittest" }, "default_test" },
     }
   end,
   get_test_file_from_id = function(self, test_id)
