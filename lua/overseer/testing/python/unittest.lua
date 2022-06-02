@@ -31,6 +31,16 @@ local M = {
       cmd = { "python", "-m", "unittest", "-b", "-v", test.id },
     }
   end,
+  run_test_group = function(self, path)
+    -- If running the top level path, that should actually re-run all tests
+    if #path == 1 then
+      return self:run_test_dir(vim.fn.getcwd(0))
+    end
+    local specifier = table.concat(path, ".")
+    return {
+      cmd = { "python", "-m", "unittest", "-b", "-v", specifier },
+    }
+  end,
   find_tests = function(self, bufnr)
     local filename = vim.api.nvim_buf_get_name(bufnr)
     local relfile = vim.fn.fnamemodify(filename, ":.:r")

@@ -1,27 +1,28 @@
 # TODO
 
-- Parse stdout/stderr messages of python tests
-- Rerun group of tests
 - Results streaming
+- Panel for _file_ tests
+- If I'm going to write a lot more of these parsers, I need some better tools
+- Parse stdout/stderr messages of python tests
 - More test integrations (and figure out how to simplify)
-- Track previous tasks and dispose them
 
 ## Test window
 
 - Collapsing
 - Filter by status
-- Panel for _file_ tests
 - parse and display duration
 - actions
-  - set stacktrace
+  - set stacktrace (and open quickfix)
   - jump to test
   - rerun test
   - display result in preview window
   - open result in new window
+- perform quick action on test cursor is inside (e.g. view output)
 
 ## Future
 
 - OverseerTestLast
+- Track previous tasks and dispose them
 - Show running status when test is in progress
 - Only process result deltas so we don't have to re-render ALL signs and ALL test statuses
 - Maybe put the test result resetting logic into an on_init component
@@ -30,7 +31,6 @@
 - Test playlists
 - Debug test integration
 - Code coverage integration
-- Populate workspace tests (crawl directory)
 - command to rerun failed tests (set limit on number of concurrent jobs)
 - smart-detect a green color to use for the success icon
 

@@ -226,10 +226,33 @@ M.reset_dir_results = function(dirname)
   cached_workspace_results = nil
 end
 
-M.reset_test_status = function(id)
+M.reset_test_status = function(id, status)
+  status = status or TEST_STATUS.NONE
   local result = M.results[id]
   if result then
-    result.status = TEST_STATUS.NONE
+    result.status = status
+  end
+  cached_workspace_results = nil
+end
+
+local function path_match(group, test)
+  if not test.path then
+    return false
+  end
+  for i, v in ipairs(group) do
+    if v ~= test.path[i] then
+      return false
+    end
+  end
+  return true
+end
+
+M.reset_group_status = function(path, status)
+  status = status or TEST_STATUS.NONE
+  for _, v in pairs(M.results) do
+    if path_match(path, v) then
+      v.status = status
+    end
   end
   cached_workspace_results = nil
 end

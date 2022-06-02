@@ -64,6 +64,7 @@ local function render(bufnr)
         })
         line_to_test_map[#lines] = {
           type = "group",
+          integration = result.integration,
           path = util.tbl_slice(current_path, 1, i),
         }
       end
@@ -219,16 +220,29 @@ local function create_test_panel_buf()
   vim.keymap.set("n", "<C-r>", function()
     local lnum = vim.api.nvim_win_get_cursor(0)[1]
     local entry = line_to_test_map[lnum]
-    if entry and entry.type == "test" then
-      local test = entry.test
-      local integ = integrations.get_by_name(test.integration)
-      -- TODO don't duplicate this logic
-      data.reset_test_status(test.id)
-      integrations.create_and_start_task(
-        integ,
-        integ:run_test_in_file(vim.api.nvim_buf_get_name(bufnr), test)
-      )
-      data.touch()
+    if entry then
+      if entry.type == "test" then
+        local test = entry.test
+        local integ = integrations.get_by_name(test.integration)
+        -- TODO don't duplicate this logic
+        data.reset_test_status(test.id, TEST_STATUS.RUNNING)
+        integrations.create_and_start_task(
+          integ,
+          integ:run_test_in_file(vim.api.nvim_buf_get_name(bufnr), test)
+        )
+        data.touch()
+      elseif entry.type == "group" then
+        local integ = integrations.get_by_name(entry.integration)
+        -- TODO factor out the reset logic
+        data.reset_group_status(entry.path, TEST_STATUS.RUNNING)
+        if integ.run_test_group then
+          integrations.create_and_start_task(integ, integ:run_test_group(entry.path))
+        else
+          -- FIXME run test groups for integrations with no built-in support
+          data.reset_group_status(entry.path, TEST_STATUS.NONE)
+        end
+        data.touch()
+      end
     end
   end, { buffer = bufnr })
 
