@@ -31,13 +31,6 @@ local M = {
       cmd = { "python", "-m", "unittest", "-b", "-v", test.id },
     }
   end,
-  get_test_file_from_id = function(self, test_id)
-    local pieces = vim.split(test_id, "%.")
-    -- Get rid of the test method and test class names
-    table.remove(pieces)
-    table.remove(pieces)
-    return files.join(unpack(pieces)) .. ".py"
-  end,
   find_tests = function(self, bufnr)
     local filename = vim.api.nvim_buf_get_name(bufnr)
     local relfile = vim.fn.fnamemodify(filename, ":.:r")
@@ -46,23 +39,20 @@ local M = {
     if file_prefix ~= "" then
       file_prefix = file_prefix .. "."
     end
-    return vim.tbl_map(
-      function(item)
-        item.id = string.format("%s%s.%s", file_prefix, table.concat(item.path, "."), item.name)
-        return item
-      end,
-      tutils.get_tests_from_ts_query(
-        bufnr,
-        "python",
-        "overseer_python_unittest",
-        [[
+    return tutils.get_tests_from_ts_query(
+      bufnr,
+      "python",
+      "overseer_python_unittest",
+      [[
 (class_definition
   name: (identifier) @name (#lua-match? @name "^Test")) @group
 
 (function_definition
   name: (identifier) @name (#lua-match? @name "^test_")) @test
-]]
-      )
+]],
+      function(item)
+        return string.format("%s%s.%s", file_prefix, table.concat(item.path, "."), item.name)
+      end
     )
   end,
 }

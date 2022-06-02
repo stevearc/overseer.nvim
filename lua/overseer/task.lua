@@ -145,6 +145,7 @@ function Task:serialize()
   end
   return {
     name = self.name,
+    metadata = self.metadata,
     cmd = self.cmd,
     cwd = self.cwd,
     env = self.env,

@@ -11,7 +11,7 @@ local function clear_path(path, lnum)
     end
   end
 end
-M.get_tests_from_ts_query = function(bufnr, lang, queryname, query_str)
+M.get_tests_from_ts_query = function(bufnr, lang, queryname, query_str, id_func)
   local parser = vim.treesitter.get_parser(bufnr, "python")
   local tests = {}
   if not parser then
@@ -43,7 +43,7 @@ M.get_tests_from_ts_query = function(bufnr, lang, queryname, query_str)
     else
       local lnum_start, col_start, lnum_end, col_end = match[query.captures.test]:range()
       clear_path(path, lnum_start)
-      table.insert(tests, {
+      local test = {
         name = name,
         path = vim.tbl_map(function(p)
           return p.name
@@ -52,7 +52,9 @@ M.get_tests_from_ts_query = function(bufnr, lang, queryname, query_str)
         col = col_start,
         lnum_end = lnum_end,
         col_end = col_end,
-      })
+      }
+      test.id = id_func(test)
+      table.insert(tests, test)
     end
   end
   return tests

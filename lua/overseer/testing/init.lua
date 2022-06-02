@@ -25,6 +25,15 @@ M.create_commands = function()
   end, {
     desc = "Toggle the test panel",
   })
+  local aug = vim.api.nvim_create_augroup("OverseerTests", {})
+  vim.api.nvim_create_autocmd("BufEnter", {
+    pattern = "*",
+    desc = "Update test signs when entering a buffer",
+    group = aug,
+    callback = function(params)
+      data.update_buffer_signs(params.buf)
+    end,
+  })
 end
 
 M.register_builtin = integrations.register_builtin

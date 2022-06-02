@@ -1,14 +1,6 @@
-local parser = require("overseer.parser")
 local integration = require("overseer.testing.python.unittest")
-local parser = require("overseer.parser")
+local test_utils = require("tests.testing.integration_test_utils")
 local TEST_STATUS = require("overseer.testing.data").TEST_STATUS
-
-local function run_parser(name, output)
-  local defn = integration.parser()
-  local p = parser.new(defn)
-  p:ingest(vim.split(output, "\n"))
-  return p:get_result()
-end
 
 describe("python_unittest", function()
   it("parses test failures", function()
@@ -44,7 +36,7 @@ This is error
 
 ----------------------------------------------------------------------
 Ran 7 tests in 0.001s]]
-    local results = run_parser("python_unittest", output)
+    local results = test_utils.run_parser(integration, output)
     assert.are.same({
       tests = {
         {

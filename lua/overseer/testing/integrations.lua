@@ -4,7 +4,7 @@ local M = {}
 
 M.registry = {}
 
-local builtin_tests = { "python.unittest" }
+local builtin_tests = { "go.go_test", "python.unittest" }
 M.register_builtin = function()
   for _, mod in ipairs(builtin_tests) do
     local integration = require(string.format("overseer.testing.%s", mod))
@@ -50,7 +50,7 @@ M.create_and_start_task = function(integ, task_data)
   if not task_data.components then
     task_data.components = { "default_test" }
     if integ.parser then
-      table.insert(task_data.components, 1, { "result_exit_code", parser = "python_unittest" })
+      table.insert(task_data.components, 1, { "result_exit_code", parser = integ.name })
     end
   end
   task_data.metadata = task_data.metadata or {}

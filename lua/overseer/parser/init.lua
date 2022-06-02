@@ -7,7 +7,7 @@ local depth = 0
 
 setmetatable(M, {
   __index = function(_, key)
-    if debug then
+    if debug and key ~= "util" then
       local constructor = require(string.format("overseer.parser.%s", key))
       return function(...)
         local node = constructor(...)

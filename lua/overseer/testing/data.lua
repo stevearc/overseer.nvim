@@ -132,38 +132,51 @@ local function set_test_result_signs(bufnr, integration_name)
   end
 end
 
+local test_results_version = setmetatable({}, {
+  __index = function()
+    return 0
+  end,
+})
+
+M.update_buffer_signs = function(bufnr)
+  for _, integ in ipairs(integrations.get_for_buf(bufnr)) do
+    local varname = string.format("overseer_test_results_version_%s", integ.name)
+    local ok, version = pcall(vim.api.nvim_buf_get_var, bufnr, varname)
+    if ok and version == test_results_version[integ.name] then
+      goto continue
+    end
+
+    set_test_result_signs(bufnr, integ.name)
+
+    ::continue::
+  end
+end
+
 M.set_test_results = function(task, results)
   remove_diagnostics()
   if not results.tests then
     return
   end
   local integration_name = task.metadata.test_integration
-  local integ = integrations.get_by_name(integration_name)
+  test_results_version[integration_name] = 1 + test_results_version[integration_name]
   -- Set test results
   if reset_on_next_results then
     M.results = {}
     reset_on_next_results = false
   end
-  local files_with_results = {}
   for _, v in ipairs(results.tests) do
     v.integration = integration_name
-    M.results[v.id] = v
-    if v.status ~= TEST_STATUS.NONE then
-      local file = integ:get_test_file_from_id(v.id)
-      files_with_results[file] = true
+    if not v.path then
+      v.path = {}
     end
+    M.results[v.id] = v
   end
   cached_workspace_results = nil
 
   -- Set test result signs
-  for filename in pairs(files_with_results) do
-    local bufnr = vim.fn.bufadd(filename)
-    if bufnr then
-      util.run_once_buf_loaded(bufnr, "test_signs", function()
-        set_test_result_signs(bufnr, integration_name)
-      end)
-      table.insert(sign_bufnrs, bufnr)
-    end
+  for _, win in ipairs(vim.api.nvim_list_wins()) do
+    local bufnr = vim.api.nvim_win_get_buf(win)
+    M.update_buffer_signs(bufnr)
   end
 
   -- Set diagnostics
