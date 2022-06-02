@@ -1,10 +1,10 @@
 # TODO
 
-- View results inline (popup preview window of error/stacktrace/details)
-- Parse stdout/stderr
+- Parse stdout/stderr messages of tests
 - Rerun group of tests
-- More test integrations (and figure out how to simplify)
 - Results streaming
+- More test integrations (and figure out how to simplify)
+- Track previous tasks and dispose them
 
 ## Test window
 
@@ -12,6 +12,12 @@
 - Filter by status
 - Panel for _file_ tests
 - parse and display duration
+- actions
+  - set stacktrace
+  - jump to test
+  - rerun test
+  - display result in preview window
+  - open result in new window
 
 ## Future
 

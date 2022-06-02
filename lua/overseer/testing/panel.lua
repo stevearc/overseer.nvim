@@ -37,9 +37,9 @@ local function get_path(obj, path, max)
   return obj
 end
 
-local reverse_map = {}
+local line_to_test_map = {}
 local function render(bufnr)
-  reverse_map = {}
+  line_to_test_map = {}
   local lines = {}
   local highlights = {}
   local current_path = {}
@@ -62,7 +62,7 @@ local function render(bufnr)
           0,
           string.len(padding) + string.len(icon),
         })
-        reverse_map[#lines] = {
+        line_to_test_map[#lines] = {
           type = "group",
           path = util.tbl_slice(current_path, 1, i),
         }
@@ -81,7 +81,7 @@ local function render(bufnr)
       0,
       string.len(padding) + string.len(icon),
     })
-    reverse_map[#lines] = {
+    line_to_test_map[#lines] = {
       type = "test",
       test = result,
     }
@@ -97,6 +97,91 @@ local function render(bufnr)
     local group, lnum, col_start, col_end = unpack(hl)
     vim.api.nvim_buf_add_highlight(bufnr, ns, group, lnum - 1, col_start, col_end)
   end
+end
+
+local function create_test_result_buf(result)
+  local bufnr = vim.api.nvim_create_buf(false, true)
+  local lines = {}
+  local highlights = {}
+  local icon = config.test_icons[result.status]
+  table.insert(lines, string.format("%s%s", icon, result.name))
+  table.insert(highlights, {
+    string.format("OverseerTest%s", result.status),
+    #lines,
+    0,
+    string.len(icon),
+  })
+
+  if result.text then
+    for line in vim.gsplit(result.text, "\n") do
+      table.insert(lines, line)
+    end
+  end
+  if result.stacktrace then
+    table.insert(lines, "")
+    table.insert(lines, "Stacktrace:")
+    for _, item in ipairs(result.stacktrace) do
+      table.insert(lines, string.format("%s:%s %s", item.filename, item.lnum, item.text))
+    end
+  end
+
+  local ns = vim.api.nvim_create_namespace("OverseerTest")
+  vim.api.nvim_buf_set_lines(bufnr, 0, -1, true, lines)
+  for _, hl in ipairs(highlights) do
+    local group, lnum, col_start, col_end = unpack(hl)
+    vim.api.nvim_buf_add_highlight(bufnr, ns, group, lnum - 1, col_start, col_end)
+  end
+
+  vim.api.nvim_buf_set_option(bufnr, "modifiable", false)
+  vim.api.nvim_buf_set_option(bufnr, "buftype", "nofile")
+  vim.api.nvim_buf_set_option(bufnr, "bufhidden", "wipe")
+  vim.api.nvim_buf_set_option(bufnr, "swapfile", false)
+  return bufnr
+end
+
+local function toggle_preview()
+  local pwin = util.get_preview_window()
+  if pwin then
+    vim.cmd([[pclose]])
+    return
+  end
+  local lnum = vim.api.nvim_win_get_cursor(0)[1]
+  local entry = line_to_test_map[lnum]
+  if not entry or entry.type ~= "test" then
+    return
+  end
+
+  local win_width = vim.api.nvim_win_get_width(0)
+  local padding = 1
+  local width = vim.o.columns - win_width - 2 - 2 * padding
+  local col = (vim.fn.winnr() == 1 and (win_width + padding) or padding)
+  local bufnr = create_test_result_buf(entry.test)
+  local winid = vim.api.nvim_open_win(bufnr, false, {
+    relative = "editor",
+    border = "rounded",
+    row = 1,
+    col = col,
+    width = width,
+    height = vim.api.nvim_win_get_height(0),
+    style = "minimal",
+  })
+  vim.api.nvim_win_set_option(winid, "previewwindow", true)
+  vim.api.nvim_win_set_option(winid, "winblend", 10)
+end
+
+local function update_preview()
+  local winid = util.get_preview_window()
+  if not winid then
+    return
+  end
+  local lnum = vim.api.nvim_win_get_cursor(0)[1]
+  local entry = line_to_test_map[lnum]
+  if not entry or entry.type ~= "test" then
+    return
+  end
+
+  local bufnr = create_test_result_buf(entry.test)
+  vim.api.nvim_win_set_buf(winid, bufnr)
 end
 
 local function create_test_panel_buf()
@@ -122,11 +207,18 @@ local function create_test_panel_buf()
     once = true,
     nested = true,
   })
+  vim.api.nvim_create_autocmd("CursorMoved", {
+    desc = "Update preview window when cursor moves",
+    buffer = bufnr,
+    callback = function()
+      update_preview()
+    end,
+  })
   update()
 
   vim.keymap.set("n", "<C-r>", function()
     local lnum = vim.api.nvim_win_get_cursor(0)[1]
-    local entry = reverse_map[lnum]
+    local entry = line_to_test_map[lnum]
     if entry and entry.type == "test" then
       local test = entry.test
       local integ = integrations.get_by_name(test.integration)
@@ -142,13 +234,17 @@ local function create_test_panel_buf()
 
   vim.keymap.set("n", "<C-s>", function()
     local lnum = vim.api.nvim_win_get_cursor(0)[1]
-    local entry = reverse_map[lnum]
+    local entry = line_to_test_map[lnum]
     if entry and entry.type == "test" then
       local test = entry.test
       if test.stacktrace then
         vim.fn.setqflist(test.stacktrace)
       end
     end
+  end, { buffer = bufnr })
+
+  vim.keymap.set("n", "p", function()
+    toggle_preview()
   end, { buffer = bufnr })
 
   return bufnr
