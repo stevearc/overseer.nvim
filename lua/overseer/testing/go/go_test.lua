@@ -54,6 +54,11 @@ local status_map = {
   PASS = TEST_STATUS.SUCCESS,
   SKIP = TEST_STATUS.SKIPPED,
 }
+local qf_type_map = {
+  FAIL = "E",
+  PASS = "I",
+  SKIP = "W",
+}
 local status_field = {
   "status",
   function(value)
@@ -69,13 +74,22 @@ local duration_field = {
 M.parser = function()
   return {
     tests = {
+      parser.extract({
+        append = false,
+        regex = true,
+        postprocess = function(item)
+          item.id = item.name
+        end,
+      }, "\\v^\\=\\=\\= RUN\\s+([^[:space:]]+)$", "name"),
+      parser.always(parser.parallel(
+        -- Stop parsing output if we hit the end line
+        parser.invert(parser.test({ regex = true }, "\\v^--- (FAIL|PASS|SKIP)")),
+        parser.extract_multiline({ append = false }, "(.*)", "text")
+      )),
       parser.extract(
         {
           regex = true,
           append = false,
-          postprocess = function(item)
-            item.id = item.name
-          end,
         },
         "\\v^--- (FAIL|PASS|SKIP): ([^[:space:]]+) \\(([0-9\\.]+)s\\)",
         status_field,
@@ -101,9 +115,34 @@ M.parser = function()
       parser.append(),
     },
     diagnostics = {
-      parser.test("RUN"),
-      parser.skip_lines(1),
-      parser.extract("%s+([^:]+%.go):(%d+): (.+)", "filename", "lnum", "text"),
+      parser.parallel(
+        { break_on_first_failure = false, restart_children = true },
+        -- parse diagnostics-looking lines
+        parser.extract({
+          -- Don't append them to the results, add them to a pending buffer
+          append = function(results, item)
+            if not results.pending_diagnostics then
+              results.pending_diagnostics = {}
+            end
+            table.insert(results.pending_diagnostics, item)
+          end,
+        }, "^%s+([^:]+%.go):(%d+):%s?(.*)$", "filename", "lnum", "text"),
+
+        -- when we hit the end of the test, update the type of all pending
+        -- diagnostics and properly append them
+        parser.extract({
+          regex = true,
+          append = function(results, item)
+            if results.pending_diagnostics then
+              for _, diag in ipairs(results.pending_diagnostics) do
+                diag.type = qf_type_map[item.status]
+                table.insert(results, diag)
+              end
+              results.pending_diagnostics = nil
+            end
+          end,
+        }, "\\v^--- (FAIL|PASS|SKIP):", "status")
+      ),
     },
   }
 end

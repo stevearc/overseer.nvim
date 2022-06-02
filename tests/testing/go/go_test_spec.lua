@@ -7,9 +7,14 @@ describe("go_test", function()
     local output = [[=== RUN   TestUndoInsert
 --- PASS: TestUndoInsert (0.00s)
 === RUN   TestUndoDelete
+    undo_test.go:134: This is a log line
 --- PASS: TestUndoDelete (0.21s)
+=== RUN   TestUndoInsertDelete
+    undo_test.go:171: Skip test
 --- SKIP: TestUndoInsertDelete (0.00s)
 === RUN   TestDeleteUndoRedoLots
+This is a print line
+    undo_test.go:297: This is a log line
     undo_test.go:307: Expected 'Hello' received 'Heelllo'
 --- FAIL: TestDeleteUndoRedoLots (0.00s)
 === RUN   TestDelete
@@ -17,7 +22,7 @@ describe("go_test", function()
 FAIL
 FAIL    command-line-arguments  0.002s
 FAIL
-    ]]
+      ]]
     local results = test_utils.run_parser(integration, output)
     assert.are.same({
       tests = {
@@ -32,18 +37,21 @@ FAIL
           name = "TestUndoDelete",
           duration = 0.21,
           status = TEST_STATUS.SUCCESS,
+          text = "    undo_test.go:134: This is a log line",
         },
         {
           id = "TestUndoInsertDelete",
           name = "TestUndoInsertDelete",
           duration = 0,
           status = TEST_STATUS.SKIPPED,
+          text = "    undo_test.go:171: Skip test",
         },
         {
           id = "TestDeleteUndoRedoLots",
           name = "TestDeleteUndoRedoLots",
           duration = 0,
           status = TEST_STATUS.FAILURE,
+          text = "This is a print line\n    undo_test.go:297: This is a log line\n    undo_test.go:307: Expected 'Hello' received 'Heelllo'",
         },
         {
           id = "TestDelete",
@@ -55,8 +63,27 @@ FAIL
       diagnostics = {
         {
           filename = "undo_test.go",
+          lnum = 134,
+          text = "This is a log line",
+          type = "I",
+        },
+        {
+          filename = "undo_test.go",
+          lnum = 171,
+          text = "Skip test",
+          type = "W",
+        },
+        {
+          filename = "undo_test.go",
+          lnum = 297,
+          text = "This is a log line",
+          type = "E",
+        },
+        {
+          filename = "undo_test.go",
           lnum = 307,
           text = "Expected 'Hello' received 'Heelllo'",
+          type = "E",
         },
       },
     }, results)
@@ -99,7 +126,7 @@ created by testing.(*T).Run
         /home/stevearc/.local/share/go/src/testing/testing.go:1486 +0x35f
 FAIL    command-line-arguments  0.002s
 FAIL
-    ]]
+      ]]
     local results = test_utils.run_parser(integration, output)
     assert.are.same({
       tests = {

@@ -54,7 +54,14 @@ function ListParser:ingest(lines)
   local num_results = #self.results
   local ctx = { item = self.item, results = self.results, default_values = {} }
   for _, line in ipairs(lines) do
+    if debug then
+      print(string.format("ingest: %s", line))
+    end
     self.tree:ingest(line, ctx)
+    if debug then
+      print(string.format("results: %s", vim.inspect(ctx.results)))
+      print(string.format("item: %s", vim.inspect(ctx.item)))
+    end
   end
   return #self.results ~= num_results
 end
@@ -95,7 +102,14 @@ function MapParser:ingest(lines)
     for k, v in pairs(self.children) do
       local ctx = { item = self.items[k], results = self.results[k], default_values = {} }
       local num_results = #ctx.results
+      if debug then
+        print(string.format("ingest(%s): %s", k, line))
+      end
       v:ingest(line, ctx)
+      if debug then
+        print(string.format("results(%s): %s", k, vim.inspect(ctx.results)))
+        print(string.format("item(%s): %s", k, vim.inspect(ctx.item)))
+      end
       any_changed = any_changed or #ctx.results ~= num_results
     end
   end

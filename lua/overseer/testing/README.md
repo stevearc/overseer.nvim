@@ -1,6 +1,6 @@
 # TODO
 
-- Parse stdout/stderr messages of tests
+- Parse stdout/stderr messages of python tests
 - Rerun group of tests
 - Results streaming
 - More test integrations (and figure out how to simplify)

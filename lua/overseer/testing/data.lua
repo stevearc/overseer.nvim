@@ -186,7 +186,7 @@ M.set_test_results = function(task, results)
     for _, item in ipairs(items) do
       table.insert(diagnostics, {
         message = item.text,
-        severity = item.type == "W" and vim.diagnostic.severity.WARN
+        severity = item.type and vim.diagnostic.severity[item.type]
           or vim.diagnostic.severity.ERROR,
         lnum = (item.lnum or 1) - 1,
         end_lnum = item.end_lnum and (item.end_lnum - 1),
