@@ -198,10 +198,12 @@ M.on_result_report_tests = {
   constructor = function(params)
     return {
       on_stream_result = function(self, task, key, result)
-        require("overseer.testing.data").add_test_result(task, key, result)
+        local integration_name = task.metadata.test_integration
+        require("overseer.testing.data").add_test_result(integration_name, key, result)
       end,
       on_result = function(self, task, status, result)
-        require("overseer.testing.data").set_test_results(task, result)
+        local integration_name = task.metadata.test_integration
+        require("overseer.testing.data").set_test_results(integration_name, result)
       end,
     }
   end,

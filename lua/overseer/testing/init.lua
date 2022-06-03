@@ -46,7 +46,7 @@ M.test_dir = function(dirname)
     vim.cmd([[TestSuite]])
     return
   end
-  data.reset_dir_results(dirname)
+  data.reset_dir_results(dirname, TEST_STATUS.RUNNING)
   for _, v in ipairs(integ) do
     integrations.create_and_start_task(v, v:run_test_dir(dirname))
   end
@@ -62,7 +62,8 @@ M.test_file = function(bufnr)
   end
   for _, v in ipairs(integ) do
     for _, test in ipairs(v:find_tests(bufnr)) do
-      data.reset_test_status(test.id, TEST_STATUS.RUNNING)
+      test.status = TEST_STATUS.RUNNING
+      data.add_test_result(v.name, "tests", test)
     end
     integrations.create_and_start_task(v, v:run_test_file(vim.api.nvim_buf_get_name(bufnr)))
   end
@@ -83,7 +84,8 @@ M.test_nearest = function(bufnr, lnum)
     local test = utils.find_nearest_test(tests, lnum)
     if test then
       ran_any = true
-      data.reset_test_status(test.id, TEST_STATUS.RUNNING)
+      test.status = TEST_STATUS.RUNNING
+      data.add_test_result(v.name, "tests", test)
       integrations.create_and_start_task(
         v,
         v:run_test_in_file(vim.api.nvim_buf_get_name(bufnr), test)

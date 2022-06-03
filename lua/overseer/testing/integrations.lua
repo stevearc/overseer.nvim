@@ -57,6 +57,7 @@ M.create_and_start_task = function(integ, task_data)
   task_data.metadata.test_integration = integ.name
   local task = Task.new(task_data)
   task:start()
+  return task
 end
 
 return M

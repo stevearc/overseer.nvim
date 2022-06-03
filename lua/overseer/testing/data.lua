@@ -213,12 +213,11 @@ local function update_all_signs()
   end
 end
 
-M.set_test_results = function(task, results)
+M.set_test_results = function(integration_name, results)
   remove_diagnostics()
   if not results.tests then
     return
   end
-  local integration_name = task.metadata.test_integration
   test_results_version[integration_name] = 1 + test_results_version[integration_name]
   -- Set test results
   if reset_on_next_results then
@@ -265,8 +264,7 @@ M.set_test_results = function(task, results)
   do_callbacks()
 end
 
-M.add_test_result = function(task, key, result)
-  local integration_name = task.metadata.test_integration
+M.add_test_result = function(integration_name, key, result)
   if key == "tests" then
     M.results[result.id] = normalize_test(integration_name, result)
     add_workspace_result(result)
@@ -295,44 +293,12 @@ M.add_test_result = function(task, key, result)
   end
 end
 
-M.reset_dir_results = function(dirname)
+M.reset_dir_results = function(dirname, status)
+  status = status or TEST_STATUS.NONE
   -- TODO figure out which values to clear instead of clearing all of them
   reset_on_next_results = true
   for _, v in pairs(M.results) do
-    v.status = TEST_STATUS.NONE
-  end
-  cached_workspace_results = nil
-  update_all_signs()
-end
-
-M.reset_test_status = function(id, status)
-  status = status or TEST_STATUS.NONE
-  local result = M.results[id]
-  if result then
-    result.status = status
-  end
-  cached_workspace_results = nil
-  update_all_signs()
-end
-
-local function path_match(group, test)
-  if not test.path then
-    return false
-  end
-  for i, v in ipairs(group) do
-    if v ~= test.path[i] then
-      return false
-    end
-  end
-  return true
-end
-
-M.reset_group_status = function(path, status)
-  status = status or TEST_STATUS.NONE
-  for _, v in pairs(M.results) do
-    if path_match(path, v) then
-      v.status = status
-    end
+    v.status = status
   end
   cached_workspace_results = nil
   update_all_signs()
