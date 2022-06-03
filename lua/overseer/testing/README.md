@@ -1,6 +1,7 @@
 # TODO
 
 - Results streaming
+  - diagnostics get cleared on run. They're not stored per-test.
 - Panel for _file_ tests
 - If I'm going to write a lot more of these parsers, I need some better tools
 - Parse stdout/stderr messages of python tests

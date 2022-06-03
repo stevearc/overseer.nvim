@@ -124,6 +124,18 @@ M.tbl_slice = function(tbl, start_idx, end_idx)
   return ret
 end
 
+M.tbl_remove = function(tbl, needle, transform)
+  for i, v in ipairs(tbl) do
+    if transform then
+      if transform(v) == needle then
+        return table.remove(tbl, i)
+      end
+    elseif v == needle then
+      return table.remove(tbl, i)
+    end
+  end
+end
+
 M.tbl_index = function(tbl, needle, extract)
   for i, v in ipairs(tbl) do
     if extract then

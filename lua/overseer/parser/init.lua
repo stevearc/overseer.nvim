@@ -1,5 +1,6 @@
 -- Utilities for parsing lines of output
 local Enum = require("overseer.enum")
+local util = require("overseer.util")
 local M = {}
 
 local debug = false
@@ -41,6 +42,7 @@ function ListParser.new(children)
     tree = M.loop({ ignore_failure = true }, M.sequence(unpack(children))),
     results = {},
     item = {},
+    subs = {},
   }, { __index = ListParser })
 end
 
@@ -63,7 +65,20 @@ function ListParser:ingest(lines)
       print(string.format("item: %s", vim.inspect(ctx.item)))
     end
   end
-  return #self.results ~= num_results
+  for i = num_results + 1, #self.results do
+    local result = self.results[i]
+    for _, cb in ipairs(self.subs) do
+      cb("", result)
+    end
+  end
+end
+
+function ListParser:subscribe(callback)
+  table.insert(self.subs, callback)
+end
+
+function ListParser:unsubscribe(callback)
+  util.tbl_remove(self.subs, callback)
 end
 
 function ListParser:get_result()
@@ -85,6 +100,7 @@ function MapParser.new(children)
     children = wrapped_children,
     results = results,
     items = items,
+    subs = {},
   }, { __index = MapParser })
 end
 
@@ -97,7 +113,6 @@ function MapParser:reset()
 end
 
 function MapParser:ingest(lines)
-  local any_changed = false
   for _, line in ipairs(lines) do
     for k, v in pairs(self.children) do
       local ctx = { item = self.items[k], results = self.results[k], default_values = {} }
@@ -110,10 +125,22 @@ function MapParser:ingest(lines)
         print(string.format("results(%s): %s", k, vim.inspect(ctx.results)))
         print(string.format("item(%s): %s", k, vim.inspect(ctx.item)))
       end
-      any_changed = any_changed or #ctx.results ~= num_results
+      for i = num_results + 1, #ctx.results do
+        local result = ctx.results[i]
+        for _, cb in ipairs(self.subs) do
+          cb(k, result)
+        end
+      end
     end
   end
-  return any_changed
+end
+
+function MapParser:subscribe(callback)
+  table.insert(self.subs, callback)
+end
+
+function MapParser:unsubscribe(callback)
+  util.tbl_remove(self.subs, callback)
 end
 
 function MapParser:get_result()

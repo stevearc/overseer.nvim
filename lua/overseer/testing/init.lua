@@ -2,6 +2,7 @@ local data = require("overseer.testing.data")
 local integrations = require("overseer.testing.integrations")
 local panel = require("overseer.testing.panel")
 local utils = require("overseer.testing.utils")
+local TEST_STATUS = data.TEST_STATUS
 local M = {}
 
 M.create_commands = function()
@@ -61,7 +62,7 @@ M.test_file = function(bufnr)
   end
   for _, v in ipairs(integ) do
     for _, test in ipairs(v:find_tests(bufnr)) do
-      data.reset_test_status(test.id)
+      data.reset_test_status(test.id, TEST_STATUS.RUNNING)
     end
     integrations.create_and_start_task(v, v:run_test_file(vim.api.nvim_buf_get_name(bufnr)))
   end
@@ -82,7 +83,7 @@ M.test_nearest = function(bufnr, lnum)
     local test = utils.find_nearest_test(tests, lnum)
     if test then
       ran_any = true
-      data.reset_test_status(test.id)
+      data.reset_test_status(test.id, TEST_STATUS.RUNNING)
       integrations.create_and_start_task(
         v,
         v:run_test_in_file(vim.api.nvim_buf_get_name(bufnr), test)

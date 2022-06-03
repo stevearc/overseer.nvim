@@ -19,6 +19,21 @@ M.result_exit_code = {
     table.insert(success_codes, 0)
     return {
       parser = parsers.get_parser(params.parser),
+      on_init = function(self, task)
+        if self.parser then
+          local cb = function(key, result)
+            task:dispatch("on_stream_result", key, result)
+          end
+          self.parser:subscribe(cb)
+          self.parser_sub = cb
+        end
+      end,
+      on_dispose = function(self)
+        if self.parser and self.parser_sub then
+          self.parser:unsubscribe(self.parser_sub)
+          self.parser_sub = nil
+        end
+      end,
       on_reset = function(self)
         if self.parser then
           self.parser:reset()
@@ -26,9 +41,7 @@ M.result_exit_code = {
       end,
       on_output_lines = function(self, task, lines)
         if self.parser then
-          if self.parser:ingest(lines) then
-            task:dispatch("on_partial_result", self.parser:get_result())
-          end
+          self.parser:ingest(lines)
         end
       end,
       on_exit = function(self, task, code)
@@ -184,8 +197,8 @@ M.on_result_report_tests = {
   params = {},
   constructor = function(params)
     return {
-      on_partial_result = function(self, task, result)
-        require("overseer.testing.data").set_test_results(task, result)
+      on_stream_result = function(self, task, key, result)
+        require("overseer.testing.data").add_test_result(task, key, result)
       end,
       on_result = function(self, task, status, result)
         require("overseer.testing.data").set_test_results(task, result)
