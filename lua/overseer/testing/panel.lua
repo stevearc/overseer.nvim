@@ -37,6 +37,14 @@ local function get_path(obj, path, max)
   return obj
 end
 
+local function format_duration(seconds)
+  if seconds < 1 then
+    return string.format("%dms", math.floor(seconds * 1000))
+  else
+    return string.format("%ds", math.floor(seconds))
+  end
+end
+
 local line_to_test_map = {}
 local function render(bufnr)
   line_to_test_map = {}
@@ -75,13 +83,25 @@ local function render(bufnr)
 
     local icon = config.test_icons[result.status]
     local padding = string.rep("  ", #result.path)
-    table.insert(lines, string.format("%s%s%s", padding, icon, result.name))
+    local test_text = string.format("%s%s%s", padding, icon, result.name)
+    if result.duration then
+      test_text = test_text .. " " .. format_duration(result.duration)
+    end
+    table.insert(lines, test_text)
     table.insert(highlights, {
       string.format("OverseerTest%s", result.status),
       #lines,
       0,
       string.len(padding) + string.len(icon),
     })
+    if result.duration then
+      table.insert(highlights, {
+        "OverseerTestDuration",
+        #lines,
+        string.len(padding) + string.len(icon) + string.len(result.name) + 1,
+        -1,
+      })
+    end
     line_to_test_map[#lines] = {
       type = "test",
       test = result,

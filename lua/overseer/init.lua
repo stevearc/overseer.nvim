@@ -54,6 +54,7 @@ M.setup = function(opts)
     hi default link OverseerTestSUCCESS DiagnosticInfo
     hi default link OverseerTestFAILURE DiagnosticError
     hi default link OverseerTestSKIPPED DiagnosticWarn
+    hi default link OverseerTestDuration Comment
   ]])
   local aug = vim.api.nvim_create_augroup("Overseer", {})
   vim.api.nvim_create_autocmd("User", {

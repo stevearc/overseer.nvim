@@ -4,13 +4,13 @@
 - Panel for _file_ tests
 - If I'm going to write a lot more of these parsers, I need some better tools
 - Parse stdout/stderr messages of python tests
+- Parse duration of python tests
 - More test integrations (and figure out how to simplify)
 
 ## Test window
 
 - Collapsing
 - Filter by status
-- parse and display duration
 - actions
   - set stacktrace (and open quickfix)
   - jump to test
