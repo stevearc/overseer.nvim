@@ -121,6 +121,9 @@ local last_task = nil
 M.create_and_start_task = function(integ, task_data, reset_params)
   if last_task then
     last_task:dec_reference()
+    if not last_task:is_running() then
+      last_task:dispose()
+    end
   end
   if not task_data.components then
     task_data.components = { "default_test" }

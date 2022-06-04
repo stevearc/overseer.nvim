@@ -12,7 +12,6 @@
 ## Future
 
 - More test integrations (and figure out how to simplify)
-- Track previous tasks and dispose them
 - Run after build
 - Test playlists
 - Debug test integration
