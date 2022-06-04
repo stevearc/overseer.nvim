@@ -1,6 +1,7 @@
 local default_config = {
   list_sep = "────────────────────────────────────────",
   extensions = { "builtin" },
+  auto_detect_success_color = true,
   sidebar = {
     default_detail = 1,
     max_width = { 100, 0.2 },

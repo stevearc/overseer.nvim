@@ -17,7 +17,6 @@
 - Debug test integration
 - Code coverage integration
 - command to rerun failed tests (set limit on number of concurrent jobs)
-- smart-detect a green color to use for the success icon
 - Panel for _file_ tests
 - Document all properties of: integration, test result
 - On new results, live update test result buffers

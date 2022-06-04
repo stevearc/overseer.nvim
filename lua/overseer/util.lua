@@ -1,3 +1,4 @@
+local hsluv = require("overseer.hsluv")
 local M = {}
 
 M.is_floating_win = function(winid)
@@ -273,6 +274,57 @@ M.run_once_buf_loaded = function(bufnr, key, callback)
   else
     M.set_bufenter_callback(bufnr, key, callback)
   end
+end
+
+M.get_group_attr = function(group, what)
+  local id = vim.fn.synIDtrans(vim.fn.hlID(group))
+  return vim.fn.synIDattr(id, what, "gui")
+end
+
+M.get_group_fg = function(group)
+  local attr = M.get_group_attr(group, "fg#")
+  if attr == "" or string.find(attr, "#") ~= 1 then
+    return nil
+  end
+  return attr
+end
+
+-- Attempts to find a green color from the current colorscheme
+M.find_success_color = function()
+  local candidates = {
+    "Constant",
+    "Keyword",
+    "Special",
+    "Type",
+    "PreProc",
+    "Operator",
+    "String",
+    "Statement",
+    "Identifier",
+    "Function",
+    "Character",
+    "Title",
+  }
+  local best_grp
+  local best
+  for _, grp in ipairs(candidates) do
+    local fg = M.get_group_fg(grp)
+    if fg then
+      local rgb = hsluv.hex_to_rgb(fg)
+      -- Super simple "green" detection heuristic: g - r - b
+      local score = rgb[2] - rgb[1] - rgb[3]
+      if score > -0.3 then
+        if not best or score > best then
+          best_grp = grp
+          best = score
+        end
+      end
+    end
+  end
+  if best_grp then
+    return best_grp
+  end
+  return "DiagnosticInfo"
 end
 
 return M

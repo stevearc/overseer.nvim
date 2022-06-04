@@ -4,6 +4,7 @@ local constants = require("overseer.constants")
 local task_bundle = require("overseer.task_bundle")
 local task_list = require("overseer.task_list")
 local Task = require("overseer.task")
+local util = require("overseer.util")
 local window = require("overseer.window")
 local M = {}
 
@@ -36,10 +37,12 @@ M.setup = function(opts)
   -- TODO probably want to move this
   require("overseer.testing").create_commands()
   require("overseer.parsers").register_builtin()
-  vim.cmd([[
+  local success_color = util.find_success_color()
+  vim.cmd(string.format(
+    [[
     hi default link OverseerPENDING Normal
     hi default link OverseerRUNNING Constant
-    hi default link OverseerSUCCESS DiagnosticInfo
+    hi default link OverseerSUCCESS %s
     hi default link OverseerCANCELED DiagnosticWarn
     hi default link OverseerFAILURE DiagnosticError
     hi default link OverseerDISPOSED Comment
@@ -50,12 +53,28 @@ M.setup = function(opts)
     hi default link OverseerField Keyword
     hi default link OverseerTestNONE Normal
     hi default link OverseerTestRUNNING Constant
-    hi default link OverseerTestSUCCESS DiagnosticInfo
+    hi default link OverseerTestSUCCESS %s
     hi default link OverseerTestFAILURE DiagnosticError
     hi default link OverseerTestSKIPPED DiagnosticWarn
     hi default link OverseerTestDuration Comment
-  ]])
+  ]],
+    success_color,
+    success_color
+  ))
   local aug = vim.api.nvim_create_augroup("Overseer", {})
+  if config.auto_detect_success_color then
+    vim.api.nvim_create_autocmd("ColorScheme", {
+      pattern = "*",
+      group = aug,
+      desc = "Set Overseer default success color",
+      callback = function()
+        success_color = util.find_success_color()
+        print(string.format("LINK %s", success_color))
+        vim.cmd(string.format("hi link OverseerSUCCESS %s", success_color))
+        vim.cmd(string.format("hi link OverseerTestSUCCESS %s", success_color))
+      end,
+    })
+  end
   vim.api.nvim_create_autocmd("User", {
     pattern = "SessionSavePre",
     desc = "Save task state when vim-session saves",
