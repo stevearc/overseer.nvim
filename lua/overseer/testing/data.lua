@@ -1,6 +1,5 @@
 local Enum = require("overseer.enum")
 local integrations = require("overseer.testing.integrations")
-local util = require("overseer.util")
 local M = {}
 
 local TEST_STATUS = Enum.new({ "NONE", "RUNNING", "SUCCESS", "FAILURE", "SKIPPED" })
@@ -41,8 +40,11 @@ local function new_summary()
   return ret
 end
 
-local function update_summaries(summaries, result)
+local function update_summaries(summaries, result, prev_status)
   local root = summaries["_"]
+  if prev_status then
+    root[prev_status] = root[prev_status] - 1
+  end
   root[result.status] = 1 + root[result.status]
   local cur = summaries
   for _, path in ipairs(result.path) do
@@ -51,6 +53,9 @@ local function update_summaries(summaries, result)
     end
     cur = cur[path]
     cur[result.status] = 1 + cur[result.status]
+    if prev_status then
+      cur[prev_status] = cur[prev_status] - 1
+    end
   end
 end
 
@@ -89,7 +94,7 @@ M.get_workspace_results = function()
   return cached_workspace_results
 end
 
-local function add_workspace_result(result)
+local function add_workspace_result(result, prev_status)
   if not cached_workspace_results then
     return
   end
@@ -108,7 +113,7 @@ local function add_workspace_result(result)
   if not inserted then
     table.insert(cached_workspace_results.tests, result)
   end
-  update_summaries(cached_workspace_results.summaries, result)
+  update_summaries(cached_workspace_results.summaries, result, prev_status)
 end
 
 M.add_callback = function(cb)
@@ -147,23 +152,16 @@ M.clear_results = function()
   do_callbacks()
 end
 
-local function set_test_result_signs(bufnr, integration_name)
-  local integ = integrations.get_by_name(integration_name)
-  local tests = integ:find_tests(bufnr)
-  if vim.tbl_isempty(tests) then
-    return
-  end
-  vim.fn.sign_unplace(sign_group, { buffer = bufnr })
-  sign_bufnrs[bufnr] = true
-  for _, test in ipairs(tests) do
-    local result = M.results[test.id]
-    if result and result.status ~= TEST_STATUS.NONE then
-      vim.fn.sign_place(0, sign_group, string.format("OverseerTest%s", result.status), bufnr, {
-        priority = 8,
-        lnum = test.lnum + 1,
-      })
-    end
-  end
+local function diagnostic_from_test(integration_name, test)
+  return {
+    message = test.text,
+    severity = test.type and vim.diagnostic.severity[test.type] or vim.diagnostic.severity.ERROR,
+    lnum = (test.lnum or 1) - 1,
+    end_lnum = test.end_lnum and (test.end_lnum - 1),
+    col = test.col or 0,
+    end_col = test.end_col,
+    source = integration_name,
+  }
 end
 
 local test_results_version = setmetatable({}, {
@@ -171,6 +169,44 @@ local test_results_version = setmetatable({}, {
     return 0
   end,
 })
+
+local function bump_results_version(integration_name)
+  test_results_version[integration_name] = 1 + test_results_version[integration_name]
+end
+
+local function set_test_result_signs(bufnr, integration_name)
+  local integ = integrations.get_by_name(integration_name)
+  local tests = integ:find_tests(bufnr)
+  if vim.tbl_isempty(tests) then
+    return
+  end
+  vim.fn.sign_unplace(sign_group, { buffer = bufnr })
+  vim.diagnostic.reset(test_ns, bufnr)
+  sign_bufnrs[bufnr] = true
+  local diagnostics = {}
+  for _, test in ipairs(tests) do
+    local result = M.results[test.id]
+    if result and result.status ~= TEST_STATUS.NONE then
+      vim.fn.sign_place(0, sign_group, string.format("OverseerTest%s", result.status), bufnr, {
+        priority = 8,
+        lnum = test.lnum + 1,
+      })
+      if result.diagnostics then
+        for _, diag in ipairs(result.diagnostics) do
+          table.insert(diagnostics, diagnostic_from_test(integration_name, diag))
+        end
+      end
+    end
+  end
+  vim.diagnostic.set(test_ns, bufnr, diagnostics, {
+    -- TODO configure these
+    -- virtual_text = params.virtual_text,
+    -- signs = params.signs,
+    -- underline = params.underline,
+  })
+  local varname = string.format("overseer_test_results_version_%s", integration_name)
+  vim.api.nvim_buf_set_var(bufnr, varname, test_results_version[integration_name])
+end
 
 M.update_buffer_signs = function(bufnr)
   for _, integ in ipairs(integrations.get_for_buf(bufnr)) do
@@ -194,18 +230,6 @@ local function normalize_test(integration_name, test)
   return test
 end
 
-local function diagnostic_from_test(integration_name, test)
-  return {
-    message = test.text,
-    severity = test.type and vim.diagnostic.severity[test.type] or vim.diagnostic.severity.ERROR,
-    lnum = (test.lnum or 1) - 1,
-    end_lnum = test.end_lnum and (test.end_lnum - 1),
-    col = test.col or 0,
-    end_col = test.end_col,
-    source = integration_name,
-  }
-end
-
 local function update_all_signs()
   for _, win in ipairs(vim.api.nvim_list_wins()) do
     local bufnr = vim.api.nvim_win_get_buf(win)
@@ -218,7 +242,7 @@ M.set_test_results = function(integration_name, results)
   if not results.tests then
     return
   end
-  test_results_version[integration_name] = 1 + test_results_version[integration_name]
+  bump_results_version(integration_name)
   -- Set test results
   if reset_on_next_results then
     M.results = {}
@@ -235,62 +259,51 @@ M.set_test_results = function(integration_name, results)
     M.update_buffer_signs(bufnr)
   end
 
-  -- Set diagnostics
-  local grouped = util.tbl_group_by(results.diagnostics, "filename")
-  for filename, items in pairs(grouped) do
-    local diagnostics = {}
-    for _, item in ipairs(items) do
-      table.insert(diagnostics, diagnostic_from_test(integration_name, item))
-    end
-    local bufnr = vim.fn.bufadd(filename)
-    if bufnr then
-      vim.diagnostic.set(test_ns, bufnr, diagnostics, {
-        -- TODO configure these
-        -- virtual_text = params.virtual_text,
-        -- signs = params.signs,
-        -- underline = params.underline,
-      })
-      table.insert(diagnostics_bufnrs, bufnr)
-      if not vim.api.nvim_buf_is_loaded(bufnr) then
-        util.set_bufenter_callback(bufnr, "diagnostics_show", function()
-          vim.diagnostic.show(test_ns, bufnr)
-        end)
-      end
-    else
-      vim.notify(string.format("Could not find file '%s'", filename), vim.log.levels.WARN)
-    end
-  end
-
   do_callbacks()
+end
+
+M.set_test_data = function(integration_name, result, prev_status)
+  if not prev_status then
+    prev_status = M.results[result.id] and M.results[result.id].status
+  end
+  M.results[result.id] = normalize_test(integration_name, result)
+  add_workspace_result(result, prev_status)
+  bump_results_version(integration_name)
 end
 
 M.add_test_result = function(integration_name, key, result)
   if key == "tests" then
-    M.results[result.id] = normalize_test(integration_name, result)
-    add_workspace_result(result)
+    M.set_test_data(integration_name, result)
+    M.touch()
+  end
+end
 
-    for _, win in ipairs(vim.api.nvim_list_wins()) do
-      local bufnr = vim.api.nvim_win_get_buf(win)
-      set_test_result_signs(bufnr, integration_name)
-    end
-
-    do_callbacks()
-  elseif key == "diagnostics" then
-    local bufnr = vim.fn.bufadd(result.filename)
-    if bufnr then
-      local diagnostics = vim.diagnostic.get(bufnr, { namespace = test_ns }) or {}
-      table.insert(diagnostics, diagnostic_from_test(integration_name, result))
-      vim.diagnostic.set(test_ns, bufnr, diagnostics, {
-        -- TODO configure these
-        -- virtual_text = params.virtual_text,
-        -- signs = params.signs,
-        -- underline = params.underline,
-      })
-      if not vim.tbl_contains(diagnostics_bufnrs, bufnr) then
-        table.insert(diagnostics_bufnrs, bufnr)
-      end
+local function path_match(group, test)
+  if not test.path then
+    return false
+  end
+  for i, v in ipairs(group) do
+    if v ~= test.path[i] then
+      return false
     end
   end
+  return true
+end
+
+M.reset_group_status = function(integration_name, path, status)
+  status = status or TEST_STATUS.NONE
+  for _, test in pairs(M.results) do
+    if path_match(path, test) then
+      M.reset_test_status(integration_name, test, status)
+    end
+  end
+end
+
+M.reset_test_status = function(integration_name, test, status)
+  status = status or TEST_STATUS.NONE
+  local prev_status = test.status
+  test.status = status
+  M.set_test_data(integration_name, test, prev_status)
 end
 
 M.reset_dir_results = function(dirname, status)
@@ -304,6 +317,9 @@ M.reset_dir_results = function(dirname, status)
   update_all_signs()
 end
 
-M.touch = do_callbacks
+M.touch = function()
+  update_all_signs()
+  do_callbacks()
+end
 
 return M

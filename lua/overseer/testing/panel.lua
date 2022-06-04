@@ -244,25 +244,19 @@ local function create_test_panel_buf()
       if entry.type == "test" then
         local test = entry.test
         local integ = integrations.get_by_name(test.integration)
-        -- TODO don't duplicate this logic
-        data.reset_test_status(test.id, TEST_STATUS.RUNNING)
-        integrations.create_and_start_task(
-          integ,
-          integ:run_test_in_file(vim.api.nvim_buf_get_name(bufnr), test)
-        )
-        data.touch()
+        data.reset_test_status(test.integration, test, TEST_STATUS.RUNNING)
+        integrations.create_and_start_task(integ, integ:run_single_test(test))
       elseif entry.type == "group" then
         local integ = integrations.get_by_name(entry.integration)
-        -- TODO factor out the reset logic
-        data.reset_group_status(entry.path, TEST_STATUS.RUNNING)
+        data.reset_group_status(entry.integration, entry.path, TEST_STATUS.RUNNING)
         if integ.run_test_group then
           integrations.create_and_start_task(integ, integ:run_test_group(entry.path))
         else
           -- FIXME run test groups for integrations with no built-in support
-          data.reset_group_status(entry.path, TEST_STATUS.NONE)
+          data.reset_group_status(entry.integration, entry.path, TEST_STATUS.NONE)
         end
-        data.touch()
       end
+      data.touch()
     end
   end, { buffer = bufnr })
 

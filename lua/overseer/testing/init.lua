@@ -62,8 +62,7 @@ M.test_file = function(bufnr)
   end
   for _, v in ipairs(integ) do
     for _, test in ipairs(v:find_tests(bufnr)) do
-      test.status = TEST_STATUS.RUNNING
-      data.add_test_result(v.name, "tests", test)
+      data.reset_test_status(v.name, test, TEST_STATUS.RUNNING)
     end
     integrations.create_and_start_task(v, v:run_test_file(vim.api.nvim_buf_get_name(bufnr)))
   end
@@ -84,12 +83,8 @@ M.test_nearest = function(bufnr, lnum)
     local test = utils.find_nearest_test(tests, lnum)
     if test then
       ran_any = true
-      test.status = TEST_STATUS.RUNNING
-      data.add_test_result(v.name, "tests", test)
-      integrations.create_and_start_task(
-        v,
-        v:run_test_in_file(vim.api.nvim_buf_get_name(bufnr), test)
-      )
+      data.reset_test_status(v.name, test, TEST_STATUS.RUNNING)
+      integrations.create_and_start_task(v, v:run_single_test(test))
     end
   end
   data.touch()

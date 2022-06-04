@@ -7,6 +7,14 @@ local debug = false
 local next_id = 1
 local trace = {}
 
+local function add_trace(id, action)
+  if not trace[id] then
+    trace[id] = { action }
+  else
+    table.insert(trace[id], action)
+  end
+end
+
 setmetatable(M, {
   __index = function(_, key)
     local constructor = require(string.format("overseer.parser.%s", key))
@@ -14,15 +22,16 @@ setmetatable(M, {
       return function(...)
         local node = constructor(...)
         local ingest = node.ingest
+        local reset = node.reset
+        node.reset = function(self)
+          add_trace(self.id, "RESET")
+          reset(self)
+        end
         node.ingest = function(self, line, ctx)
           local depth = ctx.debug_depth or 0
           ctx.debug_depth = depth + 1
           local st = ingest(self, line, ctx)
-          if not trace[self.id] then
-            trace[self.id] = { st }
-          else
-            table.insert(trace[self.id], st)
-          end
+          add_trace(self.id, st)
           ctx.debug_depth = depth
           return st
         end
@@ -89,6 +98,12 @@ function ListParser:get_result()
   return self.results
 end
 
+function ListParser:get_remainder()
+  if not vim.tbl_isempty(self.item) then
+    return self.item
+  end
+end
+
 local MapParser = {}
 
 function MapParser.new(children)
@@ -145,6 +160,14 @@ end
 
 function MapParser:get_result()
   return self.results
+end
+
+function MapParser:get_remainder()
+  for _, v in pairs(self.items) do
+    if not vim.tbl_isempty(v) then
+      return self.items
+    end
+  end
 end
 
 M.new = function(config)

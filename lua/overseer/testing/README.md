@@ -1,9 +1,5 @@
 # TODO
 
-- Parse duration of python tests
-- More test integrations (and figure out how to simplify)
-- diagnostics get cleared on run. They're not stored per-test.
-
 ## Test window
 
 - Collapsing
@@ -20,6 +16,7 @@
 
 - Command to show test details for current cursor test
 - OverseerTestLast
+- More test integrations (and figure out how to simplify)
 - Track previous tasks and dispose them
 - Show running status when test is in progress
 - Only process result deltas so we don't have to re-render ALL signs and ALL test statuses
@@ -32,6 +29,8 @@
 - command to rerun failed tests (set limit on number of concurrent jobs)
 - smart-detect a green color to use for the success icon
 - Panel for _file_ tests
+- Parse duration of python tests
+- Document all properties of: integration, test result
 
 ### Open questions
 

@@ -70,6 +70,11 @@ local function render_parser(input_lnum)
     end
   end
 
+  local rem = p:get_remainder()
+  if rem then
+    table.insert(lines, "ITEM:")
+    vim.list_extend(lines, vim.split(vim.inspect(rem), "\n"))
+  end
   table.insert(lines, "RESULT:")
   local results = p:get_result()
   vim.list_extend(lines, vim.split(vim.inspect(results), "\n"))

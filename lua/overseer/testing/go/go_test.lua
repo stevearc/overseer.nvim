@@ -26,7 +26,7 @@ local M = {
       cmd = { "go", "test", "-v", filename },
     }
   end,
-  run_test_in_file = function(self, filename, test)
+  run_single_test = function(self, test)
     return {
       cmd = { "go", "test", "-v", "-run", string.format("^%s$", test.name) },
     }
@@ -55,9 +55,9 @@ local status_map = {
   SKIP = TEST_STATUS.SKIPPED,
 }
 local qf_type_map = {
-  FAIL = "E",
-  PASS = "I",
-  SKIP = "W",
+  [TEST_STATUS.FAILURE] = "E",
+  [TEST_STATUS.SUCCESS] = "I",
+  [TEST_STATUS.SKIPPED] = "W",
 }
 local status_field = {
   "status",
@@ -84,12 +84,27 @@ M.parser = function()
       parser.always(parser.parallel(
         -- Stop parsing output if we hit the end line
         parser.invert(parser.test({ regex = true }, "\\v^--- (FAIL|PASS|SKIP)")),
+        parser.extract_nested(
+          { append = false },
+          "diagnostics",
+          parser.loop(
+            { ignore_failure = true },
+            parser.extract("^%s+([^:]+%.go):(%d+):%s?(.*)$", "filename", "lnum", "text")
+          )
+        ),
         parser.extract_multiline({ append = false }, "(.*)", "text")
       )),
       parser.extract(
         {
           regex = true,
           append = false,
+          postprocess = function(item)
+            if item.diagnostics then
+              for _, diag in ipairs(item.diagnostics) do
+                diag.type = qf_type_map[item.status]
+              end
+            end
+          end,
         },
         "\\v^--- (FAIL|PASS|SKIP): ([^[:space:]]+) \\(([0-9\\.]+)s\\)",
         status_field,
@@ -98,7 +113,7 @@ M.parser = function()
       ),
       parser.always(
         parser.sequence(
-          parser.extract({ append = false }, "^panic: (.+)$", "text"),
+          parser.test("^panic:"),
           parser.skip_until("^goroutine%s"),
           parser.extract_nested(
             { append = false },
@@ -113,36 +128,6 @@ M.parser = function()
         )
       ),
       parser.append(),
-    },
-    diagnostics = {
-      parser.parallel(
-        { break_on_first_failure = false, restart_children = true },
-        -- parse diagnostics-looking lines
-        parser.extract({
-          -- Don't append them to the results, add them to a pending buffer
-          append = function(results, item)
-            if not results.pending_diagnostics then
-              results.pending_diagnostics = {}
-            end
-            table.insert(results.pending_diagnostics, item)
-          end,
-        }, "^%s+([^:]+%.go):(%d+):%s?(.*)$", "filename", "lnum", "text"),
-
-        -- when we hit the end of the test, update the type of all pending
-        -- diagnostics and properly append them
-        parser.extract({
-          regex = true,
-          append = function(results, item)
-            if results.pending_diagnostics then
-              for _, diag in ipairs(results.pending_diagnostics) do
-                diag.type = qf_type_map[item.status]
-                table.insert(results, diag)
-              end
-              results.pending_diagnostics = nil
-            end
-          end,
-        }, "\\v^--- (FAIL|PASS|SKIP):", "status")
-      ),
     },
   }
 end

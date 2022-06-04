@@ -26,7 +26,7 @@ local M = {
       cmd = { "python", "-m", "unittest", "-b", "-v", filename },
     }
   end,
-  run_test_in_file = function(self, filename, test)
+  run_single_test = function(self, test)
     return {
       cmd = { "python", "-m", "unittest", "-b", "-v", test.id },
     }
@@ -45,10 +45,6 @@ local M = {
     local filename = vim.api.nvim_buf_get_name(bufnr)
     local relfile = vim.fn.fnamemodify(filename, ":.:r")
     local path_to_file = vim.split(relfile, files.sep)
-    local file_prefix = table.concat(path_to_file, ".")
-    if file_prefix ~= "" then
-      file_prefix = file_prefix .. "."
-    end
     return tutils.get_tests_from_ts_query(
       bufnr,
       "python",
@@ -61,7 +57,8 @@ local M = {
   name: (identifier) @name (#lua-match? @name "^test_")) @test
 ]],
       function(item)
-        return string.format("%s%s.%s", file_prefix, table.concat(item.path, "."), item.name)
+        item.path = vim.list_extend(vim.deepcopy(path_to_file), item.path)
+        return string.format("%s.%s", table.concat(item.path, "."), item.name)
       end
     )
   end,
@@ -116,15 +113,32 @@ M.parser = function()
               "name",
               path_param
             ),
-            -- Parse the stacktrace
             parser.skip_until("^Traceback"),
-            parser.extract_nested(
-              { append = false },
-              "stacktrace",
-              parser.loop(parser.sequence({
-                parser.extract('%s*File "([^"]+)", line (%d+)', "filename", "lnum"),
-                parser.skip_lines(1),
-              }))
+            parser.parallel(
+              -- Extract summary of traceback as diagnostics
+              parser.extract_nested(
+                { append = false },
+                "diagnostics",
+                parser.sequence(
+                  parser.extract(
+                    { append = false },
+                    '%s*File "([^"]+)", line (%d+)',
+                    "filename",
+                    "lnum"
+                  ),
+                  parser.skip_until({ skip_matching_line = false }, "^[^%s]"),
+                  parser.extract("(.*)", "text")
+                )
+              ),
+              -- Extract the entire stacktrace
+              parser.extract_nested(
+                { append = false },
+                "stacktrace",
+                parser.loop(parser.sequence({
+                  parser.extract('%s*File "([^"]+)", line (%d+)', "filename", "lnum"),
+                  parser.skip_lines(1),
+                }))
+              )
             ),
             parser.skip_until("^$"),
             -- Parse stdout/stderr until we hit ==== (next test) or ---- (test end)
@@ -138,13 +152,6 @@ M.parser = function()
           })
         )
       ),
-    },
-    diagnostics = {
-      parser.test("FAIL"),
-      parser.skip_until("^Traceback"),
-      parser.extract({ append = false }, '%s*File "([^"]+)", line (%d+)', "filename", "lnum"),
-      parser.skip_until({ skip_matching_line = false }, "^[^%s]"),
-      parser.extract("(.*)", "text"),
     },
   }
 end
