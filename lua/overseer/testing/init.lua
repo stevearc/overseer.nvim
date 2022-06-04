@@ -1,3 +1,5 @@
+local action_util = require("overseer.action_util")
+local config = require("overseer.config")
 local data = require("overseer.testing.data")
 local integrations = require("overseer.testing.integrations")
 local panel = require("overseer.testing.panel")
@@ -20,6 +22,11 @@ M.create_commands = function()
     M.test_nearest()
   end, {
     desc = "Run the nearest test in the current test file",
+  })
+  vim.api.nvim_create_user_command("OverseerTestAction", function()
+    M.test_action()
+  end, {
+    desc = "Toggle the test panel",
   })
   vim.api.nvim_create_user_command("OverseerToggleTestPanel", function()
     panel.toggle()
@@ -90,6 +97,32 @@ M.test_nearest = function(bufnr, lnum)
   data.touch()
   if not ran_any then
     vim.notify("Could not find nearest test", vim.log.levels.WARN)
+  end
+end
+
+M.test_action = function()
+  local bufnr = 0
+  local lnum = vim.api.nvim_win_get_cursor(0)[1]
+  local p = panel.get_panel(bufnr)
+  if p then
+    p:run_action()
+  else
+    for _, v in ipairs(integrations.get_for_buf(bufnr)) do
+      local tests = v:find_tests(bufnr)
+      local test = utils.find_nearest_test(tests, lnum)
+      if test then
+        test = data.results[test.id] or data.normalize_test(v.name, test)
+        local entry = { type = "test", test = test }
+        action_util.run_action({
+          actions = config.testing.actions,
+          prompt = test.name,
+          post_action = function()
+            data.touch()
+          end,
+        }, entry)
+        return
+      end
+    end
   end
 end
 

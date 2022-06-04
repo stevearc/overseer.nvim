@@ -221,7 +221,7 @@ M.update_buffer_signs = function(bufnr)
   end
 end
 
-local function normalize_test(integration_name, test)
+M.normalize_test = function(integration_name, test)
   test.integration = integration_name
   if not test.path then
     test.path = {}
@@ -248,7 +248,7 @@ M.set_test_results = function(integration_name, results)
     reset_on_next_results = false
   end
   for _, v in ipairs(results.tests) do
-    M.results[v.id] = normalize_test(integration_name, v)
+    M.results[v.id] = M.normalize_test(integration_name, v)
   end
   cached_workspace_results = nil
 
@@ -265,7 +265,7 @@ M.set_test_data = function(integration_name, result, prev_status)
   if not prev_status then
     prev_status = M.results[result.id] and M.results[result.id].status
   end
-  M.results[result.id] = normalize_test(integration_name, result)
+  M.results[result.id] = M.normalize_test(integration_name, result)
   add_workspace_result(result, prev_status)
   bump_results_version(integration_name)
 end

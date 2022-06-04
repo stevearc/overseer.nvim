@@ -9,6 +9,8 @@ local TEST_STATUS = data.TEST_STATUS
 
 local M = {}
 
+local buf_to_panel = {}
+
 local function render_summary(summary, lnum, col_start)
   lnum = lnum or 1
   col_start = col_start or 0
@@ -102,6 +104,7 @@ function Panel.new()
   vim.api.nvim_buf_set_option(bufnr, "modifiable", false)
 
   local panel = setmetatable({ bufnr = bufnr, line_to_test_map = {} }, { __index = Panel })
+  buf_to_panel[bufnr] = panel
 
   local update = function()
     panel:render()
@@ -112,6 +115,7 @@ function Panel.new()
     desc = "Unregister panel on BufDelete",
     callback = function()
       data.remove_callback(update)
+      buf_to_panel[bufnr] = nil
     end,
     buffer = bufnr,
     once = true,
@@ -339,6 +343,13 @@ M.close = function()
   if winid then
     vim.api.nvim_win_close(winid, false)
   end
+end
+
+M.get_panel = function(bufnr)
+  if not bufnr or bufnr == 0 then
+    bufnr = vim.api.nvim_get_current_buf()
+  end
+  return buf_to_panel[bufnr]
 end
 
 return M

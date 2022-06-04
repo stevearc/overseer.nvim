@@ -8,7 +8,7 @@ local M
 M = {
   rerun = {
     condition = function(entry)
-      return true
+      return entry.type ~= "test" or entry.test.status ~= TEST_STATUS.RUNNING
     end,
     run = function(entry)
       if entry.type == "test" then

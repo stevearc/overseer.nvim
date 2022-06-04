@@ -51,7 +51,7 @@ M.run_action = function(opts, ...)
     end
   end
   if opts.name then
-    vim.notify(string.format("Cannot %s task", opts.name), vim.log.levels.WARN)
+    vim.notify(string.format("Cannot perform action '%s'", opts.name), vim.log.levels.WARN)
     return
   end
   table.sort(viable, function(a, b)
