@@ -1,17 +1,20 @@
 local parser = require("overseer.parser")
 local Append = {}
 
-function Append.new()
-  return setmetatable({}, { __index = Append })
+function Append.new(opts)
+  opts = opts or {}
+  return setmetatable({
+    postprocess = opts.postprocess,
+  }, { __index = Append })
 end
 
 function Append:reset() end
 
 function Append:ingest(line, ctx)
-  table.insert(ctx.results, vim.deepcopy(ctx.item))
-  for k in pairs(ctx.item) do
-    ctx.item[k] = nil
+  if self.postprocess then
+    self.postprocess(ctx.item, ctx)
   end
+  parser.util.append_item(true, line, ctx)
   return parser.STATUS.SUCCESS
 end
 

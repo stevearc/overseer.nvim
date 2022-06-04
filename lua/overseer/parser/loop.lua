@@ -1,7 +1,7 @@
 local parser = require("overseer.parser")
 local Loop = {}
 
-local MAX_LOOP = 10
+local MAX_LOOP = 2
 
 function Loop.new(opts, child)
   if child == nil then
@@ -48,14 +48,9 @@ function Loop:ingest(...)
         self.done = st
         return st
       end
-      return parser.STATUS.RUNNING
     end
     loop_count = loop_count + 1
   until st == parser.STATUS.RUNNING or loop_count >= MAX_LOOP
-  if loop_count >= MAX_LOOP then
-    local line = select(1, ...)
-    vim.api.nvim_err_writeln(string.format("Max loop count exceeded for line '%s'", line))
-  end
   return parser.STATUS.RUNNING
 end
 

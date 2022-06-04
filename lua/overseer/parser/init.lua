@@ -73,6 +73,7 @@ function ListParser:ingest(lines)
   local num_results = #self.results
   local ctx = { item = self.item, results = self.results, default_values = {} }
   for _, line in ipairs(lines) do
+    ctx.line = line
     if debug then
       trace = {}
     end
@@ -137,7 +138,12 @@ function MapParser:ingest(lines)
       trace = {}
     end
     for k, v in pairs(self.children) do
-      local ctx = { item = self.items[k], results = self.results[k], default_values = {} }
+      local ctx = {
+        item = self.items[k],
+        results = self.results[k],
+        default_values = {},
+        line = line,
+      }
       local num_results = #ctx.results
       v:ingest(line, ctx)
       for i = num_results + 1, #ctx.results do

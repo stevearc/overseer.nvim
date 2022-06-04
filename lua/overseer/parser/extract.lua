@@ -82,7 +82,7 @@ function Extract:ingest(line, ctx)
     return parser.STATUS.FAILURE
   end
   if self.postprocess then
-    self.postprocess(item, { line = line })
+    self.postprocess(item, ctx)
   end
   parser.util.append_item(self.append, line, ctx)
   self.done = parser.STATUS.SUCCESS

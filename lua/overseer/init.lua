@@ -80,6 +80,10 @@ M.setup = function(opts)
   })
 end
 
+M.wrap_test = function()
+  -- TODO
+end
+
 M.new_task = Task.new
 
 M.toggle = window.toggle

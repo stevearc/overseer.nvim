@@ -4,7 +4,7 @@ local M = {}
 
 M.registry = {}
 
-local builtin_tests = { "go.go_test", "python.unittest" }
+local builtin_tests = { "go.go_test", "lua.plenary_busted", "python.unittest" }
 M.register_builtin = function()
   for _, mod in ipairs(builtin_tests) do
     local integration = require(string.format("overseer.testing.%s", mod))
