@@ -17,7 +17,6 @@
 - Show running status when test is in progress
 - Only process result deltas so we don't have to re-render ALL signs and ALL test statuses
 - Maybe put the test result resetting logic into an on_init component
-- Fall back to vim-test if integration not found
 - Run after build
 - Test playlists
 - Debug test integration

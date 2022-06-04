@@ -47,6 +47,7 @@ local default_config = {
     disable = nil,
     modify = nil,
     disable_builtin = false,
+    vim_test_fallback = true,
     dirs = {},
     sidebar = {
       max_width = { 100, 0.2 },

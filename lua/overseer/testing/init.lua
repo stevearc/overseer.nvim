@@ -50,7 +50,9 @@ M.test_dir = function(dirname)
   dirname = dirname or vim.fn.getcwd(0)
   local integ = integrations.get_for_dir(dirname)
   if vim.tbl_isempty(integ) then
-    vim.cmd([[TestSuite]])
+    if config.testing.vim_test_fallback and vim.fn.exists(":TestSuite") == 2 then
+      vim.cmd([[TestSuite]])
+    end
     return
   end
   data.reset_dir_results(dirname, TEST_STATUS.RUNNING)
@@ -64,7 +66,9 @@ M.test_file = function(bufnr)
   bufnr = bufnr or 0
   local integ = integrations.get_for_buf(bufnr)
   if vim.tbl_isempty(integ) then
-    vim.cmd([[TestFile]])
+    if config.testing.vim_test_fallback and vim.fn.exists(":TestFile") == 2 then
+      vim.cmd([[TestFile]])
+    end
     return
   end
   for _, v in ipairs(integ) do
@@ -82,7 +86,9 @@ M.test_nearest = function(bufnr, lnum)
   local ran_any = false
   local integ = integrations.get_for_buf(bufnr)
   if vim.tbl_isempty(integ) then
-    vim.cmd([[TestNearest]])
+    if config.testing.vim_test_fallback and vim.fn.exists(":TestNearest") == 2 then
+      vim.cmd([[TestNearest]])
+    end
     return
   end
   for _, v in ipairs(integrations.get_for_buf(bufnr)) do
