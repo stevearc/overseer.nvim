@@ -302,6 +302,9 @@ M.reset_test_status = function(integration_name, test, status)
   status = status or TEST_STATUS.NONE
   local prev_status = test.status
   test.status = status
+  test.stacktrace = nil
+  test.text = nil
+  test.diagnostics = nil
   M.set_test_data(integration_name, test, prev_status)
 end
 
@@ -311,6 +314,9 @@ M.reset_dir_results = function(dirname, status)
   reset_on_next_results = true
   for _, v in pairs(M.results) do
     v.status = status
+    v.stacktrace = nil
+    v.text = nil
+    v.diagnostics = nil
   end
   cached_workspace_results = nil
   update_all_signs()

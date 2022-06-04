@@ -6,13 +6,11 @@
 - Filter by status
 - actions
   - jump to test
-  - display result in preview window
-  - open result in new window
-- perform quick action on test cursor is inside (e.g. view output)
+  - open result in vsplit
+  - open result in float
 
 ## Future
 
-- Command to show test details for current cursor test
 - OverseerTestLast
 - More test integrations (and figure out how to simplify)
 - Track previous tasks and dispose them
@@ -29,6 +27,8 @@
 - Panel for _file_ tests
 - Parse duration of python tests
 - Document all properties of: integration, test result
+- On new results, live update test result buffers
+- bug: Rerun via action menu in test panel clears diagnostics
 
 ### Open questions
 
