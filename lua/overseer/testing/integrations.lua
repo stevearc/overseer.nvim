@@ -116,7 +116,12 @@ M.get_by_name = function(name)
   end
 end
 
+local last_task = nil
+
 M.create_and_start_task = function(integ, task_data)
+  if last_task then
+    last_task:dec_reference()
+  end
   -- TODO adjust data through user config
   if not task_data.components then
     task_data.components = { "default_test" }
@@ -127,8 +132,17 @@ M.create_and_start_task = function(integ, task_data)
   task_data.metadata = task_data.metadata or {}
   task_data.metadata.test_integration = integ.name
   local task = Task.new(task_data)
+  task:inc_reference()
+  last_task = task
   task:start()
   return task
+end
+
+M.rerun_last_task = function()
+  if last_task then
+    last_task:rerun()
+    return true
+  end
 end
 
 return M

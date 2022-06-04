@@ -23,6 +23,11 @@ M.create_commands = function()
   end, {
     desc = "Run the nearest test in the current test file",
   })
+  vim.api.nvim_create_user_command("OverseerTestLast", function()
+    M.test_last()
+  end, {
+    desc = "Reruns the last test that was run",
+  })
   vim.api.nvim_create_user_command("OverseerTestAction", function()
     M.test_action()
   end, {
@@ -103,6 +108,12 @@ M.test_nearest = function(bufnr, lnum)
   data.touch()
   if not ran_any then
     vim.notify("Could not find nearest test", vim.log.levels.WARN)
+  end
+end
+
+M.test_last = function()
+  if not integrations.rerun_last_task() then
+    vim.notify("No test has been run yet", vim.log.levels.WARN)
   end
 end
 
