@@ -94,8 +94,12 @@ M.parser = function()
                 item.status = TEST_STATUS.SUCCESS
               end,
             }, "^([^%s]+) %((.+)%)$", "name", path_param),
-            parser.test(" ok$"),
-            parser.append(),
+            parser.extract({ regex = true }, "\\v (ok|FAIL)$", {
+              "status",
+              function(val)
+                return val == "ok" and TEST_STATUS.SUCCESS or TEST_STATUS.FAILURE
+              end,
+            }),
           })
         ),
         -- Parse failures at the end

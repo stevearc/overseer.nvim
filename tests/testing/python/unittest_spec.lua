@@ -52,6 +52,12 @@ Ran 7 tests in 0.001s]]
           status = TEST_STATUS.SUCCESS,
         },
         {
+          id = "tests.test_objects.TestGDObjects.test_sub_resource",
+          path = { "tests", "test_objects", "TestGDObjects" },
+          name = "test_sub_resource",
+          status = TEST_STATUS.FAILURE,
+        },
+        {
           id = "tests.test_objects.TestGDObjects.test_vector2",
           path = { "tests", "test_objects", "TestGDObjects" },
           name = "test_vector2",
