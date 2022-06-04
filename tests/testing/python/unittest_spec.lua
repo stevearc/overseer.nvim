@@ -62,7 +62,7 @@ Ran 7 tests in 0.001s]]
           path = { "tests", "test_objects", "TestGDObjects" },
           name = "test_sub_resource",
           status = TEST_STATUS.FAILURE,
-          text = "Stdout:\nHello world\n\nStderr:\nThis is error\n",
+          text = "AssertionError: 2 != 3\n\nStdout:\nHello world\n\nStderr:\nThis is error\n",
           diagnostics = {
             {
               filename = "/home/stevearc/ws/godot_parser/tests/test_objects.py",
@@ -73,6 +73,7 @@ Ran 7 tests in 0.001s]]
           stacktrace = {
             {
               filename = "/home/stevearc/ws/godot_parser/tests/test_objects.py",
+              text = "self.assertEqual(r.id, 3)",
               lnum = 100,
             },
           },

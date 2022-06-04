@@ -139,17 +139,25 @@ M.parser = function()
                 { append = false },
                 "stacktrace",
                 parser.loop(parser.sequence({
-                  parser.extract('%s*File "([^"]+)", line (%d+)', "filename", "lnum"),
-                  parser.skip_lines(1),
+                  parser.extract(
+                    { append = false },
+                    '%s*File "([^"]+)", line (%d+)',
+                    "filename",
+                    "lnum"
+                  ),
+                  parser.extract("^%s*(.+)$", "text"),
                 }))
-              )
-            ),
-            parser.skip_until("^$"),
-            -- Parse stdout/stderr until we hit ==== (next test) or ---- (test end)
-            parser.always(
-              parser.parallel(
-                parser.invert(parser.test({ "^==========", "^---------" })),
-                parser.extract_multiline({ append = false }, "(.*)", "text")
+              ),
+              -- Extract the text
+              parser.sequence(
+                parser.skip_until({ skip_matching_line = false }, "^[^%s]"),
+                -- Parse stdout/stderr until we hit ==== (next test) or ---- (test end)
+                parser.always(
+                  parser.parallel(
+                    parser.invert(parser.test({ "^==========", "^---------" })),
+                    parser.extract_multiline({ append = false }, "(.*)", "text")
+                  )
+                )
               )
             ),
             parser.append(),
