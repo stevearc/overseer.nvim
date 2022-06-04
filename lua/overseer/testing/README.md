@@ -1,6 +1,5 @@
 # TODO
 
-- Parse stdout/stderr messages of python tests
 - Parse duration of python tests
 - More test integrations (and figure out how to simplify)
 - diagnostics get cleared on run. They're not stored per-test.

@@ -116,14 +116,25 @@ M.parser = function()
               "name",
               path_param
             ),
+            -- Parse the stacktrace
             parser.skip_until("^Traceback"),
             parser.extract_nested(
+              { append = false },
               "stacktrace",
               parser.loop(parser.sequence({
                 parser.extract('%s*File "([^"]+)", line (%d+)', "filename", "lnum"),
                 parser.skip_lines(1),
               }))
             ),
+            parser.skip_until("^$"),
+            -- Parse stdout/stderr until we hit ==== (next test) or ---- (test end)
+            parser.always(
+              parser.parallel(
+                parser.invert(parser.test({ "^==========", "^---------" })),
+                parser.extract_multiline({ append = false }, "(.*)", "text")
+              )
+            ),
+            parser.append(),
           })
         )
       ),
