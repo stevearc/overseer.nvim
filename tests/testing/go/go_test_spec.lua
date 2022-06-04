@@ -38,6 +38,14 @@ FAIL
           duration = 0.21,
           status = TEST_STATUS.SUCCESS,
           text = "    undo_test.go:134: This is a log line",
+          diagnostics = {
+            {
+              filename = "undo_test.go",
+              lnum = 134,
+              text = "This is a log line",
+              type = "I",
+            },
+          },
         },
         {
           id = "TestUndoInsertDelete",
@@ -45,12 +53,34 @@ FAIL
           duration = 0,
           status = TEST_STATUS.SKIPPED,
           text = "    undo_test.go:171: Skip test",
+          diagnostics = {
+            {
+              filename = "undo_test.go",
+              lnum = 171,
+              text = "Skip test",
+              type = "W",
+            },
+          },
         },
         {
           id = "TestDeleteUndoRedoLots",
           name = "TestDeleteUndoRedoLots",
           duration = 0,
           status = TEST_STATUS.FAILURE,
+          diagnostics = {
+            {
+              filename = "undo_test.go",
+              lnum = 297,
+              text = "This is a log line",
+              type = "E",
+            },
+            {
+              filename = "undo_test.go",
+              lnum = 307,
+              text = "Expected 'Hello' received 'Heelllo'",
+              type = "E",
+            },
+          },
           text = "This is a print line\n    undo_test.go:297: This is a log line\n    undo_test.go:307: Expected 'Hello' received 'Heelllo'",
         },
         {
@@ -58,32 +88,6 @@ FAIL
           name = "TestDelete",
           duration = 0,
           status = TEST_STATUS.SUCCESS,
-        },
-      },
-      diagnostics = {
-        {
-          filename = "undo_test.go",
-          lnum = 134,
-          text = "This is a log line",
-          type = "I",
-        },
-        {
-          filename = "undo_test.go",
-          lnum = 171,
-          text = "Skip test",
-          type = "W",
-        },
-        {
-          filename = "undo_test.go",
-          lnum = 297,
-          text = "This is a log line",
-          type = "E",
-        },
-        {
-          filename = "undo_test.go",
-          lnum = 307,
-          text = "Expected 'Hello' received 'Heelllo'",
-          type = "E",
         },
       },
     }, results)
@@ -141,7 +145,6 @@ FAIL
           name = "TestThreeUsers",
           duration = 0,
           status = TEST_STATUS.FAILURE,
-          text = "SOME ERROR [recovered]",
           stacktrace = {
             {
               text = "testing.tRunner.func1.2",
@@ -211,7 +214,6 @@ FAIL
           },
         },
       },
-      diagnostics = {},
     }, results)
   end)
 end)
