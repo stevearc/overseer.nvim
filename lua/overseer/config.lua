@@ -43,14 +43,34 @@ local default_config = {
     },
   },
   testing = {
+    actions = {},
     disable = nil,
     modify = nil,
     disable_builtin = false,
     dirs = {},
+    sidebar = {
+      max_width = { 100, 0.2 },
+      min_width = { 40, 0.1 },
+    },
   },
 }
 
 local M = vim.deepcopy(default_config)
+
+local function merge_actions(default_actions, user_actions)
+  local actions = {}
+  for k, v in pairs(default_actions) do
+    actions[k] = v
+  end
+  for k, v in pairs(user_actions or {}) do
+    if not v then
+      actions[k] = nil
+    else
+      actions[k] = v
+    end
+  end
+  return actions
+end
 
 M.setup = function(opts)
   local component = require("overseer.component")
@@ -62,19 +82,7 @@ M.setup = function(opts)
     M[k] = v
   end
 
-  -- Merge actions with actions.lua
-  local actions = {}
-  for k, v in pairs(require("overseer.actions").actions) do
-    actions[k] = v
-  end
-  for k, v in pairs(opts.actions or {}) do
-    if not v then
-      actions[k] = nil
-    else
-      actions[k] = v
-    end
-  end
-  M.actions = actions
+  M.actions = merge_actions(require("overseer.task_list.actions"), newconf.actions)
 
   for k, v in pairs(newconf.test_icons) do
     local hl_name = string.format("OverseerTest%s", k)
@@ -92,6 +100,7 @@ M.setup = function(opts)
     testing_dirs[fullpath] = v
   end
   M.testing.dirs = testing_dirs
+  M.testing.actions = merge_actions(require("overseer.testing.actions"), newconf.testing.actions)
 
   for _, v in util.iter_as_list(M.extensions) do
     extensions.register(v)

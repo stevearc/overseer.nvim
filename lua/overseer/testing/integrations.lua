@@ -108,7 +108,7 @@ end
 
 M.get_by_name = function(name)
   initialize()
-  local ret = get_dir_integrations(vim.fn.getcwd(0))
+  local ret = M.get_for_dir(vim.fn.getcwd(0))
   for _, integration in ipairs(ret) do
     if integration.name == name then
       return integration

@@ -1,8 +1,12 @@
+local action_util = require("overseer.action_util")
+local bindings = require("overseer.testing.bindings")
+local binding_util = require("overseer.binding_util")
 local config = require("overseer.config")
 local data = require("overseer.testing.data")
-local integrations = require("overseer.testing.integrations")
+local layout = require("overseer.layout")
 local util = require("overseer.util")
 local TEST_STATUS = data.TEST_STATUS
+
 local M = {}
 
 local function render_summary(summary, lnum, col_start)
@@ -42,81 +46,6 @@ local function format_duration(seconds)
     return string.format("%dms", math.floor(seconds * 1000))
   else
     return string.format("%ds", math.floor(seconds))
-  end
-end
-
-local line_to_test_map = {}
-local function render(bufnr)
-  line_to_test_map = {}
-  local lines = {}
-  local highlights = {}
-  local current_path = {}
-  local results = data.get_workspace_results()
-  local total_summary, sum_hl = render_summary(results.summaries["_"])
-  table.insert(lines, total_summary)
-  vim.list_extend(highlights, sum_hl)
-  for _, result in ipairs(results.tests) do
-    for i, v in ipairs(result.path) do
-      if not current_path[i] or current_path[i] ~= v then
-        current_path[i] = v
-        local sum = get_path(results.summaries, current_path, i)
-        local status = sum:get_status()
-        local icon = config.test_icons[status]
-        local padding = string.rep("  ", i - 1)
-        table.insert(lines, string.format("%s%s%s", padding, icon, v))
-        table.insert(highlights, {
-          string.format("OverseerTest%s", status),
-          #lines,
-          0,
-          string.len(padding) + string.len(icon),
-        })
-        line_to_test_map[#lines] = {
-          type = "group",
-          integration = result.integration,
-          path = util.tbl_slice(current_path, 1, i),
-        }
-      end
-    end
-    while #current_path > #result.path do
-      table.remove(current_path)
-    end
-
-    local icon = config.test_icons[result.status]
-    local padding = string.rep("  ", #result.path)
-    local test_text = string.format("%s%s%s", padding, icon, result.name)
-    if result.duration then
-      test_text = test_text .. " " .. format_duration(result.duration)
-    end
-    table.insert(lines, test_text)
-    table.insert(highlights, {
-      string.format("OverseerTest%s", result.status),
-      #lines,
-      0,
-      string.len(padding) + string.len(icon),
-    })
-    if result.duration then
-      table.insert(highlights, {
-        "OverseerTestDuration",
-        #lines,
-        string.len(padding) + string.len(icon) + string.len(result.name) + 1,
-        -1,
-      })
-    end
-    line_to_test_map[#lines] = {
-      type = "test",
-      test = result,
-    }
-  end
-
-  vim.api.nvim_buf_set_option(bufnr, "modifiable", true)
-  vim.api.nvim_buf_set_lines(bufnr, 0, -1, true, lines)
-  vim.api.nvim_buf_set_option(bufnr, "modifiable", false)
-
-  local ns = vim.api.nvim_create_namespace("OverseerTest")
-  vim.api.nvim_buf_clear_namespace(bufnr, ns, 0, -1)
-  for _, hl in ipairs(highlights) do
-    local group, lnum, col_start, col_end = unpack(hl)
-    vim.api.nvim_buf_add_highlight(bufnr, ns, group, lnum - 1, col_start, col_end)
   end
 end
 
@@ -160,14 +89,148 @@ local function create_test_result_buf(result)
   return bufnr
 end
 
-local function toggle_preview()
+local Panel = {}
+
+function Panel.new()
+  local bufnr = vim.api.nvim_create_buf(false, true)
+
+  -- Set buffer options
+  vim.api.nvim_buf_set_option(bufnr, "buftype", "nofile")
+  vim.api.nvim_buf_set_option(bufnr, "bufhidden", "wipe")
+  vim.api.nvim_buf_set_option(bufnr, "buflisted", false)
+  vim.api.nvim_buf_set_option(bufnr, "swapfile", false)
+  vim.api.nvim_buf_set_option(bufnr, "modifiable", false)
+
+  local panel = setmetatable({ bufnr = bufnr, line_to_test_map = {} }, { __index = Panel })
+
+  local update = function()
+    panel:render()
+  end
+  data.add_callback(update)
+
+  vim.api.nvim_create_autocmd("BufUnload", {
+    desc = "Unregister panel on BufDelete",
+    callback = function()
+      data.remove_callback(update)
+    end,
+    buffer = bufnr,
+    once = true,
+    nested = true,
+  })
+  vim.api.nvim_create_autocmd("CursorMoved", {
+    desc = "Update preview window when cursor moves",
+    buffer = bufnr,
+    callback = function()
+      panel:update_preview()
+    end,
+  })
+
+  binding_util.create_bindings(bufnr, bindings, panel)
+
+  panel:render()
+  return panel
+end
+
+function Panel:render()
+  local bufnr = self.bufnr
+  self.line_to_test_map = {}
+  local lines = {}
+  local highlights = {}
+  local current_path = {}
+  local results = data.get_workspace_results()
+  local total_summary, sum_hl = render_summary(results.summaries["_"])
+  table.insert(lines, total_summary)
+  vim.list_extend(highlights, sum_hl)
+  for _, result in ipairs(results.tests) do
+    for i, v in ipairs(result.path) do
+      if not current_path[i] or current_path[i] ~= v then
+        current_path[i] = v
+        local sum = get_path(results.summaries, current_path, i)
+        local status = sum:get_status()
+        local icon = config.test_icons[status]
+        local padding = string.rep("  ", i - 1)
+        table.insert(lines, string.format("%s%s%s", padding, icon, v))
+        table.insert(highlights, {
+          string.format("OverseerTest%s", status),
+          #lines,
+          0,
+          string.len(padding) + string.len(icon),
+        })
+        self.line_to_test_map[#lines] = {
+          type = "group",
+          integration = result.integration,
+          path = util.tbl_slice(current_path, 1, i),
+          name = current_path[i],
+        }
+      end
+    end
+    while #current_path > #result.path do
+      table.remove(current_path)
+    end
+
+    local icon = config.test_icons[result.status]
+    local padding = string.rep("  ", #result.path)
+    local test_text = string.format("%s%s%s", padding, icon, result.name)
+    if result.duration then
+      test_text = test_text .. " " .. format_duration(result.duration)
+    end
+    table.insert(lines, test_text)
+    table.insert(highlights, {
+      string.format("OverseerTest%s", result.status),
+      #lines,
+      0,
+      string.len(padding) + string.len(icon),
+    })
+    if result.duration then
+      table.insert(highlights, {
+        "OverseerTestDuration",
+        #lines,
+        string.len(padding) + string.len(icon) + string.len(result.name) + 1,
+        -1,
+      })
+    end
+    self.line_to_test_map[#lines] = {
+      type = "test",
+      test = result,
+    }
+  end
+
+  vim.api.nvim_buf_set_option(bufnr, "modifiable", true)
+  vim.api.nvim_buf_set_lines(bufnr, 0, -1, true, lines)
+  vim.api.nvim_buf_set_option(bufnr, "modifiable", false)
+
+  local ns = vim.api.nvim_create_namespace("OverseerTest")
+  vim.api.nvim_buf_clear_namespace(bufnr, ns, 0, -1)
+  for _, hl in ipairs(highlights) do
+    local group, lnum, col_start, col_end = unpack(hl)
+    vim.api.nvim_buf_add_highlight(bufnr, ns, group, lnum - 1, col_start, col_end)
+  end
+end
+
+function Panel:run_action(name)
+  local lnum = vim.api.nvim_win_get_cursor(0)[1]
+  local entry = self.line_to_test_map[lnum]
+  if entry then
+    local entry_name = entry.name and entry.name or entry.test.name
+    action_util.run_action({
+      actions = config.testing.actions,
+      prompt = entry_name,
+      name = name,
+      post_action = function()
+        data.touch()
+      end,
+    }, entry)
+  end
+end
+
+function Panel:toggle_preview()
   local pwin = util.get_preview_window()
   if pwin then
     vim.cmd([[pclose]])
     return
   end
   local lnum = vim.api.nvim_win_get_cursor(0)[1]
-  local entry = line_to_test_map[lnum]
+  local entry = self.line_to_test_map[lnum]
   if not entry or entry.type ~= "test" then
     return
   end
@@ -190,13 +253,13 @@ local function toggle_preview()
   vim.api.nvim_win_set_option(winid, "winblend", 10)
 end
 
-local function update_preview()
+function Panel:update_preview()
   local winid = util.get_preview_window()
   if not winid then
     return
   end
   local lnum = vim.api.nvim_win_get_cursor(0)[1]
-  local entry = line_to_test_map[lnum]
+  local entry = self.line_to_test_map[lnum]
   if not entry or entry.type ~= "test" then
     return
   end
@@ -205,81 +268,9 @@ local function update_preview()
   vim.api.nvim_win_set_buf(winid, bufnr)
 end
 
-local function create_test_panel_buf()
-  local bufnr = vim.api.nvim_create_buf(false, true)
-
-  -- Set buffer options
-  vim.api.nvim_buf_set_option(bufnr, "buftype", "nofile")
-  vim.api.nvim_buf_set_option(bufnr, "bufhidden", "wipe")
-  vim.api.nvim_buf_set_option(bufnr, "buflisted", false)
-  vim.api.nvim_buf_set_option(bufnr, "swapfile", false)
-  vim.api.nvim_buf_set_option(bufnr, "modifiable", false)
-
-  local update = function()
-    render(bufnr)
-  end
-
-  data.add_callback(update)
-  vim.api.nvim_create_autocmd("BufUnload", {
-    callback = function()
-      data.remove_callback(update)
-    end,
-    buffer = bufnr,
-    once = true,
-    nested = true,
-  })
-  vim.api.nvim_create_autocmd("CursorMoved", {
-    desc = "Update preview window when cursor moves",
-    buffer = bufnr,
-    callback = function()
-      update_preview()
-    end,
-  })
-  update()
-
-  vim.keymap.set("n", "<C-r>", function()
-    local lnum = vim.api.nvim_win_get_cursor(0)[1]
-    local entry = line_to_test_map[lnum]
-    if entry then
-      if entry.type == "test" then
-        local test = entry.test
-        local integ = integrations.get_by_name(test.integration)
-        data.reset_test_status(test.integration, test, TEST_STATUS.RUNNING)
-        integrations.create_and_start_task(integ, integ:run_single_test(test))
-      elseif entry.type == "group" then
-        local integ = integrations.get_by_name(entry.integration)
-        data.reset_group_status(entry.integration, entry.path, TEST_STATUS.RUNNING)
-        if integ.run_test_group then
-          integrations.create_and_start_task(integ, integ:run_test_group(entry.path))
-        else
-          -- FIXME run test groups for integrations with no built-in support
-          data.reset_group_status(entry.integration, entry.path, TEST_STATUS.NONE)
-        end
-      end
-      data.touch()
-    end
-  end, { buffer = bufnr })
-
-  vim.keymap.set("n", "<C-s>", function()
-    local lnum = vim.api.nvim_win_get_cursor(0)[1]
-    local entry = line_to_test_map[lnum]
-    if entry and entry.type == "test" then
-      local test = entry.test
-      if test.stacktrace then
-        vim.fn.setqflist(test.stacktrace)
-      end
-    end
-  end, { buffer = bufnr })
-
-  vim.keymap.set("n", "p", function()
-    toggle_preview()
-  end, { buffer = bufnr })
-
-  return bufnr
-end
-
 local function create_test_panel_win()
-  local bufnr = create_test_panel_buf()
+  local panel = Panel.new()
+  local bufnr = panel.bufnr
 
   local my_winid = vim.api.nvim_get_current_win()
   local direction = "left"
@@ -304,7 +295,7 @@ local function create_test_panel_win()
   vim.api.nvim_win_set_option(0, "relativenumber", false)
   vim.api.nvim_win_set_option(0, "wrap", false)
   vim.api.nvim_win_set_option(0, "spell", false)
-  vim.api.nvim_win_set_width(0, 80)
+  vim.api.nvim_win_set_width(0, layout.calculate_width(nil, config.sidebar))
   -- Set the filetype only after we enter the buffer so that FileType autocmds
   -- behave properly
   vim.api.nvim_buf_set_option(bufnr, "filetype", "OverseerTestPanel")

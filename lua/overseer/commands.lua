@@ -1,4 +1,4 @@
-local actions = require("overseer.actions")
+local action_util = require("overseer.action_util")
 local constants = require("overseer.constants")
 local sidebar = require("overseer.task_list.sidebar")
 local task_bundle = require("overseer.task_bundle")
@@ -208,7 +208,7 @@ M.quick_action = function(name)
   else
     task = tasks[1]
   end
-  actions.run_action(task)
+  action_util.run_task_action(task)
 end
 
 M.task_action = function()
@@ -217,7 +217,7 @@ M.task_action = function()
     vim.notify("No tasks available", vim.log.levels.WARN)
     return
   elseif #tasks == 1 then
-    actions.run_action(tasks[1])
+    action_util.run_task_action(tasks[1])
     return
   end
 
@@ -229,7 +229,7 @@ M.task_action = function()
     end,
   }, function(task)
     if task then
-      actions.run_action(task)
+      action_util.run_task_action(task)
     end
   end)
 end

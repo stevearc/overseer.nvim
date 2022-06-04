@@ -5,9 +5,7 @@
 - Collapsing
 - Filter by status
 - actions
-  - set stacktrace (and open quickfix)
   - jump to test
-  - rerun test
   - display result in preview window
   - open result in new window
 - perform quick action on test cursor is inside (e.g. view output)
