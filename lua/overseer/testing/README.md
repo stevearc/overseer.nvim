@@ -1,12 +1,9 @@
 # TODO
 
-- Results streaming
-  - diagnostics get cleared on run. They're not stored per-test.
-- Panel for _file_ tests
-- If I'm going to write a lot more of these parsers, I need some better tools
 - Parse stdout/stderr messages of python tests
 - Parse duration of python tests
 - More test integrations (and figure out how to simplify)
+- diagnostics get cleared on run. They're not stored per-test.
 
 ## Test window
 
@@ -22,6 +19,7 @@
 
 ## Future
 
+- Command to show test details for current cursor test
 - OverseerTestLast
 - Track previous tasks and dispose them
 - Show running status when test is in progress
@@ -34,6 +32,7 @@
 - Code coverage integration
 - command to rerun failed tests (set limit on number of concurrent jobs)
 - smart-detect a green color to use for the success icon
+- Panel for _file_ tests
 
 ### Open questions
 

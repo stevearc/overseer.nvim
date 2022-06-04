@@ -4,27 +4,35 @@ local util = require("overseer.util")
 local M = {}
 
 local debug = false
-local depth = 0
+local next_id = 1
+local trace = {}
 
 setmetatable(M, {
   __index = function(_, key)
-    if debug and key ~= "util" then
-      local constructor = require(string.format("overseer.parser.%s", key))
+    local constructor = require(string.format("overseer.parser.%s", key))
+    if debug and key ~= "util" and key ~= "debug" then
       return function(...)
         local node = constructor(...)
         local ingest = node.ingest
-        node.ingest = function(self, line, ...)
-          print(string.format("%s<%s: '%s'>", string.rep("  ", depth), key, line))
-          depth = depth + 1
-          local st = ingest(self, line, ...)
-          depth = depth - 1
-          print(string.format("%s</%s %s>", string.rep("  ", depth), key, st))
+        node.ingest = function(self, line, ctx)
+          local depth = ctx.debug_depth or 0
+          ctx.debug_depth = depth + 1
+          local st = ingest(self, line, ctx)
+          if not trace[self.id] then
+            trace[self.id] = { st }
+          else
+            table.insert(trace[self.id], st)
+          end
+          ctx.debug_depth = depth
           return st
         end
+        node.id = next_id
+        node.name = key
+        next_id = next_id + 1
         return node
       end
     else
-      return require(string.format("overseer.parser.%s", key))
+      return constructor
     end
   end,
 })
@@ -57,13 +65,9 @@ function ListParser:ingest(lines)
   local ctx = { item = self.item, results = self.results, default_values = {} }
   for _, line in ipairs(lines) do
     if debug then
-      print(string.format("ingest: %s", line))
+      trace = {}
     end
     self.tree:ingest(line, ctx)
-    if debug then
-      print(string.format("results: %s", vim.inspect(ctx.results)))
-      print(string.format("item: %s", vim.inspect(ctx.item)))
-    end
   end
   for i = num_results + 1, #self.results do
     local result = self.results[i]
@@ -114,17 +118,13 @@ end
 
 function MapParser:ingest(lines)
   for _, line in ipairs(lines) do
+    if debug then
+      trace = {}
+    end
     for k, v in pairs(self.children) do
       local ctx = { item = self.items[k], results = self.results[k], default_values = {} }
       local num_results = #ctx.results
-      if debug then
-        print(string.format("ingest(%s): %s", k, line))
-      end
       v:ingest(line, ctx)
-      if debug then
-        print(string.format("results(%s): %s", k, vim.inspect(ctx.results)))
-        print(string.format("item(%s): %s", k, vim.inspect(ctx.item)))
-      end
       for i = num_results + 1, #ctx.results do
         local result = ctx.results[i]
         for _, cb in ipairs(self.subs) do
@@ -160,6 +160,10 @@ end
 
 M.trace = function(enabled)
   debug = enabled
+end
+
+M.get_trace = function()
+  return trace
 end
 
 return M
