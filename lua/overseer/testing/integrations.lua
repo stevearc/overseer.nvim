@@ -118,17 +118,22 @@ end
 
 local last_task = nil
 
-M.create_and_start_task = function(integ, task_data)
+M.create_and_start_task = function(integ, task_data, reset_params)
   if last_task then
     last_task:dec_reference()
   end
-  -- TODO adjust data through user config
   if not task_data.components then
     task_data.components = { "default_test" }
     if integ.parser then
       table.insert(task_data.components, 1, { "result_exit_code", parser = integ.name })
     end
   end
+  -- Add the test reset component
+  if reset_params and not vim.tbl_isempty(reset_params) then
+    reset_params[1] = "on_init_reset_tests"
+    table.insert(task_data.components, 1, reset_params)
+  end
+
   task_data.metadata = task_data.metadata or {}
   task_data.metadata.test_integration = integ.name
   local task = Task.new(task_data)

@@ -11,7 +11,6 @@
 
 ## Future
 
-- Maybe put test reset logic into component (so task rerunning functions as intended)
 - More test integrations (and figure out how to simplify)
 - Track previous tasks and dispose them
 - Run after build

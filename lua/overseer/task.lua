@@ -114,7 +114,12 @@ function Task:render(lines, highlights, detail)
       for k, v in pairs(comp.params) do
         if k ~= 1 then
           if type(v) == "table" and vim.tbl_islist(v) then
-            v = table.concat(v, ", ")
+            v = table.concat(
+              vim.tbl_map(function(item)
+                return tostring(item)
+              end, v),
+              ", "
+            )
           end
           table.insert(lines, string.format("  %s: %s", k, v))
         end

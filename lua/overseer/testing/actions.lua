@@ -14,13 +14,15 @@ M = {
       if entry.type == "test" then
         local test = entry.test
         local integ = integrations.get_by_name(test.integration)
-        data.reset_test_status(test.integration, test, TEST_STATUS.RUNNING)
-        integrations.create_and_start_task(integ, integ:run_single_test(test))
+        integrations.create_and_start_task(integ, integ:run_single_test(test), { tests = { test } })
       elseif entry.type == "group" then
         local integ = integrations.get_by_name(entry.integration)
-        data.reset_group_status(entry.integration, entry.path, TEST_STATUS.RUNNING)
         if integ.run_test_group then
-          integrations.create_and_start_task(integ, integ:run_test_group(entry.path))
+          integrations.create_and_start_task(
+            integ,
+            integ:run_test_group(entry.path),
+            { group = entry.path }
+          )
         else
           -- FIXME run test groups for integrations with no built-in support
           data.reset_group_status(entry.integration, entry.path, TEST_STATUS.NONE)

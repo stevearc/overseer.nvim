@@ -300,7 +300,7 @@ end
 
 M.reset_test_status = function(integration_name, test, status)
   status = status or TEST_STATUS.NONE
-  local prev_status = test.status
+  local prev_status = M.results[test.id] and M.results[test.id].status
   test.status = status
   test.stacktrace = nil
   test.text = nil
