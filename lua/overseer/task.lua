@@ -21,6 +21,7 @@ function Task.new_uninitialized(opts)
   opts = opts or {}
   vim.validate({
     -- cmd can be table or string
+    args = { opts.args, "t", true },
     cwd = { opts.cwd, "s", true },
     env = { opts.env, "t", true },
     name = { opts.name, "s", true },
@@ -30,6 +31,17 @@ function Task.new_uninitialized(opts)
 
   if not opts.components then
     opts.components = { "default" }
+  end
+  if opts.args then
+    if type(opts.cmd) == "string" then
+      local escaped = vim.tbl_map(opts.args, function(arg)
+        return vim.fn.shellescape(arg)
+      end)
+      opts.cmd = string.format("%s %s", opts.cmd, table.concat(escaped, " "))
+    else
+      opts.cmd = vim.deepcopy(opts.cmd)
+      vim.list_extend(opts.cmd, opts.args)
+    end
   end
   local name = opts.name
   if not name then

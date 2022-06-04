@@ -1,44 +1,115 @@
+local config = require("overseer.config")
+local files = require("overseer.files")
 local parsers = require("overseer.parsers")
 local Task = require("overseer.task")
 local M = {}
 
-M.registry = {}
+local registry = {}
 
 local builtin_tests = { "go.go_test", "lua.plenary_busted", "python.unittest" }
-M.register_builtin = function()
-  for _, mod in ipairs(builtin_tests) do
-    local integration = require(string.format("overseer.testing.%s", mod))
-    table.insert(M.registry, integration)
-    if integration.parser then
-      parsers.register_parser(integration.name, integration.parser)
+
+local function register_builtin()
+  local seen = {}
+  if config.testing.modify then
+    for _, integration in ipairs(config.testing.modify) do
+      if not seen[integration.name] then
+        seen[integration.name] = true
+        table.insert(registry, integration)
+        if integration.parser then
+          parsers.register_parser(integration.name, integration.parser)
+        end
+      end
+    end
+  end
+  if config.testing.disable ~= true then
+    for _, mod in ipairs(builtin_tests) do
+      if not config.testing.disable or not vim.tbl_contains(config.testing.disable, mod) then
+        local integration = require(string.format("overseer.testing.%s", mod))
+        if not seen[integration.name] then
+          seen[integration.name] = true
+          table.insert(registry, integration)
+          if integration.parser then
+            parsers.register_parser(integration.name, integration.parser)
+          end
+        end
+      end
     end
   end
 end
 
-M.get_for_dir = function(dirname)
+local initialized = false
+local function initialize()
+  if initialized then
+    return
+  end
+  initialized = true
+  if not config.testing.disable_builtin then
+    register_builtin()
+  end
+end
+
+local function get_dir_integrations(filename)
   local ret = {}
-  for _, integration in ipairs(M.registry) do
-    if integration:is_workspace_match(dirname) then
-      table.insert(ret, integration)
+  local seen = {}
+  -- Iterate through dirs in reverse length order so we prioritize the *most*
+  -- specific directory
+  local dirs = vim.tbl_keys(config.testing.dirs)
+  table.sort(dirs, function(a, b)
+    return b < a
+  end)
+
+  -- Add the directory-specific integrations
+  for _, dir in ipairs(dirs) do
+    if files.is_subpath(dir, filename) then
+      local dir_integrations = config.testing.dirs[dir]
+      for _, integration in ipairs(dir_integrations) do
+        if not seen[integration.name] then
+          seen[integration.name] = true
+          table.insert(ret, integration)
+        end
+      end
+    end
+  end
+  return ret, seen
+end
+
+M.get_for_dir = function(dirname)
+  initialize()
+  local ret, seen = get_dir_integrations(dirname)
+
+  -- Add all registered integrations
+  for _, integration in ipairs(registry) do
+    if not seen[integration.name] then
+      seen[integration.name] = true
+      if integration:is_workspace_match(dirname) then
+        table.insert(ret, integration)
+      end
     end
   end
   return ret
 end
 
 M.get_for_buf = function(bufnr)
+  initialize()
   bufnr = bufnr or 0
-  local ret = {}
-  for _, integration in ipairs(M.registry) do
-    local tests = integration:find_tests(bufnr)
-    if not vim.tbl_isempty(tests) then
-      table.insert(ret, integration)
+  local filename = vim.api.nvim_buf_get_name(bufnr)
+  local ret, seen = get_dir_integrations(filename)
+  for _, integration in ipairs(registry) do
+    if not seen[integration.name] then
+      seen[integration.name] = true
+      local tests = integration:find_tests(bufnr)
+      if not vim.tbl_isempty(tests) then
+        table.insert(ret, integration)
+      end
     end
   end
   return ret
 end
 
 M.get_by_name = function(name)
-  for _, integration in ipairs(M.registry) do
+  initialize()
+  local ret = get_dir_integrations(vim.fn.getcwd(0))
+  for _, integration in ipairs(ret) do
     if integration.name == name then
       return integration
     end

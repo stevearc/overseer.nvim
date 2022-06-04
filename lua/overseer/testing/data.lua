@@ -174,8 +174,7 @@ local function bump_results_version(integration_name)
   test_results_version[integration_name] = 1 + test_results_version[integration_name]
 end
 
-local function set_test_result_signs(bufnr, integration_name)
-  local integ = integrations.get_by_name(integration_name)
+local function set_test_result_signs(bufnr, integ)
   local tests = integ:find_tests(bufnr)
   if vim.tbl_isempty(tests) then
     return
@@ -193,7 +192,7 @@ local function set_test_result_signs(bufnr, integration_name)
       })
       if result.diagnostics then
         for _, diag in ipairs(result.diagnostics) do
-          table.insert(diagnostics, diagnostic_from_test(integration_name, diag))
+          table.insert(diagnostics, diagnostic_from_test(integ.name, diag))
         end
       end
     end
@@ -204,8 +203,8 @@ local function set_test_result_signs(bufnr, integration_name)
     -- signs = params.signs,
     -- underline = params.underline,
   })
-  local varname = string.format("overseer_test_results_version_%s", integration_name)
-  vim.api.nvim_buf_set_var(bufnr, varname, test_results_version[integration_name])
+  local varname = string.format("overseer_test_results_version_%s", integ.name)
+  vim.api.nvim_buf_set_var(bufnr, varname, test_results_version[integ.name])
 end
 
 M.update_buffer_signs = function(bufnr)
@@ -216,7 +215,7 @@ M.update_buffer_signs = function(bufnr)
       goto continue
     end
 
-    set_test_result_signs(bufnr, integ.name)
+    set_test_result_signs(bufnr, integ)
 
     ::continue::
   end

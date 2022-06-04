@@ -35,7 +35,6 @@ M.setup = function(opts)
   commands.create_commands()
   -- TODO probably want to move this
   require("overseer.testing").create_commands()
-  require("overseer.testing").register_builtin()
   require("overseer.parsers").register_builtin()
   vim.cmd([[
     hi default link OverseerPENDING Normal
@@ -80,8 +79,16 @@ M.setup = function(opts)
   })
 end
 
-M.wrap_test = function()
-  -- TODO
+M.wrap_test = function(name, opts)
+  return setmetatable(opts, {
+    __index = function(_, key)
+      if key == "super" then
+        return require(string.format("overseer.testing.%s", name))
+      else
+        return require(string.format("overseer.testing.%s", name))[key]
+      end
+    end,
+  })
 end
 
 M.new_task = Task.new

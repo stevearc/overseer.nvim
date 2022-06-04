@@ -42,6 +42,12 @@ local default_config = {
       "rerun_on_result",
     },
   },
+  testing = {
+    disable = nil,
+    modify = nil,
+    disable_builtin = false,
+    dirs = {},
+  },
 }
 
 local M = vim.deepcopy(default_config)
@@ -79,6 +85,13 @@ M.setup = function(opts)
       numhl = "",
     })
   end
+
+  local testing_dirs = {}
+  for k, v in pairs(M.testing.dirs) do
+    local fullpath = vim.fn.expand(k)
+    testing_dirs[fullpath] = v
+  end
+  M.testing.dirs = testing_dirs
 
   for _, v in util.iter_as_list(M.extensions) do
     extensions.register(v)

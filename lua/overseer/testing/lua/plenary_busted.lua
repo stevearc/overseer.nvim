@@ -19,21 +19,15 @@ local M = {
   end,
   cmd = { "nvim", "--headless" },
   run_test_dir = function(self, dirname)
-    local cmd = vim.list_extend(
-      vim.deepcopy(self.cmd),
-      { "-c", string.format("PlenaryBustedDirectory %s", dirname) }
-    )
     return {
-      cmd = cmd,
+      cmd = self.cmd,
+      args = { "-c", string.format("PlenaryBustedDirectory %s", dirname) },
     }
   end,
   run_test_file = function(self, filename)
-    local cmd = vim.list_extend(
-      vim.deepcopy(self.cmd),
-      { "-c", string.format("PlenaryBustedDirectory %s", filename) }
-    )
     return {
-      cmd = cmd,
+      cmd = self.cmd,
+      args = { "-c", string.format("PlenaryBustedDirectory %s", filename) },
     }
   end,
   run_single_test = function(self, test)

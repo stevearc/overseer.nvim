@@ -16,19 +16,23 @@ local M = {
     end
     return false
   end,
+  cmd = { "python", "-m", "unittest" },
   run_test_dir = function(self, dirname)
     return {
-      cmd = { "python", "-m", "unittest", "discover", "-b", "-v", "-s", dirname },
+      cmd = self.cmd,
+      args = { "discover", "-b", "-v", "-s", dirname },
     }
   end,
   run_test_file = function(self, filename)
     return {
-      cmd = { "python", "-m", "unittest", "-b", "-v", filename },
+      cmd = self.cmd,
+      args = { "-b", "-v", filename },
     }
   end,
   run_single_test = function(self, test)
     return {
-      cmd = { "python", "-m", "unittest", "-b", "-v", test.id },
+      cmd = self.cmd,
+      args = { "-b", "-v", test.id },
     }
   end,
   run_test_group = function(self, path)
