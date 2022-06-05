@@ -12,12 +12,13 @@
 - Code coverage integration
 - command to rerun failed tests (set limit on number of concurrent jobs)
 - Panel for _file_ tests
+- Rerun group for test frameworks don't support it
 - Document all properties of:
   - integration
     - name
     - is_filename_test
     - is_workspace_match
-    - cmd (recommended)
+    - get_cmd (recommended)
     - run_test_dir
     - run_test_file
     - run_single_test

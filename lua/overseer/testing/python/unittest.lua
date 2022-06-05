@@ -16,22 +16,24 @@ local M = {
     end
     return false
   end,
-  cmd = { "python", "-m", "unittest" },
+  get_cmd = function(self)
+    return { "python", "-m", "unittest" }
+  end,
   run_test_dir = function(self, dirname)
     return {
-      cmd = self.cmd,
+      cmd = self:get_cmd(),
       args = { "discover", "-b", "-v", "-s", dirname },
     }
   end,
   run_test_file = function(self, filename)
     return {
-      cmd = self.cmd,
+      cmd = self:get_cmd(),
       args = { "-b", "-v", filename },
     }
   end,
   run_single_test = function(self, test)
     return {
-      cmd = self.cmd,
+      cmd = self:get_cmd(),
       args = { "-b", "-v", test.id },
     }
   end,
@@ -42,7 +44,8 @@ local M = {
     end
     local specifier = table.concat(path, ".")
     return {
-      cmd = { "python", "-m", "unittest", "-b", "-v", specifier },
+      cmd = self:get_cmd(),
+      args = { "-b", "-v", specifier },
     }
   end,
   find_tests = function(self, bufnr)

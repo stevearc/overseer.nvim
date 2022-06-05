@@ -17,16 +17,18 @@ local M = {
     end
     return false
   end,
-  cmd = { "nvim", "--headless" },
+  get_cmd = function(self)
+    return { "nvim", "--headless" }
+  end,
   run_test_dir = function(self, dirname)
     return {
-      cmd = self.cmd,
+      cmd = self:get_cmd(),
       args = { "-c", string.format("PlenaryBustedDirectory %s", dirname) },
     }
   end,
   run_test_file = function(self, filename)
     return {
-      cmd = self.cmd,
+      cmd = self:get_cmd(),
       args = { "-c", string.format("PlenaryBustedDirectory %s", filename) },
     }
   end,

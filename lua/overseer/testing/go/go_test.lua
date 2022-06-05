@@ -16,22 +16,24 @@ local M = {
     end
     return false
   end,
-  cmd = { "go", "test" },
+  get_cmd = function(self)
+    return { "go", "test" }
+  end,
   run_test_dir = function(self, dirname)
     return {
-      cmd = self.cmd,
+      cmd = self:get_cmd(),
       args = { "-v", string.format("%s/...", dirname) },
     }
   end,
   run_test_file = function(self, filename)
     return {
-      cmd = self.cmd,
+      cmd = self:get_cmd(),
       args = { "-v", filename },
     }
   end,
   run_single_test = function(self, test)
     return {
-      cmd = self.cmd,
+      cmd = self:get_cmd(),
       args = { "-v", "-run", string.format("^%s$", test.name) },
     }
   end,
