@@ -15,10 +15,10 @@ M = {
     run = function(entry)
       if entry.type == "test" then
         local test = entry.test
-        local integ = integrations.get_by_name(test.integration)
+        local integ = integrations.get(test.integration_id)
         integrations.create_and_start_task(integ, integ:run_single_test(test), { tests = { test } })
       elseif entry.type == "group" then
-        local integ = integrations.get_by_name(entry.integration)
+        local integ = integrations.get(entry.integration_id)
         if integ.run_test_group then
           integrations.create_and_start_task(
             integ,

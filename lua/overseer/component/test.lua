@@ -14,14 +14,14 @@ M.on_start_reset_tests = {
   constructor = function(params)
     return {
       on_start = function(self, task)
-        local integration = task.metadata.test_integration
+        local integration_id = task.metadata.test_integration_id
         if params.dirname then
           data.reset_dir_results(params.dirname, TEST_STATUS.RUNNING)
         elseif params.group then
-          data.reset_group_status(integration, params.group, TEST_STATUS.RUNNING)
+          data.reset_group_status(integration_id, params.group, TEST_STATUS.RUNNING)
         elseif params.tests then
           for _, test in ipairs(params.tests) do
-            data.reset_test_status(integration, test, TEST_STATUS.RUNNING)
+            data.reset_test_status(integration_id, test, TEST_STATUS.RUNNING)
           end
         end
         data.touch()
@@ -43,12 +43,12 @@ M.on_result_report_tests = {
         integrations.record_finish(task)
       end,
       on_stream_result = function(self, task, key, result)
-        local integration_name = task.metadata.test_integration
-        require("overseer.testing.data").add_test_result(integration_name, key, result)
+        local integration_id = task.metadata.test_integration_id
+        require("overseer.testing.data").add_test_result(integration_id, key, result)
       end,
       on_result = function(self, task, status, result)
-        local integration_name = task.metadata.test_integration
-        require("overseer.testing.data").set_test_results(integration_name, result)
+        local integration_id = task.metadata.test_integration_id
+        require("overseer.testing.data").set_test_results(integration_id, result)
       end,
     }
   end,

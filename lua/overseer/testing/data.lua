@@ -172,8 +172,8 @@ local test_results_version = setmetatable({}, {
   end,
 })
 
-local function bump_results_version(integration_name)
-  test_results_version[integration_name] = 1 + test_results_version[integration_name]
+local function bump_results_version(integration_id)
+  test_results_version[integration_id] = 1 + test_results_version[integration_id]
 end
 
 local function set_test_result_signs(bufnr, integ)
@@ -205,26 +205,22 @@ local function set_test_result_signs(bufnr, integ)
     -- signs = params.signs,
     -- underline = params.underline,
   })
-  local varname = string.format("overseer_test_results_version_%s", integ.name)
-  vim.api.nvim_buf_set_var(bufnr, varname, test_results_version[integ.name])
+  local varname = string.format("overseer_test_results_version_%s", integ.id)
+  vim.api.nvim_buf_set_var(bufnr, varname, test_results_version[integ.id])
 end
 
 M.update_buffer_signs = function(bufnr)
   for _, integ in ipairs(integrations.get_for_buf(bufnr)) do
-    local varname = string.format("overseer_test_results_version_%s", integ.name)
+    local varname = string.format("overseer_test_results_version_%s", integ.id)
     local ok, version = pcall(vim.api.nvim_buf_get_var, bufnr, varname)
-    if ok and version == test_results_version[integ.name] then
-      goto continue
+    if not ok or version ~= test_results_version[integ.id] then
+      set_test_result_signs(bufnr, integ)
     end
-
-    set_test_result_signs(bufnr, integ)
-
-    ::continue::
   end
 end
 
-M.normalize_test = function(integration_name, test)
-  test.integration = integration_name
+M.normalize_test = function(integration_id, test)
+  test.integration_id = integration_id
   if not test.path then
     test.path = {}
   end
@@ -238,12 +234,12 @@ local function update_all_signs()
   end
 end
 
-M.set_test_results = function(integration_name, results)
+M.set_test_results = function(integration_id, results)
   remove_diagnostics()
   if not results.tests then
     return
   end
-  bump_results_version(integration_name)
+  bump_results_version(integration_id)
   local to_remove = {}
   if reset_on_next_results then
     to_remove = util.list_to_map(all_results, function(v)
@@ -254,7 +250,7 @@ M.set_test_results = function(integration_name, results)
     to_remove[v.id] = nil
     all_results[v.id] = vim.tbl_deep_extend(
       "keep",
-      M.normalize_test(integration_name, v),
+      M.normalize_test(integration_id, v),
       all_results[v.id] or {}
     )
   end
@@ -275,18 +271,18 @@ M.set_test_results = function(integration_name, results)
   do_callbacks()
 end
 
-M.set_test_data = function(integration_name, result, prev_status)
+M.set_test_data = function(integration_id, result, prev_status)
   if not prev_status then
     prev_status = all_results[result.id] and all_results[result.id].status
   end
   local test = vim.tbl_deep_extend(
     "keep",
-    M.normalize_test(integration_name, result),
+    M.normalize_test(integration_id, result),
     all_results[result.id] or {}
   )
   all_results[result.id] = test
   add_workspace_result(test, prev_status)
-  bump_results_version(integration_name)
+  bump_results_version(integration_id)
   for _, winid in ipairs(vim.api.nvim_list_wins()) do
     local bufnr = vim.api.nvim_win_get_buf(winid)
     if
@@ -299,9 +295,9 @@ M.set_test_data = function(integration_name, result, prev_status)
   end
 end
 
-M.add_test_result = function(integration_name, key, result)
+M.add_test_result = function(integration_id, key, result)
   if key == "tests" then
-    M.set_test_data(integration_name, result)
+    M.set_test_data(integration_id, result)
     M.touch()
   end
 end
@@ -318,20 +314,20 @@ local function path_match(group, test)
   return true
 end
 
-M.reset_group_status = function(integration_name, path, status)
+M.reset_group_status = function(integration_id, path, status)
   status = status or TEST_STATUS.NONE
   for _, test in pairs(all_results) do
     if path_match(path, test) then
-      M.reset_test_status(integration_name, test, status)
+      M.reset_test_status(integration_id, test, status)
     end
   end
 end
 
-M.reset_test_status = function(integration_name, test, status)
+M.reset_test_status = function(integration_id, test, status)
   status = status or TEST_STATUS.NONE
   local prev_status = all_results[test.id] and all_results[test.id].status
   test.status = status
-  M.set_test_data(integration_name, test, prev_status)
+  M.set_test_data(integration_id, test, prev_status)
   all_results[test.id].stacktrace = nil
   all_results[test.id].text = nil
   all_results[test.id].diagnostics = nil

@@ -128,7 +128,7 @@ M.rerun_failed = function()
   end, data.get_results())
   local reset_all = true
   for _, test in ipairs(all_failed) do
-    local integ = integrations.get_by_name(test.integration)
+    local integ = integrations.get(test.integration_id)
     -- On the first task, reset ALL of the failed tasks so we see them all as
     -- running immediately
     local to_reset = reset_all and all_failed or { test }
@@ -148,7 +148,7 @@ M.test_action = function()
       local tests = v:find_tests(bufnr)
       local test = utils.find_nearest_test(tests, lnum)
       if test then
-        test = data.get_result(test.id) or data.normalize_test(v.name, test)
+        test = data.get_result(test.id) or data.normalize_test(v.id, test)
         local entry = { type = "test", test = test }
         action_util.run_action({
           actions = config.testing.actions,

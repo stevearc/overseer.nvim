@@ -160,7 +160,7 @@ function Panel:render()
         })
         self.line_to_test_map[#lines] = {
           type = "group",
-          integration = result.integration,
+          integration_id = result.integration_id,
           path = group_path,
           name = current_path[i],
         }

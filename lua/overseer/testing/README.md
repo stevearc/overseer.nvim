@@ -1,7 +1,6 @@
 # TODO
 
 - Filter test panel by status
-- Maybe create id for integrations to make it more robust across tabs
 
 ## Future
 

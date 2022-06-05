@@ -9,6 +9,17 @@ local registry = {}
 local builtin_tests = { "go.go_test", "lua.plenary_busted", "python.unittest" }
 
 local num_tasks_running = 0
+local next_id = 1
+
+local function assign_id(integration)
+  -- Using rawget so that we don't hit the __index metamethod of wrapped tests
+  if not rawget(integration, "id") then
+    rawset(integration, "id", next_id)
+    registry[next_id] = integration
+    next_id = next_id + 1
+  end
+  return integration
+end
 
 local function register_builtin()
   local seen = {}
@@ -16,7 +27,7 @@ local function register_builtin()
     for _, integration in ipairs(config.testing.modify) do
       if not seen[integration.name] then
         seen[integration.name] = true
-        table.insert(registry, integration)
+        assign_id(integration)
         if integration.parser then
           parsers.register_parser(integration.name, integration.parser)
         end
@@ -29,7 +40,7 @@ local function register_builtin()
         local integration = require(string.format("overseer.testing.%s", mod))
         if not seen[integration.name] then
           seen[integration.name] = true
-          table.insert(registry, integration)
+          assign_id(integration)
           if integration.parser then
             parsers.register_parser(integration.name, integration.parser)
           end
@@ -67,7 +78,7 @@ local function get_dir_integrations(filename)
       for _, integration in ipairs(dir_integrations) do
         if not seen[integration.name] then
           seen[integration.name] = true
-          table.insert(ret, integration)
+          table.insert(ret, assign_id(integration))
         end
       end
     end
@@ -80,7 +91,7 @@ M.get_for_dir = function(dirname)
   local ret, seen = get_dir_integrations(dirname)
 
   -- Add all registered integrations
-  for _, integration in ipairs(registry) do
+  for _, integration in pairs(registry) do
     if not seen[integration.name] then
       seen[integration.name] = true
       if integration:is_workspace_match(dirname) then
@@ -96,7 +107,7 @@ M.get_for_buf = function(bufnr)
   bufnr = bufnr or 0
   local filename = vim.api.nvim_buf_get_name(bufnr)
   local ret, seen = get_dir_integrations(filename)
-  for _, integration in ipairs(registry) do
+  for _, integration in pairs(registry) do
     if not seen[integration.name] then
       seen[integration.name] = true
       local tests = integration:find_tests(bufnr)
@@ -108,14 +119,9 @@ M.get_for_buf = function(bufnr)
   return ret
 end
 
-M.get_by_name = function(name)
+M.get = function(id)
   initialize()
-  local ret = M.get_for_dir(vim.fn.getcwd(0))
-  for _, integration in ipairs(ret) do
-    if integration.name == name then
-      return integration
-    end
-  end
+  return registry[id]
 end
 
 local last_task = nil
@@ -146,7 +152,7 @@ M.create_and_start_task = function(integ, task_data, reset_params)
   end
 
   task_data.metadata = task_data.metadata or {}
-  task_data.metadata.test_integration = integ.name
+  task_data.metadata.test_integration_id = integ.id
   local task = Task.new(task_data)
   task:inc_reference()
   last_task = task
