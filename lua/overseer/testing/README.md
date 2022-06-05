@@ -1,11 +1,18 @@
 # TODO
 
-- customize test integration dirs post-setup() (for machine-local config)
 - Filter test panel by status
 
 ## Future
 
 - More test integrations
+  - python pytest
+  - ruby rspec
+  - rust cargotest
+  - js mocha
+  - js jest
+  - java junit?
+  - csharp dotnettest
+  - another go framework?
 - Run after build
 - Test playlists
 - Debug test integration

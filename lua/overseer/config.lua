@@ -104,12 +104,9 @@ M.setup = function(opts)
     })
   end
 
-  local testing_dirs = {}
   for k, v in pairs(M.testing.dirs) do
-    local fullpath = vim.fn.expand(k)
-    testing_dirs[fullpath] = v
+    M.add_test_dir(k, v)
   end
-  M.testing.dirs = testing_dirs
   M.testing.actions = merge_actions(require("overseer.testing.actions"), newconf.testing.actions)
 
   for _, v in util.iter_as_list(M.extensions) do
@@ -120,6 +117,11 @@ M.setup = function(opts)
   for k, v in pairs(M.component_sets) do
     component.alias(k, v)
   end
+end
+
+M.add_test_dir = function(dirname, integrations)
+  local fullpath = vim.fn.expand(dirname)
+  M.testing.dirs[fullpath] = integrations
 end
 
 return M
