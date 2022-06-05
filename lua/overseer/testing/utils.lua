@@ -14,6 +14,7 @@ local function clear_path(path, lnum)
 end
 M.get_tests_from_ts_query = function(bufnr, lang, queryname, query_str, id_func)
   local parser = vim.treesitter.get_parser(bufnr, "python")
+  local filename = vim.api.nvim_buf_get_name(bufnr)
   local tests = {}
   if not parser then
     return tests
@@ -46,12 +47,13 @@ M.get_tests_from_ts_query = function(bufnr, lang, queryname, query_str, id_func)
       clear_path(path, lnum_start)
       local test = {
         name = name,
+        filename = filename,
         path = vim.tbl_map(function(p)
           return p.name
         end, path),
-        lnum = lnum_start,
+        lnum = lnum_start + 1,
         col = col_start,
-        lnum_end = lnum_end,
+        lnum_end = lnum_end + 1,
         col_end = col_end,
       }
       test.id = id_func(test)
@@ -75,7 +77,7 @@ M.create_test_result_buffer = function(result, bufnr)
   end
   local lines = {}
   local highlights = {}
-  local icon = config.test_icons[result.status]
+  local icon = config.testing.icons[result.status]
   table.insert(lines, string.format("%s%s", icon, result.name))
   table.insert(highlights, {
     string.format("OverseerTest%s", result.status),

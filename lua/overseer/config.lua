@@ -22,14 +22,6 @@ local default_config = {
     border = "rounded",
     winblend = 10,
   },
-  test_icons = {
-    NONE = " ",
-    RUNNING = " ",
-    SUCCESS = " ",
-    FAILURE = " ",
-    SKIPPED = " ",
-    Collapsed = " ",
-  },
   component_sets = {
     default = {
       "on_output_summarize",
@@ -60,6 +52,15 @@ local default_config = {
     sidebar = {
       max_width = { 100, 0.2 },
       min_width = { 40, 0.1 },
+    },
+    icons = {
+      NONE = " ",
+      RUNNING = " ",
+      SUCCESS = " ",
+      FAILURE = " ",
+      SKIPPED = " ",
+      Collapsed = " ",
+      File = " ",
     },
   },
 }
@@ -93,7 +94,7 @@ M.setup = function(opts)
 
   M.actions = merge_actions(require("overseer.task_list.actions"), newconf.actions)
 
-  for k, v in pairs(newconf.test_icons) do
+  for k, v in pairs(newconf.testing.icons) do
     local hl_name = string.format("OverseerTest%s", k)
     vim.fn.sign_define(hl_name, {
       text = v,

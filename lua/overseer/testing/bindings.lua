@@ -67,6 +67,15 @@ M = {
     end,
   },
   {
+    lhs = "gf",
+    mode = "n",
+    desc = "Jump to test",
+    plug = "<Plug>OverseerTest:GotoTest",
+    rhs = function(panel)
+      panel:run_action("goto")
+    end,
+  },
+  {
     lhs = "l",
     mode = "n",
     desc = "Expand test group",

@@ -1,6 +1,7 @@
 local Enum = require("overseer.enum")
 local integrations = require("overseer.testing.integrations")
 local tutils = require("overseer.testing.utils")
+local util = require("overseer.util")
 local M = {}
 
 local TEST_STATUS = Enum.new({ "NONE", "RUNNING", "SUCCESS", "FAILURE", "SKIPPED" })
@@ -189,7 +190,7 @@ local function set_test_result_signs(bufnr, integ)
     if result and result.status ~= TEST_STATUS.NONE then
       vim.fn.sign_place(0, sign_group, string.format("OverseerTest%s", result.status), bufnr, {
         priority = 8,
-        lnum = test.lnum + 1,
+        lnum = test.lnum,
       })
       if result.diagnostics then
         for _, diag in ipairs(result.diagnostics) do
@@ -243,13 +244,25 @@ M.set_test_results = function(integration_name, results)
     return
   end
   bump_results_version(integration_name)
-  -- Set test results
+  local to_remove = {}
   if reset_on_next_results then
-    M.results = {}
-    reset_on_next_results = false
+    to_remove = util.list_to_map(M.results, function(v)
+      return v.id
+    end)
   end
   for _, v in ipairs(results.tests) do
-    M.results[v.id] = M.normalize_test(integration_name, v)
+    to_remove[v.id] = nil
+    M.results[v.id] = vim.tbl_deep_extend(
+      "keep",
+      M.normalize_test(integration_name, v),
+      M.results[v.id] or {}
+    )
+  end
+  if reset_on_next_results then
+    for _, id in ipairs(to_remove) do
+      M.results[id] = nil
+    end
+    reset_on_next_results = false
   end
   cached_workspace_results = nil
 
@@ -266,9 +279,13 @@ M.set_test_data = function(integration_name, result, prev_status)
   if not prev_status then
     prev_status = M.results[result.id] and M.results[result.id].status
   end
-  local test = M.normalize_test(integration_name, result)
+  local test = vim.tbl_deep_extend(
+    "keep",
+    M.normalize_test(integration_name, result),
+    M.results[result.id] or {}
+  )
   M.results[result.id] = test
-  add_workspace_result(result, prev_status)
+  add_workspace_result(test, prev_status)
   bump_results_version(integration_name)
   for _, winid in ipairs(vim.api.nvim_list_wins()) do
     local bufnr = vim.api.nvim_win_get_buf(winid)
@@ -314,10 +331,10 @@ M.reset_test_status = function(integration_name, test, status)
   status = status or TEST_STATUS.NONE
   local prev_status = M.results[test.id] and M.results[test.id].status
   test.status = status
-  test.stacktrace = nil
-  test.text = nil
-  test.diagnostics = nil
   M.set_test_data(integration_name, test, prev_status)
+  M.results[test.id].stacktrace = nil
+  M.results[test.id].text = nil
+  M.results[test.id].diagnostics = nil
 end
 
 M.reset_dir_results = function(dirname, status)

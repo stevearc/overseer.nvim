@@ -51,7 +51,7 @@ local function render_summary(summary, lnum, col_start)
   local highlights = {}
   for _, v in ipairs(TEST_STATUS.values) do
     if summary[v] > 0 then
-      local icon = config.test_icons[v]
+      local icon = config.testing.icons[v]
       table.insert(pieces, string.format("%s%d", icon, summary[v]))
       local col_end = col_start + string.len(pieces[#pieces]) + 1
       table.insert(highlights, {
@@ -149,7 +149,7 @@ function Panel:render()
         if collapsed[group_path] then
           status = "Collapsed"
         end
-        local icon = config.test_icons[status]
+        local icon = config.testing.icons[status]
         local padding = string.rep("  ", i - 1)
         table.insert(lines, string.format("%s%s%s", padding, icon, v))
         table.insert(highlights, {
@@ -174,11 +174,20 @@ function Panel:render()
       table.remove(current_path)
     end
 
-    local icon = config.test_icons[result.status]
+    local icon = config.testing.icons[result.status]
     local padding = string.rep("  ", #result.path)
     local test_text = string.format("%s%s%s", padding, icon, result.name)
     if result.duration then
       test_text = test_text .. " " .. format_duration(result.duration)
+    end
+    if result.filename then
+      table.insert(highlights, {
+        "Comment",
+        #lines + 1,
+        string.len(test_text) + 1,
+        -1,
+      })
+      test_text = test_text .. " " .. config.testing.icons.File
     end
     table.insert(lines, test_text)
     table.insert(highlights, {

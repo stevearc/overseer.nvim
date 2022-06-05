@@ -82,13 +82,17 @@ M.get_preview_window = function()
   end
 end
 
-M.list_to_map = function(list)
+M.list_to_map = function(list, keyfn)
   local map = {}
   if type(list) == "string" then
     map[list] = true
   else
     for _, v in ipairs(list) do
-      map[v] = true
+      if keyfn then
+        map[keyfn(v)] = true
+      else
+        map[v] = true
+      end
     end
   end
   return map

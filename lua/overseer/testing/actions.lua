@@ -32,6 +32,32 @@ M = {
       end
     end,
   },
+  ["goto"] = {
+    description = "jump to test",
+    condition = function(entry)
+      return entry.type == "test" and entry.test.filename
+    end,
+    run = function(entry)
+      local winid = util.find_code_window()
+      vim.api.nvim_set_current_win(winid)
+      vim.cmd(string.format("edit %s", entry.test.filename))
+      -- If we don't have the lnum yet, see if we can find it
+      if not entry.test.lnum then
+        for _, integ in ipairs(integrations.get_for_buf(0)) do
+          for _, test in ipairs(integ:find_tests(0)) do
+            if test.id == entry.test.id then
+              entry.test = vim.tbl_deep_extend("keep", entry.test, test)
+              goto outer
+            end
+          end
+        end
+        ::outer::
+      end
+      if entry.test.lnum then
+        vim.api.nvim_win_set_cursor(winid, { entry.test.lnum, entry.test.col or 0 })
+      end
+    end,
+  },
   ["open vsplit"] = {
     description = "open test result in a vertical split",
     condition = function(entry)
