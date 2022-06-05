@@ -69,8 +69,10 @@ M.find_nearest_test = function(tests, lnum)
   end
 end
 
-M.create_test_result_buffer = function(result)
-  local bufnr = vim.api.nvim_create_buf(false, true)
+M.create_test_result_buffer = function(result, bufnr)
+  if not bufnr then
+    bufnr = vim.api.nvim_create_buf(false, true)
+  end
   local lines = {}
   local highlights = {}
   local icon = config.test_icons[result.status]
@@ -96,6 +98,7 @@ M.create_test_result_buffer = function(result)
   end
 
   local ns = vim.api.nvim_create_namespace("OverseerTest")
+  vim.api.nvim_buf_set_option(bufnr, "modifiable", true)
   vim.api.nvim_buf_set_lines(bufnr, 0, -1, true, lines)
   for _, hl in ipairs(highlights) do
     local group, lnum, col_start, col_end = unpack(hl)
@@ -106,6 +109,8 @@ M.create_test_result_buffer = function(result)
   vim.api.nvim_buf_set_option(bufnr, "buftype", "nofile")
   vim.api.nvim_buf_set_option(bufnr, "bufhidden", "wipe")
   vim.api.nvim_buf_set_option(bufnr, "swapfile", false)
+  vim.api.nvim_buf_set_option(bufnr, "filetype", "OverseerTest")
+  vim.api.nvim_buf_set_var(bufnr, "test_id", result.id)
   return bufnr
 end
 

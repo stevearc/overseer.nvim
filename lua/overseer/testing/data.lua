@@ -1,5 +1,6 @@
 local Enum = require("overseer.enum")
 local integrations = require("overseer.testing.integrations")
+local tutils = require("overseer.testing.utils")
 local M = {}
 
 local TEST_STATUS = Enum.new({ "NONE", "RUNNING", "SUCCESS", "FAILURE", "SKIPPED" })
@@ -265,9 +266,20 @@ M.set_test_data = function(integration_name, result, prev_status)
   if not prev_status then
     prev_status = M.results[result.id] and M.results[result.id].status
   end
-  M.results[result.id] = M.normalize_test(integration_name, result)
+  local test = M.normalize_test(integration_name, result)
+  M.results[result.id] = test
   add_workspace_result(result, prev_status)
   bump_results_version(integration_name)
+  for _, winid in ipairs(vim.api.nvim_list_wins()) do
+    local bufnr = vim.api.nvim_win_get_buf(winid)
+    if
+      vim.api.nvim_buf_get_option(bufnr, "filetype") == "OverseerTest"
+      and vim.api.nvim_buf_get_var(bufnr, "test_id") == test.id
+    then
+      tutils.create_test_result_buffer(test, bufnr)
+      break
+    end
+  end
 end
 
 M.add_test_result = function(integration_name, key, result)
