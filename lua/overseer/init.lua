@@ -69,7 +69,6 @@ M.setup = function(opts)
       desc = "Set Overseer default success color",
       callback = function()
         success_color = util.find_success_color()
-        print(string.format("LINK %s", success_color))
         vim.cmd(string.format("hi link OverseerSUCCESS %s", success_color))
         vim.cmd(string.format("hi link OverseerTestSUCCESS %s", success_color))
       end,

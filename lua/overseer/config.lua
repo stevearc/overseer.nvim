@@ -17,11 +17,12 @@ local default_config = {
     winblend = 10,
   },
   test_icons = {
-    ["NONE"] = " ",
-    ["RUNNING"] = " ",
-    ["SUCCESS"] = " ",
-    ["FAILURE"] = " ",
-    ["SKIPPED"] = " ",
+    NONE = " ",
+    RUNNING = " ",
+    SUCCESS = " ",
+    FAILURE = " ",
+    SKIPPED = " ",
+    Collapsed = " ",
   },
   component_sets = {
     default = {

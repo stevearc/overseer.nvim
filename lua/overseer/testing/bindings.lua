@@ -49,6 +49,24 @@ M = {
     end,
   },
   {
+    lhs = "l",
+    mode = "n",
+    desc = "Expand test group",
+    plug = "<Plug>OverseerTest:ExpandGroup",
+    rhs = function(panel)
+      panel:set_collapsed(false)
+    end,
+  },
+  {
+    lhs = "h",
+    mode = "n",
+    desc = "Collapse test group",
+    plug = "<Plug>OverseerTest:CollapseGroup",
+    rhs = function(panel)
+      panel:set_collapsed(true)
+    end,
+  },
+  {
     lhs = "[",
     mode = "n",
     desc = "Decrease window width",

@@ -11,6 +11,38 @@ local M = {}
 
 local buf_to_panel = {}
 
+local collapsed = setmetatable({}, {
+  __newindex = function(t, k, v)
+    if type(k) == "table" then
+      local cur = t
+      for _, piece in ipairs(k) do
+        if not cur[piece] then
+          cur[piece] = {}
+        end
+        cur = cur[piece]
+      end
+      rawset(cur, "_collapsed_", v)
+    else
+      rawset(t, k, v)
+    end
+  end,
+  __index = function(t, k)
+    if type(k) == "table" then
+      local cur = t
+      for _, piece in ipairs(k) do
+        if not cur then
+          return nil
+        end
+        if rawget(cur, "_collapsed_") then
+          return true
+        end
+        cur = rawget(cur, piece)
+      end
+      return cur and rawget(cur, "_collapsed_")
+    end
+  end,
+})
+
 local function render_summary(summary, lnum, col_start)
   lnum = lnum or 1
   col_start = col_start or 0
@@ -145,12 +177,17 @@ function Panel:render()
   local total_summary, sum_hl = render_summary(results.summaries["_"])
   table.insert(lines, total_summary)
   vim.list_extend(highlights, sum_hl)
+
   for _, result in ipairs(results.tests) do
     for i, v in ipairs(result.path) do
+      local group_path = util.tbl_slice(result.path, 1, i)
       if not current_path[i] or current_path[i] ~= v then
         current_path[i] = v
         local sum = get_path(results.summaries, current_path, i)
         local status = sum:get_status()
+        if collapsed[group_path] then
+          status = "Collapsed"
+        end
         local icon = config.test_icons[status]
         local padding = string.rep("  ", i - 1)
         table.insert(lines, string.format("%s%s%s", padding, icon, v))
@@ -163,11 +200,15 @@ function Panel:render()
         self.line_to_test_map[#lines] = {
           type = "group",
           integration = result.integration,
-          path = util.tbl_slice(current_path, 1, i),
+          path = group_path,
           name = current_path[i],
         }
       end
+      if collapsed[group_path] then
+        goto continue
+      end
     end
+    -- Trim off the end of the current path to match the current test
     while #current_path > #result.path do
       table.remove(current_path)
     end
@@ -197,6 +238,7 @@ function Panel:render()
       type = "test",
       test = result,
     }
+    ::continue::
   end
 
   vim.api.nvim_buf_set_option(bufnr, "modifiable", true)
@@ -225,6 +267,29 @@ function Panel:run_action(name)
       end,
     }, entry)
   end
+end
+
+function Panel:set_collapsed(collapse)
+  local lnum = vim.api.nvim_win_get_cursor(0)[1]
+  local entry = self.line_to_test_map[lnum]
+  if entry then
+    if entry.type == "group" then
+      collapsed[entry.path] = collapse
+    elseif collapse and not vim.tbl_isempty(entry.test.path) then
+      local end_lnum
+      for other_lnum, other in pairs(self.line_to_test_map) do
+        if other.type == "group" and vim.deep_equal(other.path, entry.test.path) then
+          end_lnum = other_lnum
+          break
+        end
+      end
+      collapsed[entry.test.path] = true
+      if end_lnum then
+        vim.api.nvim_win_set_cursor(0, { end_lnum, 0 })
+      end
+    end
+  end
+  self:render()
 end
 
 function Panel:toggle_preview()

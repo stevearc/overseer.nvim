@@ -2,7 +2,6 @@
 
 ## Test window
 
-- Collapsing
 - Filter by status
 - actions
   - jump to test
@@ -22,6 +21,7 @@
 - On new results, live update test result buffers
 - bug: Rerun via action menu in test panel clears diagnostics
 - python unittest tests sometimes get stuck in running status
+- customize test integration dirs post-setup() (for machine-local config)
 
 ### Open questions
 
