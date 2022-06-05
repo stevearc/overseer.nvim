@@ -4,6 +4,7 @@ local data = require("overseer.testing.data")
 local integrations = require("overseer.testing.integrations")
 local panel = require("overseer.testing.panel")
 local utils = require("overseer.testing.utils")
+local TEST_STATUS = data.TEST_STATUS
 local M = {}
 
 M.create_commands = function()
@@ -31,6 +32,11 @@ M.create_commands = function()
     M.test_action()
   end, {
     desc = "Toggle the test panel",
+  })
+  vim.api.nvim_create_user_command("OverseerTestRerunFailed", function()
+    M.rerun_failed()
+  end, {
+    desc = "Rerun tests that failed",
   })
   vim.api.nvim_create_user_command("OverseerToggleTestPanel", function()
     panel.toggle()
@@ -116,6 +122,21 @@ M.test_last = function()
   end
 end
 
+M.rerun_failed = function()
+  local all_failed = vim.tbl_filter(function(t)
+    return t.status == TEST_STATUS.FAILURE
+  end, data.get_results())
+  local reset_all = true
+  for _, test in ipairs(all_failed) do
+    local integ = integrations.get_by_name(test.integration)
+    -- On the first task, reset ALL of the failed tasks so we see them all as
+    -- running immediately
+    local to_reset = reset_all and all_failed or { test }
+    integrations.create_and_start_task(integ, integ:run_single_test(test), { tests = to_reset })
+    reset_all = false
+  end
+end
+
 M.test_action = function()
   local bufnr = 0
   local lnum = vim.api.nvim_win_get_cursor(0)[1]
@@ -127,7 +148,7 @@ M.test_action = function()
       local tests = v:find_tests(bufnr)
       local test = utils.find_nearest_test(tests, lnum)
       if test then
-        test = data.results[test.id] or data.normalize_test(v.name, test)
+        test = data.get_result(test.id) or data.normalize_test(v.name, test)
         local entry = { type = "test", test = test }
         action_util.run_action({
           actions = config.testing.actions,

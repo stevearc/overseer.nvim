@@ -1,6 +1,7 @@
 # TODO
 
 - Filter test panel by status
+- Maybe create id for integrations to make it more robust across tabs
 
 ## Future
 
@@ -17,7 +18,6 @@
 - Test playlists
 - Debug test integration
 - Code coverage integration
-- command to rerun failed tests (set limit on number of concurrent jobs)
 - Panel for _file_ tests
 - Rerun group for test frameworks don't support it
 - Document all properties of:

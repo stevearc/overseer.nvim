@@ -345,6 +345,9 @@ function Task:set_result(status, data)
   self.status = status
   self.result = data or {}
   self:dispatch("on_result", status, self.result)
+  if status == STATUS.SUCCESS or status == STATUS.FAILURE then
+    self:dispatch("on_finish", status)
+  end
 end
 
 function Task:inc_reference()

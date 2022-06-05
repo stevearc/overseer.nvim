@@ -26,8 +26,13 @@ M = {
             { group = entry.path }
           )
         else
-          -- FIXME run test groups for integrations with no built-in support
-          data.reset_group_status(entry.integration, entry.path, TEST_STATUS.NONE)
+          for _, test in ipairs(data.get_results({ group = entry.path })) do
+            integrations.create_and_start_task(
+              integ,
+              integ:run_test_group(entry.path),
+              { test = test }
+            )
+          end
         end
       end
     end,

@@ -16,7 +16,7 @@ local function do_callbacks()
   end
 end
 
-M.results = {}
+local all_results = {}
 
 local Summary = {}
 
@@ -80,7 +80,7 @@ M.get_workspace_results = function()
   if cached_workspace_results then
     return cached_workspace_results
   end
-  local results = vim.tbl_values(M.results)
+  local results = vim.tbl_values(all_results)
   table.sort(results, compare_tests)
 
   local root = new_summary()
@@ -148,7 +148,7 @@ local function remove_diagnostics()
 end
 
 M.clear_results = function()
-  M.results = {}
+  all_results = {}
   remove_diagnostics()
   cached_workspace_results = nil
   do_callbacks()
@@ -186,7 +186,7 @@ local function set_test_result_signs(bufnr, integ)
   sign_bufnrs[bufnr] = true
   local diagnostics = {}
   for _, test in ipairs(tests) do
-    local result = M.results[test.id]
+    local result = all_results[test.id]
     if result and result.status ~= TEST_STATUS.NONE then
       vim.fn.sign_place(0, sign_group, string.format("OverseerTest%s", result.status), bufnr, {
         priority = 8,
@@ -246,21 +246,21 @@ M.set_test_results = function(integration_name, results)
   bump_results_version(integration_name)
   local to_remove = {}
   if reset_on_next_results then
-    to_remove = util.list_to_map(M.results, function(v)
+    to_remove = util.list_to_map(all_results, function(v)
       return v.id
     end)
   end
   for _, v in ipairs(results.tests) do
     to_remove[v.id] = nil
-    M.results[v.id] = vim.tbl_deep_extend(
+    all_results[v.id] = vim.tbl_deep_extend(
       "keep",
       M.normalize_test(integration_name, v),
-      M.results[v.id] or {}
+      all_results[v.id] or {}
     )
   end
   if reset_on_next_results then
     for _, id in ipairs(to_remove) do
-      M.results[id] = nil
+      all_results[id] = nil
     end
     reset_on_next_results = false
   end
@@ -277,14 +277,14 @@ end
 
 M.set_test_data = function(integration_name, result, prev_status)
   if not prev_status then
-    prev_status = M.results[result.id] and M.results[result.id].status
+    prev_status = all_results[result.id] and all_results[result.id].status
   end
   local test = vim.tbl_deep_extend(
     "keep",
     M.normalize_test(integration_name, result),
-    M.results[result.id] or {}
+    all_results[result.id] or {}
   )
-  M.results[result.id] = test
+  all_results[result.id] = test
   add_workspace_result(test, prev_status)
   bump_results_version(integration_name)
   for _, winid in ipairs(vim.api.nvim_list_wins()) do
@@ -320,7 +320,7 @@ end
 
 M.reset_group_status = function(integration_name, path, status)
   status = status or TEST_STATUS.NONE
-  for _, test in pairs(M.results) do
+  for _, test in pairs(all_results) do
     if path_match(path, test) then
       M.reset_test_status(integration_name, test, status)
     end
@@ -329,19 +329,19 @@ end
 
 M.reset_test_status = function(integration_name, test, status)
   status = status or TEST_STATUS.NONE
-  local prev_status = M.results[test.id] and M.results[test.id].status
+  local prev_status = all_results[test.id] and all_results[test.id].status
   test.status = status
   M.set_test_data(integration_name, test, prev_status)
-  M.results[test.id].stacktrace = nil
-  M.results[test.id].text = nil
-  M.results[test.id].diagnostics = nil
+  all_results[test.id].stacktrace = nil
+  all_results[test.id].text = nil
+  all_results[test.id].diagnostics = nil
 end
 
 M.reset_dir_results = function(dirname, status)
   status = status or TEST_STATUS.NONE
   -- TODO figure out which values to clear instead of clearing all of them
   reset_on_next_results = true
-  for _, v in pairs(M.results) do
+  for _, v in pairs(all_results) do
     v.status = status
     v.stacktrace = nil
     v.text = nil
@@ -349,6 +349,26 @@ M.reset_dir_results = function(dirname, status)
   end
   cached_workspace_results = nil
   update_all_signs()
+end
+
+M.get_result = function(id)
+  return all_results[id]
+end
+
+M.get_results = function(opts)
+  if not opts then
+    return vim.tbl_values(all_results)
+  end
+  vim.validate({
+    group = { opts.group, "t", true },
+  })
+  local ret = {}
+  for _, v in pairs(all_results) do
+    if not opts.group or path_match(opts.group, v.path) then
+      table.insert(ret, v)
+    end
+  end
+  return ret
 end
 
 M.touch = function()

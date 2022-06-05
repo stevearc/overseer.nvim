@@ -8,6 +8,8 @@ local registry = {}
 
 local builtin_tests = { "go.go_test", "lua.plenary_busted", "python.unittest" }
 
+local num_tasks_running = 0
+
 local function register_builtin()
   local seen = {}
   if config.testing.modify then
@@ -118,7 +120,13 @@ end
 
 local last_task = nil
 
+local pending_tasks = {}
 M.create_and_start_task = function(integ, task_data, reset_params)
+  if num_tasks_running >= config.testing.max_concurrent_tests then
+    table.insert(pending_tasks, { integ, task_data, reset_params })
+    return
+  end
+
   if last_task then
     last_task:dec_reference()
     if not last_task:is_running() then
@@ -133,7 +141,7 @@ M.create_and_start_task = function(integ, task_data, reset_params)
   end
   -- Add the test reset component
   if reset_params and not vim.tbl_isempty(reset_params) then
-    reset_params[1] = "on_init_reset_tests"
+    reset_params[1] = "on_start_reset_tests"
     table.insert(task_data.components, 1, reset_params)
   end
 
@@ -143,13 +151,26 @@ M.create_and_start_task = function(integ, task_data, reset_params)
   task:inc_reference()
   last_task = task
   task:start()
-  return task
 end
 
 M.rerun_last_task = function()
   if last_task then
     last_task:rerun()
     return true
+  end
+end
+
+M.record_start = function(task)
+  num_tasks_running = num_tasks_running + 1
+end
+
+M.record_finish = function(task)
+  num_tasks_running = num_tasks_running - 1
+  if
+    num_tasks_running < config.testing.max_concurrent_tests and not vim.tbl_isempty(pending_tasks)
+  then
+    local args = table.remove(pending_tasks)
+    M.create_and_start_task(unpack(args))
   end
 end
 
