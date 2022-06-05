@@ -5,8 +5,6 @@
 - Filter by status
 - actions
   - jump to test
-  - open result in vsplit
-  - open result in float
 
 ## Future
 

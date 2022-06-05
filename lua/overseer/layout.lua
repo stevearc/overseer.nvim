@@ -1,3 +1,4 @@
+local config = require("overseer.config")
 local M = {}
 
 local function is_float(value)
@@ -78,6 +79,32 @@ M.calculate_height = function(desired_height, opts)
     opts.max_height,
     M.get_editor_height()
   )
+end
+
+M.open_fullscreen_float = function(bufnr)
+  local conf = config.float_win
+  local width = M.get_editor_width() - 2 - 2 * conf.padding
+  local height = M.get_editor_height() - 2 * conf.padding
+  local row = conf.padding
+  local col = conf.padding
+  local winid = vim.api.nvim_open_win(bufnr, true, {
+    relative = "editor",
+    row = row,
+    col = col,
+    width = width,
+    height = height,
+    border = conf.border,
+    style = "minimal",
+  })
+  vim.api.nvim_win_set_option(winid, "winblend", conf.winblend)
+  vim.api.nvim_create_autocmd("WinLeave", {
+    desc = "Close float on WinLeave",
+    once = true,
+    nested = true,
+    callback = function()
+      pcall(vim.api.nvim_win_close, winid, true)
+    end,
+  })
 end
 
 return M

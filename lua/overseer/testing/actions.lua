@@ -1,6 +1,8 @@
 local data = require("overseer.testing.data")
 local integrations = require("overseer.testing.integrations")
+local layout = require("overseer.layout")
 local util = require("overseer.util")
+local tutils = require("overseer.testing.utils")
 local TEST_STATUS = data.TEST_STATUS
 
 local M
@@ -28,6 +30,26 @@ M = {
           data.reset_group_status(entry.integration, entry.path, TEST_STATUS.NONE)
         end
       end
+    end,
+  },
+  ["open vsplit"] = {
+    description = "open test result in a vertical split",
+    condition = function(entry)
+      return entry.type == "test"
+    end,
+    run = function(entry)
+      vim.cmd([[vsplit]])
+      vim.api.nvim_win_set_buf(0, tutils.create_test_result_buffer(entry.test))
+    end,
+  },
+  ["open float"] = {
+    description = "open test result in a floating window",
+    condition = function(entry)
+      return entry.type == "test"
+    end,
+    run = function(entry)
+      local bufnr = tutils.create_test_result_buffer(entry.test)
+      layout.open_fullscreen_float(bufnr)
     end,
   },
   ["set quickfix stacktrace"] = {

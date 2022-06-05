@@ -16,6 +16,12 @@ local default_config = {
     max_height = 0.9,
     winblend = 10,
   },
+  -- Configuration for task and test result floating windows
+  float_win = {
+    padding = 2,
+    border = "rounded",
+    winblend = 10,
+  },
   test_icons = {
     NONE = " ",
     RUNNING = " ",

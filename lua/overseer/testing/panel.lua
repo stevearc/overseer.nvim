@@ -5,6 +5,7 @@ local config = require("overseer.config")
 local data = require("overseer.testing.data")
 local layout = require("overseer.layout")
 local util = require("overseer.util")
+local tutils = require("overseer.testing.utils")
 local TEST_STATUS = data.TEST_STATUS
 
 local M = {}
@@ -81,46 +82,6 @@ local function format_duration(seconds)
   else
     return string.format("%ds", math.floor(seconds))
   end
-end
-
-local function create_test_result_buf(result)
-  local bufnr = vim.api.nvim_create_buf(false, true)
-  local lines = {}
-  local highlights = {}
-  local icon = config.test_icons[result.status]
-  table.insert(lines, string.format("%s%s", icon, result.name))
-  table.insert(highlights, {
-    string.format("OverseerTest%s", result.status),
-    #lines,
-    0,
-    string.len(icon),
-  })
-
-  if result.text then
-    for line in vim.gsplit(result.text, "\n") do
-      table.insert(lines, line)
-    end
-  end
-  if result.stacktrace then
-    table.insert(lines, "")
-    table.insert(lines, "Stacktrace:")
-    for _, item in ipairs(result.stacktrace) do
-      table.insert(lines, string.format("%s:%s %s", item.filename, item.lnum, item.text))
-    end
-  end
-
-  local ns = vim.api.nvim_create_namespace("OverseerTest")
-  vim.api.nvim_buf_set_lines(bufnr, 0, -1, true, lines)
-  for _, hl in ipairs(highlights) do
-    local group, lnum, col_start, col_end = unpack(hl)
-    vim.api.nvim_buf_add_highlight(bufnr, ns, group, lnum - 1, col_start, col_end)
-  end
-
-  vim.api.nvim_buf_set_option(bufnr, "modifiable", false)
-  vim.api.nvim_buf_set_option(bufnr, "buftype", "nofile")
-  vim.api.nvim_buf_set_option(bufnr, "bufhidden", "wipe")
-  vim.api.nvim_buf_set_option(bufnr, "swapfile", false)
-  return bufnr
 end
 
 local Panel = {}
@@ -238,6 +199,7 @@ function Panel:render()
       type = "test",
       test = result,
     }
+
     ::continue::
   end
 
@@ -308,7 +270,7 @@ function Panel:toggle_preview()
   local padding = 1
   local width = vim.o.columns - win_width - 2 - 2 * padding
   local col = (vim.fn.winnr() == 1 and (win_width + padding) or padding)
-  local bufnr = create_test_result_buf(entry.test)
+  local bufnr = tutils.create_test_result_buffer(entry.test)
   local winid = vim.api.nvim_open_win(bufnr, false, {
     relative = "editor",
     border = "rounded",
@@ -333,7 +295,7 @@ function Panel:update_preview()
     return
   end
 
-  local bufnr = create_test_result_buf(entry.test)
+  local bufnr = tutils.create_test_result_buffer(entry.test)
   vim.api.nvim_win_set_buf(winid, bufnr)
 end
 

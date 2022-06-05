@@ -101,29 +101,7 @@ M = {
       return task.bufnr and vim.api.nvim_buf_is_valid(task.bufnr)
     end,
     run = function(task)
-      local padding = 2
-      local width = layout.get_editor_width() - 2 - 2 * padding
-      local height = layout.get_editor_height() - 2 * padding
-      local row = padding
-      local col = padding
-      local winid = vim.api.nvim_open_win(task.bufnr, true, {
-        relative = "editor",
-        row = row,
-        col = col,
-        width = width,
-        height = height,
-        border = "rounded",
-        style = "minimal",
-      })
-      vim.api.nvim_win_set_option(winid, "winblend", 10)
-      vim.api.nvim_create_autocmd("WinLeave", {
-        desc = "Close float on WinLeave",
-        once = true,
-        nested = true,
-        callback = function()
-          pcall(vim.api.nvim_win_close, winid, true)
-        end,
-      })
+      layout.open_fullscreen_float(task.bufnr)
     end,
   },
   open = {

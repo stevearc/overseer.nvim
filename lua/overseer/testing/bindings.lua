@@ -40,6 +40,24 @@ M = {
     end,
   },
   {
+    lhs = "<C-v>",
+    mode = "n",
+    desc = "Open test result in a vsplit",
+    plug = "<Plug>OverseerTest:OpenVsplit",
+    rhs = function(panel)
+      panel:run_action("open vsplit")
+    end,
+  },
+  {
+    lhs = "<C-f>",
+    mode = "n",
+    desc = "Open test result in a floating window",
+    plug = "<Plug>OverseerTest:OpenFloat",
+    rhs = function(panel)
+      panel:run_action("open float")
+    end,
+  },
+  {
     lhs = "p",
     mode = "n",
     desc = "Toggle test result preview window",

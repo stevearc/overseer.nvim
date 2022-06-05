@@ -1,3 +1,4 @@
+local config = require("overseer.config")
 local M = {}
 
 local query_cache = {}
@@ -66,6 +67,46 @@ M.find_nearest_test = function(tests, lnum)
       return test
     end
   end
+end
+
+M.create_test_result_buffer = function(result)
+  local bufnr = vim.api.nvim_create_buf(false, true)
+  local lines = {}
+  local highlights = {}
+  local icon = config.test_icons[result.status]
+  table.insert(lines, string.format("%s%s", icon, result.name))
+  table.insert(highlights, {
+    string.format("OverseerTest%s", result.status),
+    #lines,
+    0,
+    string.len(icon),
+  })
+
+  if result.text then
+    for line in vim.gsplit(result.text, "\n") do
+      table.insert(lines, line)
+    end
+  end
+  if result.stacktrace then
+    table.insert(lines, "")
+    table.insert(lines, "Stacktrace:")
+    for _, item in ipairs(result.stacktrace) do
+      table.insert(lines, string.format("%s:%s %s", item.filename, item.lnum, item.text))
+    end
+  end
+
+  local ns = vim.api.nvim_create_namespace("OverseerTest")
+  vim.api.nvim_buf_set_lines(bufnr, 0, -1, true, lines)
+  for _, hl in ipairs(highlights) do
+    local group, lnum, col_start, col_end = unpack(hl)
+    vim.api.nvim_buf_add_highlight(bufnr, ns, group, lnum - 1, col_start, col_end)
+  end
+
+  vim.api.nvim_buf_set_option(bufnr, "modifiable", false)
+  vim.api.nvim_buf_set_option(bufnr, "buftype", "nofile")
+  vim.api.nvim_buf_set_option(bufnr, "bufhidden", "wipe")
+  vim.api.nvim_buf_set_option(bufnr, "swapfile", false)
+  return bufnr
 end
 
 return M
