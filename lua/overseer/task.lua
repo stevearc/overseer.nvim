@@ -326,7 +326,11 @@ end
 function Task:dispatch(name, ...)
   for _, comp in ipairs(self.components) do
     if type(comp[name]) == "function" then
-      comp[name](comp, self, ...)
+      local ok, err = pcall(comp[name], comp, self, ...)
+      if not ok then
+        -- TODO log here
+        vim.notify(string.format("Error dispatching %s: %s", name, err), vim.log.levels.ERROR)
+      end
     end
   end
   if self.id and not self:is_disposed() then
@@ -453,6 +457,8 @@ function Task:start()
         end
       end,
       on_exit = function(j, c)
+        -- Feed one last line end to flush the output
+        self:dispatch("on_output", { "" })
         self:_on_exit(j, c)
       end,
     })

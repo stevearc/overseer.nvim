@@ -6,20 +6,19 @@
 
 - More test integrations
   - python pytest
-  - ruby rspec
   - rust cargotest
   - js mocha
   - js jest
   - java junit?
   - csharp dotnettest
   - another go framework?
+- Make integration id stable over restarts (used in task metadata and parser component)
 - How to handle multiple integrations on a workspace/buffer? (e.g. lua busted & plenary busted)
 - Test playlists
 - Show which integrations are active for (dir/buffer)
 - Debug test integration
 - Code coverage integration
 - Panel for _file_ tests, panel for workspace directory tests
-- Rerun group for test frameworks don't support it
 - Document all properties of:
   - integration
     - id

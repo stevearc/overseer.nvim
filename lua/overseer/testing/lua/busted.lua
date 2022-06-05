@@ -128,38 +128,24 @@ M.parser = function()
       end
       table.insert(self.results.tests, result)
     end,
-    lines = {},
-    _reset = function(self)
-      self.lines = {}
-    end,
-    get_result = function(self)
-      if not self.results.tests then
-        self:compute()
-      end
-      return self.results
-    end,
-    compute = function(self)
-      local text = table.concat(self.lines, "")
-      local ok, data = pcall(vim.json.decode, text)
-      if ok then
-        for _, test_data in ipairs(data.successes) do
-          self:add_item(test_data, TEST_STATUS.SUCCESS)
-        end
-        for _, test_data in ipairs(data.pendings) do
-          self:add_item(test_data, TEST_STATUS.SKIPPED)
-        end
-        for _, test_data in ipairs(data.failures) do
-          self:add_item(test_data, TEST_STATUS.FAILURE)
-        end
-        for _, test_data in ipairs(data.errors) do
-          self:add_item(test_data, TEST_STATUS.FAILURE)
-        end
-      else
-        -- Ignore all other stdout
-      end
-    end,
     _ingest = function(self, lines)
-      vim.list_extend(self.lines, lines)
+      for _, line in ipairs(lines) do
+        local ok, data = pcall(vim.json.decode, line)
+        if ok then
+          for _, test_data in ipairs(data.successes) do
+            self:add_item(test_data, TEST_STATUS.SUCCESS)
+          end
+          for _, test_data in ipairs(data.pendings) do
+            self:add_item(test_data, TEST_STATUS.SKIPPED)
+          end
+          for _, test_data in ipairs(data.failures) do
+            self:add_item(test_data, TEST_STATUS.FAILURE)
+          end
+          for _, test_data in ipairs(data.errors) do
+            self:add_item(test_data, TEST_STATUS.FAILURE)
+          end
+        end
+      end
     end,
   })
 end

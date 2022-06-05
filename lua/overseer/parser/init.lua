@@ -233,7 +233,6 @@ function CustomParser:unsubscribe(callback)
 end
 
 function CustomParser:get_result()
-  print("Get result")
   return self.results
 end
 

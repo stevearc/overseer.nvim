@@ -1,7 +1,6 @@
 local Enum = require("overseer.enum")
 local integrations = require("overseer.testing.integrations")
 local tutils = require("overseer.testing.utils")
-local util = require("overseer.util")
 local M = {}
 
 local TEST_STATUS = Enum.new({ "NONE", "RUNNING", "SUCCESS", "FAILURE", "SKIPPED" })
@@ -242,9 +241,9 @@ M.set_test_results = function(integration_id, results)
   bump_results_version(integration_id)
   local to_remove = {}
   if reset_on_next_results then
-    to_remove = util.list_to_map(all_results, function(v)
-      return v.id
-    end)
+    for id in pairs(all_results) do
+      to_remove[id] = true
+    end
   end
   for _, v in ipairs(results.tests) do
     to_remove[v.id] = nil
@@ -255,7 +254,7 @@ M.set_test_results = function(integration_id, results)
     )
   end
   if reset_on_next_results then
-    for _, id in ipairs(to_remove) do
+    for id in pairs(to_remove) do
       all_results[id] = nil
     end
     reset_on_next_results = false

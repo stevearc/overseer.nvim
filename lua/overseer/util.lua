@@ -163,23 +163,19 @@ M.get_stdout_line_iter = function()
   local pending = ""
   return function(data)
     local ret = {}
-    local last = #data
     for i, chunk in ipairs(data) do
-      if chunk == "" then
-        if pending ~= "" then
+      if i == 1 then
+        if chunk == "" then
           table.insert(ret, pending)
-        end
-        pending = ""
-      else
-        -- No carriage returns plz
-        chunk = string.gsub(chunk, "\r$", "")
-        chunk = M.remove_ansi(chunk)
-        if i ~= last then
-          table.insert(ret, pending .. chunk)
           pending = ""
         else
-          pending = chunk
+          pending = pending .. M.remove_ansi(string.gsub(chunk, "\r$", ""))
         end
+      else
+        if data[1] ~= "" then
+          table.insert(ret, pending)
+        end
+        pending = M.remove_ansi(string.gsub(chunk, "\r$", ""))
       end
     end
     return ret

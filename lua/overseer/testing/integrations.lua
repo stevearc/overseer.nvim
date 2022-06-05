@@ -6,7 +6,13 @@ local M = {}
 
 local registry = {}
 
-local builtin_tests = { "go.go_test", "lua.busted", "lua.plenary_busted", "python.unittest" }
+local builtin_tests = {
+  "go.go_test",
+  "lua.busted",
+  "lua.plenary_busted",
+  "python.unittest",
+  "ruby.rspec",
+}
 
 local num_tasks_running = 0
 local next_id = 1

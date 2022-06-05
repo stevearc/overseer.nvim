@@ -54,8 +54,6 @@ M.create_commands = function()
   })
 end
 
-M.register_builtin = integrations.register_builtin
-
 M.test_dir = function(dirname)
   dirname = dirname or vim.fn.getcwd(0)
   local integ = integrations.get_for_dir(dirname)
