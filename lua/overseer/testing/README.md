@@ -13,16 +13,17 @@
   - java junit?
   - csharp dotnettest
   - another go framework?
-- Run after build
+- How to handle multiple integrations on a workspace/buffer? (e.g. lua busted & plenary busted)
 - Test playlists
+- Show which integrations are active for (dir/buffer)
 - Debug test integration
 - Code coverage integration
-- Panel for _file_ tests
+- Panel for _file_ tests, panel for workspace directory tests
 - Rerun group for test frameworks don't support it
 - Document all properties of:
   - integration
+    - id
     - name
-    - is_filename_test
     - is_workspace_match
     - get_cmd (recommended)
     - run_test_dir
@@ -38,6 +39,7 @@
     - path
     - id
     - status
+    - duration
     - text
     - stacktrace
     - diagnostics

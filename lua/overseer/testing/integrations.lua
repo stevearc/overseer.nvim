@@ -6,7 +6,7 @@ local M = {}
 
 local registry = {}
 
-local builtin_tests = { "go.go_test", "lua.plenary_busted", "python.unittest" }
+local builtin_tests = { "go.go_test", "lua.busted", "lua.plenary_busted", "python.unittest" }
 
 local num_tasks_running = 0
 local next_id = 1
@@ -17,6 +17,9 @@ local function assign_id(integration)
     rawset(integration, "id", next_id)
     registry[next_id] = integration
     next_id = next_id + 1
+    if integration.parser then
+      parsers.register_parser(integration.id, integration.parser)
+    end
   end
   return integration
 end
@@ -28,9 +31,6 @@ local function register_builtin()
       if not seen[integration.name] then
         seen[integration.name] = true
         assign_id(integration)
-        if integration.parser then
-          parsers.register_parser(integration.name, integration.parser)
-        end
       end
     end
   end
@@ -41,9 +41,6 @@ local function register_builtin()
         if not seen[integration.name] then
           seen[integration.name] = true
           assign_id(integration)
-          if integration.parser then
-            parsers.register_parser(integration.name, integration.parser)
-          end
         end
       end
     end
@@ -142,7 +139,7 @@ M.create_and_start_task = function(integ, task_data, reset_params)
   if not task_data.components then
     task_data.components = { "default_test" }
     if integ.parser then
-      table.insert(task_data.components, 1, { "result_exit_code", parser = integ.name })
+      table.insert(task_data.components, 1, { "result_exit_code", parser = integ.id })
     end
   end
   -- Add the test reset component

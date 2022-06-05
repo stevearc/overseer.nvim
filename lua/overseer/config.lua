@@ -122,6 +122,11 @@ end
 
 M.add_test_dir = function(dirname, integrations)
   local fullpath = vim.fn.expand(dirname)
+  for i, v in ipairs(integrations) do
+    if type(v) == "string" then
+      integrations[i] = require(string.format("overseer.testing.%s", v))
+    end
+  end
   M.testing.dirs[fullpath] = integrations
 end
 

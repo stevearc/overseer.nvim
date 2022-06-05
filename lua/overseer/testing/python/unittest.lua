@@ -5,9 +5,6 @@ local TEST_STATUS = require("overseer.testing.data").TEST_STATUS
 
 local M = {
   name = "python_unittest",
-  is_filename_test = function(self, filename)
-    return filename:match("^test_.*%.py$")
-  end,
   is_workspace_match = function(self, dirname)
     for _, fname in ipairs({ "setup.py", "setup.cfg", "pyproject.toml" }) do
       if files.exists(files.join(dirname, fname)) then
@@ -78,6 +75,19 @@ local path_param = {
   end,
 }
 
+local str_to_status = {
+  ok = TEST_STATUS.SUCCESS,
+  ERROR = TEST_STATUS.FAILURE,
+  FAIL = TEST_STATUS.FAILURE,
+  skipped = TEST_STATUS.SKIPPED,
+}
+local status_param = {
+  "status",
+  function(value)
+    return str_to_status[value]
+  end,
+}
+
 local add_id = function(item)
   item.id = table.concat(item.path, ".") .. "." .. item.name
 end
@@ -86,44 +96,26 @@ M.parser = function()
   return {
     tests = {
       parser.parallel(
-        -- Parse successes
+        -- Parse results as they come in
         parser.loop(
           { ignore_failure = true },
           parser.sequence({
             parser.extract({
-              append = false,
               postprocess = function(item)
                 add_id(item)
-                item.status = TEST_STATUS.SUCCESS
               end,
-            }, "^([^%s]+) %((.+)%)$", "name", path_param),
-            parser.extract({ regex = true }, "\\v (ok|FAIL)$", {
-              "status",
-              function(val)
-                return val == "ok" and TEST_STATUS.SUCCESS or TEST_STATUS.FAILURE
-              end,
-            }),
+            }, "^([^%s]+) %((.+)%) %.%.%. ([^%s]+)$", "name", path_param, status_param),
           })
         ),
         -- Parse failures at the end
         parser.loop(
           { ignore_failure = true },
           parser.sequence({
-            parser.extract(
-              {
-                append = false,
-                postprocess = add_id,
-              },
-              "^(FAIL): ([^%s]+) %((.+)%)",
-              {
-                "status",
-                function()
-                  return TEST_STATUS.FAILURE
-                end,
-              },
-              "name",
-              path_param
-            ),
+            parser.skip_until("^==========+$"),
+            parser.extract({
+              append = false,
+              postprocess = add_id,
+            }, "^([^%s]+): ([^%s]+) %((.+)%)", status_param, "name", path_param),
             parser.skip_until("^Traceback"),
             parser.parallel(
               -- Extract summary of traceback as diagnostics

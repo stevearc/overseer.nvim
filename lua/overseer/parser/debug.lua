@@ -63,7 +63,7 @@ local function render_parser(input_lnum)
   local highlights = {}
   if p.tree then
     render_node(lines, highlights, p.tree, 0, trace)
-  else
+  elseif p.children then
     for k, v in pairs(p.children) do
       table.insert(lines, string.format("%s:", k))
       render_node(lines, highlights, v, 1, trace)

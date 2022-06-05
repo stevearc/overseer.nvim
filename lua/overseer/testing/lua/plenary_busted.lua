@@ -6,9 +6,6 @@ local TEST_STATUS = require("overseer.testing.data").TEST_STATUS
 
 local M = {
   name = "lua_plenary_busted",
-  is_filename_test = function(self, filename)
-    return filename:match("_spec%.lua$")
-  end,
   is_workspace_match = function(self, dirname)
     for _, fname in ipairs({ "lua", ".luacheckrc", ".stylua.toml" }) do
       if files.exists(files.join(dirname, fname)) then

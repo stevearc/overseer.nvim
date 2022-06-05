@@ -1,88 +1,146 @@
 local integration = require("overseer.testing.python.unittest")
 local test_utils = require("tests.testing.integration_test_utils")
-local TEST_STATUS = require("overseer.testing.data").TEST_STATUS
 
 describe("python_unittest", function()
   it("parses test failures", function()
-    local output = [[test_color (tests.test_objects.TestGDObjects)
-Test for Color ... ok
-test_node_path (tests.test_objects.TestGDObjects)
-Test for NodePath ... ok
-test_sub_resource (tests.test_objects.TestGDObjects)
-Test for SubResource ... FAIL
+    local output = [[
+test_error (tests.test_file.TestGroup) ... ERROR
+test_fail (tests.test_file.TestGroup) ... FAIL
+test_fail_with_output (tests.test_file.TestGroup) ... FAIL
 
 Stdout:
-Hello world
+This is some output
 
 Stderr:
-This is error
-test_vector2 (tests.test_objects.TestGDObjects)
-Test for Vector2 ... ok
+This is some stderr output
+test_skip (tests.test_file.TestGroup) ... skipped 'Skip this test'
+test_succeed (tests.test_file.TestGroup) ... ok
 
 ======================================================================
-FAIL: test_sub_resource (tests.test_objects.TestGDObjects)
-Test for SubResource
+ERROR: test_error (tests.test_file.TestGroup)
 ----------------------------------------------------------------------
 Traceback (most recent call last):
-  File "/home/stevearc/ws/godot_parser/tests/test_objects.py", line 100, in test_sub_resource
-    self.assertEqual(r.id, 3)
-AssertionError: 2 != 3
+  File "/home/stevearc/ws/overseer-test-frameworks/python/unittest/tests/test_file.py", line 16, in test_error
+    self.foo.bar
+AttributeError: 'TestGroup' object has no attribute 'foo'
+
+======================================================================
+FAIL: test_fail (tests.test_file.TestGroup)
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "/home/stevearc/ws/overseer-test-frameworks/python/unittest/tests/test_file.py", line 13, in test_fail
+    self.assertTrue(False)
+AssertionError: False is not true
+
+======================================================================
+FAIL: test_fail_with_output (tests.test_file.TestGroup)
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "/home/stevearc/ws/overseer-test-frameworks/python/unittest/tests/test_file.py", line 21, in test_fail_with_output
+    self.assertTrue(False)
+AssertionError: False is not true
 
 Stdout:
-Hello world
+This is some output
 
 Stderr:
-This is error
+This is some stderr output
 
 ----------------------------------------------------------------------
-Ran 7 tests in 0.001s]]
+Ran 5 tests in 0.001s
+
+FAILED (failures=2, errors=1, skipped=1)
+]]
     local results = test_utils.run_parser(integration, output)
+
     assert.are.same({
       tests = {
         {
-          id = "tests.test_objects.TestGDObjects.test_color",
-          path = { "tests", "test_objects", "TestGDObjects" },
-          name = "test_color",
-          status = TEST_STATUS.SUCCESS,
+          id = "tests.test_file.TestGroup.test_error",
+          name = "test_error",
+          path = { "tests", "test_file", "TestGroup" },
+          status = "FAILURE",
         },
         {
-          id = "tests.test_objects.TestGDObjects.test_node_path",
-          path = { "tests", "test_objects", "TestGDObjects" },
-          name = "test_node_path",
-          status = TEST_STATUS.SUCCESS,
+          id = "tests.test_file.TestGroup.test_fail",
+          name = "test_fail",
+          path = { "tests", "test_file", "TestGroup" },
+          status = "FAILURE",
         },
         {
-          id = "tests.test_objects.TestGDObjects.test_sub_resource",
-          path = { "tests", "test_objects", "TestGDObjects" },
-          name = "test_sub_resource",
-          status = TEST_STATUS.FAILURE,
+          id = "tests.test_file.TestGroup.test_fail_with_output",
+          name = "test_fail_with_output",
+          path = { "tests", "test_file", "TestGroup" },
+          status = "FAILURE",
         },
         {
-          id = "tests.test_objects.TestGDObjects.test_vector2",
-          path = { "tests", "test_objects", "TestGDObjects" },
-          name = "test_vector2",
-          status = TEST_STATUS.SUCCESS,
+          id = "tests.test_file.TestGroup.test_succeed",
+          name = "test_succeed",
+          path = { "tests", "test_file", "TestGroup" },
+          status = "SUCCESS",
         },
         {
-          id = "tests.test_objects.TestGDObjects.test_sub_resource",
-          path = { "tests", "test_objects", "TestGDObjects" },
-          name = "test_sub_resource",
-          status = TEST_STATUS.FAILURE,
-          text = "AssertionError: 2 != 3\n\nStdout:\nHello world\n\nStderr:\nThis is error\n",
           diagnostics = {
             {
-              filename = "/home/stevearc/ws/godot_parser/tests/test_objects.py",
-              lnum = 100,
-              text = "AssertionError: 2 != 3",
+              filename = "/home/stevearc/ws/overseer-test-frameworks/python/unittest/tests/test_file.py",
+              lnum = 16,
+              text = "AttributeError: 'TestGroup' object has no attribute 'foo'",
             },
           },
+          id = "tests.test_file.TestGroup.test_error",
+          name = "test_error",
+          path = { "tests", "test_file", "TestGroup" },
           stacktrace = {
             {
-              filename = "/home/stevearc/ws/godot_parser/tests/test_objects.py",
-              text = "self.assertEqual(r.id, 3)",
-              lnum = 100,
+              filename = "/home/stevearc/ws/overseer-test-frameworks/python/unittest/tests/test_file.py",
+              lnum = 16,
+              text = "self.foo.bar",
             },
           },
+          status = "FAILURE",
+          text = "AttributeError: 'TestGroup' object has no attribute 'foo'\n",
+        },
+        {
+          diagnostics = {
+            {
+              filename = "/home/stevearc/ws/overseer-test-frameworks/python/unittest/tests/test_file.py",
+              lnum = 13,
+              text = "AssertionError: False is not true",
+            },
+          },
+          id = "tests.test_file.TestGroup.test_fail",
+          name = "test_fail",
+          path = { "tests", "test_file", "TestGroup" },
+          stacktrace = {
+            {
+              filename = "/home/stevearc/ws/overseer-test-frameworks/python/unittest/tests/test_file.py",
+              lnum = 13,
+              text = "self.assertTrue(False)",
+            },
+          },
+          status = "FAILURE",
+          text = "AssertionError: False is not true\n",
+        },
+        {
+          diagnostics = {
+            {
+              filename = "/home/stevearc/ws/overseer-test-frameworks/python/unittest/tests/test_file.py",
+              lnum = 21,
+              text = "AssertionError: False is not true",
+            },
+          },
+          id = "tests.test_file.TestGroup.test_fail_with_output",
+          name = "test_fail_with_output",
+          path = { "tests", "test_file", "TestGroup" },
+          stacktrace = {
+            {
+              filename = "/home/stevearc/ws/overseer-test-frameworks/python/unittest/tests/test_file.py",
+              lnum = 21,
+              text = "self.assertTrue(False)",
+            },
+          },
+          status = "FAILURE",
+          text = "AssertionError: False is not true\n\nStdout:\nThis is some output\n\nStderr:\nThis is some stderr output\n",
         },
       },
     }, results)

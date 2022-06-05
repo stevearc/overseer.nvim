@@ -5,9 +5,6 @@ local TEST_STATUS = require("overseer.testing.data").TEST_STATUS
 
 local M = {
   name = "go_test",
-  is_filename_test = function(self, filename)
-    return filename:match("_test%.go$") and not filename:match("^_") and not filename:match("^%.")
-  end,
   is_workspace_match = function(self, dirname)
     for _, fname in ipairs({ "go.mod" }) do
       if files.exists(files.join(dirname, fname)) then

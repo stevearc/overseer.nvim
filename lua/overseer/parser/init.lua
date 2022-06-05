@@ -176,15 +176,91 @@ function MapParser:get_remainder()
   end
 end
 
+local CustomParser = {}
+
+function CustomParser.new(config)
+  vim.validate({
+    ingest = { config._ingest, "f" },
+    reset = { config._reset, "f", true },
+    get_remainder = { config._get_remainder, "f", true },
+  })
+  config.results = {}
+  config.subs = {}
+  return setmetatable(config, { __index = CustomParser })
+end
+
+function CustomParser:reset()
+  self.results = {}
+  if self._reset then
+    self:_reset()
+  end
+end
+
+function CustomParser:ingest(lines)
+  local num_results = #self.results
+  local map_count
+  if not vim.tbl_islist(self.results) then
+    map_count = {}
+    for k, v in pairs(self.results) do
+      map_count[k] = #v
+    end
+  end
+  self:_ingest(lines)
+  if vim.tbl_islist(self.results) then
+    for i = num_results + 1, #self.results do
+      local result = self.results[i]
+      for _, cb in ipairs(self.subs) do
+        cb("", result)
+      end
+    end
+  else
+    for k, v in pairs(self.results) do
+      for i = map_count and map_count[k] or 1, #v do
+        for _, cb in ipairs(self.subs) do
+          cb(k, v[i])
+        end
+      end
+    end
+  end
+end
+
+function CustomParser:subscribe(callback)
+  table.insert(self.subs, callback)
+end
+
+function CustomParser:unsubscribe(callback)
+  util.tbl_remove(self.subs, callback)
+end
+
+function CustomParser:get_result()
+  print("Get result")
+  return self.results
+end
+
+function CustomParser:get_remainder()
+  if self._get_remainder then
+    return self:_get_remainder()
+  end
+end
+
 M.new = function(config)
   vim.validate({
     config = { config, "t" },
   })
   if vim.tbl_islist(config) then
     return ListParser.new(config)
+  elseif config.ingest then
+    return config
   else
     return MapParser.new(config)
   end
+end
+
+M.custom = function(config)
+  vim.validate({
+    config = { config, "t" },
+  })
+  return CustomParser.new(config)
 end
 
 M.trace = function(enabled)
