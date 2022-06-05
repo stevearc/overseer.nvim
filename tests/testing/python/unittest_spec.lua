@@ -74,6 +74,12 @@ FAILED (failures=2, errors=1, skipped=1)
           status = "FAILURE",
         },
         {
+          id = "tests.test_file.TestGroup.test_skip",
+          name = "test_skip",
+          path = { "tests", "test_file", "TestGroup" },
+          status = "SKIPPED",
+        },
+        {
           id = "tests.test_file.TestGroup.test_succeed",
           name = "test_succeed",
           path = { "tests", "test_file", "TestGroup" },

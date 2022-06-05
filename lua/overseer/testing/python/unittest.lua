@@ -104,7 +104,7 @@ M.parser = function()
               postprocess = function(item)
                 add_id(item)
               end,
-            }, "^([^%s]+) %((.+)%) %.%.%. ([^%s]+)$", "name", path_param, status_param),
+            }, "^([^%s]+) %((.+)%) %.%.%. ([^%s]+)", "name", path_param, status_param),
           })
         ),
         -- Parse failures at the end
