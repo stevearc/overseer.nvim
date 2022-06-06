@@ -30,6 +30,7 @@ local M = {}
 -- * Extension doc (how to make your own template/component)
 -- * Extension names could collide. Namespace internal & external extensions separately
 -- * Figure out some clever way to lazy-load everything
+--    * takes ~6-7 ms to require, and 8-9ms to setup()
 
 M.setup = function(opts)
   config.setup(opts)
@@ -98,6 +99,12 @@ M.setup = function(opts)
 end
 
 M.wrap_test = function(name, opts)
+  if opts.parser then
+    vim.notify(
+      string.format("Do not replace the parser of %s. Create a new integration instead", name),
+      vim.log.levels.ERROR
+    )
+  end
   return setmetatable(opts, {
     __index = function(_, key)
       if key == "super" then

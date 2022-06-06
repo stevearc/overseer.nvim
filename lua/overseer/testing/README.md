@@ -11,7 +11,6 @@
   - java junit?
   - csharp dotnettest
   - another go framework?
-- Make integration id stable over restarts (used in task metadata and parser component)
 - How to handle multiple integrations on a workspace/buffer? (e.g. lua busted & plenary busted)
 - Test playlists
 - Show which integrations are active for (dir/buffer)
@@ -42,5 +41,4 @@
     - stacktrace
     - diagnostics
 - bug: Rerun via action menu in test panel clears diagnostics
-- python unittest tests sometimes get stuck in running status
 - Defines a (customizable) way to find a test file from a file (integrate with vim-projectionist?)

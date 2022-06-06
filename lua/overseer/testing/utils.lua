@@ -13,12 +13,13 @@ local function clear_path(path, lnum)
   end
 end
 M.get_tests_from_ts_query = function(bufnr, lang, queryname, query_str, id_func)
-  local parser = vim.treesitter.get_parser(bufnr, "python")
-  local filename = vim.api.nvim_buf_get_name(bufnr)
+  local parsers = require("nvim-treesitter.parsers")
+  local parser = parsers.get_parser(bufnr)
   local tests = {}
-  if not parser then
+  if not parser or parser:lang() ~= lang then
     return tests
   end
+  local filename = vim.api.nvim_buf_get_name(bufnr)
   local syntax_tree = parser:parse()[1]
   if not syntax_tree then
     return tests

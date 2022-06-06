@@ -16,7 +16,7 @@ local builtin_tests = {
 }
 
 local num_tasks_running = 0
-local next_id = 1
+local next_id = 1000
 
 local function assign_id(integration)
   -- Using rawget so that we don't hit the __index metamethod of wrapped tests
@@ -25,7 +25,7 @@ local function assign_id(integration)
     registry[next_id] = integration
     next_id = next_id + 1
     if integration.parser then
-      parsers.register_parser(integration.id, integration.parser)
+      parsers.register_parser(integration.name, integration.parser)
     end
   end
   return integration
@@ -146,7 +146,7 @@ M.create_and_start_task = function(integ, task_data, reset_params)
   if not task_data.components then
     task_data.components = { "default_test" }
     if integ.parser then
-      table.insert(task_data.components, 1, { "result_exit_code", parser = integ.id })
+      table.insert(task_data.components, 1, { "result_exit_code", parser = integ.name })
     end
   end
   -- Add the test reset component
