@@ -1,5 +1,6 @@
 local component = require("overseer.component")
 local constants = require("overseer.constants")
+local log = require("overseer.log")
 local task_list = require("overseer.task_list")
 local util = require("overseer.util")
 
@@ -328,8 +329,7 @@ function Task:dispatch(name, ...)
     if type(comp[name]) == "function" then
       local ok, err = pcall(comp[name], comp, self, ...)
       if not ok then
-        -- TODO log here
-        vim.api.nvim_err_writeln(string.format("Error dispatching %s: %s", name, err))
+        log:error("Task %s dispatch %s: %s", self.name, name, err)
       end
     end
   end
@@ -366,13 +366,18 @@ function Task:dispose(force)
   vim.validate({
     force = { force, "b", true },
   })
-  if self:is_disposed() or (self._references > 0 and not force) then
+  if self:is_disposed() then
+    return false
+  end
+  if self._references > 0 and not force then
+    log:trace("Not disposing task %s: has %d references", self.name, self._references)
     return false
   end
   local terminal_visible = util.is_bufnr_visible(self.bufnr)
   if not force then
     -- Can't dispose if the terminal is open
     if terminal_visible then
+      log:trace("Not disposing task %s: buffer is visible", self.name)
       return false
     end
   end
@@ -387,6 +392,7 @@ function Task:dispose(force)
     end
   end
   self.status = STATUS.DISPOSED
+  log:trace("Disposing task %s", self.name)
   if self.chan_id then
     vim.fn.jobstop(self.chan_id)
     self.chan_id = nil
@@ -405,6 +411,7 @@ end
 
 function Task:rerun(force_stop)
   vim.validate({ force_stop = { force_stop, "b", true } })
+  log:trace("Rerun task %s", self.name)
   if force_stop and self:is_running() then
     self:stop()
   end
@@ -449,6 +456,7 @@ function Task:start()
   local stdout_iter = util.get_stdout_line_iter()
 
   vim.api.nvim_buf_call(self.bufnr, function()
+    log:trace("Starting task %s", self.name)
     chan_id = vim.fn.termopen(self.cmd, {
       cwd = self.cwd,
       env = self.env,
@@ -460,6 +468,7 @@ function Task:start()
         end
       end,
       on_exit = function(j, c)
+        log:trace("Task %s exited with code %s", self.name, c)
         -- Feed one last line end to flush the output
         self:dispatch("on_output", { "" })
         self:_on_exit(j, c)
@@ -518,6 +527,7 @@ function Task:stop()
   if not self:is_running() then
     return false
   end
+  log:trace("Stopping task %s", self.name)
   self:set_result(STATUS.CANCELED)
   if self.chan_id then
     vim.fn.jobstop(self.chan_id)

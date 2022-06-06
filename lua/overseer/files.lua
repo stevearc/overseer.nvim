@@ -25,8 +25,7 @@ end
 
 M.read_file = function(filepath)
   if not M.exists(filepath) then
-    vim.notify(string.format("No such file %s", filepath), vim.log.levels.ERROR)
-    return
+    return nil
   end
   local fd = vim.loop.fs_open(filepath, "r", 420) -- 0644
   local stat = vim.loop.fs_fstat(fd)

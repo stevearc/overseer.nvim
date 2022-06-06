@@ -1,5 +1,6 @@
 local config = require("overseer.config")
 local files = require("overseer.files")
+local log = require("overseer.log")
 local parsers = require("overseer.parsers")
 local Task = require("overseer.task")
 local M = {}
@@ -16,6 +17,8 @@ local builtin_tests = {
 }
 
 local num_tasks_running = 0
+-- Reserve ID's 1-1000 for user's own or wrapped test integrations, if they want
+-- to have the IDs be stable across restarts.
 local next_id = 1000
 
 local function assign_id(integration)
@@ -133,6 +136,7 @@ local last_task = nil
 local pending_tasks = {}
 M.create_and_start_task = function(integ, task_data, reset_params)
   if num_tasks_running >= config.testing.max_concurrent_tests then
+    log:trace("Setting %s test to pending (%d running)", integ.name, num_tasks_running)
     table.insert(pending_tasks, { integ, task_data, reset_params })
     return
   end
@@ -140,6 +144,7 @@ M.create_and_start_task = function(integ, task_data, reset_params)
   if last_task then
     last_task:dec_reference()
     if not last_task:is_running() then
+      log:trace("Disposing previous test task %s", last_task.name)
       last_task:dispose()
     end
   end
@@ -157,6 +162,7 @@ M.create_and_start_task = function(integ, task_data, reset_params)
 
   task_data.metadata = task_data.metadata or {}
   task_data.metadata.test_integration_id = integ.id
+  log:trace("Creating test task for %s", integ.name)
   local task = Task.new(task_data)
   task:inc_reference()
   last_task = task

@@ -1,5 +1,6 @@
 local action_util = require("overseer.action_util")
 local constants = require("overseer.constants")
+local log = require("overseer.log")
 local sidebar = require("overseer.task_list.sidebar")
 local task_bundle = require("overseer.task_bundle")
 local task_list = require("overseer.task_list")
@@ -59,7 +60,7 @@ M._run_template = function(params)
     end
   end
   if name and not vim.tbl_isempty(tags) then
-    vim.notify(string.format("Cannot find template: %s is not a tag", name), vim.log.levels.ERROR)
+    log:error("Cannot find template: %s is not a tag", name)
     return
   end
   local opts = {
@@ -132,7 +133,7 @@ M.run_template = function(opts, params, callback)
   else
     local templates = template.list(tmpl_opts)
     if #templates == 0 then
-      vim.notify("Could not find any matching task templates", vim.log.levels.ERROR)
+      log:error("Could not find any matching task templates for opts %s", opts)
       return
     elseif #templates == 1 and (opts.name or not vim.tbl_isempty(opts.tags or {})) then
       handle_tmpl(templates[1])

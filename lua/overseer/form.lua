@@ -1,5 +1,6 @@
 local config = require("overseer.config")
 local layout = require("overseer.layout")
+local log = require("overseer.log")
 local util = require("overseer.util")
 local M = {}
 
@@ -31,7 +32,7 @@ M.validate_field = function(schema, value)
   elseif ptype == "string" then
     return true
   else
-    vim.notify(string.format("Unknown param type '%s'", ptype), vim.log.levels.WARN)
+    log:warn("Unknown param type '%s'", ptype)
   end
 end
 

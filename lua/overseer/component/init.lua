@@ -1,4 +1,5 @@
 local form = require("overseer.form")
+local log = require("overseer.log")
 local M = {}
 
 -- Canonical naming scheme
@@ -157,10 +158,7 @@ local function validate_params(params, schema)
   end
   for name in pairs(params) do
     if type(name) == "string" and schema[name] == nil then
-      vim.notify(
-        string.format("Component '%s' passed unknown param '%s'", getname(params), name),
-        vim.log.levels.WARN
-      )
+      log:warn("Component '%s' passed unknown param '%s'", getname(params), name)
       params[name] = nil
     end
   end

@@ -7,6 +7,17 @@ local default_config = {
     max_width = { 100, 0.2 },
     min_width = { 40, 0.1 },
   },
+  log = {
+    {
+      type = "echo",
+      level = vim.log.levels.WARN,
+    },
+    {
+      type = "file",
+      filename = "overseer.log",
+      level = vim.log.levels.WARN,
+    },
+  },
   actions = {},
   form = {
     border = "rounded",
@@ -85,6 +96,7 @@ end
 
 M.setup = function(opts)
   local component = require("overseer.component")
+  local log = require("overseer.log")
   local parsers = require("overseer.parsers")
   local extensions = require("overseer.extensions")
   local util = require("overseer.util")
@@ -93,6 +105,8 @@ M.setup = function(opts)
   for k, v in pairs(newconf) do
     M[k] = v
   end
+
+  log.set_root(log.new({ handlers = M.log }))
 
   M.actions = merge_actions(require("overseer.task_list.actions"), newconf.actions)
 

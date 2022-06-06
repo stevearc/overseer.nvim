@@ -2,17 +2,13 @@ local M = {}
 
 -- TODO
 -- * Components can set serializable = false (either fail serialization or silently exclude component)
--- * Many more task templates, especially for tests
--- * Right now we only support a single stacktrace. Might be nice to support potentially one per test?
+-- * Components can set editable = false (can't add or edit it)
+-- * More task templates
 -- * Add tests
 -- * More comments
 -- * More schema validations (callback, non-empty list, number greater than, enum, list[enum])
 --   * list params allow escaping / quotes / specifying delimiter
 -- * Pull as much logic out of the closures as possible
--- * Sandbox calls and log errors
---   * metagen
---   * task dispatch
--- * Add nearest-test support detecting via treesitter
 -- * Dynamic window sizing for task editor
 -- * _maybe_ support other run strategies besides terminal
 -- * Basic Readme

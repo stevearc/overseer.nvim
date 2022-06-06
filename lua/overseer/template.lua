@@ -1,4 +1,5 @@
 local files = require("overseer.files")
+local log = require("overseer.log")
 local Task = require("overseer.task")
 local template_builder = require("overseer.template_builder")
 local util = require("overseer.util")
@@ -90,8 +91,13 @@ M.list = function(opts)
   for _, tmpl in pairs(registry) do
     if tmpl_matches(tmpl, opts) then
       if tmpl.metagen then
-        for _, meta in ipairs(tmpl:metagen(opts)) do
-          table.insert(ret, meta)
+        local ok, tmpls = pcall(tmpl.metagen, tmpl, opts)
+        if ok then
+          for _, meta in ipairs(tmpls) do
+            table.insert(ret, meta)
+          end
+        else
+          log:error("Template metagen %s: %s", tmpl.name, tmpls)
         end
       else
         table.insert(ret, tmpl)
