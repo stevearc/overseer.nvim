@@ -1,7 +1,6 @@
 local M = {}
 
 -- TODO
--- * make a suite of built-in parsers
 -- * Components can set serializable = false (either fail serialization or silently exclude component)
 -- * Many more task templates, especially for tests
 -- * Right now we only support a single stacktrace. Might be nice to support potentially one per test?

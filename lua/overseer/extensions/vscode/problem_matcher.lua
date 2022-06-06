@@ -4,7 +4,7 @@ local M = {}
 -- Taken from https://github.com/microsoft/vscode/blob/main/src/vs/workbench/contrib/tasks/common/problemMatcher.ts#L1207
 local default_patterns = {
   ["$msCompile"] = {
-    -- removed non-capturing groups (?:)
+    -- regexp: /^(?:\s+\d+>)?(\S.*)\((\d+|\d+,\d+|\d+,\d+,\d+,\d+)\)\s*:\s+(error|warning|info)\s+(\w+\d+)\s*:\s*(.*)$/,
     regexp = "^(\\s+\\d+>)?(\\S.*)\\((\\d+|\\d+,\\d+|\\d+,\\d+,\\d+,\\d+)\\)\\s*:\\s+(error|warning|info)\\s+(\\w+\\d+)\\s*:\\s*(.*)$",
     kind = "location",
     file = 2,
@@ -14,7 +14,8 @@ local default_patterns = {
     message = 6,
   },
   ["$gulp-tsc"] = {
-    regexp = "^([^\\s].*)\\((\\d+|\\d+,\\d+|\\d+,\\d+,\\d+,\\d+)\\):\\s+(\\d+)\\s+(.*)$",
+    -- regexp: /^([^\s].*)\((\d+|\d+,\d+|\d+,\d+,\d+,\d+)\):\s+(\d+)\s+(.*)$/,
+    regexp = "^([^[:space:]].*)\\((\\d+|\\d+,\\d+|\\d+,\\d+,\\d+,\\d+)\\):\\s+(\\d+)\\s+(.*)$",
     kind = "location",
     file = 1,
     location = 2,
@@ -22,6 +23,7 @@ local default_patterns = {
     message = 4,
   },
   ["$cpp"] = {
+    -- regexp: /^(\S.*)\((\d+|\d+,\d+|\d+,\d+,\d+,\d+)\):\s+(error|warning|info)\s+(C\d+)\s*:\s*(.*)$/,
     regexp = "^(\\S.*)\\((\\d+|\\d+,\\d+|\\d+,\\d+,\\d+,\\d+)\\):\\s+(error|warning|info)\\s+(C\\d+)\\s*:\\s*(.*)$",
     kind = "location",
     file = 1,
@@ -31,6 +33,7 @@ local default_patterns = {
     message = 5,
   },
   ["$csc"] = {
+    -- regexp: /^(\S.*)\((\d+|\d+,\d+|\d+,\d+,\d+,\d+)\):\s+(error|warning|info)\s+(CS\d+)\s*:\s*(.*)$/,
     regexp = "^(\\S.*)\\((\\d+|\\d+,\\d+|\\d+,\\d+,\\d+,\\d+)\\):\\s+(error|warning|info)\\s+(CS\\d+)\\s*:\\s*(.*)$",
     kind = "location",
     file = 1,
@@ -40,6 +43,7 @@ local default_patterns = {
     message = 5,
   },
   ["$vb"] = {
+    -- regexp: /^(\S.*)\((\d+|\d+,\d+|\d+,\d+,\d+,\d+)\):\s+(error|warning|info)\s+(BC\d+)\s*:\s*(.*)$/,
     regexp = "^(\\S.*)\\((\\d+|\\d+,\\d+|\\d+,\\d+,\\d+,\\d+)\\):\\s+(error|warning|info)\\s+(BC\\d+)\\s*:\\s*(.*)$",
     kind = "location",
     file = 1,
@@ -49,6 +53,7 @@ local default_patterns = {
     message = 5,
   },
   ["$lessCompile"] = {
+    -- regexp: /^\s*(.*) in file (.*) line no. (\d+)$/,
     regexp = "^\\s*(.*) in file (.*) line no. (\\d+)$",
     kind = "location",
     message = 1,
@@ -56,7 +61,7 @@ local default_patterns = {
     line = 3,
   },
   ["$jshint"] = {
-    -- removed non-capturing groups (?:)
+    -- regexp: /^(.*):\s+line\s+(\d+),\s+col\s+(\d+),\s(.+?)(?:\s+\((\w)(\d+)\))?$/,
     regexp = "^(.*):\\s+line\\s+(\\d+),\\s+col\\s+(\\d+),\\s(.+?)(\\s+\\((\\w)(\\d+)\\))?$",
     kind = "location",
     file = 1,
@@ -68,12 +73,13 @@ local default_patterns = {
   },
   ["$jshint-stylish"] = {
     {
+      -- regexp: /^(.+)$/,
       regexp = "^(.+)$",
       kind = "location",
       file = 1,
     },
     {
-      -- removed non-capturing groups (?:)
+      -- regexp: /^\s+line\s+(\d+)\s+col\s+(\d+)\s+(.+?)(?:\s+\((\w)(\d+)\))?$/,
       regexp = "^\\s+line\\s+(\\d+)\\s+col\\s+(\\d+)\\s+(.+?)(\\s+\\((\\w)(\\d+)\\))?$",
       line = 1,
       character = 2,
@@ -84,6 +90,7 @@ local default_patterns = {
     },
   },
   ["$eslint-compact"] = {
+    -- regexp: /^(.+):\sline\s(\d+),\scol\s(\d+),\s(Error|Warning|Info)\s-\s(.+)\s\((.+)\)$/,
     regexp = "^(.+):\\sline\\s(\\d+),\\scol\\s(\\d+),\\s(Error|Warning|Info)\\s-\\s(.+)\\s\\((.+)\\)$",
     file = 1,
     kind = "location",
@@ -95,13 +102,13 @@ local default_patterns = {
   },
   ["$eslint-stylish"] = {
     {
-      -- removed non-capturing groups (?:)
+      -- regexp: /^((?:[a-zA-Z]:)*[./\\]+.*?)$/,
       regexp = "^(([a-zA-Z]:)*[./\\\\]+.*?)$",
       kind = "location",
       file = 1,
     },
     {
-      -- removed non-capturing groups (?:)
+      -- regexp: /^\s+(\d+):(\d+)\s+(error|warning|info)\s+(.+?)(?:\s\s+(.*))?$/,
       regexp = "^\\s+(\\d+):(\\d+)\\s+(error|warning|info)\\s+(.+?)(\\s\\s+(.*))?$",
       line = 1,
       character = 2,
@@ -112,6 +119,7 @@ local default_patterns = {
     },
   },
   ["$go"] = {
+    -- regexp: /^([^:]*: )?((.:)?[^:]*):(\d+)(:(\d+))?: (.*)$/,
     regexp = "^([^:]*: )?((.:)?[^:]*):(\\d+)(:(\\d+))?: (.*)$",
     kind = "location",
     file = 2,
@@ -121,8 +129,8 @@ local default_patterns = {
   },
   -- from https://github.com/microsoft/vscode/blob/main/extensions/typescript-language-features/package.json#L1396
   ["$tsc"] = {
-    -- modified to remove non-capturing groups (?:)
-    regexp = "^([^\\s].*)[\\(:](\\d+)[,:](\\d+)(\\):\\s+|\\s+-\\s+)(error|warning|info)\\s+TS(\\d+)\\s*:\\s*(.*)$",
+    -- regexp: "^([^\\s].*)[\\(:](\\d+)[,:](\\d+)(?:\\):\\s+|\\s+-\\s+)(error|warning|info)\\s+TS(\\d+)\\s*:\\s*(.*)$",
+    regexp = "^([^[:space:]].*)[\\(:](\\d+)[,:](\\d+)(\\):\\s+|\\s+-\\s+)(error|warning|info)\\s+TS(\\d+)\\s*:\\s*(.*)$",
     file = 1,
     line = 2,
     column = 3,
@@ -132,6 +140,7 @@ local default_patterns = {
   },
   -- from https://github.com/microsoft/vscode/blob/main/extensions/cpp/package.json#L95
   ["$nvcc-location"] = {
+    -- regexp: "^(.*)\\((\\d+)\\):\\s+(warning|error):\\s+(.*)",
     regexp = "^(.*)\\((\\d+)\\):\\s+(warning|error):\\s+(.*)",
     kind = "location",
     file = 1,
@@ -156,9 +165,11 @@ local default_matchers = {
     background = {
       activeOnStart = true,
       beginsPattern = {
+        -- "regexp": "^\\s*(?:message TS6032:|\\[?\\D*.{1,2}[:.].{1,2}[:.].{1,2}\\D*(├\\D*\\d{1,2}\\D+┤)?(?:\\]| -)) File change detected\\. Starting incremental compilation\\.\\.\\."
         regexp = "^\\s*(message TS6032:|\\[?\\D*.{1,2}[:.].{1,2}[:.].{1,2}\\D*(├\\D*\\d{1,2}\\D+┤)?(\\]| -)) File change detected\\. Starting incremental compilation\\.\\.\\.",
       },
       endsPattern = {
+        -- "regexp": "^\\s*(?:message TS6042:|\\[?\\D*.{1,2}[:.].{1,2}[:.].{1,2}\\D*(├\\D*\\d{1,2}\\D+┤)?(?:\\]| -)) (?:Compilation complete\\.|Found \\d+ errors?\\.) Watching for file changes\\."
         regexp = "^\\s*(message TS6042:|\\[?\\D*.{1,2}[:.].{1,2}[:.].{1,2}\\D*(├\\D*\\d{1,2}\\D+┤)?(\\]| -)) (Compilation complete\\.|Found \\d+ errors?\\.) Watching for file changes\\.",
       },
     },
@@ -173,31 +184,39 @@ local default_matchers = {
     fileLocation = "absolute",
     pattern = {
       {
+        -- "regexp": "^{$"
         regexp = "^{$",
       },
       {
+        -- "regexp": "\\s*\"status\":\\s\\d+,"
         regexp = '\\s*"status":\\s\\d+,',
       },
       {
+        -- "regexp": "\\s*\"file\":\\s\"(.*)\",",
         regexp = '\\s*"file":\\s"(.*)",',
         file = 1,
       },
       {
+        -- "regexp": "\\s*\"line\":\\s(\\d+),",
         regexp = '\\s*"line":\\s(\\d+),',
         line = 1,
       },
       {
+        -- "regexp": "\\s*\"column\":\\s(\\d+),",
         regexp = '\\s*"column":\\s(\\d+),',
         column = 1,
       },
       {
+        -- "regexp": "\\s*\"message\":\\s\"(.*)\",",
         regexp = '\\s*"message":\\s"(.*)",',
         message = 1,
       },
       {
+        -- "regexp": "\\s*\"formatted\":\\s(.*)"
         regexp = '\\s*"formatted":\\s(.*)',
       },
       {
+        -- "regexp": "^}$"
         regexp = "^}$",
       },
     },
@@ -206,6 +225,7 @@ local default_matchers = {
   ["$lessc"] = {
     fileLocation = "absolute",
     pattern = {
+      -- "regexp": "(.*)\\sin\\s(.*)\\son line\\s(\\d+),\\scolumn\\s(\\d+)",
       regexp = "(.*)\\sin\\s(.*)\\son line\\s(\\d+),\\scolumn\\s(\\d+)",
       message = 1,
       file = 2,
