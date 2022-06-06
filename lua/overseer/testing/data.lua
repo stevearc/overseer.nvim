@@ -20,10 +20,10 @@ local all_results = {}
 local Summary = {}
 
 function Summary:get_status()
-  if self[TEST_STATUS.FAILURE] > 0 then
-    return TEST_STATUS.FAILURE
-  elseif self[TEST_STATUS.RUNNING] > 0 then
+  if self[TEST_STATUS.RUNNING] > 0 then
     return TEST_STATUS.RUNNING
+  elseif self[TEST_STATUS.FAILURE] > 0 then
+    return TEST_STATUS.FAILURE
   elseif self[TEST_STATUS.SUCCESS] > 0 then
     return TEST_STATUS.SUCCESS
   elseif self[TEST_STATUS.SKIPPED] > 0 then

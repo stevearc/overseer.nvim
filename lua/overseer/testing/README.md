@@ -8,7 +8,6 @@
   - python pytest
   - rust cargotest
   - js mocha
-  - js jest
   - java junit?
   - csharp dotnettest
   - another go framework?

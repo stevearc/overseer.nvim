@@ -329,7 +329,7 @@ function Task:dispatch(name, ...)
       local ok, err = pcall(comp[name], comp, self, ...)
       if not ok then
         -- TODO log here
-        vim.notify(string.format("Error dispatching %s: %s", name, err), vim.log.levels.ERROR)
+        vim.api.nvim_err_writeln(string.format("Error dispatching %s: %s", name, err))
       end
     end
   end
@@ -369,12 +369,11 @@ function Task:dispose(force)
   if self:is_disposed() or (self._references > 0 and not force) then
     return false
   end
+  local terminal_visible = util.is_bufnr_visible(self.bufnr)
   if not force then
     -- Can't dispose if the terminal is open
-    for _, winid in ipairs(vim.api.nvim_list_wins()) do
-      if vim.api.nvim_win_get_buf(winid) == self.bufnr then
-        return false
-      end
+    if terminal_visible then
+      return false
     end
   end
   if self:is_running() then
@@ -395,7 +394,11 @@ function Task:dispose(force)
   self:dispatch("on_dispose")
   task_list.remove(self)
   if self.bufnr and vim.api.nvim_buf_is_valid(self.bufnr) then
-    vim.api.nvim_buf_delete(self.bufnr, { force = true })
+    if terminal_visible then
+      vim.api.nvim_buf_set_option(self.bufnr, "bufhidden", "wipe")
+    else
+      vim.api.nvim_buf_delete(self.bufnr, { force = true })
+    end
   end
   return true
 end

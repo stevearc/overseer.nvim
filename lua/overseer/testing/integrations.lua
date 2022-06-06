@@ -8,6 +8,7 @@ local registry = {}
 
 local builtin_tests = {
   "go.go_test",
+  "javascript.jest",
   "lua.busted",
   "lua.plenary_busted",
   "python.unittest",

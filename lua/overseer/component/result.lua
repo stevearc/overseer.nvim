@@ -18,8 +18,8 @@ M.result_exit_code = {
     end, params.success_codes or {})
     table.insert(success_codes, 0)
     return {
-      parser = parsers.get_parser(params.parser),
       on_init = function(self, task)
+        self.parser = parsers.get_parser(params.parser, task)
         if self.parser then
           local cb = function(key, result)
             task:dispatch("on_stream_result", key, result)

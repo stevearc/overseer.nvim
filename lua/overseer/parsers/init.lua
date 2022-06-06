@@ -18,9 +18,9 @@ M.register_parser = function(name, factory)
   registry[name] = factory
 end
 
-M.get_parser = function(name)
+M.get_parser = function(name, config)
   if registry[name] then
-    return parser.new(registry[name]())
+    return parser.new(registry[name](config))
   end
 end
 

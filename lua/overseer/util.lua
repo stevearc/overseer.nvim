@@ -82,6 +82,18 @@ M.get_preview_window = function()
   end
 end
 
+M.is_bufnr_visible = function(bufnr)
+  if not bufnr then
+    return false
+  end
+  for _, winid in ipairs(vim.api.nvim_list_wins()) do
+    if vim.api.nvim_win_get_buf(winid) == bufnr then
+      return true
+    end
+  end
+  return false
+end
+
 M.list_to_map = function(list, keyfn)
   local map = {}
   if type(list) == "string" then
@@ -169,13 +181,13 @@ M.get_stdout_line_iter = function()
           table.insert(ret, pending)
           pending = ""
         else
-          pending = pending .. M.remove_ansi(string.gsub(chunk, "\r$", ""))
+          pending = pending .. string.gsub(M.remove_ansi(chunk), "\r$", "")
         end
       else
         if data[1] ~= "" then
           table.insert(ret, pending)
         end
-        pending = M.remove_ansi(string.gsub(chunk, "\r$", ""))
+        pending = string.gsub(M.remove_ansi(chunk), "\r$", "")
       end
     end
     return ret

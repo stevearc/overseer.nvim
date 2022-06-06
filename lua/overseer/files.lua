@@ -35,6 +35,15 @@ M.read_file = function(filepath)
   return content
 end
 
+M.gen_random_filename = function(data_dir, basename)
+  local num = 0
+  for _ = 1, 5 do
+    num = 10 * num + math.random(0, 9)
+  end
+  local filename = basename:format(num)
+  return M.join(vim.fn.stdpath(data_dir), "overseer", filename)
+end
+
 M.load_json_file = function(filepath)
   local content = M.read_file(filepath)
   if content then
@@ -48,11 +57,36 @@ M.data_file_exists = function(filename)
   return M.exists(filepath)
 end
 
+M.mkdir = function(dirname, perms)
+  if not perms then
+    perms = 493 -- 0755
+  end
+  if not M.exists(dirname) then
+    local parent = vim.fn.fnamemodify(dirname, ":h")
+    if not M.exists(parent) then
+      M.mkdir(parent)
+    end
+    vim.loop.fs_mkdir(dirname, perms)
+  end
+end
+
+M.write_file = function(filename, contents)
+  M.mkdir(vim.fn.fnamemodify(filename, ":h"))
+  local fd = vim.loop.fs_open(filename, "w", 420) -- 0644
+  vim.loop.fs_write(fd, contents)
+  vim.loop.fs_close(fd)
+end
+
+M.delete_file = function(filename)
+  if M.exists(filename) then
+    vim.loop.fs_unlink(filename)
+    return true
+  end
+end
+
 M.write_data_file = function(filename, data)
   local data_dir = M.get_data_dir()
-  if not M.exists(data_dir) then
-    vim.loop.fs_mkdir(data_dir, 493) -- 0755
-  end
+  M.mkdir(data_dir)
   local filepath = M.join(data_dir, filename)
   local fd = vim.loop.fs_open(filepath, "w", 420) -- 0644
   vim.loop.fs_write(fd, vim.json.encode(data))
@@ -62,10 +96,7 @@ end
 M.delete_data_file = function(filename)
   local data_dir = M.get_data_dir()
   local filepath = M.join(data_dir, filename)
-  if M.exists(filepath) then
-    vim.loop.fs_unlink(filepath)
-    return true
-  end
+  return M.delete_file(filepath)
 end
 
 M.load_data_file = function(filename)
