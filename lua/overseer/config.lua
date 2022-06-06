@@ -85,6 +85,7 @@ end
 
 M.setup = function(opts)
   local component = require("overseer.component")
+  local parsers = require("overseer.parsers")
   local extensions = require("overseer.extensions")
   local util = require("overseer.util")
   opts = opts or {}
@@ -115,6 +116,7 @@ M.setup = function(opts)
   end
 
   component.register_builtin()
+  parsers.register_builtin()
   for k, v in pairs(M.component_sets) do
     component.alias(k, v)
   end

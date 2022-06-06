@@ -1,11 +1,3 @@
-local commands = require("overseer.commands")
-local config = require("overseer.config")
-local constants = require("overseer.constants")
-local task_bundle = require("overseer.task_bundle")
-local task_list = require("overseer.task_list")
-local Task = require("overseer.task")
-local util = require("overseer.util")
-local window = require("overseer.window")
 local M = {}
 
 -- TODO
@@ -29,15 +21,10 @@ local M = {}
 -- * Architecture doc (Template / Task / Component)
 -- * Extension doc (how to make your own template/component)
 -- * Extension names could collide. Namespace internal & external extensions separately
--- * Figure out some clever way to lazy-load everything
---    * takes ~6-7 ms to require, and 8-9ms to setup()
 
-M.setup = function(opts)
-  config.setup(opts)
-  commands.create_commands()
-  -- TODO probably want to move this
-  require("overseer.testing").create_commands()
-  require("overseer.parsers").register_builtin()
+local function init_once()
+  local config = require("overseer.config")
+  local util = require("overseer.util")
   local success_color = util.find_success_color()
   vim.cmd(string.format(
     [[
@@ -75,11 +62,21 @@ M.setup = function(opts)
       end,
     })
   end
+  local testing_data = require("overseer.testing.data")
+  vim.api.nvim_create_autocmd("BufEnter", {
+    pattern = "*",
+    desc = "Update test signs when entering a buffer",
+    group = aug,
+    callback = function(params)
+      testing_data.update_buffer_signs(params.buf)
+    end,
+  })
   vim.api.nvim_create_autocmd("User", {
     pattern = "SessionSavePre",
     desc = "Save task state when vim-session saves",
     group = aug,
     callback = function()
+      local task_list = require("overseer.task_list")
       local cmds = vim.g.session_save_commands
       local tasks = task_list.serialize_tasks()
       if vim.tbl_isempty(tasks) then
@@ -96,6 +93,101 @@ M.setup = function(opts)
       vim.g.session_save_commands = cmds
     end,
   })
+end
+
+local initialized = false
+local pending_opts
+local function do_setup()
+  if not initialized then
+    init_once()
+    initialized = true
+  end
+  if pending_opts then
+    require("overseer.config").setup(pending_opts)
+    pending_opts = nil
+  end
+end
+
+local function lazy(mod, fn)
+  return function(...)
+    do_setup()
+    return require(string.format("overseer.%s", mod))[fn](...)
+  end
+end
+
+local function create_commands()
+  vim.api.nvim_create_user_command("OverseerOpen", lazy("commands", "_open"), {
+    desc = "Open the overseer window",
+  })
+  vim.api.nvim_create_user_command("OverseerClose", lazy("commands", "_close"), {
+    desc = "Close the overseer window",
+  })
+  vim.api.nvim_create_user_command("OverseerToggle", lazy("commands", "_toggle"), {
+    desc = "Toggle the overseer window",
+  })
+  vim.api.nvim_create_user_command("OverseerSaveBundle", lazy("commands", "_save_bundle"), {
+    desc = "Serialize the current tasks to disk",
+    nargs = "?",
+  })
+  vim.api.nvim_create_user_command("OverseerLoadBundle", lazy("commands", "_load_bundle"), {
+    desc = "Load tasks that were serialized to disk",
+    nargs = "?",
+  })
+  vim.api.nvim_create_user_command("OverseerDeleteBundle", lazy("commands", "_delete_bundle"), {
+    desc = "Delete a saved task bundle",
+    nargs = "?",
+  })
+  vim.api.nvim_create_user_command("OverseerRunCmd", lazy("commands", "_run_command"), {
+    desc = "Run a raw shell command",
+    nargs = "?",
+  })
+  vim.api.nvim_create_user_command("OverseerRun", lazy("commands", "_run_template"), {
+    desc = "Run a task from a template",
+    nargs = "*",
+  })
+  vim.api.nvim_create_user_command("OverseerBuild", lazy("commands", "_build_task"), {
+    desc = "Build a task from scratch",
+  })
+  vim.api.nvim_create_user_command("OverseerQuickAction", lazy("commands", "_quick_action"), {
+    nargs = "?",
+    desc = "Run an action on the most recent task",
+  })
+  vim.api.nvim_create_user_command("OverseerTaskAction", lazy("commands", "_task_action"), {
+    desc = "Select a task to run an action on",
+  })
+end
+
+local function create_testing_commands()
+  vim.api.nvim_create_user_command("OverseerTest", lazy("testing", "_test_dir"), {
+    desc = "Run tests for the current project",
+  })
+  vim.api.nvim_create_user_command("OverseerTestFile", lazy("testing", "_test_file"), {
+    desc = "Run tests for the current file",
+  })
+  vim.api.nvim_create_user_command("OverseerTestNearest", lazy("testing", "_test_nearest"), {
+    desc = "Run the nearest test in the current test file",
+  })
+  vim.api.nvim_create_user_command("OverseerTestLast", lazy("testing", "_test_last"), {
+    desc = "Reruns the last test that was run",
+  })
+  vim.api.nvim_create_user_command("OverseerTestAction", lazy("testing", "_test_action"), {
+    desc = "Toggle the test panel",
+  })
+  vim.api.nvim_create_user_command("OverseerTestRerunFailed", lazy("testing", "_rerun_failed"), {
+    desc = "Rerun tests that failed",
+  })
+  vim.api.nvim_create_user_command("OverseerToggleTestPanel", lazy("testing", "_toggle"), {
+    desc = "Toggle the test panel",
+  })
+end
+
+M.setup = function(opts)
+  create_commands()
+  create_testing_commands()
+  pending_opts = opts
+  if initialized then
+    do_setup()
+  end
 end
 
 M.wrap_test = function(name, opts)
@@ -116,23 +208,18 @@ M.wrap_test = function(name, opts)
   })
 end
 
-M.new_task = Task.new
+M.new_task = lazy("task", "new")
 
-M.toggle = window.toggle
-M.open = window.open
-M.close = window.close
+M.toggle = lazy("window", "toggle")
+M.open = lazy("window", "open")
+M.close = lazy("window", "close")
 
-M.list_task_bundles = task_bundle.list_task_bundles
-M.load_task_bundle = task_bundle.load_task_bundle
-M.save_task_bundle = task_bundle.save_task_bundle
-M.delete_task_bundle = task_bundle.delete_task_bundle
+M.list_task_bundles = lazy("task_bundle", "list_task_bundles")
+M.load_task_bundle = lazy("task_bundle", "load_task_bundle")
+M.save_task_bundle = lazy("task_bundle", "save_task_bundle")
+M.delete_task_bundle = lazy("task_bundle", "delete_task_bundle")
 
-M.run_template = commands.run_template
-
--- Re-export the constants
-for k, v in pairs(constants) do
-  M[k] = v
-end
+M.run_template = lazy("commands", "run_template")
 
 -- Used for vim-session integration.
 local timer_active = false
@@ -147,7 +234,7 @@ M._start_tasks = function(str)
   vim.defer_fn(function()
     local data = vim.json.decode(str)
     for _, params in ipairs(data) do
-      local task = Task.new(params)
+      local task = M.new_task(params)
       task:start()
     end
     timer_active = false
@@ -161,6 +248,12 @@ setmetatable(M, {
       rawset(t, key, val)
       return val
     else
+      -- allow top-level direct access to constants (e.g. overseer.STATUS)
+      local constants = require("overseer.constants")
+      if constants[key] then
+        rawset(t, key, constants[key])
+        return constants[key]
+      end
       error(string.format("Error requiring overseer.%s: %s", key, val))
     end
   end,

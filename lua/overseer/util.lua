@@ -1,4 +1,3 @@
-local hsluv = require("overseer.hsluv")
 local M = {}
 
 M.is_floating_win = function(winid)
@@ -303,6 +302,7 @@ end
 
 -- Attempts to find a green color from the current colorscheme
 M.find_success_color = function()
+  local hsluv = require("overseer.hsluv")
   local candidates = {
     "Constant",
     "Keyword",

@@ -7,51 +7,32 @@ local utils = require("overseer.testing.utils")
 local TEST_STATUS = data.TEST_STATUS
 local M = {}
 
-M.create_commands = function()
-  vim.api.nvim_create_user_command("OverseerTest", function()
-    M.test_dir()
-  end, {
-    desc = "Run tests for the current project",
-  })
-  vim.api.nvim_create_user_command("OverseerTestFile", function()
-    M.test_file()
-  end, {
-    desc = "Run tests for the current file",
-  })
-  vim.api.nvim_create_user_command("OverseerTestNearest", function()
-    M.test_nearest()
-  end, {
-    desc = "Run the nearest test in the current test file",
-  })
-  vim.api.nvim_create_user_command("OverseerTestLast", function()
-    M.test_last()
-  end, {
-    desc = "Reruns the last test that was run",
-  })
-  vim.api.nvim_create_user_command("OverseerTestAction", function()
-    M.test_action()
-  end, {
-    desc = "Toggle the test panel",
-  })
-  vim.api.nvim_create_user_command("OverseerTestRerunFailed", function()
-    M.rerun_failed()
-  end, {
-    desc = "Rerun tests that failed",
-  })
-  vim.api.nvim_create_user_command("OverseerToggleTestPanel", function()
-    panel.toggle()
-  end, {
-    desc = "Toggle the test panel",
-  })
-  local aug = vim.api.nvim_create_augroup("OverseerTests", {})
-  vim.api.nvim_create_autocmd("BufEnter", {
-    pattern = "*",
-    desc = "Update test signs when entering a buffer",
-    group = aug,
-    callback = function(params)
-      data.update_buffer_signs(params.buf)
-    end,
-  })
+M._test_dir = function(_params)
+  M.test_dir()
+end
+
+M._test_file = function(_params)
+  M.test_file()
+end
+
+M._test_nearest = function(_params)
+  M.test_nearest()
+end
+
+M._test_last = function(_params)
+  M.test_last()
+end
+
+M._test_action = function(_params)
+  M.test_action()
+end
+
+M._rerun_failed = function(_params)
+  M.rerun_failed()
+end
+
+M._toggle = function(_params)
+  panel.toggle()
 end
 
 M.test_dir = function(dirname)

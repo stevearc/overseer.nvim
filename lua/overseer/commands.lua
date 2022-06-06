@@ -10,93 +10,75 @@ local window = require("overseer.window")
 
 local M = {}
 
-M.create_commands = function()
-  vim.api.nvim_create_user_command("OverseerOpen", function()
-    window.open()
-  end, {
-    desc = "Open the overseer window",
-  })
-  vim.api.nvim_create_user_command("OverseerClose", function()
-    window.close()
-  end, {
-    desc = "Close the overseer window",
-  })
-  vim.api.nvim_create_user_command("OverseerToggle", function()
-    window.toggle()
-  end, {
-    desc = "Toggle the overseer window",
-  })
-  vim.api.nvim_create_user_command("OverseerSaveBundle", function(params)
-    task_bundle.save_task_bundle(params.args ~= "" and params.args or nil)
-  end, {
-    desc = "Serialize the current tasks to disk",
-    nargs = "?",
-  })
-  vim.api.nvim_create_user_command("OverseerLoadBundle", function(params)
-    task_bundle.load_task_bundle(params.args ~= "" and params.args or nil)
-  end, {
-    desc = "Load tasks that were serialized to disk",
-    nargs = "?",
-  })
-  vim.api.nvim_create_user_command("OverseerDeleteBundle", function(params)
-    task_bundle.delete_task_bundle(params.args ~= "" and params.args or nil)
-  end, {
-    desc = "Delete a saved task bundle",
-    nargs = "?",
-  })
-  vim.api.nvim_create_user_command("OverseerRunCmd", function(params)
-    if params.args ~= "" then
-      M.run_cmd({ cmd = params.args })
-    else
-      vim.ui.input({
-        prompt = "Command:",
-      }, function(cmd)
-        if cmd then
-          M.run_cmd({ cmd = cmd })
-        end
-      end)
-    end
-  end, {
-    desc = "Run a raw shell command",
-    nargs = "?",
-  })
-  vim.api.nvim_create_user_command("OverseerRun", function(params)
-    local name
-    local tags = {}
-    for _, str in ipairs(params.fargs) do
-      if constants.TAG:contains(str) then
-        table.insert(tags, str)
-      else
-        name = str
+M._open = function(_params)
+  window.open()
+end
+
+M._close = function(_params)
+  window.close()
+end
+
+M._toggle = function(_params)
+  window.toggle()
+end
+
+M._save_bundle = function(params)
+  task_bundle.save_task_bundle(params.args ~= "" and params.args or nil)
+end
+
+M._load_bundle = function(params)
+  task_bundle.load_task_bundle(params.args ~= "" and params.args or nil)
+end
+
+M._delete_bundle = function(params)
+  task_bundle.delete_task_bundle(params.args ~= "" and params.args or nil)
+end
+
+M._run_command = function(params)
+  if params.args ~= "" then
+    M.run_cmd({ cmd = params.args })
+  else
+    vim.ui.input({
+      prompt = "Command:",
+    }, function(cmd)
+      if cmd then
+        M.run_cmd({ cmd = cmd })
       end
+    end)
+  end
+end
+
+M._run_template = function(params)
+  local name
+  local tags = {}
+  for _, str in ipairs(params.fargs) do
+    if constants.TAG:contains(str) then
+      table.insert(tags, str)
+    else
+      name = str
     end
-    if name and not vim.tbl_isempty(tags) then
-      vim.notify(string.format("Cannot find template: %s is not a tag", name), vim.log.levels.ERROR)
-      return
-    end
-    local opts = {
-      name = name,
-      tags = tags,
-    }
-    M.run_template(opts)
-  end, {
-    desc = "Run a task from a template",
-    nargs = "*",
-  })
-  vim.api.nvim_create_user_command("OverseerBuild", M.build_task, {
-    desc = "Build a task from scratch",
-  })
-  vim.api.nvim_create_user_command("OverseerQuickAction", function(params)
-    M.quick_action(params.fargs[1])
-  end, {
-    nargs = "?",
-    desc = "Run an action on the most recent task",
-  })
-  vim.api.nvim_create_user_command("OverseerTaskAction", function(params)
-    M.task_action()
-  end, {
-    desc = "Select a task to run an action on",
-  })
+  end
+  if name and not vim.tbl_isempty(tags) then
+    vim.notify(string.format("Cannot find template: %s is not a tag", name), vim.log.levels.ERROR)
+    return
+  end
+  local opts = {
+    name = name,
+    tags = tags,
+  }
+  M.run_template(opts)
+end
+
+M._build_task = function(_params)
+  M.build_task()
+end
+
+M._quick_action = function(params)
+  M.quick_action(params.fargs[1])
+end
+
+M._task_action = function(params)
+  M.task_action()
 end
 
 -- TEMPLATE LOADING/RUNNING

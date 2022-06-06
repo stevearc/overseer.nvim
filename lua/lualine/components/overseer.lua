@@ -44,18 +44,19 @@ local constants = require("overseer.constants")
 local task_list = require("overseer.task_list")
 local util = require("overseer.util")
 local utils = require("lualine.utils.utils")
+local STATUS = constants.STATUS
 
 local default_icons = {
-  [constants.STATUS.FAILURE] = " ",
-  [constants.STATUS.CANCELED] = " ",
-  [constants.STATUS.SUCCESS] = " ",
-  [constants.STATUS.RUNNING] = "省",
+  [STATUS.FAILURE] = " ",
+  [STATUS.CANCELED] = " ",
+  [STATUS.SUCCESS] = " ",
+  [STATUS.RUNNING] = "省",
 }
 local default_no_icons = {
-  [constants.STATUS.FAILURE] = "F:",
-  [constants.STATUS.CANCELED] = "C:",
-  [constants.STATUS.SUCCESS] = "S:",
-  [constants.STATUS.RUNNING] = "R:",
+  [STATUS.FAILURE] = "F:",
+  [STATUS.CANCELED] = "C:",
+  [STATUS.SUCCESS] = "S:",
+  [STATUS.RUNNING] = "R:",
 }
 
 function M:init(options)
@@ -68,7 +69,7 @@ function M:init(options)
   end
   if self.options.colored then
     self.highlight_groups = {}
-    for _, status in ipairs(constants.STATUS.values) do
+    for _, status in ipairs(STATUS.values) do
       local hl = string.format("Overseer%s", status)
       local color = { fg = utils.extract_color_from_hllist("fg", { hl }) }
       self.highlight_groups[status] = self:create_hl(color, status)
@@ -88,7 +89,7 @@ function M:update_status()
   if self.options.label ~= "" then
     table.insert(pieces, self.options.label)
   end
-  for _, status in ipairs(constants.STATUS.values) do
+  for _, status in ipairs(STATUS.values) do
     local status_tasks = tasks_by_status[status]
     if self.symbols[status] and status_tasks then
       if self.options.colored then
