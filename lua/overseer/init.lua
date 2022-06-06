@@ -16,8 +16,15 @@ local M = {}
 -- * Extension doc (how to make your own template/component)
 -- * Extension names could collide. Namespace internal & external extensions separately
 
-local function init_once()
+local initialized = false
+local pending_opts
+local function do_setup()
+  if not pending_opts then
+    return
+  end
   local config = require("overseer.config")
+  config.setup(pending_opts)
+  pending_opts = nil
   local util = require("overseer.util")
   local success_color = util.find_success_color()
   vim.cmd(string.format(
@@ -87,19 +94,7 @@ local function init_once()
       vim.g.session_save_commands = cmds
     end,
   })
-end
-
-local initialized = false
-local pending_opts
-local function do_setup()
-  if not initialized then
-    init_once()
-    initialized = true
-  end
-  if pending_opts then
-    require("overseer.config").setup(pending_opts)
-    pending_opts = nil
-  end
+  initialized = true
 end
 
 local function lazy(mod, fn)
