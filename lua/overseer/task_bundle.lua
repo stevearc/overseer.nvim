@@ -1,8 +1,13 @@
 local confirm = require("overseer.confirm")
 local files = require("overseer.files")
+local log = require("overseer.log")
 local Task = require("overseer.task")
 local task_list = require("overseer.task_list")
 local M = {}
+
+local function get_bundle_dir()
+  return files.get_stdpath_filename("state", "overseer")
+end
 
 local function get_bundle_previewer()
   local ok, Previewer = pcall(require, "telescope.previewers.previewer")
@@ -26,10 +31,14 @@ local function get_bundle_previewer()
       vim.api.nvim_win_set_buf(status.preview_win, self.state.bufnr)
       local lines = {}
       local highlights = {}
-      local data = files.load_data_file(string.format("%s.bundle.json", entry.value))
+      local data = files.load_json_file(
+        files.join(get_bundle_dir(), string.format("%s.bundle.json", entry.value))
+      )
       for _, params in ipairs(data) do
-        local task = Task.new_uninitialized(params)
-        task:render(lines, highlights, 3)
+        local task_ok, task = pcall(Task.new_uninitialized, params)
+        if task_ok then
+          task:render(lines, highlights, 3)
+        end
       end
       vim.api.nvim_buf_set_lines(self.state.bufnr, 0, -1, true, lines)
       for _, hl in ipairs(highlights) do
@@ -40,13 +49,9 @@ local function get_bundle_previewer()
   })
 end
 
-_G.overseer_task_bundle_completion = function()
-  return M.list_task_bundles()
-end
-
 M.list_task_bundles = function()
-  local data_dir = files.get_data_dir()
-  local fd = vim.loop.fs_opendir(data_dir, nil, 32)
+  local bundle_dir = get_bundle_dir()
+  local fd = vim.loop.fs_opendir(bundle_dir, nil, 32)
   local entries = vim.loop.fs_readdir(fd)
   local ret = {}
   while entries do
@@ -66,12 +71,19 @@ end
 
 M.load_task_bundle = function(name)
   if name then
-    local data = files.load_data_file(string.format("%s.bundle.json", name))
+    local filepath = files.join(get_bundle_dir(), string.format("%s.bundle.json", name))
+    local data = files.load_json_file(filepath)
+    local count = 0
     for _, params in ipairs(data) do
-      local task = Task.new(params)
-      task:start()
+      local ok, task = pcall(Task.new, params)
+      if ok then
+        count = count + 1
+        task:start()
+      else
+        log:error("Could not load task in bundle %s: %s", filepath, task)
+      end
     end
-    vim.notify(string.format("Started %d tasks", #data))
+    vim.notify(string.format("Started %d tasks", count))
   else
     local tasks = M.list_task_bundles()
     if #tasks == 0 then
@@ -104,7 +116,8 @@ M.save_task_bundle = function(name, tasks)
     else
       serialized = task_list.serialize_tasks()
     end
-    if files.data_file_exists(filename) then
+    local filepath = files.join(get_bundle_dir(), filename)
+    if files.exists(filepath) then
       confirm({
         message = string.format(
           "%s exists.\nWould you like to overwrite it or append to it?",
@@ -118,17 +131,17 @@ M.save_task_bundle = function(name, tasks)
         default = 3,
       }, function(idx)
         if idx == 1 then
-          files.write_data_file(filename, serialized)
+          files.write_json_file(filepath, serialized)
         elseif idx == 2 then
-          local data = files.load_data_file(filename)
+          local data = files.load_json_file(files.join(get_bundle_dir(), filename))
           for _, new_task in ipairs(serialized) do
             table.insert(data, new_task)
           end
-          files.write_data_file(filename, data)
+          files.write_json_file(filepath, data)
         end
       end)
     else
-      files.write_data_file(filename, serialized)
+      files.write_json_file(filepath, serialized)
     end
   else
     vim.ui.input({
@@ -145,7 +158,7 @@ end
 M.delete_task_bundle = function(name)
   if name then
     local filename = string.format("%s.bundle.json", name)
-    if not files.delete_data_file(filename) then
+    if not files.delete_file(files.join(get_bundle_dir(), filename)) then
       vim.notify(string.format("No task bundle at %s", filename))
     end
   else

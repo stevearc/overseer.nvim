@@ -19,8 +19,18 @@ M.is_subpath = function(dir, path)
   return string.sub(path, 0, string.len(dir)) == dir
 end
 
-M.get_data_dir = function()
-  return M.join(vim.fn.stdpath("data"), "overseer")
+M.get_stdpath_filename = function(stdpath, ...)
+  local ok, dir = pcall(vim.fn.stdpath, stdpath)
+  if not ok then
+    if stdpath == "log" then
+      return M.get_stdpath_filename("cache", ...)
+    elseif stdpath == "state" then
+      return M.get_stdpath_filename("data", ...)
+    else
+      error(dir)
+    end
+  end
+  return M.join(dir, ...)
 end
 
 M.read_file = function(filepath)
@@ -39,8 +49,7 @@ M.gen_random_filename = function(data_dir, basename)
   for _ = 1, 5 do
     num = 10 * num + math.random(0, 9)
   end
-  local filename = basename:format(num)
-  return M.join(vim.fn.stdpath(data_dir), "overseer", filename)
+  return M.get_stdpath_filename(data_dir, "overseer", basename:format(num))
 end
 
 M.load_json_file = function(filepath)
@@ -48,12 +57,6 @@ M.load_json_file = function(filepath)
   if content then
     return vim.json.decode(content)
   end
-end
-
-M.data_file_exists = function(filename)
-  local data_dir = M.get_data_dir()
-  local filepath = M.join(data_dir, filename)
-  return M.exists(filepath)
 end
 
 M.mkdir = function(dirname, perms)
@@ -83,25 +86,8 @@ M.delete_file = function(filename)
   end
 end
 
-M.write_data_file = function(filename, data)
-  local data_dir = M.get_data_dir()
-  M.mkdir(data_dir)
-  local filepath = M.join(data_dir, filename)
-  local fd = vim.loop.fs_open(filepath, "w", 420) -- 0644
-  vim.loop.fs_write(fd, vim.json.encode(data))
-  vim.loop.fs_close(fd)
-end
-
-M.delete_data_file = function(filename)
-  local data_dir = M.get_data_dir()
-  local filepath = M.join(data_dir, filename)
-  return M.delete_file(filepath)
-end
-
-M.load_data_file = function(filename)
-  local data_dir = M.get_data_dir()
-  local filepath = M.join(data_dir, filename)
-  return M.load_json_file(filepath)
+M.write_json_file = function(filename, obj)
+  M.write_file(filename, vim.json.encode(obj))
 end
 
 return M
