@@ -45,6 +45,7 @@ M.register = function(opts)
     description = { opts.description, "s", true },
     params = { opts.params, "t", true },
     constructor = { opts.constructor, "f" },
+    editable = { opts.editable, "b", true },
   })
   if opts.name:match("%s") then
     error("Component name cannot have whitespace")
@@ -59,11 +60,19 @@ M.register = function(opts)
         -- default = any type
       })
       if name:match("%s") then
-        error(string.format("Component %s param %s cannot have whitespace", opts.name, name))
+        log:error("Component %s param %s cannot contain whitespace", opts.name, name)
+        return
+      end
+      -- Default editable = false if any types are opaque
+      if param.type == "opaque" and opts.editable == nil then
+        opts.editable = false
       end
     end
   else
     opts.params = {}
+  end
+  if opts.editable == nil then
+    opts.editable = true
   end
 
   registry[opts.name] = opts
@@ -110,8 +119,14 @@ M.stringify_alias = function(name)
   return table.concat(strings, ", ")
 end
 
-M.list = function()
-  return vim.tbl_keys(registry)
+M.list_editable = function()
+  local ret = {}
+  for k, v in pairs(registry) do
+    if v.editable then
+      table.insert(ret, k)
+    end
+  end
+  return ret
 end
 
 M.list_aliases = function()

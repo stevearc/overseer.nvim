@@ -198,7 +198,7 @@ M.open = function(task, task_cb)
     for _, comp in ipairs(components) do
       existing[comp[1]] = true
     end
-    for _, v in ipairs(component.list()) do
+    for _, v in ipairs(component.list_editable()) do
       if not existing[v] then
         table.insert(options, v)
       end

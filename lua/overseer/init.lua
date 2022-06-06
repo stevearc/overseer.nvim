@@ -2,7 +2,6 @@ local M = {}
 
 -- TODO
 -- * Components can set serializable = false (either fail serialization or silently exclude component)
--- * Components can set editable = false (can't add or edit it)
 -- * More task templates
 -- * Add tests
 -- * More comments
