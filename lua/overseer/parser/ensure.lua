@@ -1,7 +1,7 @@
 local parser = require("overseer.parser")
 local Ensure = {}
 
-local MAX_LOOP = 10
+local MAX_LOOP = 2
 
 function Ensure.new(succeed, child)
   if type(succeed) ~= "boolean" then
@@ -29,7 +29,6 @@ function Ensure:ingest(...)
       return st
     end
   end
-  -- TODO log warning
   return parser.STATUS.RUNNING
 end
 

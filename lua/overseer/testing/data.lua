@@ -1,3 +1,4 @@
+local config = require("overseer.config")
 local Enum = require("overseer.enum")
 local integrations = require("overseer.testing.integrations")
 local tutils = require("overseer.testing.utils")
@@ -198,12 +199,7 @@ local function set_test_result_signs(bufnr, integ)
       end
     end
   end
-  vim.diagnostic.set(test_ns, bufnr, diagnostics, {
-    -- TODO configure these
-    -- virtual_text = params.virtual_text,
-    -- signs = params.signs,
-    -- underline = params.underline,
-  })
+  vim.diagnostic.set(test_ns, bufnr, diagnostics, config.testing.diagnostics)
   local varname = string.format("overseer_test_results_version_%s", integ.id)
   vim.api.nvim_buf_set_var(bufnr, varname, test_results_version[integ.id])
 end
@@ -334,8 +330,8 @@ end
 
 M.reset_dir_results = function(dirname, status)
   status = status or TEST_STATUS.NONE
-  -- TODO figure out which values to clear instead of clearing all of them
   reset_on_next_results = true
+  -- TODO figure out which values to clear instead of clearing all of them
   for _, v in pairs(all_results) do
     v.status = status
     v.stacktrace = nil

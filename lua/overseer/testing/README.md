@@ -12,6 +12,7 @@
   - csharp dotnettest
   - another go framework?
 - How to handle multiple integrations on a workspace/buffer? (e.g. lua busted & plenary busted)
+- Might need to do some per-directory sandboxing
 - Test playlists
 - Show which integrations are active for (dir/buffer)
 - Debug test integration

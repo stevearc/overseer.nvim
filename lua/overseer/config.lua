@@ -64,6 +64,8 @@ local default_config = {
       max_width = { 100, 0.2 },
       min_width = { 40, 0.1 },
     },
+    -- Passed to vim.diagnostic.set()
+    diagnostics = {},
     max_concurrent_tests = 4,
     icons = {
       NONE = " ",
