@@ -15,6 +15,11 @@ local M = {}
 -- * Extension doc (how to make your own template/component)
 -- * Extension names could collide. Namespace internal & external extensions separately
 
+local setup_callbacks = {}
+M.on_setup = function(callback)
+  table.insert(setup_callbacks, callback)
+end
+
 local initialized = false
 local pending_opts
 local function do_setup()
@@ -77,6 +82,9 @@ local function do_setup()
     end,
   })
   initialized = true
+  for _, cb in ipairs(setup_callbacks) do
+    cb()
+  end
 end
 
 local function lazy(mod, fn)
