@@ -1,13 +1,13 @@
 local M = {}
 
 -- TODO
+-- * refactor form params to only parse on submit or lose focus
 -- * More task templates (vscode special tasks)
 -- * Maybe add dotted path to component/template names for lazy resolution?
 -- * Add tests
 -- * More comments
 -- * More schema validations (callback, non-empty list, number greater than, enum, list[enum])
 --   * list params allow escaping / quotes / specifying delimiter
--- * Pull as much logic out of the closures as possible
 -- * Dynamic window sizing for task editor
 -- * _maybe_ support other run strategies besides terminal
 -- * Basic Readme

@@ -53,17 +53,8 @@ M.register = function(opts)
   end
   opts._type = "OverseerComponent"
   if opts.params then
-    for name, param in pairs(opts.params) do
-      vim.validate({
-        description = { param.description, "s", true },
-        optional = { param.optional, "b", true },
-        type = { param.type, "s", true },
-        -- default = any type
-      })
-      if name:match("%s") then
-        log:error("Component %s param %s cannot contain whitespace", opts.name, name)
-        return
-      end
+    form.validate_params(opts.params)
+    for _, param in pairs(opts.params) do
       -- Default editable = false if any types are opaque
       if param.type == "opaque" and opts.editable == nil then
         opts.editable = false

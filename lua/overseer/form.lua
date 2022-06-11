@@ -4,17 +4,57 @@ local log = require("overseer.log")
 local util = require("overseer.util")
 local M = {}
 
-M.render_field = function(schema, prefix, name, value)
+local default_schema = {
+  list = {
+    delimiter = ", ",
+    subtype = { type = "string" },
+  },
+}
+
+M.validate_params = function(params)
+  for name, param in pairs(params) do
+    if not param.type then
+      param.type = "string"
+    end
+    if name:match("%s") then
+      error(string.format("Param '%s' cannot contain whitespace", name))
+    end
+    vim.validate({
+      name = { param.name, "s", true },
+      description = { param.description, "s", true },
+      optional = { param.optional, "b", true },
+      -- default = any type
+    })
+    local default = default_schema[param.type]
+    if default then
+      for k, v in pairs(default) do
+        if not param[k] then
+          param[k] = v
+        end
+      end
+    end
+  end
+end
+
+M.render_value = function(schema, value)
   if value == nil then
-    value = ""
+    return ""
   end
   if schema.type == "opaque" then
-    value = "<opaque>"
+    return "<opaque>"
   elseif type(value) == "table" then
-    value = table.concat(value, " ")
+    local rendered_values = {}
+    for _, v in ipairs(value) do
+      table.insert(rendered_values, M.render_value(schema.subtype or {}, v))
+    end
+    return table.concat(rendered_values, schema.delimiter or ", ")
   end
+  return value
+end
 
-  return string.format("%s%s: %s", prefix, name, value)
+M.render_field = function(schema, prefix, name, value)
+  local str_value = M.render_value(schema, value)
+  return string.format("%s%s: %s", prefix, name, str_value)
 end
 
 M.validate_field = function(schema, value)
@@ -51,8 +91,15 @@ M.parse_value = function(schema, value)
   elseif value == "" then
     return true, nil
   elseif schema.type == "list" then
-    -- TODO escaping? configurable delimiter? quoting?
-    return true, vim.split(value, "%s+")
+    local values = vim.split(value, "%s*" .. schema.delimiter .. "%s*")
+    local success
+    for i, v in ipairs(values) do
+      success, values[i] = M.parse_value(schema.subtype, v)
+      if not success then
+        return false, nil
+      end
+    end
+    return true, values
   elseif schema.type == "number" then
     local num = tonumber(value)
     -- If the number ends with '.' or '.0' don't parse it yet, because that will

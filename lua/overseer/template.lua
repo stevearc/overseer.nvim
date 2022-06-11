@@ -1,4 +1,5 @@
 local files = require("overseer.files")
+local form = require("overseer.form")
 local log = require("overseer.log")
 local Task = require("overseer.task")
 local template_builder = require("overseer.template_builder")
@@ -155,14 +156,8 @@ function Template.new(opts)
   else
     opts.condition = {}
   end
-  for _, param in pairs(opts.params) do
-    vim.validate({
-      name = { param.name, "s", true },
-      description = { param.description, "s", true },
-      optional = { param.optional, "b", true },
-      -- default = any type
-    })
-  end
+  form.validate_params(opts.params)
+  print(string.format("params: %s", opts.params))
   return setmetatable(opts, { __index = Template })
 end
 

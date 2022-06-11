@@ -5,7 +5,7 @@ M.tox = {
   name = "tox",
   priority = 60,
   params = {
-    args = { optional = true, type = "list" },
+    args = { optional = true, type = "list", delimiter = " " },
   },
   condition = {
     callback = function(self, opts)

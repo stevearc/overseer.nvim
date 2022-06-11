@@ -284,6 +284,7 @@ function Builder:confirm()
 end
 
 M.open = function(title, schema, params, callback)
+  form.validate_params(schema)
   if vim.tbl_isempty(schema) then
     callback(params)
     return

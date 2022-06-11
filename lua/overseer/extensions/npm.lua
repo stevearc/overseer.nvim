@@ -5,7 +5,7 @@ M.npm = {
   name = "npm",
   priority = 60,
   params = {
-    args = { optional = true, type = "list" },
+    args = { optional = true, type = "list", delimiter = " " },
     use_yarn = { optional = true, type = "bool" },
   },
   condition = {

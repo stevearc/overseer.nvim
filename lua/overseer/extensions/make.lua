@@ -8,7 +8,7 @@ M.make = {
   priority = 60,
   tags = { TAG.BUILD },
   params = {
-    args = { optional = true, type = "list" },
+    args = { optional = true, type = "list", delimiter = " " },
   },
   condition = {
     callback = function(self, opts)

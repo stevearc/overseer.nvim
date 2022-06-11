@@ -13,7 +13,7 @@ M.on_status_run_task = {
       default = STATUS.SUCCESS,
     },
     task_names = {
-      description = "Names of the task template to trigger",
+      description = "Names of the task templates to trigger",
       type = "list",
     },
     sequence = {
