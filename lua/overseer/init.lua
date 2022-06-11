@@ -2,6 +2,7 @@ local M = {}
 
 -- TODO
 -- * More task templates (vscode special tasks)
+-- * Maybe add dotted path to component/template names for lazy resolution?
 -- * Add tests
 -- * More comments
 -- * More schema validations (callback, non-empty list, number greater than, enum, list[enum])

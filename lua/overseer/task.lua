@@ -59,6 +59,7 @@ function Task.new_uninitialized(opts)
     env = opts.env,
     name = name,
     bufnr = nil,
+    exit_code = nil,
     prev_bufnr = nil,
     components = {},
   }
@@ -316,6 +317,7 @@ function Task:reset(soft)
     return
   end
   self.result = nil
+  self.exit_code = nil
   -- Soft reset allows components & state to be reset without affecting the
   -- underlying process & buffer
   if not soft or not self:is_running() then
@@ -433,6 +435,7 @@ end
 
 function Task:_on_exit(_job_id, code)
   self.chan_id = nil
+  self.exit_code = code
   if not self:is_running() then
     -- We've already finalized, so we probably canceled this task
     return
