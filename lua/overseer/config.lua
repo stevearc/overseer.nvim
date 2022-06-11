@@ -41,40 +41,12 @@ local default_config = {
       "on_rerun_handler",
       "dispose_delay",
     },
-    default_test = {
-      "default",
-      "on_result_report_tests",
-    },
     default_persist = {
       "on_output_summarize",
       "result_exit_code",
       "on_result_notify",
       "on_rerun_handler",
       "rerun_on_result",
-    },
-  },
-  testing = {
-    actions = {},
-    disable = nil,
-    modify = nil,
-    disable_builtin = false,
-    vim_test_fallback = true,
-    dirs = {},
-    sidebar = {
-      max_width = { 100, 0.2 },
-      min_width = { 40, 0.1 },
-    },
-    -- Passed to vim.diagnostic.set()
-    diagnostics = {},
-    max_concurrent_tests = 4,
-    icons = {
-      NONE = " ",
-      RUNNING = " ",
-      SUCCESS = " ",
-      FAILURE = " ",
-      SKIPPED = " ",
-      Collapsed = " ",
-      File = " ",
     },
   },
 }
@@ -112,21 +84,6 @@ M.setup = function(opts)
 
   M.actions = merge_actions(require("overseer.task_list.actions"), newconf.actions)
 
-  for k, v in pairs(newconf.testing.icons) do
-    local hl_name = string.format("OverseerTest%s", k)
-    vim.fn.sign_define(hl_name, {
-      text = v,
-      texthl = hl_name,
-      linehl = "",
-      numhl = "",
-    })
-  end
-
-  for k, v in pairs(M.testing.dirs) do
-    M.add_test_dir(k, v)
-  end
-  M.testing.actions = merge_actions(require("overseer.testing.actions"), newconf.testing.actions)
-
   for _, v in util.iter_as_list(M.extensions) do
     extensions.register(v)
   end
@@ -136,16 +93,6 @@ M.setup = function(opts)
   for k, v in pairs(M.component_sets) do
     component.alias(k, v)
   end
-end
-
-M.add_test_dir = function(dirname, integrations)
-  local fullpath = vim.fn.expand(dirname)
-  for i, v in ipairs(integrations) do
-    if type(v) == "string" then
-      integrations[i] = require(string.format("overseer.testing.%s", v))
-    end
-  end
-  M.testing.dirs[fullpath] = integrations
 end
 
 return M

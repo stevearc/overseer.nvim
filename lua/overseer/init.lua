@@ -39,14 +39,7 @@ local function do_setup()
     hi default link OverseerOutput Normal
     hi default link OverseerComponent Constant
     hi default link OverseerField Keyword
-    hi default link OverseerTestNONE Normal
-    hi default link OverseerTestRUNNING Constant
-    hi default link OverseerTestSUCCESS %s
-    hi default link OverseerTestFAILURE DiagnosticError
-    hi default link OverseerTestSKIPPED DiagnosticWarn
-    hi default link OverseerTestDuration Comment
   ]],
-    success_color,
     success_color
   ))
   local aug = vim.api.nvim_create_augroup("Overseer", {})
@@ -58,19 +51,9 @@ local function do_setup()
       callback = function()
         success_color = util.find_success_color()
         vim.cmd(string.format("hi link OverseerSUCCESS %s", success_color))
-        vim.cmd(string.format("hi link OverseerTestSUCCESS %s", success_color))
       end,
     })
   end
-  local testing_data = require("overseer.testing.data")
-  vim.api.nvim_create_autocmd("BufEnter", {
-    pattern = "*",
-    desc = "Update test signs when entering a buffer",
-    group = aug,
-    callback = function(params)
-      testing_data.update_buffer_signs(params.buf)
-    end,
-  })
   vim.api.nvim_create_autocmd("User", {
     pattern = "SessionSavePre",
     desc = "Save task state when vim-session saves",
@@ -145,55 +128,12 @@ local function create_commands()
   })
 end
 
-local function create_testing_commands()
-  vim.api.nvim_create_user_command("OverseerTest", lazy("testing", "_test_dir"), {
-    desc = "Run tests for the current project",
-  })
-  vim.api.nvim_create_user_command("OverseerTestFile", lazy("testing", "_test_file"), {
-    desc = "Run tests for the current file",
-  })
-  vim.api.nvim_create_user_command("OverseerTestNearest", lazy("testing", "_test_nearest"), {
-    desc = "Run the nearest test in the current test file",
-  })
-  vim.api.nvim_create_user_command("OverseerTestLast", lazy("testing", "_test_last"), {
-    desc = "Reruns the last test that was run",
-  })
-  vim.api.nvim_create_user_command("OverseerTestAction", lazy("testing", "_test_action"), {
-    desc = "Toggle the test panel",
-  })
-  vim.api.nvim_create_user_command("OverseerTestRerunFailed", lazy("testing", "_rerun_failed"), {
-    desc = "Rerun tests that failed",
-  })
-  vim.api.nvim_create_user_command("OverseerToggleTestPanel", lazy("testing", "_toggle"), {
-    desc = "Toggle the test panel",
-  })
-end
-
 M.setup = function(opts)
   create_commands()
-  create_testing_commands()
   pending_opts = opts
   if initialized then
     do_setup()
   end
-end
-
-M.wrap_test = function(name, opts)
-  if opts.parser then
-    vim.notify(
-      string.format("Do not replace the parser of %s. Create a new integration instead", name),
-      vim.log.levels.ERROR
-    )
-  end
-  return setmetatable(opts, {
-    __index = function(_, key)
-      if key == "super" then
-        return require(string.format("overseer.testing.%s", name))
-      else
-        return require(string.format("overseer.testing.%s", name))[key]
-      end
-    end,
-  })
 end
 
 M.new_task = lazy("task", "new")
