@@ -50,7 +50,9 @@ end
 M.serialize_tasks = function()
   local ret = {}
   for _, task in ipairs(tasks) do
-    table.insert(ret, task:serialize())
+    if task:is_serializable() then
+      table.insert(ret, task:serialize())
+    end
   end
   return ret
 end

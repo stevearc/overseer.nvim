@@ -155,11 +155,24 @@ function Task:render(lines, highlights, detail)
   end
 end
 
+function Task:is_serializable()
+  for _, comp in ipairs(self.components) do
+    if comp.serialize == "fail" then
+      return false
+    end
+  end
+  return true
+end
+
 -- Returns the arguments require to create a clone of this task
 function Task:serialize()
   local components = {}
   for _, comp in ipairs(self.components) do
-    table.insert(components, comp.params)
+    if comp.serialize == "fail" then
+      error(string.format("Cannot serialize component %s", comp.name))
+    elseif comp.serialize ~= "exclude" then
+      table.insert(components, comp.params)
+    end
   end
   return {
     name = self.name,

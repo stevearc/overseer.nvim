@@ -1,8 +1,7 @@
 local M = {}
 
 -- TODO
--- * Components can set serializable = false (either fail serialization or silently exclude component)
--- * More task templates
+-- * More task templates (vscode special tasks)
 -- * Add tests
 -- * More comments
 -- * More schema validations (callback, non-empty list, number greater than, enum, list[enum])

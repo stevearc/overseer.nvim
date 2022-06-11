@@ -46,6 +46,7 @@ M.register = function(opts)
     params = { opts.params, "t", true },
     constructor = { opts.constructor, "f" },
     editable = { opts.editable, "b", true },
+    serialize = { opts.serialize, "s", true }, -- 'exclude' or 'fail'
   })
   if opts.name:match("%s") then
     error("Component name cannot have whitespace")
