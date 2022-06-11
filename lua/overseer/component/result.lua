@@ -9,7 +9,11 @@ M.result_exit_code = {
   name = "result_exit_code",
   description = "Sets status based on exit code",
   params = {
-    success_codes = { type = "list", optional = true },
+    success_codes = {
+      type = "list",
+      optional = true,
+      description = "Additional exit codes to consider as success",
+    },
     parser = { optional = true },
   },
   constructor = function(params)
