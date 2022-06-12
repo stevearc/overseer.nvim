@@ -52,9 +52,13 @@ M.gen_random_filename = function(data_dir, basename)
   return M.get_stdpath_filename(data_dir, "overseer", basename:format(num))
 end
 
-M.load_json_file = function(filepath)
+M.load_json_file = function(filepath, sanitize)
   local content = M.read_file(filepath)
   if content then
+    if sanitize then
+      -- Get rid of linewise comments
+      content = content:gsub("\n%s*//[^\n]*", "\n")
+    end
     return vim.json.decode(content)
   end
 end

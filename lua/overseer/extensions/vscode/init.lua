@@ -8,12 +8,21 @@ local STATUS = constants.STATUS
 
 local M = {}
 
+local function get_npm_bin(name)
+  local package_bin = files.join("node_modules", ".bin", name)
+  if files.exists(package_bin) then
+    return package_bin
+  end
+  return name
+end
+
 M.get_cmd = function(defn)
+  -- TODO support more task types: gulp, grunt, jake
   if defn.type == "process" then
     local cmd = defn.args or {}
     table.insert(cmd, 1, defn.command)
     return cmd
-  else
+  elseif defn.type == "shell" then
     local args = {}
     for _, arg in ipairs(defn.args or {}) do
       if type(arg) == "string" then
@@ -23,15 +32,24 @@ M.get_cmd = function(defn)
         table.insert(args, vim.fn.shellescape(arg.value))
       end
     end
-    local cmd = defn.command
-    if cmd:match("%s") then
-      cmd = vim.fn.shellescape(cmd)
-    end
     if #args > 0 then
       return string.format("%s %s", defn.command, table.concat(args, " "))
     else
-      return cmd
+      return defn.command
     end
+  elseif defn.type == "npm" then
+    local use_yarn = files.exists("yarn.lock")
+    return { use_yarn and "yarn" or "npm", defn.script }
+  elseif defn.type == "typescript" then
+    local cmd = { get_npm_bin("tsc") }
+    if defn.tsconfig then
+      table.insert(cmd, "-p")
+      table.insert(cmd, defn.tsconfig)
+    end
+    if defn.option then
+      table.insert(cmd, string.format("--%s", defn.option))
+    end
+    return cmd
   end
 end
 
@@ -87,6 +105,7 @@ end
 local group_to_tag = {
   test = constants.TAG.TEST,
   build = constants.TAG.BUILD,
+  clean = constants.TAG.CLEAN,
 }
 
 M.convert_vscode_task = function(defn)
@@ -98,7 +117,7 @@ M.convert_vscode_task = function(defn)
       builder = function(self, params)
         return {
           name = defn.label,
-          -- TODO this is kind of a hack
+          -- TODO this is kind of a hack. Create a dummy task that kicks off the others.
           cmd = "sleep 1",
           components = {
             "result_exit_code",
@@ -115,15 +134,15 @@ M.convert_vscode_task = function(defn)
       end,
     })
   end
-  -- TODO we only support shell & process tasks
-  if defn.type ~= "shell" and defn.type ~= "process" then
+  local cmd = M.get_cmd(defn)
+  if not cmd then
     return nil
   end
-  local cmd = M.get_cmd(defn)
   local opt = defn.options
 
   local tmpl = {
     name = defn.label,
+    description = defn.detail,
     params = M.parse_params(defn),
     builder = function(self, params)
       local task = {
@@ -131,7 +150,7 @@ M.convert_vscode_task = function(defn)
         cmd = variables.replace_vars(cmd, params),
         components = {
           { "result_vscode_task", problem_matcher = defn.problemMatcher },
-          "default",
+          "default_vscode",
         },
       }
       if defn.problemMatcher then
@@ -162,10 +181,10 @@ M.convert_vscode_task = function(defn)
       tmpl.tags = { group_to_tag[defn.group] }
     else
       tmpl.tags = { group_to_tag[defn.group.kind] }
+      if defn.isDefault then
+        tmpl.priority = 40
+      end
     end
-  end
-  if defn.isDefault then
-    tmpl.priority = 40
   end
 
   -- NOTE: we ignore defn.presentation
@@ -195,14 +214,23 @@ M.result_vscode_task = {
     problem_matcher = { type = "opaque", optional = true },
   },
   constructor = function(params)
-    local parser_defn = problem_matcher.get_parser_from_problem_matcher(params.problem_matcher)
+    local pm = problem_matcher.resolve_problem_matcher(params.problem_matcher)
+    local parser_defn = problem_matcher.get_parser_from_problem_matcher(pm)
     local p
     local begin_test
     local end_test
     local active_on_start = true
     if parser_defn then
       p = parser.new({ diagnostics = parser_defn })
-      local background = params.problem_matcher and params.problem_matcher.background
+      local background = pm.background
+      if vim.tbl_islist(pm) then
+        for _, v in ipairs(pm) do
+          if v.background then
+            background = v.background
+            break
+          end
+        end
+      end
       if background then
         active_on_start = background.activeOnStart
         begin_test = pattern_to_test(background.beginsPattern)
@@ -259,7 +287,7 @@ M.vscode_tasks = {
     end,
   },
   metagen = function(self, opts)
-    local content = files.load_json_file(files.join(opts.dir, ".vscode", "tasks.json"))
+    local content = files.load_json_file(files.join(opts.dir, ".vscode", "tasks.json"), true)
     local global_defaults = {}
     for k, v in pairs(content) do
       if k ~= "version" and k ~= "tasks" then

@@ -4,6 +4,6 @@ local M = {}
 
 M.STATUS = Enum.new({ "PENDING", "RUNNING", "CANCELED", "SUCCESS", "FAILURE", "DISPOSED" })
 
-M.TAG = Enum.new({ "BUILD", "TEST" })
+M.TAG = Enum.new({ "BUILD", "TEST", "CLEAN" })
 
 return M

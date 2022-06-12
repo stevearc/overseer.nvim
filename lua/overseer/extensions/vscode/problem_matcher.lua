@@ -1,4 +1,5 @@
 local parser = require("overseer.parser")
+local log = require("overseer.log")
 local M = {}
 
 -- Taken from https://github.com/microsoft/vscode/blob/main/src/vs/workbench/contrib/tasks/common/problemMatcher.ts#L1207
@@ -348,30 +349,53 @@ local function convert_pattern(pattern, opts)
   return extract
 end
 
-M.get_parser_from_problem_matcher = function(problem_matcher)
+M.resolve_problem_matcher = function(problem_matcher)
   if not problem_matcher then
     return nil
   end
   if type(problem_matcher) == "string" then
-    return M.get_parser_from_problem_matcher(default_matchers[problem_matcher])
+    local pm = default_matchers[problem_matcher]
+    if not pm then
+      log:warn("Could not find problem matcher %s", problem_matcher)
+    end
+    return pm
   elseif vim.tbl_islist(problem_matcher) then
     local children = {}
     for _, v in ipairs(problem_matcher) do
-      table.insert(children, M.get_parser_from_problem_matcher(v))
+      local pm = M.resolve_problem_matcher(v)
+      if pm then
+        table.insert(children, pm)
+      end
+    end
+    if vim.tbl_isempty(children) then
+      return nil
+    end
+    return children
+  end
+  if problem_matcher.base then
+    if default_matchers[problem_matcher.base] then
+      return vim.tbl_deep_extend("keep", problem_matcher, default_matchers[problem_matcher.base])
+    else
+      log:warn("Could not find problem matcher %s", problem_matcher.base)
+    end
+  end
+  return problem_matcher
+end
+
+M.get_parser_from_problem_matcher = function(problem_matcher)
+  if not problem_matcher then
+    return nil
+  end
+  if vim.tbl_islist(problem_matcher) then
+    local children = {}
+    for _, v in ipairs(problem_matcher) do
+      vim.list_extend(children, M.get_parser_from_problem_matcher(v))
     end
     return { parser.parallel({ break_on_first_failure = false }, unpack(children)) }
   end
   -- NOTE: we ignore matcher.owner
   -- TODO: support matcher.fileLocation
   local qf_type = severity_to_type[problem_matcher.severity]
-  if problem_matcher.base then
-    problem_matcher = vim.tbl_deep_extend(
-      "force",
-      problem_matcher,
-      default_matchers[problem_matcher.base]
-    )
-  end
-
   local pattern = problem_matcher.pattern
   if vim.tbl_islist(pattern) then
     local ret = {}

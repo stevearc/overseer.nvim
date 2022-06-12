@@ -157,7 +157,6 @@ function Template.new(opts)
     opts.condition = {}
   end
   form.validate_params(opts.params)
-  print(string.format("params: %s", opts.params))
   return setmetatable(opts, { __index = Template })
 end
 

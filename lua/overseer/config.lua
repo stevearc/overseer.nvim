@@ -48,6 +48,11 @@ local default_config = {
       "on_rerun_handler",
       "rerun_on_result",
     },
+    default_vscode = {
+      "default",
+      "on_result_diagnostics",
+      "on_result_diagnostics_quickfix",
+    },
   },
 }
 
