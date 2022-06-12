@@ -6,7 +6,7 @@ Will be updated & history overwritten if it's ever ready for release
 
 Remaining VS Code features
 
-- [ ] task types for npm, gulp, grunt, jake, and typescript
+- [ ] task types for gulp, grunt, and jake
 - [ ] shell-specific quoting
 - [ ] better interface for `pickString` inputs
 - [ ] some sort of hook for `command` inputs

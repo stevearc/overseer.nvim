@@ -1,5 +1,6 @@
 local component = require("overseer.component")
 local constants = require("overseer.constants")
+local form = require("overseer.form")
 local log = require("overseer.log")
 local task_list = require("overseer.task_list")
 local util = require("overseer.util")
@@ -113,17 +114,10 @@ function Task:render(lines, highlights, detail)
         table.insert(lines, comp.name)
       end
 
+      local comp_def = component.get(comp.name)
       for k, v in pairs(comp.params) do
         if k ~= 1 then
-          if type(v) == "table" and vim.tbl_islist(v) then
-            v = table.concat(
-              vim.tbl_map(function(item)
-                return tostring(item)
-              end, v),
-              ", "
-            )
-          end
-          table.insert(lines, string.format("  %s: %s", k, v))
+          table.insert(lines, form.render_field(comp_def.params[k], "  ", k, v))
         end
       end
 
