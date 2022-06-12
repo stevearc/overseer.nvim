@@ -3,6 +3,15 @@ local files = require("overseer.files")
 local TAG = constants.TAG
 local M = {}
 
+local make_targets = [[
+(rule (targets) @name)
+
+(rule (targets) @phony (#eq? @phony ".PHONY")
+  normal: (prerequisites
+    (word) @name)
+)
+]]
+
 M.make = {
   name = "make",
   priority = 60,
@@ -17,26 +26,21 @@ M.make = {
   },
   metagen = function(self, opts)
     local content = files.read_file(files.join(opts.dir, "Makefile"))
+
+    local parser = vim.treesitter.get_string_parser(content, "make")
+    if not parser then
+      return { self }
+    end
+    local query = vim.treesitter.parse_query("make", make_targets)
+    local root = parser:parse()[1]:root()
+    pcall(vim.tbl_add_reverse_lookup, query.captures)
     local targets = {}
     local default_target
-    for line in vim.gsplit(content, "\n") do
-      local name = line:match("^([a-zA-Z_]+)%s*:")
-      if name then
-        targets[name] = true
-        if not default_target then
-          default_target = name
-        end
-      else
-        local phony = line:match("^%.PHONY%s*: (.+)$")
-        if phony then
-          for t in vim.gsplit(phony, "%s+") do
-            -- TODO we could be fancy and try to figure out the variable
-            -- substitution, but for now let's just take the easy targets
-            if t:match("^[a-zA-Z_]+$") then
-              targets[t] = true
-            end
-          end
-        end
+    for _, match in query:iter_matches(root, content) do
+      local name = vim.treesitter.get_node_text(match[query.captures.name], content)
+      targets[name] = true
+      if not default_target and not match[query.captures.phony] then
+        default_target = name
       end
     end
 
