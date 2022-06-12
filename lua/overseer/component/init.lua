@@ -1,3 +1,4 @@
+local config = require("overseer.config")
 local form = require("overseer.form")
 local log = require("overseer.log")
 local M = {}
@@ -9,39 +10,24 @@ local M = {}
 local registry = {}
 local aliases = {}
 
-local builtin_modules = { "cleanup", "misc", "notify", "rerun", "result", "summary" }
+local builtin_components = {
+  "on_output_summarize",
+  "on_result_rerun",
+  "on_result_notify_system",
+  "on_result_notify_red_green",
+  "on_result_notify",
+  "rerun_on_save",
+  "on_rerun_handler",
+  "on_output_write_file",
+  "on_result_diagnostics",
+  "on_result_diagnostics_quickfix",
+  "on_result_stacktrace_quickfix",
+  "on_status_run_task",
+  "result_exit_code",
+}
 
-M.is_component = function(obj)
-  if type(obj) ~= "table" then
-    return false
-  end
-  if obj._type == "OverseerComponent" then
-    return true
-  end
-  if obj.name and obj.constructor then
-    return true
-  end
-  return false
-end
-
-M.register_module = function(path)
-  local mod = require(path)
-  for _, v in pairs(mod) do
-    if M.is_component(v) then
-      M.register(v)
-    end
-  end
-end
-
-M.register_builtin = function()
-  for _, mod in ipairs(builtin_modules) do
-    M.register_module(string.format("overseer.component.%s", mod))
-  end
-end
-
-M.register = function(opts)
+local function validate_component(name, opts)
   vim.validate({
-    name = { opts.name, "s" },
     description = { opts.description, "s", true },
     params = { opts.params, "t", true },
     constructor = { opts.constructor, "f" },
@@ -66,8 +52,8 @@ M.register = function(opts)
   if opts.editable == nil then
     opts.editable = true
   end
-
-  registry[opts.name] = opts
+  opts.name = name
+  return opts
 end
 
 M.alias = function(name, components)
@@ -80,6 +66,12 @@ M.alias = function(name, components)
 end
 
 M.get = function(name)
+  if not registry[name] then
+    local ok, mod = pcall(require, string.format("overseer.component.%s", name))
+    if ok then
+      registry[name] = validate_component(name, mod)
+    end
+  end
   return registry[name]
 end
 
@@ -113,6 +105,12 @@ end
 
 M.list_editable = function()
   local ret = {}
+  for _, v in ipairs(config.preload_components) do
+    M.get(v)
+  end
+  for _, v in ipairs(builtin_components) do
+    M.get(v)
+  end
   for k, v in pairs(registry) do
     if v.editable then
       table.insert(ret, k)
@@ -218,7 +216,7 @@ M.load = function(components)
   local ret = {}
   for _, comp_params in ipairs(resolved) do
     local name = getname(comp_params)
-    local comp = registry[name]
+    local comp = M.get(name)
     if comp then
       table.insert(ret, instantiate(comp_params, comp))
     else

@@ -1,7 +1,6 @@
 local M = {}
 
 -- TODO
--- * Maybe add dotted path to component/template names for lazy resolution?
 -- * refactor form params to only parse on submit or lose focus
 -- * More task templates (vscode special tasks)
 -- * Add tests

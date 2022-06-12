@@ -46,7 +46,7 @@ local default_config = {
       "result_exit_code",
       "on_result_notify",
       "on_rerun_handler",
-      "rerun_on_result",
+      "on_result_rerun",
     },
     default_vscode = {
       "default",
@@ -54,6 +54,9 @@ local default_config = {
       "on_result_diagnostics_quickfix",
     },
   },
+  -- A list of components to preload on setup. Only matters if you want them to
+  -- show up in the task editor.
+  preload_components = {},
 }
 
 local M = vim.deepcopy(default_config)
@@ -93,7 +96,6 @@ M.setup = function(opts)
     extensions.register(v)
   end
 
-  component.register_builtin()
   parsers.register_builtin()
   for k, v in pairs(M.component_sets) do
     component.alias(k, v)

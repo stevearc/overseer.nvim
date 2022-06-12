@@ -1,6 +1,4 @@
-local M = {}
-
-M.dispose_delay = {
+return {
   name = "dispose_delay",
   description = "Dispose task after a timeout",
   params = {
@@ -44,5 +42,3 @@ M.dispose_delay = {
     }
   end,
 }
-
-return M

@@ -1,4 +1,3 @@
-local component = require("overseer.component")
 local template = require("overseer.template")
 local M = {}
 
@@ -11,7 +10,6 @@ M.register = function(name)
     end
   else
     local path = string.format("overseer.extensions.%s", name)
-    component.register_module(path)
     template.register_module(path)
   end
 end
