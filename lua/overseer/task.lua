@@ -13,7 +13,7 @@ local next_id = 1
 
 Task.ordered_params = { "cmd", "cwd" }
 Task.params = {
-  cmd = {},
+  cmd = { delimiter = " " },
   cwd = {
     optional = true,
   },

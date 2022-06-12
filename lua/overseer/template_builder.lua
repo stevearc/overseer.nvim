@@ -64,6 +64,7 @@ function Builder.new(title, schema, params, callback)
   vim.api.nvim_buf_set_option(bufnr, "filetype", "OverseerForm")
 
   builder = setmetatable({
+    cur_line = nil,
     title = title,
     schema_keys = keys,
     schema = schema,
@@ -90,7 +91,20 @@ function Builder:init_autocmds()
       buffer = self.bufnr,
       nested = true,
       callback = function()
+        local lnum = vim.api.nvim_win_get_cursor(0)[1]
+        local line = vim.api.nvim_buf_get_lines(0, lnum - 1, lnum, true)[1]
+        self.cur_line = { lnum, line }
         self:parse()
+      end,
+    })
+  )
+  table.insert(
+    self.autocmds,
+    vim.api.nvim_create_autocmd("InsertLeave", {
+      desc = "Rerender form",
+      buffer = self.bufnr,
+      callback = function()
+        self:render()
       end,
     })
   )
@@ -163,6 +177,10 @@ function Builder:render()
     local prefix = self.schema[name].optional and "" or "*"
     table.insert(lines, form.render_field(self.schema[name], prefix, name, self.params[name]))
   end
+  if self.cur_line and vim.api.nvim_get_mode().mode == "i" then
+    local lnum, line = unpack(self.cur_line)
+    lines[lnum] = line
+  end
   vim.api.nvim_buf_set_lines(self.bufnr, 0, -1, true, lines)
   util.add_highlights(self.bufnr, title_ns, highlights)
   self:on_cursor_move()
@@ -170,6 +188,11 @@ end
 
 function Builder:on_cursor_move()
   local cur = vim.api.nvim_win_get_cursor(0)
+  if self.cur_line and self.cur_line[1] ~= cur[1] then
+    self.cur_line = nil
+    self:render()
+    return
+  end
   local original_cur = vim.deepcopy(cur)
   local ns = vim.api.nvim_create_namespace("overseer")
   vim.api.nvim_buf_clear_namespace(self.bufnr, ns, 0, -1)

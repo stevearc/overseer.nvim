@@ -108,6 +108,7 @@ function Editor.new(task, task_cb)
   })
   vim.api.nvim_buf_set_option(bufnr, "filetype", "OverseerTask")
   local editor = setmetatable({
+    cur_line = nil,
     task = task,
     callback = callback,
     bufnr = bufnr,
@@ -150,7 +151,20 @@ function Editor.new(task, task_cb)
       buffer = bufnr,
       nested = true,
       callback = function()
+        local lnum = vim.api.nvim_win_get_cursor(0)[1]
+        local line = vim.api.nvim_buf_get_lines(0, lnum - 1, lnum, true)[1]
+        editor.cur_line = { lnum, line }
         editor:parse()
+      end,
+    })
+  )
+  table.insert(
+    editor.autocmds,
+    vim.api.nvim_create_autocmd("InsertLeave", {
+      desc = "Rerender form",
+      buffer = bufnr,
+      callback = function()
+        editor:render()
       end,
     })
   )
@@ -169,6 +183,15 @@ function Editor.new(task, task_cb)
 end
 
 function Editor:on_cursor_move()
+  if vim.api.nvim_get_mode().mode == "i" then
+    return
+  end
+  local lnum = vim.api.nvim_win_get_cursor(0)[1]
+  if self.cur_line and self.cur_line[1] ~= lnum then
+    self.cur_line = nil
+    self:render()
+    return
+  end
   local cur = vim.api.nvim_win_get_cursor(0)
   local original_cur = vim.deepcopy(cur)
   local vtext_ns = vim.api.nvim_create_namespace("overseer_vtext")
@@ -251,6 +274,10 @@ function Editor:render()
       self.line_to_comp[#lines] = { comp, k }
     end
   end
+  if self.cur_line and vim.api.nvim_get_mode().mode == "i" then
+    local lnum, line = unpack(self.cur_line)
+    lines[lnum] = line
+  end
 
   vim.api.nvim_buf_set_lines(self.bufnr, 0, -1, true, lines)
   util.add_highlights(self.bufnr, ns, highlights)
@@ -263,6 +290,8 @@ function Editor:render()
 end
 
 function Editor:add_new_component(insert_position)
+  self.is_adding_component = true
+  self.cur_line = nil
   -- Telescope doesn't work if we open it in insert mode, so we have to <esc>
   if vim.api.nvim_get_mode().mode == "i" then
     vim.api.nvim_feedkeys(vim.api.nvim_replace_termcodes("<ESC>", true, true, true), "n", false)
@@ -338,7 +367,6 @@ function Editor:parse()
       elseif i < #buflines / 2 then
         insert_position = 1
       end
-      self.is_adding_component = true
       self:add_new_component(insert_position)
       return
     end

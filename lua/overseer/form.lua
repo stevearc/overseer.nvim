@@ -102,9 +102,7 @@ M.parse_value = function(schema, value)
     return true, values
   elseif schema.type == "number" then
     local num = tonumber(value)
-    -- If the number ends with '.' or '.0' don't parse it yet, because that will
-    -- truncate it and cause problems for input.
-    if num and not string.match(value, "%.$") and not string.match(value, "%.%d*0+$") then
+    if num then
       return true, num
     end
   elseif schema.type == "bool" then

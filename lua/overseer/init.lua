@@ -1,7 +1,6 @@
 local M = {}
 
 -- TODO
--- * refactor form params to only parse on submit or lose focus
 -- * More task templates (vscode special tasks)
 -- * Add tests
 -- * More comments

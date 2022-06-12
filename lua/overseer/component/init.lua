@@ -148,17 +148,21 @@ local function resolve(seen, resolved, names)
   return resolved
 end
 
-local function validate_params(params, schema)
+local function validate_params(params, schema, ignore_errors)
   for name, opts in pairs(schema) do
     local value = params[name]
     if value == nil then
       if opts.default ~= nil then
         params[name] = opts.default
       elseif not opts.optional then
-        error(string.format("Component '%s' requires param '%s'", getname(params), name))
+        if not ignore_errors then
+          error(string.format("Component '%s' requires param '%s'", getname(params), name))
+        end
       end
     elseif not form.validate_field(opts, value) then
-      error(string.format("Component '%s' param '%s' is invalid", getname(params), name))
+      if not ignore_errors then
+        error(string.format("Component '%s' param '%s' is invalid", getname(params), name))
+      end
     end
   end
   for name in pairs(params) do
@@ -172,7 +176,7 @@ end
 M.create_params = function(name)
   local comp = M.get(name)
   local params = { name }
-  validate_params(params, comp.params)
+  validate_params(params, comp.params, true)
   return params
 end
 
