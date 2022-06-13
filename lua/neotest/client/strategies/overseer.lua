@@ -2,27 +2,8 @@ local async = require("neotest.async")
 local lib = require("neotest.lib")
 local overseer = require("overseer")
 
-overseer.component.register({
-  name = "on_status_callback",
-  description = "Call a callback when complete",
-  editable = false,
-  serialize = "fail",
-  params = {
-    callback = { type = "opaque" },
-  },
-  constructor = function(params)
-    return {
-      on_result = function(self, task, status)
-        if task:is_complete() then
-          params.callback(status)
-        end
-      end,
-    }
-  end,
-})
-
 if not overseer.component.get_alias("default_neotest") then
-  overseer.component.alias("default_neotest", "default")
+  overseer.component.alias("default_neotest", { "default" })
 end
 
 return function(spec)
@@ -35,7 +16,7 @@ return function(spec)
   })
   table.insert(opts.components, { "on_output_write_file", filename = output_path })
   table.insert(opts.components, {
-    "on_status_callback",
+    "neotest.on_status_callback",
     callback = function()
       finish_cond:notify_all()
     end,
