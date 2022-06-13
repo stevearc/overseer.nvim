@@ -13,7 +13,6 @@ local function get_level_from_status(status)
 end
 
 return {
-  name = "on_result_notify",
   description = "vim.notify on result",
   params = {
     statuses = {

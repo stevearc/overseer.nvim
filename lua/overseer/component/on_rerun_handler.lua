@@ -1,5 +1,4 @@
 return {
-  name = "on_rerun_handler",
   description = "Ability to rerun the task",
   params = {
     delay = {

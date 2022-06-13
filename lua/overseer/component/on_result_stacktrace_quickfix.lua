@@ -1,6 +1,5 @@
 -- Looks for a result value of 'stacktrace' that is a list of quickfix items
 return {
-  name = "on_result_stacktrace_quickfix",
   description = "Put result stacktrace into the quickfix",
   constructor = function()
     return {

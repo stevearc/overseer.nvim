@@ -3,7 +3,6 @@ local STATUS = constants.STATUS
 local parsers = require("overseer.parsers")
 
 return {
-  name = "result_exit_code",
   description = "Sets status based on exit code",
   params = {
     success_codes = {

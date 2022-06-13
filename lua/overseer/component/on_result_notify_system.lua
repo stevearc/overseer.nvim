@@ -5,7 +5,6 @@ local util = require("overseer.util")
 local STATUS = constants.STATUS
 
 return {
-  name = "on_result_notify_system",
   description = "send a system notification when task completes",
   system_notify = function(message, level)
     if files.is_windows then

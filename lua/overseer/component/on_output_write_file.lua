@@ -1,5 +1,4 @@
 return {
-  name = "on_output_write_file",
   description = "Write task output to a file",
   params = {
     filename = {},

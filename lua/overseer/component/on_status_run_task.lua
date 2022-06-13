@@ -3,7 +3,6 @@ local util = require("overseer.util")
 local STATUS = constants.STATUS
 
 return {
-  name = "on_status_run_task",
   description = "run another task on status change",
   params = {
     status = {

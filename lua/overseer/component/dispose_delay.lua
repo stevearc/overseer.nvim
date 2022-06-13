@@ -1,5 +1,4 @@
 return {
-  name = "dispose_delay",
   description = "Dispose task after a timeout",
   params = {
     timeout = {

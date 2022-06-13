@@ -3,7 +3,6 @@ local constants = require("overseer.constants")
 local STATUS = constants.STATUS
 
 return {
-  name = "on_result_notify_red_green",
   description = "notify when task fails, or when it goes from failing to success",
   params = {},
   constructor = function()

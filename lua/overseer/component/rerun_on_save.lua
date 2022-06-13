@@ -1,7 +1,6 @@
 local files = require("overseer.files")
 
 return {
-  name = "rerun_on_save",
   description = "Rerun on any buffer :write",
   params = {
     dir = {

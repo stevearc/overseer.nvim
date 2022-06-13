@@ -1,7 +1,6 @@
 local util = require("overseer.util")
 
 return {
-  name = "on_output_summarize",
   description = "Summarize stdout/stderr in the sidebar",
   params = {
     max_lines = { type = "number", default = 4 },

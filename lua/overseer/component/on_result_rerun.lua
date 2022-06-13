@@ -4,7 +4,6 @@ local util = require("overseer.util")
 local STATUS = constants.STATUS
 
 return {
-  name = "on_result_rerun",
   description = "Rerun when task ends",
   params = {
     statuses = {

@@ -34,7 +34,7 @@ local function validate_component(name, opts)
     editable = { opts.editable, "b", true },
     serialize = { opts.serialize, "s", true }, -- 'exclude' or 'fail'
   })
-  if opts.name:match("%s") then
+  if name:match("%s") then
     error("Component name cannot have whitespace")
   end
   opts._type = "OverseerComponent"

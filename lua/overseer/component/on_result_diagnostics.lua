@@ -2,7 +2,6 @@ local util = require("overseer.util")
 
 -- Looks for a result value of 'diagnostics' that is a list of quickfix items
 return {
-  name = "on_result_diagnostics",
   description = "Display the result diagnostics",
   params = {
     virtual_text = { type = "bool", optional = true },
