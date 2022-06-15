@@ -18,12 +18,13 @@ describe("vscode", function()
     assert.are.same("ls 'foo' 'bar'", cmd)
   end)
 
-  it("strong quotes the command if it has spaces", function()
+  it("strong quotes the args", function()
     local cmd = vscode.get_cmd({
       type = "shell",
-      command = "space command",
+      command = "ls",
+      args = { "foo bar", "baz" },
     })
-    assert.are.same("'space command'", cmd)
+    assert.are.same("ls 'foo bar' 'baz'", cmd)
   end)
 
   it("interpolates variables in command, args, and opts", function()
