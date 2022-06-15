@@ -57,7 +57,7 @@ M.render_field = function(schema, prefix, name, value)
   return string.format("%s%s: %s", prefix, name, str_value)
 end
 
-M.validate_field = function(schema, value)
+local function validate_type(schema, value)
   local ptype = schema.type or "string"
   if value == nil then
     return schema.optional
@@ -67,6 +67,8 @@ M.validate_field = function(schema, value)
     return type(value) == "table" and vim.tbl_islist(value)
   elseif ptype == "number" then
     return type(value) == "number"
+  elseif ptype == "int" then
+    return type(value) == "number" and math.floor(value) == value
   elseif ptype == "bool" then
     return type(value) == "boolean"
   elseif ptype == "string" then
@@ -74,6 +76,16 @@ M.validate_field = function(schema, value)
   else
     log:warn("Unknown param type '%s'", ptype)
   end
+end
+
+M.validate_field = function(schema, value)
+  if not validate_type(schema, value) then
+    return false
+  end
+  if schema.validate and value ~= nil then
+    return schema.validate(value)
+  end
+  return true
 end
 
 M.parse_field = function(schema, prefix, name, line)
@@ -104,6 +116,11 @@ M.parse_value = function(schema, value)
     local num = tonumber(value)
     if num then
       return true, num
+    end
+  elseif schema.type == "int" then
+    local num = tonumber(value)
+    if num then
+      return true, math.floor(num)
     end
   elseif schema.type == "bool" then
     if string.match(value, "^ye?s?") or string.match(value, "^tr?u?e?") then

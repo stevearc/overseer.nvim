@@ -5,6 +5,9 @@ return {
       description = "How long to wait (in ms) post-result before triggering rerun",
       default = 500,
       type = "number",
+      validate = function(v)
+        return v > 0
+      end,
     },
     interrupt = {
       description = "If true, a rerun will cancel a currently running task",

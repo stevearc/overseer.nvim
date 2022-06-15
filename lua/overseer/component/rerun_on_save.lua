@@ -7,11 +7,17 @@ return {
       name = "directory",
       description = "Only rerun when writing files in this directory",
       optional = true,
+      validate = function(v)
+        return files.exists(v)
+      end,
     },
     delay = {
       description = "How long to wait (in ms) post-result before triggering rerun",
       type = "number",
       default = 500,
+      validate = function(v)
+        return v > 0
+      end,
     },
   },
   constructor = function(opts)

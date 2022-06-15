@@ -5,6 +5,9 @@ return {
       description = "Time to wait (in seconds) before disposing",
       default = 300, -- 5 minutes
       type = "number",
+      validate = function(v)
+        return v > 0
+      end,
     },
   },
   constructor = function(opts)

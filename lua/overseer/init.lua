@@ -4,8 +4,8 @@ local M = {}
 -- * More task templates (vscode special tasks)
 -- * Add tests
 -- * More comments
--- * More schema validations (callback, non-empty list, number greater than, enum, list[enum])
---   * list params allow escaping / quotes / specifying delimiter
+-- * enum type for params
+-- * list type can specify subtype
 -- * Dynamic window sizing for task editor
 -- * _maybe_ support other run strategies besides terminal
 -- * Basic Readme

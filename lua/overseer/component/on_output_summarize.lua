@@ -3,7 +3,13 @@ local util = require("overseer.util")
 return {
   description = "Summarize stdout/stderr in the sidebar",
   params = {
-    max_lines = { type = "number", default = 4 },
+    max_lines = {
+      type = "int",
+      default = 4,
+      validate = function(v)
+        return v > 0
+      end,
+    },
   },
   constructor = function(params)
     return {
