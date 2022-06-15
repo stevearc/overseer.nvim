@@ -59,8 +59,20 @@ local function parse_params(params, str, inputs)
     local schema = inputs[name]
     if schema then
       if schema.type == "pickString" then
-        -- TODO encode the options as an enum
-        params[name] = { description = schema.description, default = schema.default }
+        local choices = {}
+        for _, v in ipairs(schema.options) do
+          if type(v) == "table" then
+            table.insert(choices, v.value)
+          else
+            table.insert(choices, v)
+          end
+        end
+        params[name] = {
+          description = schema.description,
+          default = schema.default,
+          type = "enum",
+          choices = choices,
+        }
       elseif schema.type == "promptString" then
         params[name] = { description = schema.description, default = schema.default }
       elseif schema.type == "command" then
