@@ -190,6 +190,7 @@ local function instantiate(comp_params, component)
   obj.name = getname(comp_params)
   obj.params = comp_params
   obj.description = component.description
+  obj.serialize = component.serialize
   return obj
 end
 
