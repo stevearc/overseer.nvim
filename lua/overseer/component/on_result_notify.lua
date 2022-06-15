@@ -18,6 +18,10 @@ return {
     statuses = {
       description = "What statuses to notify on",
       type = "list",
+      subtype = {
+        type = "enum",
+        choices = STATUS.values,
+      },
       default = {
         STATUS.FAILURE,
         STATUS.SUCCESS,

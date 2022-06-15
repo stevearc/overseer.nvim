@@ -7,6 +7,8 @@ return {
   params = {
     status = {
       description = "What status to trigger on",
+      type = "enum",
+      choices = STATUS.values,
       default = STATUS.SUCCESS,
     },
     task_names = {

@@ -10,6 +10,10 @@ return {
       description = "What statuses will trigger a rerun",
       type = "list",
       default = { STATUS.FAILURE },
+      subtype = {
+        type = "enum",
+        choices = STATUS.values,
+      },
     },
   },
   constructor = function(opts)

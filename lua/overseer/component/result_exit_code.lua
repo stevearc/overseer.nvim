@@ -8,6 +8,7 @@ return {
     success_codes = {
       type = "list",
       optional = true,
+      subtype = { type = "int" },
       description = "Additional exit codes to consider as success",
     },
     parser = { optional = true },

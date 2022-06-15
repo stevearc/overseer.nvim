@@ -63,6 +63,8 @@ local function validate_type(schema, value)
     return schema.optional
   elseif ptype == "opaque" then
     return true
+  elseif ptype == "enum" then
+    return vim.tbl_contains(schema.choices, value)
   elseif ptype == "list" then
     return type(value) == "table" and vim.tbl_islist(value)
   elseif ptype == "number" then
@@ -112,6 +114,17 @@ M.parse_value = function(schema, value)
       end
     end
     return true, values
+  elseif schema.type == "enum" then
+    local key = "^" .. value:lower()
+    local best
+    for _, v in ipairs(schema.choices) do
+      if v == value then
+        return true, v
+      elseif v:lower():match(key) then
+        best = v
+      end
+    end
+    return best ~= nil, best
   elseif schema.type == "number" then
     local num = tonumber(value)
     if num then
