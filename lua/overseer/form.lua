@@ -145,6 +145,15 @@ M.parse_value = function(schema, value)
   return true, value
 end
 
+function _G.overseer_form_omnifunc(findstart, base)
+  if findstart == 1 then
+    return vim.api.nvim_win_get_cursor(0)[2]
+  else
+    local ok, choices = pcall(vim.api.nvim_buf_get_var, 0, "overseer_choices")
+    return ok and choices or {}
+  end
+end
+
 M.open_form_win = function(bufnr, opts)
   opts = opts or {}
   vim.validate({
@@ -232,6 +241,7 @@ M.open_form_win = function(bufnr, opts)
     })
   )
 
+  vim.api.nvim_buf_set_option(0, "omnifunc", "v:lua.overseer_form_omnifunc")
   local function cleanup()
     for _, id in ipairs(opts.autocmds) do
       vim.api.nvim_del_autocmd(id)

@@ -4,7 +4,6 @@ local M = {}
 -- * More task templates (vscode special tasks)
 -- * Add tests
 -- * More comments
--- * enum type has hints/completion/selector
 -- * Dynamic window sizing for task editor
 -- * _maybe_ support other run strategies besides terminal
 -- * Basic Readme
@@ -79,6 +78,10 @@ local function do_setup()
       vim.g.session_save_commands = cmds
     end,
   })
+  local ok, cmp = pcall(require, "cmp")
+  if ok then
+    cmp.register_source("overseer", require("cmp_overseer").new())
+  end
   initialized = true
   for _, cb in ipairs(setup_callbacks) do
     cb()

@@ -214,10 +214,16 @@ function Builder:on_cursor_move()
         if cur[2] < name_end then
           cur[2] = name_end
         end
-        if self.schema[name].description then
+        local schema = self.schema[name]
+        if schema.description then
           vim.api.nvim_buf_set_extmark(self.bufnr, ns, cur[1] - 1, 0, {
-            virt_text = { { self.schema[name].description, "Comment" } },
+            virt_text = { { schema.description, "Comment" } },
           })
+        end
+        if schema.subtype then
+          vim.api.nvim_buf_set_var(0, "overseer_choices", schema.subtype.choices)
+        else
+          vim.api.nvim_buf_set_var(0, "overseer_choices", schema.choices)
         end
       end
 

@@ -106,7 +106,7 @@ function Editor.new(task, task_cb)
       -- TODO this is causing a lot of jumping
     end,
   })
-  vim.api.nvim_buf_set_option(bufnr, "filetype", "OverseerTask")
+  vim.api.nvim_buf_set_option(bufnr, "filetype", "OverseerForm")
   local editor = setmetatable({
     cur_line = nil,
     task = task,
@@ -186,13 +186,12 @@ function Editor:on_cursor_move()
   if vim.api.nvim_get_mode().mode == "i" then
     return
   end
-  local lnum = vim.api.nvim_win_get_cursor(0)[1]
-  if self.cur_line and self.cur_line[1] ~= lnum then
+  local cur = vim.api.nvim_win_get_cursor(0)
+  if self.cur_line and self.cur_line[1] ~= cur[1] then
     self.cur_line = nil
     self:render()
     return
   end
-  local cur = vim.api.nvim_win_get_cursor(0)
   local original_cur = vim.deepcopy(cur)
   local vtext_ns = vim.api.nvim_create_namespace("overseer_vtext")
   vim.api.nvim_buf_clear_namespace(self.bufnr, vtext_ns, 0, -1)
@@ -225,6 +224,11 @@ function Editor:on_cursor_move()
       vim.api.nvim_buf_set_extmark(self.bufnr, vtext_ns, cur[1] - 1, 0, {
         virt_text = { { schema.description, "Comment" } },
       })
+    end
+    if schema.subtype then
+      vim.api.nvim_buf_set_var(0, "overseer_choices", schema.subtype.choices)
+    else
+      vim.api.nvim_buf_set_var(0, "overseer_choices", schema.choices)
     end
   end
   if cur[1] ~= original_cur[1] or cur[2] ~= original_cur[2] then
