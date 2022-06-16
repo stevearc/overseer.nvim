@@ -26,7 +26,7 @@
       "label": "(vscode) prompt input",
       "group": "test",
       "command": "echo",
-      "args": ["${input:word}"]
+      "args": ["${input:word}", "${input:position}"]
     },
     {
       "type": "process",
@@ -61,6 +61,12 @@
       "id": "word",
       "description": "This is a word",
       "type": "promptString"
+    },
+    {
+      "id": "position",
+      "description": "This is a position",
+      "type": "pickString",
+      "options": ["first", "second", "third"]
     }
   ]
 }
