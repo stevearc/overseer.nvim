@@ -1,17 +1,5 @@
 local M = {}
 
--- TODO
--- * More task templates (vscode special tasks)
--- * Add tests
--- * More comments
--- * Dynamic window sizing for task editor
--- * _maybe_ support other run strategies besides terminal
--- * Basic Readme
--- * Vim help docs
--- * Architecture doc (Template / Task / Component)
--- * Extension doc (how to make your own template/component)
--- * Extension names could collide. Namespace internal & external extensions separately
-
 local setup_callbacks = {}
 M.on_setup = function(callback)
   table.insert(setup_callbacks, callback)
