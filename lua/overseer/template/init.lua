@@ -1,3 +1,4 @@
+local config = require("overseer.config")
 local files = require("overseer.files")
 local form = require("overseer.form")
 local log = require("overseer.log")
@@ -9,28 +10,6 @@ local M = {}
 local Template = {}
 
 local DEFAULT_PRIORITY = 50
-
-M.is_template = function(obj)
-  if type(obj) ~= "table" then
-    return false
-  end
-  if obj._type == "OverseerTemplate" then
-    return true
-  end
-  if obj.name and obj.params and (obj.builder or obj.metagen) then
-    return true
-  end
-  return false
-end
-
-M.register_module = function(path)
-  local mod = require(path)
-  for _, v in pairs(mod) do
-    if M.is_template(v) then
-      M.register(v)
-    end
-  end
-end
 
 local registry = {}
 
@@ -80,55 +59,27 @@ local function tmpl_matches(tmpl, search)
   return true
 end
 
-M.list = function(opts)
-  opts = opts or {}
-  vim.validate({
-    tags = { opts.tags, "t", true },
-    dir = { opts.dir, "s" },
-    filetype = { opts.filetype, "s", true },
-  })
-  local ret = {}
-
-  for _, tmpl in pairs(registry) do
-    if tmpl_matches(tmpl, opts) then
-      if tmpl.metagen then
-        local ok, tmpls = pcall(tmpl.metagen, tmpl, opts)
-        if ok then
-          for _, meta in ipairs(tmpls) do
-            table.insert(ret, meta)
-          end
-        else
-          log:error("Template metagen %s: %s", tmpl.name, tmpls)
-        end
-      else
-        table.insert(ret, tmpl)
-      end
+local initialized = false
+local function initialize()
+  if initialized then
+    return
+  end
+  for _, name_or_defn in ipairs(config.templates) do
+    if type(name_or_defn) == "table" then
+      M.register(unpack(name_or_defn))
+    else
+      M.register(name_or_defn)
     end
   end
-  table.sort(ret, function(a, b)
-    if a.priority == b.priority then
-      return a.name < b.name
-    else
-      return a.priority < b.priority
-    end
-  end)
-
-  return ret
+  initialized = true
 end
 
-M.register = function(tmpl)
-  vim.validate({
-    tmpl = { tmpl, "t" },
-  })
-  if not vim.tbl_islist(tmpl) then
-    tmpl = { tmpl }
+M.register = function(name, defn)
+  if not defn then
+    defn = require(string.format("overseer.template.%s", name))
   end
-  for _, t in ipairs(tmpl) do
-    if t._type ~= "OverseerTemplate" then
-      t = Template.new(t)
-    end
-    registry[t.name] = t
-  end
+  defn.name = name
+  registry[name] = Template.new(defn)
 end
 
 function Template.new(opts)
@@ -197,7 +148,6 @@ function Template:build(prompt, params, callback)
       callback()
     end
   end)
-  return
 end
 
 function Template:wrap(override, default_params)
@@ -215,7 +165,45 @@ end
 
 M.new = Template.new
 
+M.list = function(opts)
+  initialize()
+  opts = opts or {}
+  vim.validate({
+    tags = { opts.tags, "t", true },
+    dir = { opts.dir, "s" },
+    filetype = { opts.filetype, "s", true },
+  })
+  local ret = {}
+
+  for _, tmpl in pairs(registry) do
+    if tmpl_matches(tmpl, opts) then
+      if tmpl.metagen then
+        local ok, tmpls = pcall(tmpl.metagen, tmpl, opts)
+        if ok then
+          for _, meta in ipairs(tmpls) do
+            table.insert(ret, meta)
+          end
+        else
+          log:error("Template metagen %s: %s", tmpl.name, tmpls)
+        end
+      else
+        table.insert(ret, tmpl)
+      end
+    end
+  end
+  table.sort(ret, function(a, b)
+    if a.priority == b.priority then
+      return a.name < b.name
+    else
+      return a.priority < b.priority
+    end
+  end)
+
+  return ret
+end
+
 M.get_by_name = function(name, opts)
+  initialize()
   local ret = registry[name]
   if ret then
     return ret

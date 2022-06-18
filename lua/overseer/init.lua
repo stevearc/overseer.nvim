@@ -146,6 +146,23 @@ M.delete_task_bundle = lazy("task_bundle", "delete_task_bundle")
 
 M.run_template = lazy("commands", "run_template")
 
+local function create_wrapper(prefix)
+  return function(name, opts)
+    return setmetatable(opts, {
+      __index = function(t, key)
+        if key == "super" then
+          local super = require(prefix .. name)
+          rawset(t, "super", super)
+        else
+          return t.super[key]
+        end
+      end,
+    })
+  end
+end
+
+M.wrap_template = create_wrapper("overseer.template.")
+
 -- Used for vim-session integration.
 local timer_active = false
 M._start_tasks = function(str)

@@ -1,6 +1,6 @@
 local constants = require("overseer.constants")
 local parser = require("overseer.parser")
-local problem_matcher = require("overseer.extensions.vscode.problem_matcher")
+local problem_matcher = require("overseer.template.vscode.problem_matcher")
 local STATUS = constants.STATUS
 
 local function pattern_to_test(pattern)

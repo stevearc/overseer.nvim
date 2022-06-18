@@ -1,7 +1,6 @@
 local constants = require("overseer.constants")
 local files = require("overseer.files")
 local TAG = constants.TAG
-local M = {}
 
 local make_targets = [[
 (rule (targets) @name)
@@ -12,8 +11,7 @@ local make_targets = [[
 )
 ]]
 
-M.make = {
-  name = "make",
+return {
   priority = 60,
   tags = { TAG.BUILD },
   params = {
@@ -27,7 +25,7 @@ M.make = {
   metagen = function(self, opts)
     local content = files.read_file(files.join(opts.dir, "Makefile"))
 
-    local parser = vim.treesitter.get_string_parser(content, "make")
+    local parser = vim.treesitter.get_string_parser(content, "make", {})
     if not parser then
       return { self }
     end
@@ -64,5 +62,3 @@ M.make = {
     }
   end,
 }
-
-return M

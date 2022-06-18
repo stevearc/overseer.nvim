@@ -6,10 +6,9 @@ Will be updated & history overwritten if it's ever ready for release
 
 TODO
 
-- [ ] Extension names could collide. Namespace internal & external extensions separately
-- [ ] Figure out how people can best wrap/customize templates
 - [ ] Add more tests
 - [ ] Add more comments
+- [ ] Add type annotations
 - [ ] Dynamic window sizing for task editor
 - [ ] _maybe_ support other run strategies besides terminal
 - [ ] Basic Readme

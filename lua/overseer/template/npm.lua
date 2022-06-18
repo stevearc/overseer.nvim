@@ -1,8 +1,6 @@
 local files = require("overseer.files")
-local M = {}
 
-M.npm = {
-  name = "npm",
+return {
   priority = 60,
   params = {
     args = { optional = true, type = "list", delimiter = " " },
@@ -41,5 +39,3 @@ M.npm = {
     }
   end,
 }
-
-return M

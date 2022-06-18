@@ -1,6 +1,6 @@
 local default_config = {
   list_sep = "────────────────────────────────────────",
-  extensions = { "builtin" },
+  templates = { "make", "npm", "tox", "vscode" },
   auto_detect_success_color = true,
   sidebar = {
     default_detail = 1,
@@ -80,8 +80,6 @@ M.setup = function(opts)
   local component = require("overseer.component")
   local log = require("overseer.log")
   local parsers = require("overseer.parsers")
-  local extensions = require("overseer.extensions")
-  local util = require("overseer.util")
   opts = opts or {}
   local newconf = vim.tbl_deep_extend("force", default_config, opts)
   for k, v in pairs(newconf) do
@@ -91,10 +89,6 @@ M.setup = function(opts)
   log.set_root(log.new({ handlers = M.log }))
 
   M.actions = merge_actions(require("overseer.task_list.actions"), newconf.actions)
-
-  for _, v in util.iter_as_list(M.extensions) do
-    extensions.register(v)
-  end
 
   parsers.register_builtin()
   for k, v in pairs(M.component_sets) do

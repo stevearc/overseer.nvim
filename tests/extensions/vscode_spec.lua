@@ -1,7 +1,7 @@
 local constants = require("overseer.constants")
 local parser = require("overseer.parser")
-local vscode = require("overseer.extensions.vscode")
-local problem_matcher = require("overseer.extensions.vscode.problem_matcher")
+local vscode = require("overseer.template.vscode")
+local problem_matcher = require("overseer.template.vscode.problem_matcher")
 
 describe("vscode", function()
   it("parses process command and args", function()

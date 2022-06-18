@@ -1,8 +1,5 @@
 local files = require("overseer.files")
-local M = {}
-
-M.tox = {
-  name = "tox",
+return {
   priority = 60,
   params = {
     args = { optional = true, type = "list", delimiter = " " },
@@ -47,5 +44,3 @@ M.tox = {
     }
   end,
 }
-
-return M

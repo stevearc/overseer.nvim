@@ -1,10 +1,8 @@
 local constants = require("overseer.constants")
 local files = require("overseer.files")
 local template = require("overseer.template")
-local variables = require("overseer.extensions.vscode.variables")
+local variables = require("overseer.template.vscode.variables")
 local STATUS = constants.STATUS
-
-local M = {}
 
 local function get_npm_bin(name)
   local package_bin = files.join("node_modules", ".bin", name)
@@ -14,7 +12,7 @@ local function get_npm_bin(name)
   return name
 end
 
-M.get_cmd = function(defn)
+local function get_cmd(defn)
   -- TODO support more task types: gulp, grunt, jake
   if defn.type == "process" then
     local cmd = defn.args or {}
@@ -51,7 +49,7 @@ M.get_cmd = function(defn)
   end
 end
 
-local function parse_params(params, str, inputs)
+local function extract_params(params, str, inputs)
   if not str then
     return
   end
@@ -82,7 +80,7 @@ local function parse_params(params, str, inputs)
   end
 end
 
-M.parse_params = function(defn)
+local function parse_params(defn)
   if not defn.inputs then
     return {}
   end
@@ -91,19 +89,19 @@ M.parse_params = function(defn)
     input_lookup[input.id] = input
   end
   local params = {}
-  parse_params(params, defn.command, input_lookup)
+  extract_params(params, defn.command, input_lookup)
   if defn.args then
     for _, arg in ipairs(defn.args) do
-      parse_params(params, arg, input_lookup)
+      extract_params(params, arg, input_lookup)
     end
   end
 
   local opt = defn.options
   if opt then
-    parse_params(params, opt.cwd, input_lookup)
+    extract_params(params, opt.cwd, input_lookup)
     if opt.env then
       for _, v in pairs(opt.env) do
-        parse_params(params, v, input_lookup)
+        extract_params(params, v, input_lookup)
       end
     end
   end
@@ -118,7 +116,7 @@ local group_to_tag = {
   clean = constants.TAG.CLEAN,
 }
 
-M.convert_vscode_task = function(defn)
+local function convert_vscode_task(defn)
   if defn.dependsOn then
     local sequence = defn.dependsOrder == "sequence"
     return template.new({
@@ -144,7 +142,7 @@ M.convert_vscode_task = function(defn)
       end,
     })
   end
-  local cmd = M.get_cmd(defn)
+  local cmd = get_cmd(defn)
   if not cmd then
     return nil
   end
@@ -153,7 +151,7 @@ M.convert_vscode_task = function(defn)
   local tmpl = {
     name = defn.label,
     description = defn.detail,
-    params = M.parse_params(defn),
+    params = parse_params(defn),
     builder = function(self, params)
       local task = {
         name = defn.label,
@@ -204,8 +202,7 @@ M.convert_vscode_task = function(defn)
   return template.new(tmpl)
 end
 
-M.vscode_tasks = {
-  name = "vscode_tasks",
+return {
   params = {},
   condition = {
     callback = function(self, opts)
@@ -235,14 +232,14 @@ M.vscode_tasks = {
     for _, task in ipairs(content.tasks) do
       local defn = vim.tbl_deep_extend("force", global_defaults, task)
       defn = vim.tbl_deep_extend("force", defn, task[os_key] or {})
-      local tmpl = M.convert_vscode_task(defn)
+      local tmpl = convert_vscode_task(defn)
       if tmpl then
         table.insert(ret, tmpl)
       end
     end
     return ret
   end,
-  builder = function() end,
+  -- expose these for unit tests
+  get_cmd = get_cmd,
+  convert_vscode_task = convert_vscode_task,
 }
-
-return M
