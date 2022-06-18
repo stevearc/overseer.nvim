@@ -1,6 +1,6 @@
 local default_config = {
   list_sep = "────────────────────────────────────────",
-  templates = { "make", "npm", "tox", "vscode" },
+  templates = { "builtin" },
   auto_detect_success_color = true,
   sidebar = {
     default_detail = 1,

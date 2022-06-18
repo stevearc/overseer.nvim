@@ -107,6 +107,14 @@ end
 M.register = function(name, defn)
   if not defn then
     defn = require(string.format("overseer.template.%s", name))
+    -- If this module was just a list of names, then it's an alias for a
+    -- collection of templates
+    if vim.tbl_islist(defn) then
+      for _, v in ipairs(defn) do
+        M.register(v)
+      end
+      return
+    end
   end
   registry[name] = Template.new(name, defn)
 end
