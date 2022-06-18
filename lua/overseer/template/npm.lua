@@ -1,6 +1,7 @@
 local files = require("overseer.files")
 
-return {
+---@type overseer.TemplateDefinition
+local tmpl = {
   priority = 60,
   params = {
     args = { optional = true, type = "list", delimiter = " " },
@@ -39,3 +40,5 @@ return {
     }
   end,
 }
+
+return tmpl

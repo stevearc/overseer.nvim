@@ -119,8 +119,7 @@ local group_to_tag = {
 local function convert_vscode_task(defn)
   if defn.dependsOn then
     local sequence = defn.dependsOrder == "sequence"
-    return template.new({
-      name = defn.label,
+    return template.new(defn.label, {
       params = {},
       builder = function(self, params)
         return {
@@ -149,7 +148,6 @@ local function convert_vscode_task(defn)
   local opt = defn.options
 
   local tmpl = {
-    name = defn.label,
     description = defn.detail,
     params = parse_params(defn),
     builder = function(self, params)
@@ -199,10 +197,11 @@ local function convert_vscode_task(defn)
   -- NOTE: we intentionally do nothing with defn.runOptions.
   -- runOptions.reevaluateOnRun unfortunately doesn't mesh with how we re-run tasks
   -- runOptions.runOn allows tasks to auto-run, which I philosophically oppose
-  return template.new(tmpl)
+  return template.new(defn.label, tmpl)
 end
 
-return {
+---@type overseer.TemplateDefinition
+local tmpl = {
   params = {},
   condition = {
     callback = function(self, opts)
@@ -243,3 +242,5 @@ return {
   get_cmd = get_cmd,
   convert_vscode_task = convert_vscode_task,
 }
+
+return tmpl

@@ -3,9 +3,38 @@ local form = require("overseer.form")
 local log = require("overseer.log")
 local M = {}
 
--- Canonical naming scheme
--- generally <event>_* means "triggers <event> under some condition"
--- and on_<event>_* means "does something when <event> is fired
+---Definition used to instantiate a Component
+---The canonical naming scheme is as follows:
+---`<event>_*` means "triggers <event> under some condition"
+---`on_<event>_*` means "does something when <event> is fired
+---@class overseer.ComponentDefinition
+---@field name? string
+---@field description? string
+---@field params? overseer.Params
+---@field editable? boolean
+---@field serialize? "exclude"|"fail"
+---@field constructor fun(params: table): overseer.ComponentSkeleton
+
+---The intermediate form of a component returned by the constructor
+---@class overseer.ComponentSkeleton
+---@field on_init? fun(self: overseer.Component, task: overseer.Task)
+---@field on_start? fun(self: overseer.Component, task: overseer.Task)
+---@field on_reset? fun(self: overseer.Component, task: overseer.Task, soft: boolean)
+---@field on_result? fun(self: overseer.Component, task: overseer.Task, status: overseer.Status, result: table)
+---@field on_finish? fun(self: overseer.Component, task: overseer.Task, status: overseer.Status)
+---@field on_output? fun(self: overseer.Component, task: overseer.Task, data: string[])
+---@field on_output_lines? fun(self: overseer.Component, task: overseer.Task, lines: string[])
+---@field on_request_rerun? fun(self: overseer.Component, task: overseer.Task)
+---@field on_exit? fun(self: overseer.Component, task: overseer.Task, code: number)
+---@field on_dispose? fun(self: overseer.Component, task: overseer.Task)
+---@field render? fun(self: overseer.Component, task: overseer.Task, lines: string[], highlights: table[], detail: number)
+
+---An instantiated component that is attached to a Task
+---@class overseer.Component : overseer.ComponentSkeleton
+---@field name string
+---@field params table
+---@field description? string
+---@field serialize? "exclude"|"fail"
 
 local registry = {}
 local aliases = {}
@@ -26,6 +55,9 @@ local builtin_components = {
   "result_exit_code",
 }
 
+---@param name string
+---@param opts overseer.ComponentDefinition
+---@return overseer.Component
 local function validate_component(name, opts)
   vim.validate({
     description = { opts.description, "s", true },
@@ -56,6 +88,8 @@ local function validate_component(name, opts)
   return opts
 end
 
+---@param name string
+---@param components string[]
 M.alias = function(name, components)
   vim.validate({
     name = { name, "s" },
@@ -65,6 +99,8 @@ M.alias = function(name, components)
   aliases[name] = components
 end
 
+---@param name string
+---@return overseer.ComponentDefinition?
 M.get = function(name)
   if not registry[name] then
     local ok, mod = pcall(require, string.format("overseer.component.%s", name))
@@ -75,6 +111,8 @@ M.get = function(name)
   return registry[name]
 end
 
+---@param name string
+---@return string[]?
 M.get_alias = function(name)
   return aliases[name]
 end
@@ -95,6 +133,8 @@ local function getname(comp_params)
   end
 end
 
+---@param name string
+---@return string
 M.stringify_alias = function(name)
   local strings = {}
   for _, comp in ipairs(aliases[name]) do
@@ -103,6 +143,7 @@ M.stringify_alias = function(name)
   return table.concat(strings, ", ")
 end
 
+---@return string[]
 M.list_editable = function()
   local ret = {}
   for _, v in ipairs(config.preload_components) do
@@ -119,6 +160,7 @@ M.list_editable = function()
   return ret
 end
 
+---@return string[]
 M.list_aliases = function()
   return vim.tbl_keys(aliases)
 end
@@ -173,6 +215,8 @@ local function validate_params(params, schema, ignore_errors)
   end
 end
 
+---@param name string
+---@return table
 M.create_params = function(name)
   local comp = M.get(name)
   local params = { name }
@@ -180,6 +224,8 @@ M.create_params = function(name)
   return params
 end
 
+---@param component overseer.ComponentDefinition
+---@return overseer.Component
 local function instantiate(comp_params, component)
   local obj
   if type(comp_params) == "string" then
@@ -215,7 +261,7 @@ M.resolve = function(components, existing)
 end
 
 -- @param components is a list of component names or {name, params=}
--- @returns a list of instantiated components
+---@return overseer.Component[]
 M.load = function(components)
   local resolved = resolve({}, {}, components)
   local ret = {}

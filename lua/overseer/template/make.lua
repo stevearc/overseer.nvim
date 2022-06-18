@@ -11,7 +11,8 @@ local make_targets = [[
 )
 ]]
 
-return {
+---@type overseer.TemplateDefinition
+local tmpl = {
   priority = 60,
   tags = { TAG.BUILD },
   params = {
@@ -62,3 +63,5 @@ return {
     }
   end,
 }
+
+return tmpl

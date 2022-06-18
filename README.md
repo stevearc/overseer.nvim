@@ -8,7 +8,6 @@ TODO
 
 - [ ] Add more tests
 - [ ] Add more comments
-- [ ] Add type annotations
 - [ ] Dynamic window sizing for task editor
 - [ ] _maybe_ support other run strategies besides terminal
 - [ ] Basic Readme

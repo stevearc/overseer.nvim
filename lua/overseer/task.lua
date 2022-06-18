@@ -7,18 +7,43 @@ local util = require("overseer.util")
 
 local STATUS = constants.STATUS
 
+---@class overseer.Task
+---@field id number
+---@field result? table
+---@field metadata table
+---@field status overseer.Status
+---@field cmd string|string[]
+---@field cwd? string
+---@field env? table<string, string>
+---@field name string
+---@field bufnr number|nil
+---@field exit_code number|nil
+---@field components overseer.Component[]
 local Task = {}
 
 local next_id = 1
 
 Task.ordered_params = { "cmd", "cwd" }
+---@type overseer.Params
 Task.params = {
+  -- It's kind of a hack to specify a delimiter without type = 'list'. This is
+  -- so the task editor displays nicely if the value is a list OR a string
   cmd = { delimiter = " " },
   cwd = {
     optional = true,
   },
 }
 
+---@class overseer.TaskDefinition
+---@field args? string[]
+---@field name? string
+---@field cwd? string
+---@field env? table<string, string>
+---@field metadata? table
+---@field components? table TODO more specific type
+
+---@param opts overseer.TaskDefinition
+---@return overseer.Task
 function Task.new_uninitialized(opts)
   opts = opts or {}
   vim.validate({
@@ -216,8 +241,8 @@ function Task:set_components(components)
       if comp.name == new_comp.name then
         found = true
         if component.params_should_replace(new_comp.params, comp.params) then
-          if comp.dispose then
-            comp:dispose(self)
+          if comp.on_dispose then
+            comp:on_dispose(self)
           end
           self.components[i] = new_comp
           replaced = true
@@ -235,6 +260,8 @@ function Task:set_components(components)
   end
 end
 
+---@param name string
+---@return overseer.Component?
 function Task:get_component(name)
   vim.validate({
     name = { name, "s" },
@@ -246,6 +273,7 @@ function Task:get_component(name)
   end
 end
 
+---@param name string
 function Task:remove_component(name)
   vim.validate({
     name = { name, "s" },
@@ -253,6 +281,7 @@ function Task:remove_component(name)
   return self:remove_components({ name })
 end
 
+---@param names string[]
 function Task:remove_components(names)
   vim.validate({
     names = { names, "t" },
@@ -280,28 +309,34 @@ function Task:remove_components(names)
   return ret
 end
 
+---@param name string
 function Task:has_component(name)
   vim.validate({ name = { name, "s" } })
   local new_comps = component.resolve({ name }, self.components)
   return vim.tbl_isempty(new_comps)
 end
 
+---@return boolean
 function Task:is_pending()
   return self.status == STATUS.PENDING
 end
 
+---@return boolean
 function Task:is_running()
   return self.status == STATUS.RUNNING
 end
 
+---@return boolean
 function Task:is_complete()
   return self.status ~= STATUS.PENDING and self.status ~= STATUS.RUNNING
 end
 
+---@return boolean
 function Task:is_disposed()
   return self.status == STATUS.DISPOSED
 end
 
+---@param soft boolean
 function Task:reset(soft)
   if self:is_disposed() then
     error(string.format("Cannot reset %s task", self.status))
@@ -347,6 +382,8 @@ function Task:dispatch(name, ...)
   end
 end
 
+---@param status overseer.Status
+---@param data? table
 function Task:set_result(status, data)
   vim.validate({
     status = { status, "s" },
@@ -371,6 +408,7 @@ function Task:dec_reference()
   self._references = self._references - 1
 end
 
+---@param force? boolean
 function Task:dispose(force)
   vim.validate({
     force = { force, "b", true },
@@ -418,6 +456,7 @@ function Task:dispose(force)
   return true
 end
 
+---@param force_stop? boolean
 function Task:rerun(force_stop)
   vim.validate({ force_stop = { force_stop, "b", true } })
   log:debug("Rerun task %s", self.name)

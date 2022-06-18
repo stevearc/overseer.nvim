@@ -1,9 +1,14 @@
 local M = {}
 
+---@param winid? number
+---@return boolean
 M.is_floating_win = function(winid)
+  ---@diagnostic disable-next-line: undefined-field
   return vim.api.nvim_win_get_config(winid or 0).relative ~= ""
 end
 
+---@param bufnr? number
+---@return number[] winids
 M.get_fixed_wins = function(bufnr)
   local wins = {}
   for _, winid in ipairs(vim.api.nvim_tabpage_list_wins(0)) do
@@ -14,6 +19,7 @@ M.get_fixed_wins = function(bufnr)
   return wins
 end
 
+---@return number winid
 M.find_code_window = function()
   if vim.api.nvim_buf_get_option(0, "buftype") == "" then
     return vim.api.nvim_get_current_win()
@@ -27,6 +33,7 @@ M.find_code_window = function()
   return 0
 end
 
+---@param winid number
 M.go_win_no_au = function(winid)
   if winid == nil or winid == vim.api.nvim_get_current_win() then
     return
@@ -35,10 +42,12 @@ M.go_win_no_au = function(winid)
   vim.cmd(string.format("noau %dwincmd w", winnr))
 end
 
+---@param bufnr number
 M.go_buf_no_au = function(bufnr)
   vim.cmd(string.format("noau b %d", bufnr))
 end
 
+---@param winid? number
 M.scroll_to_end = function(winid)
   winid = winid or 0
   local bufnr = vim.api.nvim_win_get_buf(winid)
@@ -46,6 +55,9 @@ M.scroll_to_end = function(winid)
   vim.api.nvim_win_set_cursor(winid, { lnum, 0 })
 end
 
+---@param bufnr number
+---@param ns number
+---@param highlights table
 M.add_highlights = function(bufnr, ns, highlights)
   for _, hl in ipairs(highlights) do
     local group, lnum, col_start, col_end = unpack(hl)
@@ -53,6 +65,9 @@ M.add_highlights = function(bufnr, ns, highlights)
   end
 end
 
+---@param text string
+---@param size number
+---@return string
 M.ljust = function(text, size)
   local len = vim.api.nvim_strwidth(text)
   if len < size then
@@ -61,6 +76,9 @@ M.ljust = function(text, size)
   return text
 end
 
+---@param text string
+---@param width number
+---@param alignment "left"|"right"|"center"
 M.align = function(text, width, alignment)
   if alignment == "center" then
     local padding = math.floor((width - string.len(text)) / 2)
@@ -73,6 +91,7 @@ M.align = function(text, width, alignment)
   end
 end
 
+---@return number? winid
 M.get_preview_window = function()
   for _, winid in ipairs(vim.api.nvim_list_wins()) do
     if vim.api.nvim_win_get_option(winid, "previewwindow") then
@@ -81,6 +100,8 @@ M.get_preview_window = function()
   end
 end
 
+---@param bufnr? number
+---@return boolean
 M.is_bufnr_visible = function(bufnr)
   if not bufnr then
     return false
@@ -93,6 +114,10 @@ M.is_bufnr_visible = function(bufnr)
   return false
 end
 
+---@generic T : any
+---@param list T[]
+---@param keyfn? fun(item: T): string
+---@return table<string, T>
 M.list_to_map = function(list, keyfn)
   local map = {}
   if type(list) == "string" then
@@ -115,6 +140,9 @@ M.leave_insert = function()
   end
 end
 
+---@generic T : any
+---@param tbl T[]
+---@return T[]
 M.tbl_reverse = function(tbl)
   local len = #tbl
   for i = 1, math.floor(len / 2) do
@@ -126,6 +154,11 @@ M.tbl_reverse = function(tbl)
   return tbl
 end
 
+---@generic T : any
+---@param tbl T[]
+---@param start_idx? number
+---@param end_idx? number
+---@return T[]
 M.tbl_slice = function(tbl, start_idx, end_idx)
   local ret = {}
   if not start_idx then
@@ -140,6 +173,12 @@ M.tbl_slice = function(tbl, start_idx, end_idx)
   return ret
 end
 
+---@generic T : any
+---@generic U : any
+---@param tbl T[]
+---@param needle U
+---@param transform? fun(item: T): U
+---@return T?
 M.tbl_remove = function(tbl, needle, transform)
   for i, v in ipairs(tbl) do
     if transform then
@@ -152,6 +191,12 @@ M.tbl_remove = function(tbl, needle, transform)
   end
 end
 
+---@generic T : any
+---@generic U : any
+---@param tbl T[]
+---@param needle U
+---@param extract? fun(item: T): U
+---@return number?
 M.tbl_index = function(tbl, needle, extract)
   for i, v in ipairs(tbl) do
     if extract then
@@ -166,6 +211,8 @@ M.tbl_index = function(tbl, needle, extract)
   end
 end
 
+---@param str string
+---@return string
 M.remove_ansi = function(str)
   return str:gsub("\x1b%[[%d;]*%dm", "")
 end
@@ -202,8 +249,10 @@ M.pwrap = function(fn)
   end
 end
 
--- Attempt to detect if a command should be run by the shell (passed as string
--- to termopen)  or if it can be run directly (passed as list to termopen)
+--- Attempt to detect if a command should be run by the shell (passed as string
+--- to termopen)  or if it can be run directly (passed as list to termopen)
+---@param cmd string
+---@return boolean
 M.is_shell_cmd = function(cmd)
   for arg in vim.gsplit(cmd, "%s+") do
     if arg == "|" or arg == "||" or arg == "&&" then
@@ -213,6 +262,10 @@ M.is_shell_cmd = function(cmd)
   return false
 end
 
+---@generic T : any
+---@param list T[]
+---@param cb fun(item: T): boolean
+---@return boolean
 M.list_any = function(list, cb)
   for _, v in ipairs(list) do
     if cb(v) then
@@ -222,6 +275,10 @@ M.list_any = function(list, cb)
   return false
 end
 
+---@generic T : any
+---@param list T[]
+---@param key string
+---@return table<string, T>
 M.tbl_group_by = function(list, key)
   local ret = {}
   for _, v in ipairs(list) do

@@ -4,6 +4,67 @@ local log = require("overseer.log")
 local util = require("overseer.util")
 local M = {}
 
+---@alias overseer.Param overseer.StringParam|overseer.BoolParam|overseer.NumberParam|overseer.IntParam|overseer.ListParam|overseer.EnumParam|overseer.OpaqueParam
+
+---@class overseer.StringParam
+---@field name? string
+---@field description? string
+---@field validate? fun(value: any): boolean
+---@field optional? boolean
+---@field type? "string"
+---@field default? string
+
+---@class overseer.BoolParam
+---@field name? string
+---@field description? string
+---@field validate? fun(value: any): boolean
+---@field optional? boolean
+---@field type "bool"
+---@field default? boolean
+
+---@class overseer.NumberParam
+---@field name? string
+---@field description? string
+---@field validate? fun(value: any): boolean
+---@field optional? boolean
+---@field type "number"
+---@field default? number
+
+---@class overseer.IntParam
+---@field name? string
+---@field description? string
+---@field validate? fun(value: any): boolean
+---@field optional? boolean
+---@field type? "int"
+---@field default? number
+
+---@class overseer.ListParam
+---@field name? string
+---@field description? string
+---@field validate? fun(value: any): boolean
+---@field optional? boolean
+---@field type? "list"
+---@field subtype? overseer.Param
+---@field delimiter? string
+---@field default? table
+
+---@class overseer.EnumParam
+---@field name? string
+---@field description? string
+---@field validate? fun(value: any): boolean
+---@field optional? boolean
+---@field type? "enum"
+---@field default? string
+---@field choices string[]
+
+---@class overseer.OpaqueParam
+---@field name? string
+---@field description? string
+---@field validate? fun(value: any): boolean
+---@field optional? boolean
+---@field type? "opaque"
+---@field default? any
+
 local default_schema = {
   list = {
     delimiter = ", ",
@@ -11,6 +72,7 @@ local default_schema = {
   },
 }
 
+---@param params overseer.Params
 M.validate_params = function(params)
   for name, param in pairs(params) do
     if not param.type then
@@ -36,6 +98,9 @@ M.validate_params = function(params)
   end
 end
 
+---@param schema overseer.Param
+---@value any
+---@return string
 M.render_value = function(schema, value)
   if value == nil then
     return ""
@@ -52,11 +117,19 @@ M.render_value = function(schema, value)
   return value
 end
 
+---@param schema overseer.Param
+---@param prefix string
+---@param name string
+---@param value any
+---@return string
 M.render_field = function(schema, prefix, name, value)
   local str_value = M.render_value(schema, value)
   return string.format("%s%s: %s", prefix, name, str_value)
 end
 
+---@param schema overseer.Param
+---@param value any
+---@return boolean
 local function validate_type(schema, value)
   local ptype = schema.type or "string"
   if value == nil then
@@ -80,6 +153,9 @@ local function validate_type(schema, value)
   end
 end
 
+---@param schema overseer.Param
+---@param value any
+---@return boolean
 M.validate_field = function(schema, value)
   if not validate_type(schema, value) then
     return false
@@ -90,6 +166,12 @@ M.validate_field = function(schema, value)
   return true
 end
 
+---@param schema overseer.Param
+---@param prefix string
+---@param name string
+---@param line string
+---@return boolean success
+---@return any? parsed_value
 M.parse_field = function(schema, prefix, name, line)
   local label = string.format("%s%s: ", prefix, name)
   if string.sub(line, 1, string.len(label)) ~= label then
@@ -99,6 +181,10 @@ M.parse_field = function(schema, prefix, name, line)
   return M.parse_value(schema, value)
 end
 
+---@param schema overseer.Param
+---@param value string
+---@return boolean success
+---@return any? parsed_value
 M.parse_value = function(schema, value)
   if schema.type == "opaque" then
     return false
@@ -145,6 +231,9 @@ M.parse_value = function(schema, value)
   return true, value
 end
 
+---@param findstart number
+---@param base string
+---@return number|string[]
 function _G.overseer_form_omnifunc(findstart, base)
   if findstart == 1 then
     return vim.api.nvim_win_get_cursor(0)[2]

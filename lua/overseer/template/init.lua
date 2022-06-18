@@ -7,12 +7,40 @@ local template_builder = require("overseer.template_builder")
 local util = require("overseer.util")
 local M = {}
 
+---@class overseer.Template
+---@field name string
+---@field description? string
+---@field tags? string[]
+---@field params overseer.Params
+---@field priority number
+---@field builder? function
+---@field metagen? function
+---@field condition overseer.SearchCondition
 local Template = {}
+
+---@class overseer.TemplateDefinition
+---@field description? string
+---@field tags? string[]
+---@field params overseer.Params
+---@field priority number
+---@field builder? function
+---@field metagen? function
+---@field condition? overseer.SearchCondition
+
+---@class overseer.SearchCondition
+---@field filetype? string|string[]
+---@field dir? string|string[]
+---@field callback? fun(self: overseer.Template, search: overseer.SearchParams): boolean
+
+---@alias overseer.Params table<string, overseer.Param>
 
 local DEFAULT_PRIORITY = 50
 
+---@type table<string, overseer.Template>
 local registry = {}
 
+---@param tmpl overseer.Template
+---@param search overseer.SearchParams
 local function tmpl_matches(tmpl, search)
   local condition = tmpl.condition
   if condition.filetype then
@@ -74,18 +102,22 @@ local function initialize()
   initialized = true
 end
 
+---@param name string
+---@param defn? overseer.TemplateDefinition
 M.register = function(name, defn)
   if not defn then
     defn = require(string.format("overseer.template.%s", name))
   end
-  defn.name = name
-  registry[name] = Template.new(defn)
+  registry[name] = Template.new(name, defn)
 end
 
-function Template.new(opts)
+---@param name string
+---@param opts overseer.TemplateDefinition
+---@return overseer.Template
+function Template.new(name, opts)
   opts = opts or {}
   vim.validate({
-    name = { opts.name, "s" },
+    name = { name, "s" },
     description = { opts.description, "s", true },
     tags = { opts.tags, "t", true },
     params = { opts.params, "t" },
@@ -96,6 +128,7 @@ function Template.new(opts)
   if not opts.builder and not opts.metagen then
     error("Template must have one of: builder, metagen")
   end
+  opts.name = name
   opts.priority = opts.priority or DEFAULT_PRIORITY
   opts._type = "OverseerTemplate"
   if opts.condition then
@@ -165,6 +198,13 @@ end
 
 M.new = Template.new
 
+---@class overseer.SearchParams
+---@field filetype? string
+---@field tags? string[]
+---@field dir string
+
+---@param opts? overseer.SearchParams
+---@return overseer.Template[]
 M.list = function(opts)
   initialize()
   opts = opts or {}
@@ -202,6 +242,9 @@ M.list = function(opts)
   return ret
 end
 
+---@param name string
+---@param opts? overseer.SearchParams
+---@return overseer.Template?
 M.get_by_name = function(name, opts)
   initialize()
   local ret = registry[name]
