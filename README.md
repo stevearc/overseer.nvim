@@ -6,7 +6,6 @@ Will be updated & history overwritten if it's ever ready for release
 
 TODO
 
-- [ ] Add more tests
 - [ ] Add more comments
 - [ ] Dynamic window sizing for task editor
 - [ ] _maybe_ support other run strategies besides terminal
