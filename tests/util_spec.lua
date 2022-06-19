@@ -42,4 +42,47 @@ describe("util", function()
       assert.are.same({ "foobar" }, ret)
     end)
   end)
+
+  describe("decode_json", function()
+    it("parses normal json", function()
+      local ret = util.decode_json('{"foo": "bar", "baz": 3}')
+      assert.are.same({ foo = "bar", baz = 3 }, ret)
+    end)
+
+    it("parses json with linewise comments", function()
+      local ret = util.decode_json([[{"foo": "bar",
+      // This is a comment
+      "baz": 3}]])
+      assert.are.same({ foo = "bar", baz = 3 }, ret)
+    end)
+
+    it("parses json with linewise comments at the end", function()
+      local ret = util.decode_json([[{"foo": "bar",
+      "baz": 3}
+      // This is a comment]])
+      assert.are.same({ foo = "bar", baz = 3 }, ret)
+    end)
+
+    it("parses json with multiple linewise comments", function()
+      local ret = util.decode_json([[{"foo": // comment
+// comment
+      "bar",
+      "baz" // comment
+      : 3 // comment }
+    }
+      // comment]])
+      assert.are.same({ foo = "bar", baz = 3 }, ret)
+    end)
+
+    it("parses json with trailing commas", function()
+      local ret = util.decode_json([[{"foo": "bar", "baz": 3,}]])
+      assert.are.same({ foo = "bar", baz = 3 }, ret)
+    end)
+
+    it("parses json with trailing commas and whitespace", function()
+      local ret = util.decode_json([[{"foo": "bar", "baz": 3 ,   
+    }]])
+      assert.are.same({ foo = "bar", baz = 3 }, ret)
+    end)
+  end)
 end)

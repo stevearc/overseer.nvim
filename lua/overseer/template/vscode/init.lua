@@ -209,7 +209,7 @@ local tmpl = {
     end,
   },
   metagen = function(self, opts)
-    local content = files.load_json_file(files.join(opts.dir, ".vscode", "tasks.json"), true)
+    local content = files.load_json_file(files.join(opts.dir, ".vscode", "tasks.json"))
     local global_defaults = {}
     for k, v in pairs(content) do
       if k ~= "version" and k ~= "tasks" then

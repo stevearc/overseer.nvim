@@ -1,20 +1,30 @@
+local util = require("overseer.util")
 local M = {}
 
+---@type boolean
 M.is_windows = vim.loop.os_uname().version:match("Windows")
 
+---@type boolean
 M.is_mac = vim.loop.os_uname().sysname == "Darwin"
 
+---@type string
 M.sep = M.is_windows and "\\" or "/"
 
+---@param filepath string
+---@return boolean
 M.exists = function(filepath)
   local stat = vim.loop.fs_stat(filepath)
   return stat ~= nil and stat.type ~= nil
 end
 
+---@return string
 M.join = function(...)
   return table.concat({ ... }, M.sep)
 end
 
+---@param dir string
+---@param path string
+---@return boolean
 M.is_subpath = function(dir, path)
   return string.sub(path, 0, string.len(dir)) == dir
 end
@@ -33,6 +43,8 @@ M.get_stdpath_filename = function(stdpath, ...)
   return M.join(dir, ...)
 end
 
+---@param filepath string
+---@return string?
 M.read_file = function(filepath)
   if not M.exists(filepath) then
     return nil
@@ -44,6 +56,9 @@ M.read_file = function(filepath)
   return content
 end
 
+---@param data_dir "cache"|"config"|"data"|"log"
+---@param basename string
+---@return string
 M.gen_random_filename = function(data_dir, basename)
   local num = 0
   for _ = 1, 5 do
@@ -52,17 +67,17 @@ M.gen_random_filename = function(data_dir, basename)
   return M.get_stdpath_filename(data_dir, "overseer", basename:format(num))
 end
 
-M.load_json_file = function(filepath, sanitize)
+---@param filepath string
+---@return any?
+M.load_json_file = function(filepath)
   local content = M.read_file(filepath)
   if content then
-    if sanitize then
-      -- Get rid of linewise comments
-      content = content:gsub("\n%s*//[^\n]*", "\n")
-    end
-    return vim.json.decode(content)
+    return util.decode_json(content)
   end
 end
 
+---@param dirname string
+---@param perms? number
 M.mkdir = function(dirname, perms)
   if not perms then
     perms = 493 -- 0755
@@ -76,6 +91,8 @@ M.mkdir = function(dirname, perms)
   end
 end
 
+---@param filename string
+---@param contents string
 M.write_file = function(filename, contents)
   M.mkdir(vim.fn.fnamemodify(filename, ":h"))
   local fd = vim.loop.fs_open(filename, "w", 420) -- 0644
@@ -83,6 +100,7 @@ M.write_file = function(filename, contents)
   vim.loop.fs_close(fd)
 end
 
+---@param filename string
 M.delete_file = function(filename)
   if M.exists(filename) then
     vim.loop.fs_unlink(filename)
@@ -90,6 +108,8 @@ M.delete_file = function(filename)
   end
 end
 
+---@param filename string
+---@param obj any
 M.write_json_file = function(filename, obj)
   M.write_file(filename, vim.json.encode(obj))
 end
