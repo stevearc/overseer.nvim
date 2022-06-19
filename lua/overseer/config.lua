@@ -1,12 +1,21 @@
 local default_config = {
-  list_sep = "────────────────────────────────────────",
+  -- Template modules to load
   templates = { "builtin" },
+  -- When true, tries to detect a green color from your colorscheme to use for success highlight
   auto_detect_success_color = true,
+  -- Configure the task list
   sidebar = {
+    -- Default detail level for tasks. Can be 1-3.
     default_detail = 1,
+    -- max_width = {100, 0.2} means "the lesser of 100 columns or 20% of total"
     max_width = { 100, 0.2 },
+    -- min_width = {40, 0.1} means "the greater of 40 columns or 10% of total"
     min_width = { 40, 0.1 },
+    -- String the separates tasks
+    separator = "────────────────────────────────────────",
   },
+  -- Configure where the logs go and what level to use
+  -- Types are "echo", "notify", and "file"
   log = {
     {
       type = "echo",
@@ -18,7 +27,10 @@ local default_config = {
       level = vim.log.levels.WARN,
     },
   },
+  -- TODO: explain these
   actions = {},
+  -- Configure the floating window used for task templates that require input
+  -- and the floating window used for editing tasks
   form = {
     border = "rounded",
     min_width = 80,
@@ -33,7 +45,9 @@ local default_config = {
     border = "rounded",
     winblend = 10,
   },
-  component_sets = {
+  -- Aliases for bundles of components. Redefine the builtins, or create your own.
+  component_aliases = {
+    -- Most tasks are initialized with the default components
     default = {
       "on_output_summarize",
       "result_exit_code",
@@ -41,6 +55,8 @@ local default_config = {
       "on_rerun_handler",
       "dispose_delay",
     },
+    -- Used for templates that define a task that should remain running and
+    -- restart on failure (e.g. a server or file-watching build process)
     default_persist = {
       "on_output_summarize",
       "result_exit_code",
@@ -48,14 +64,15 @@ local default_config = {
       "on_rerun_handler",
       "on_result_rerun",
     },
+    -- Used for tasks generated from the VS Code integration (tasks.json)
     default_vscode = {
       "default",
       "on_result_diagnostics",
       "on_result_diagnostics_quickfix",
     },
   },
-  -- A list of components to preload on setup. Only matters if you want them to
-  -- show up in the task editor.
+  -- A list of components to preload on setup.
+  -- Only matters if you want them to show up in the task editor.
   preload_components = {},
 }
 
@@ -91,7 +108,7 @@ M.setup = function(opts)
   M.actions = merge_actions(require("overseer.task_list.actions"), newconf.actions)
 
   parsers.register_builtin()
-  for k, v in pairs(M.component_sets) do
+  for k, v in pairs(M.component_aliases) do
     component.alias(k, v)
   end
 end

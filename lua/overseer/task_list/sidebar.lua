@@ -208,7 +208,7 @@ function Sidebar:render(tasks)
     task:render(lines, highlights, detail)
     table.insert(self.task_lines, { #lines, task })
     if i > 1 then
-      table.insert(lines, config.list_sep)
+      table.insert(lines, config.sidebar.separator)
       table.insert(highlights, { "OverseerTaskBorder", #lines, 0, -1 })
     end
   end
