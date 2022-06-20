@@ -81,6 +81,16 @@ M.get_by_index = function(index)
   return tasks[#tasks + 1 - index]
 end
 
+---@class overseer.ListTaskOpts
+---@field unique? boolean Deduplicates tasks by name
+---@field name? string|string[]
+---@field name_not? boolean
+---@field status? overseer.Status|overseer.Status[]
+---@field status_not? boolean
+---@field recent_first? boolean
+
+---@param opts overseer.ListTaskOpts
+---@return overseer.Task[]
 M.list_tasks = function(opts)
   opts = opts or {}
   vim.validate({
@@ -88,7 +98,7 @@ M.list_tasks = function(opts)
     -- name is string or list
     name_not = { opts.name_not, "b", true },
     -- status is string or list
-    status_not = { opts.name_not, "b", true },
+    status_not = { opts.status_not, "b", true },
     recent_first = { opts.recent_first, "b", true },
   })
   local name = util.list_to_map(opts.name or {})
@@ -102,11 +112,19 @@ M.list_tasks = function(opts)
         or (name[task.name] and not opts.name_not)
         or (not name[task.name] and opts.name_not)
       )
-      and (not opts.status or (status[task.status] and not opts.status_not) or (not status[task.status] and opts.status_not))
-      and (not opts.unique or not seen[task.name])
+      and (
+        not opts.status
+        or (status[task.status] and not opts.status_not)
+        or (not status[task.status] and opts.status_not)
+      )
     then
-      seen[task.name] = true
-      table.insert(ret, task)
+      local idx = seen[task.name]
+      if idx and opts.unique then
+        ret[idx] = task
+      else
+        table.insert(ret, task)
+        seen[task.name] = #ret
+      end
     end
   end
   if opts.recent_first then

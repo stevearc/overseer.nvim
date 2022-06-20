@@ -21,7 +21,7 @@
 -- *symbols*
 --   Mapping of task status to symbol representation
 --
--- *label* (default: 'Tasks:')
+-- *label* (default: '')
 --   Prefix to put in front of task counts.
 --
 -- *unique* (default: false)
@@ -61,10 +61,9 @@ local default_no_icons = {
 }
 
 function M:init(options)
-  options.recent_first = true
   M.super.init(self, options)
 
-  self.options.label = self.options.label or "Tasks:"
+  self.options.label = self.options.label or ""
   if self.options.colored == nil then
     self.options.colored = true
   end
