@@ -26,7 +26,7 @@ jobs:
           git config user.name "Github Actions"
           git remote set-url origin https://x-access-token:${GITHUB_TOKEN}@github.com/${GITHUB_REPOSITORY}.git
           python .github/update_readme.py
-          nvim --headless -c 'helptags ALL' -c 'qall'
+          nvim --headless -c 'set runtimepath+=.' -c 'helptags ALL' -c 'qall'
           git add README.md doc/overseer.txt doc/tags
           # Only commit and push if we have changes
           git diff --quiet && git diff --staged --quiet || (git commit -m "${COMMIT_MSG}"; git push origin HEAD:${GITHUB_REF})
