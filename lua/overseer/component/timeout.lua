@@ -1,11 +1,11 @@
 ---@type overseer.ComponentDefinition
 local comp = {
-  description = "Dispose task after a timeout",
+  description = "Cancel task if it exceeds a timeout",
   params = {
     timeout = {
-      description = "Time to wait (in seconds) before disposing",
-      default = 300, -- 5 minutes
-      type = "number",
+      description = "Time to wait (in seconds) before canceling",
+      default = 120,
+      type = "int",
       validate = function(v)
         return v > 0
       end,
@@ -18,17 +18,19 @@ local comp = {
     })
     return {
       timer = nil,
-      on_complete = function(self, task)
+      canceled = false,
+      on_start = function(self, task)
         self.timer = vim.loop.new_timer()
         self.timer:start(
           1000 * opts.timeout,
-          1000 * opts.timeout,
+          0,
           vim.schedule_wrap(function()
-            task:dispose()
+            self.canceled = task:stop()
           end)
         )
       end,
       on_reset = function(self, task)
+        self.canceled = false
         if self.timer then
           self.timer:close()
           self.timer = nil
@@ -38,6 +40,12 @@ local comp = {
         if self.timer then
           self.timer:close()
           self.timer = nil
+        end
+      end,
+      render = function(self, task, lines, highlights, detail)
+        if self.canceled then
+          table.insert(lines, "Task timed out")
+          table.insert(highlights, { "DiagnosticWarn", #lines, 0, -1 })
         end
       end,
     }

@@ -21,7 +21,7 @@ local M = {}
 ---@field on_start? fun(self: overseer.Component, task: overseer.Task)
 ---@field on_reset? fun(self: overseer.Component, task: overseer.Task, soft: boolean)
 ---@field on_result? fun(self: overseer.Component, task: overseer.Task, status: overseer.Status, result: table)
----@field on_finish? fun(self: overseer.Component, task: overseer.Task, status: overseer.Status)
+---@field on_complete? fun(self: overseer.Component, task: overseer.Task, status: overseer.Status, result: table)
 ---@field on_output? fun(self: overseer.Component, task: overseer.Task, data: string[])
 ---@field on_output_lines? fun(self: overseer.Component, task: overseer.Task, lines: string[])
 ---@field on_request_rerun? fun(self: overseer.Component, task: overseer.Task)
@@ -53,6 +53,7 @@ local builtin_components = {
   "on_result_stacktrace_quickfix",
   "on_status_run_task",
   "result_exit_code",
+  "timeout",
 }
 
 ---@param name string
