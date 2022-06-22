@@ -41,17 +41,17 @@ local aliases = {}
 
 local builtin_components = {
   "on_output_summarize",
-  "on_result_rerun",
-  "on_result_notify_system",
-  "on_result_notify_red_green",
-  "on_result_notify",
-  "rerun_on_save",
-  "on_rerun_handler",
   "on_output_write_file",
+  "on_rerun_handler",
   "on_result_diagnostics",
   "on_result_diagnostics_quickfix",
+  "on_result_notify",
+  "on_result_notify_red_green",
+  "on_result_notify_system",
+  "on_result_rerun",
   "on_result_stacktrace_quickfix",
   "on_status_run_task",
+  "rerun_on_save",
   "result_exit_code",
   "timeout",
 }
@@ -276,6 +276,33 @@ M.load = function(components)
     end
   end
 
+  return ret
+end
+
+local function simplify_params(params)
+  local ret = {}
+  for k, v in pairs(params) do
+    ret[k] = {
+      name = v.name,
+      description = v.description,
+      optional = v.optional,
+      default = v.default,
+      type = v.type or "string",
+    }
+  end
+  return ret
+end
+
+M.get_all_descriptions = function()
+  local ret = {}
+  for _, name in ipairs(builtin_components) do
+    local defn = M.get(name)
+    table.insert(ret, {
+      name = name,
+      description = defn.description,
+      params = simplify_params(defn.params),
+    })
+  end
   return ret
 end
 

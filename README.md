@@ -6,15 +6,22 @@ Will be updated & history overwritten if it's ever ready for release
 
 TODO screenshots
 
+- [ ] Notification component that uses system notif IFF vim is not focused
 - [ ] Add more comments
 - [ ] Refactor config window options
 - [ ] Dynamic window sizing for task editor
 - [ ] _maybe_ support other run strategies besides terminal
 - [ ] Basic Readme
 - [ ] Vim help docs
-- [ ] Architecture doc (Template / Task / Component / Actions)
+- [ ] Finish guide.md
+- [ ] Finish components.md
+- [ ] Remaining README todos
 - [ ] Extension doc (how to make your own template/component)
 - [ ] Guide for common functionality
+- [ ] Comparison to alternatives?
+  - [yabs](https://github.com/pianocomposer321/yabs.nvim)
+  - [toggletasks](https://github.com/jedrzejboczar/toggletasks.nvim)
+  - [vs-tasks](https://github.com/EthanJWright/vs-tasks.nvim)
 
 ---
 
@@ -27,6 +34,7 @@ TODO screenshots
 - [Third-party integrations](#third-party-integrations)
   - [Lualine](#lualine)
   - [Neotest](#neotest)
+- [Architecture](#architecture)
 - [Highlight](#highlight)
 - [VS Code tasks](#vs-code-tasks)
 
@@ -128,7 +136,7 @@ require("overseer").setup({
     max_width = { 100, 0.2 },
     -- min_width = {40, 0.1} means "the greater of 40 columns or 10% of total"
     min_width = { 40, 0.1 },
-    -- String the separates tasks
+    -- String that separates tasks
     separator = "────────────────────────────────────────",
   },
   -- Configure where the logs go and what level to use
@@ -257,6 +265,10 @@ require("lualine").setup({
 
 TODO
 
+## Architecture
+
+TODO tasks, components, templates (dynamically-generated)
+
 ## Highlight
 
 | Group                | description                                             |
@@ -298,5 +310,6 @@ Unsupported features:
 - `${config:*}` variables
 - `${command:*}` variables
 - The `${defaultBuildTask}` variable
+- Custom problem matcher patterns may fail due to differences between JS and vim regex (notably vim regex doesn't support non-capturing groups `(?:.*)` or character classes inside of brackets `[\d\s]`)
 - [Output behavior](https://code.visualstudio.com/docs/editor/tasks#_output-behavior) (probably not going to support this)
 - [Run behavior](https://code.visualstudio.com/docs/editor/tasks#_run-behavior) (probably not going to support this)

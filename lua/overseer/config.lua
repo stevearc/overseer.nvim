@@ -11,7 +11,7 @@ local default_config = {
     max_width = { 100, 0.2 },
     -- min_width = {40, 0.1} means "the greater of 40 columns or 10% of total"
     min_width = { 40, 0.1 },
-    -- String the separates tasks
+    -- String that separates tasks
     separator = "────────────────────────────────────────",
   },
   -- Configure where the logs go and what level to use
