@@ -7,17 +7,17 @@ Will be updated & history overwritten if it's ever ready for release
 TODO screenshots
 
 - [ ] Notification component that uses system notif IFF vim is not focused
+- [ ] Rename rerun -> restart?
+- [ ] Open task list without entering
 - [ ] Add more comments
 - [ ] Refactor config window options
 - [ ] Dynamic window sizing for task editor
 - [ ] _maybe_ support other run strategies besides terminal
-- [ ] Basic Readme
-- [ ] Vim help docs
 - [ ] Finish guide.md
 - [ ] Finish components.md
 - [ ] Remaining README todos
 - [ ] Extension doc (how to make your own template/component)
-- [ ] Guide for common functionality
+- [ ] Vim help docs
 - [ ] Comparison to alternatives?
   - [yabs](https://github.com/pianocomposer321/yabs.nvim)
   - [toggletasks](https://github.com/jedrzejboczar/toggletasks.nvim)
@@ -51,6 +51,7 @@ TODO brief overview of features and use cases
 - Neovim 0.7+
 - (optional) patches for `vim.ui` (e.g. [dressing.nvim](https://github.com/stevearc/dressing.nvim)). Provides nicer UI for input and selection.
 - (optional) [telescope.nvim](https://github.com/nvim-telescope/telescope.nvim). When used with [dressing.nvim](https://github.com/stevearc/dressing.nvim) provides best selection UI.
+- (optional) [nvim-notify](https://github.com/rcarriga/nvim-notify) a nice UI for `vim.notify`
 
 ## Installation
 
@@ -267,7 +268,23 @@ TODO
 
 ## Architecture
 
-TODO tasks, components, templates (dynamically-generated)
+### Tasks
+
+Tasks represent a single command that is run. They appear in the [task list](#task-list), where you can manage them (start/stop/restart/edit/open terminal). You can create them directly, either with `OverseerBuild` or via the API `require('overseer.task').new()`.
+
+Most of the time, however, you will find it most convenient to create them using [templates](#templates).
+
+### Components
+
+Tasks are built using an [entity component system](https://en.wikipedia.org/wiki/Entity_component_system). By itself, all a task does is run a command in a terminal. Components are used to add more functionality. They are used to do everything from displaying a summary of the output in the [task list](#task-list) to displaying a notification when the task finishes running.
+
+Components are designed to be easy to remove, customize, or replace. If you want to customize some aspect or behavior of a task, it's likely that it will be done through components.
+
+See [components](docs/components.md) for more information on built-in components and how to create your own.
+
+### Templates
+
+TODO
 
 ## Highlight
 

@@ -112,11 +112,14 @@ def update_components_md():
     doc = os.path.join(ROOT, "doc", "components.md")
     lines = ["\n"]
     for comp in components:
-        lines.append("### " + comp["name"] + "\n\n")
+        title = (
+            f"### [{comp['name']}](../lua/overseer/component/{comp['name']}.lua)\n\n"
+        )
+        lines.append(title)
         if comp.get("description"):
             lines.append(comp["description"] + "\n")
         if comp.get("params"):
-            for k, v in comp["params"].items():
+            for k, v in sorted(comp["params"].items()):
                 lines.append(format_param(k, v) + "\n")
         lines.append("\n")
     replace_section(
