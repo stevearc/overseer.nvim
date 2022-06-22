@@ -8,6 +8,7 @@ TODO screenshots
 
 - [ ] Notification component that uses system notif IFF vim is not focused
 - [ ] Rename rerun -> restart?
+- [ ] Rename description -> desc?
 - [ ] Open task list without entering
 - [ ] Add more comments
 - [ ] Refactor config window options
@@ -15,6 +16,8 @@ TODO screenshots
 - [ ] _maybe_ support other run strategies besides terminal
 - [ ] Finish guide.md
 - [ ] Finish components.md
+- [ ] Document parsers & parser debugging
+- [ ] Rename the context parser
 - [ ] Remaining README todos
 - [ ] Extension doc (how to make your own template/component)
 - [ ] Vim help docs
@@ -40,11 +43,27 @@ TODO screenshots
 
 ## Features
 
-TODO brief overview of features and use cases
+Overseer was built to address two generic needs:
 
-- VS Code tasks
-- Auto-detection of common targets (e.g. npm, make, tox)
-- etc
+1. I want a way to easily run and manage commands relevant to my current project
+1. I want to be able to integrate the results of those commands with neovim
+
+To address point 1, overseer has the following features:
+
+- auto-detect targets for common build systems (e.g. make, npm, tox)
+- define your own custom tasks (can make them per-directory and/or per-filetype)
+- can read and run tasks from [VS Code's tasks.json file](https://code.visualstudio.com/docs/editor/tasks)
+
+To address point 2, overseer
+
+- has built-in methods of parsing command output and loading it into neovim diagnostics, quickfix, or loclist.
+- is _extremely_ customizable and extensible. It should be straightforward and simple to get the functionality you need.
+
+Some examples of what overseer was built to do:
+
+- Quickly run the relevant build command for a project (e.g. `make`)
+- Run a web server in the background. Restart it on failure.
+- Run a build process. Re-run it every time I make a change. If there are errors, show them in neovim diagnostics (and optionally load them into the quickfix)
 
 ## Requirements
 
@@ -303,7 +322,7 @@ TODO
 
 ## VS Code tasks
 
-Overseer can read [VS Code's task file](https://code.visualstudio.com/docs/editor/tasks). By default, VS Code tasks will show up when you `:OverseerRun`. Overseer is _nearly_ at feature parity, but it's not quite (nor will it ever be) at 100%.
+Overseer can read [VS Code's tasks.json file](https://code.visualstudio.com/docs/editor/tasks). By default, VS Code tasks will show up when you `:OverseerRun`. Overseer is _nearly_ at feature parity, but it's not quite (nor will it ever be) at 100%.
 
 Supported features:
 
