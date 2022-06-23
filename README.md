@@ -297,11 +297,11 @@ Most of the time, however, you will find it most convenient to create them using
 
 ### Components
 
-Tasks are built using an [entity component system](https://en.wikipedia.org/wiki/Entity_component_system). By itself, all a task does is run a command in a terminal. Components are used to add more functionality. They are used to do everything from displaying a summary of the output in the [task list](#task-list) to displaying a notification when the task finishes running.
+Tasks are built using an [entity component system](https://en.wikipedia.org/wiki/Entity_component_system). By itself, all a task does is run a command in a terminal. Components are used to add more functionality. There are components to display a summary of the output in the [task list](#task-list), to show a notification when the task finishes running, and to set the task results into neovim diagnostics.
 
 Components are designed to be easy to remove, customize, or replace. If you want to customize some aspect or behavior of a task, it's likely that it will be done through components.
 
-See [components](docs/components.md) for more information on built-in components and how to create your own.
+See [components](doc/components.md) for more information on built-in components and how to create your own.
 
 ### Templates
 
