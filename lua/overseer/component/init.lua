@@ -9,7 +9,7 @@ local M = {}
 ---`on_<event>_*` means "does something when <event> is fired
 ---@class overseer.ComponentDefinition
 ---@field name? string
----@field description? string
+---@field description string
 ---@field params? overseer.Params
 ---@field editable? boolean
 ---@field serialize? "exclude"|"fail"
@@ -49,7 +49,6 @@ local builtin_components = {
   "on_result_notify_red_green",
   "on_result_notify_system",
   "on_result_rerun",
-  "on_result_stacktrace_quickfix",
   "on_status_run_task",
   "rerun_on_save",
   "result_exit_code",

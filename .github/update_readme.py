@@ -91,19 +91,16 @@ def update_config_options():
 
 
 def format_param(name: str, param: Dict) -> str:
-    line = f"**{name}**"
-    required = True
-    if param.get("optional"):
-        line += "?"
-        required = False
-    line += ": "
+    pieces = [f"**{name}**[{param['type']}]:"]
+    required = not param.get("optional")
     if param.get("description"):
-        line += param["description"]
+        pieces.append(param["description"])
     if param.get("default") is not None:
-        line += " (default `%s`)" % json.dumps(param["default"])
+        pieces.append("(default `%s`)" % json.dumps(param["default"]))
         required = False
+    line = " ".join(pieces)
     if required:
-        line = "*" + line
+        line = "\\*" + line
     return line
 
 
@@ -116,16 +113,23 @@ def update_components_md():
             f"### [{comp['name']}](../lua/overseer/component/{comp['name']}.lua)\n\n"
         )
         lines.append(title)
+        content_lines = []
         if comp.get("description"):
-            lines.append(comp["description"] + "\n")
+            content_lines.append(comp["description"])
         if comp.get("params"):
             for k, v in sorted(comp["params"].items()):
-                lines.append(format_param(k, v) + "\n")
+                content_lines.append(format_param(k, v))
+        for i, line in enumerate(content_lines):
+            if i < len(content_lines) - 1:
+                content_lines[i] = line + " \\\n"
+            else:
+                content_lines[i] = line + " \n"
+        lines.extend(content_lines)
         lines.append("\n")
     replace_section(
         doc,
-        r"^# Built-in components$",
-        r"^# Custom components$",
+        r"^## Built-in components$",
+        r"^## Custom components$",
         lines,
     )
 

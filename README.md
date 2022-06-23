@@ -7,6 +7,7 @@ Will be updated & history overwritten if it's ever ready for release
 TODO screenshots
 
 - [ ] Notification component that uses system notif IFF vim is not focused
+- [ ] Notification components should maybe use on_complete?
 - [ ] Rename rerun -> restart?
 - [ ] Rename description -> desc?
 - [ ] Open task list without entering

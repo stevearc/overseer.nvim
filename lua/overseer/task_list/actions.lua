@@ -147,25 +147,6 @@ M = {
       vim.fn.setloclist(winid, task.result.diagnostics)
     end,
   },
-  ["set quickfix stacktrace"] = {
-    description = "put the stacktrace result into quickfix",
-    condition = function(task)
-      return task.result and task.result.stacktrace and not vim.tbl_isempty(task.result.stacktrace)
-    end,
-    run = function(task)
-      vim.fn.setqflist(task.result.stacktrace)
-    end,
-  },
-  ["set loclist stacktrace"] = {
-    description = "put the stacktrace result into loclist",
-    condition = function(task)
-      return task.result and task.result.stacktrace and not vim.tbl_isempty(task.result.stacktrace)
-    end,
-    run = function(task)
-      local winid = util.find_code_window()
-      vim.fn.setloclist(winid, task.result.stacktrace)
-    end,
-  },
 }
 
 return M
