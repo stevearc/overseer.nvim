@@ -42,6 +42,10 @@ Task.params = {
 ---@field metadata? table
 ---@field components? table TODO more specific type
 
+---Create an uninitialized Task with no ID that will not be run
+---This is used by the Task previewer (loading task bundles) so that we can use
+---the Task rendering logic, but don't end up actually creating & registering a
+---Task.
 ---@param opts overseer.TaskDefinition
 ---@return overseer.Task
 function Task.new_uninitialized(opts)
@@ -94,6 +98,8 @@ function Task.new_uninitialized(opts)
   return task
 end
 
+---@param opts overseer.TaskDefinition
+---@return overseer.Task
 function Task.new(opts)
   local task = Task.new_uninitialized(opts)
   task.id = next_id
@@ -185,6 +191,7 @@ function Task:is_serializable()
 end
 
 -- Returns the arguments require to create a clone of this task
+---@return overseer.TaskDefinition
 function Task:serialize()
   local components = {}
   for _, comp in ipairs(self.components) do
@@ -204,6 +211,7 @@ function Task:serialize()
   }
 end
 
+---@return overseer.Task
 function Task:clone()
   return Task.new(self:serialize())
 end
@@ -400,15 +408,19 @@ function Task:set_result(status, data)
   end
 end
 
+---Increment the refcount for this Task.
+---Prevents it from being disposed
 function Task:inc_reference()
   self._references = self._references + 1
 end
 
+---Decrement the refcount for this Task
 function Task:dec_reference()
   self._references = self._references - 1
 end
 
----@param force? boolean
+---Cleans up resources, removes from task list, and deletes buffer.
+---@param force? boolean When true, will dispose even with a nonzero refcount or when buffer is visible
 function Task:dispose(force)
   vim.validate({
     force = { force, "b", true },
@@ -456,7 +468,7 @@ function Task:dispose(force)
   return true
 end
 
----@param force_stop? boolean
+---@param force_stop? boolean If true, restart the Task even if it is currently running
 function Task:rerun(force_stop)
   vim.validate({ force_stop = { force_stop, "b", true } })
   log:debug("Rerun task %s", self.name)

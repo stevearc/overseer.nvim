@@ -2,7 +2,9 @@
 
 A task runner and job management plugin for Neovim
 
-Will be updated & history overwritten if it's ever ready for release
+**PRE-ALPHA**
+
+History will be overwritten once it's ready for release
 
 TODO screenshots
 
@@ -11,10 +13,9 @@ TODO screenshots
 - [ ] Rename rerun -> restart?
 - [ ] Rename description -> desc?
 - [ ] Open task list without entering
-- [ ] Add more comments
 - [ ] Refactor config window options
 - [ ] Dynamic window sizing for task editor
-- [ ] _maybe_ support other run strategies besides terminal
+- [ ] support other run strategies besides terminal
 - [ ] Finish guide.md
 - [ ] Finish components.md
 - [ ] Document parsers & parser debugging
