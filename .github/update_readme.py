@@ -91,7 +91,10 @@ def update_config_options():
 
 
 def format_param(name: str, param: Dict) -> str:
-    pieces = [f"**{name}**[{param['type']}]:"]
+    typestr = param["type"]
+    if "subtype" in param:
+        typestr += "[" + str(param["subtype"]["type"]) + "]"
+    pieces = [f"**{name}**[{typestr}]:"]
     required = not param.get("optional")
     if param.get("desc"):
         pieces.append(param["desc"])

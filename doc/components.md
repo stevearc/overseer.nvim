@@ -13,12 +13,12 @@ See below for how to create your own [custom components](#custom-components).
 ### [on_output_summarize](../lua/overseer/component/on_output_summarize.lua)
 
 Summarize task output in the task list \
-**max_lines**[int]: (default `4`)
+**max_lines**[int]: Number of lines of output to show when detail > 1 (default `4`)
 
 ### [on_output_write_file](../lua/overseer/component/on_output_write_file.lua)
 
 Write task output to a file \
-\***filename**[string]:
+\***filename**[string]: Name of file to write output to
 
 ### [on_restart_handler](../lua/overseer/component/on_restart_handler.lua)
 
@@ -30,9 +30,9 @@ Allows task to be restarted \
 
 If task result contains diagnostics, display them \
 **remove_on_restart**[bool]: Remove diagnostics when task restarts \
-**signs**[bool]: \
-**underline**[bool]: \
-**virtual_text**[bool]:
+**signs**[bool]: Override the default diagnostics.signs setting \
+**underline**[bool]: Override the default diagnostics.underline setting \
+**virtual_text**[bool]: Override the default diagnostics.virtual_text setting
 
 ### [on_result_diagnostics_quickfix](../lua/overseer/component/on_result_diagnostics_quickfix.lua)
 
@@ -42,7 +42,7 @@ If task result contains diagnostics, add them to the quickfix \
 ### [on_result_notify](../lua/overseer/component/on_result_notify.lua)
 
 vim.notify on task result \
-**statuses**[list]: List of statuses to notify on (default `["FAILURE", "SUCCESS"]`)
+**statuses**[list[enum]]: List of statuses to notify on (default `["FAILURE", "SUCCESS"]`)
 
 ### [on_result_notify_red_green](../lua/overseer/component/on_result_notify_red_green.lua)
 
@@ -51,12 +51,12 @@ vim.notify when task fails, or when it goes from failing to success
 ### [on_result_notify_system](../lua/overseer/component/on_result_notify_system.lua)
 
 send a system notification when task completes \
-**statuses**[list]: What statuses to notify on (default `["FAILURE", "SUCCESS"]`)
+**statuses**[list[enum]]: What statuses to notify on (default `["FAILURE", "SUCCESS"]`)
 
 ### [on_result_restart](../lua/overseer/component/on_result_restart.lua)
 
 Restart task when it completes \
-**statuses**[list]: What statuses will trigger a restart (default `["FAILURE"]`)
+**statuses**[list[enum]]: What statuses will trigger a restart (default `["FAILURE"]`)
 
 ### [on_status_run_task](../lua/overseer/component/on_status_run_task.lua)
 
@@ -64,7 +64,7 @@ Run another task on status change \
 **once**[bool]: When true, only trigger task once then remove this component (default `true`) \
 **sequence**[bool]: When true, tasks run one after another \
 **status**[enum]: What status to trigger on (default `"SUCCESS"`) \
-\***task_names**[list]: Names of the task templates to trigger
+\***task_names**[list[string]]: Names of the task templates to trigger
 
 ### [restart_on_save](../lua/overseer/component/restart_on_save.lua)
 
@@ -76,7 +76,7 @@ Restart on any buffer :write \
 
 Sets final task status based on exit code \
 **parser**[string]: \
-**success_codes**[list]: Additional exit codes to consider as success
+**success_codes**[list[int]]: Additional exit codes to consider as success
 
 ### [timeout](../lua/overseer/component/timeout.lua)
 

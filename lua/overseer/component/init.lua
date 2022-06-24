@@ -278,16 +278,21 @@ M.load = function(components)
   return ret
 end
 
+local function simplify_param(param)
+  return {
+    name = param.name,
+    desc = param.desc,
+    optional = param.optional,
+    default = param.default,
+    type = param.type or "string",
+    subtype = param.subtype and simplify_param(param.subtype),
+  }
+end
+
 local function simplify_params(params)
   local ret = {}
   for k, v in pairs(params) do
-    ret[k] = {
-      name = v.name,
-      desc = v.desc,
-      optional = v.optional,
-      default = v.default,
-      type = v.type or "string",
-    }
+    ret[k] = simplify_param(v)
   end
   return ret
 end
