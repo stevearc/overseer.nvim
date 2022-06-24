@@ -1,8 +1,12 @@
 -- Looks for a result value of 'diagnostics' that is a list of quickfix items
 return {
-  desc = "Put result diagnostics into the quickfix",
+  desc = "If task result contains diagnostics, add them to the quickfix",
   params = {
-    use_loclist = { type = "bool", optional = true },
+    use_loclist = {
+      desc = "If true, use the loclist instead of quickfix",
+      type = "bool",
+      optional = true,
+    },
   },
   constructor = function(params)
     return {

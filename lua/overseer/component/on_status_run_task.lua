@@ -3,7 +3,7 @@ local util = require("overseer.util")
 local STATUS = constants.STATUS
 
 return {
-  desc = "run another task on status change",
+  desc = "Run another task on status change",
   params = {
     status = {
       desc = "What status to trigger on",
@@ -22,7 +22,7 @@ return {
     },
     once = {
       type = "bool",
-      desc = "When true, only trigger task once then remove self",
+      desc = "When true, only trigger task once then remove this component",
       default = true,
     },
   },

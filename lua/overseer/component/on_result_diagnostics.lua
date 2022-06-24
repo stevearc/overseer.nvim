@@ -2,7 +2,7 @@ local util = require("overseer.util")
 
 -- Looks for a result value of 'diagnostics' that is a list of quickfix items
 return {
-  desc = "Display the result diagnostics",
+  desc = "If task result contains diagnostics, display them",
   params = {
     virtual_text = { type = "bool", optional = true },
     signs = { type = "bool", optional = true },

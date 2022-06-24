@@ -1,5 +1,5 @@
 return {
-  desc = "Call a callback when complete",
+  desc = "Call a lua callback when complete",
   editable = false,
   serialize = "fail",
   params = {

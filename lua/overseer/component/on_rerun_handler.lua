@@ -1,5 +1,5 @@
 return {
-  desc = "Ability to rerun the task",
+  desc = "Allows task to be restarted",
   params = {
     delay = {
       desc = "How long to wait (in ms) post-result before triggering rerun",

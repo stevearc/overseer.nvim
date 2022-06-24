@@ -3,7 +3,7 @@ local constants = require("overseer.constants")
 local STATUS = constants.STATUS
 
 return {
-  desc = "notify when task fails, or when it goes from failing to success",
+  desc = "vim.notify when task fails, or when it goes from failing to success",
   params = {},
   constructor = function()
     return {

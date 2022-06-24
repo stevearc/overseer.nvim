@@ -11,7 +11,6 @@ TODO screenshots
 - [ ] Notification component that uses system notif IFF vim is not focused
 - [ ] Notification components should maybe use on_complete?
 - [ ] Rename rerun -> restart?
-- [ ] Improve component descriptions
 - [ ] Open task list without entering
 - [ ] Refactor config window options
 - [ ] Dynamic window sizing for task editor
@@ -19,6 +18,7 @@ TODO screenshots
 - [ ] Finish guide.md
 - [ ] Finish components.md
 - [ ] Document parsers & parser debugging
+- [ ] Document parser on result_exit_code
 - [ ] Rename the context parser
 - [ ] Remaining README todos
 - [ ] Extension doc (how to make your own template/component)

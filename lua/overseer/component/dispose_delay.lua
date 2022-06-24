@@ -1,6 +1,6 @@
 ---@type overseer.ComponentDefinition
 local comp = {
-  desc = "Dispose task after a timeout",
+  desc = "After task is completed, dispose it after a timeout",
   params = {
     timeout = {
       desc = "Time to wait (in seconds) before disposing",
