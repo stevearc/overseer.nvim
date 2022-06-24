@@ -73,7 +73,7 @@ end
 ---@param content string
 ---@return any
 M.decode_json = function(content)
-  local ok, data = pcall(vim.json.decode, content)
+  local ok, data = pcall(vim.json.decode, content, { luanil = { object = true } })
   while not ok do
     local char = data:match("invalid token at character (%d+)$")
     if char then
