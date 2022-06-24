@@ -1,7 +1,9 @@
 return {
   desc = "Write task output to a file",
   params = {
-    filename = {},
+    filename = {
+      desc = "Name of file to write output to",
+    },
   },
   constructor = function(params)
     return {

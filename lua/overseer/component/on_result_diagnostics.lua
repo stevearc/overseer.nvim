@@ -4,13 +4,25 @@ local util = require("overseer.util")
 return {
   desc = "If task result contains diagnostics, display them",
   params = {
-    virtual_text = { type = "bool", optional = true },
-    signs = { type = "bool", optional = true },
-    underline = { type = "bool", optional = true },
-    remove_on_restart = {
+    virtual_text = {
+      desc = "Override the default diagnostics.virtual_text setting",
       type = "bool",
       optional = true,
+    },
+    signs = {
+      desc = "Override the default diagnostics.signs setting",
+      type = "bool",
+      optional = true,
+    },
+    underline = {
+      desc = "Override the default diagnostics.underline setting",
+      type = "bool",
+      optional = true,
+    },
+    remove_on_restart = {
       desc = "Remove diagnostics when task restarts",
+      type = "bool",
+      optional = true,
     },
   },
   constructor = function(params)

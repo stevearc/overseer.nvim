@@ -4,6 +4,7 @@ return {
   desc = "Summarize task output in the task list",
   params = {
     max_lines = {
+      desc = "Number of lines of output to show when detail > 1",
       type = "int",
       default = 4,
       validate = function(v)

@@ -6,10 +6,10 @@ return {
   desc = "Sets final task status based on exit code",
   params = {
     success_codes = {
+      desc = "Additional exit codes to consider as success",
       type = "list",
       optional = true,
       subtype = { type = "int" },
-      desc = "Additional exit codes to consider as success",
     },
     parser = { optional = true },
   },
