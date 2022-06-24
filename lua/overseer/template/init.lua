@@ -9,7 +9,7 @@ local M = {}
 
 ---@class overseer.Template
 ---@field name string
----@field description? string
+---@field desc? string
 ---@field tags? string[]
 ---@field params overseer.Params
 ---@field priority number
@@ -19,7 +19,7 @@ local M = {}
 local Template = {}
 
 ---@class overseer.TemplateDefinition
----@field description? string
+---@field desc? string
 ---@field tags? string[]
 ---@field params overseer.Params
 ---@field priority number
@@ -126,7 +126,7 @@ function Template.new(name, opts)
   opts = opts or {}
   vim.validate({
     name = { name, "s" },
-    description = { opts.description, "s", true },
+    desc = { opts.desc, "s", true },
     tags = { opts.tags, "t", true },
     params = { opts.params, "t" },
     priority = { opts.priority, "n", true },

@@ -57,7 +57,7 @@ describe("vscode", function()
         {
           id = "word",
           type = "pickString",
-          description = "A word",
+          desc = "A word",
           options = { "first", "second" },
         },
       },

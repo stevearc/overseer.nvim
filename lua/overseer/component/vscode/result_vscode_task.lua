@@ -17,7 +17,7 @@ local function pattern_to_test(pattern)
 end
 
 return {
-  description = "Parses VS Code task output",
+  desc = "Parses VS Code task output",
   params = {
     problem_matcher = { type = "opaque", optional = true },
   },

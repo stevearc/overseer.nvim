@@ -51,8 +51,8 @@ function Builder.new(title, schema, params, callback)
       local max_len = 1
       for k, v in pairs(schema) do
         local len = string.len(form.render_field(v, " ", k, params[k]))
-        if v.description then
-          len = len + string.len(v.description)
+        if v.desc then
+          len = len + string.len(v.desc)
         end
         if len > max_len then
           max_len = len
@@ -215,9 +215,9 @@ function Builder:on_cursor_move()
           cur[2] = name_end
         end
         local schema = self.schema[name]
-        if schema.description then
+        if schema.desc then
           vim.api.nvim_buf_set_extmark(self.bufnr, ns, cur[1] - 1, 0, {
-            virt_text = { { schema.description, "Comment" } },
+            virt_text = { { schema.desc, "Comment" } },
           })
         end
         if schema.subtype then

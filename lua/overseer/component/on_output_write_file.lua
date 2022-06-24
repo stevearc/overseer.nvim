@@ -1,5 +1,5 @@
 return {
-  description = "Write task output to a file",
+  desc = "Write task output to a file",
   params = {
     filename = {},
   },

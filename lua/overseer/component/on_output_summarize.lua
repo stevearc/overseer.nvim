@@ -1,7 +1,7 @@
 local util = require("overseer.util")
 
 return {
-  description = "Summarize stdout/stderr in the sidebar",
+  desc = "Summarize stdout/stderr in the sidebar",
   params = {
     max_lines = {
       type = "int",

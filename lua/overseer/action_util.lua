@@ -66,8 +66,8 @@ M.run_action = function(opts, ...)
     prompt = opts.prompt,
     kind = "overseer_task_options",
     format_item = function(action)
-      if action.description then
-        return string.format("%s (%s)", util.ljust(action.name, longest_name), action.description)
+      if action.desc then
+        return string.format("%s (%s)", util.ljust(action.name, longest_name), action.desc)
       else
         return action.name
       end

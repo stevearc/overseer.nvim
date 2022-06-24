@@ -45,8 +45,8 @@ local function get_telescope_new_component(options)
     local columns = {
       entry.value,
     }
-    if entry.description then
-      table.insert(columns, { entry.description, "Comment" })
+    if entry.desc then
+      table.insert(columns, { entry.desc, "Comment" })
     end
     return displayer(columns)
   end
@@ -57,17 +57,17 @@ local function get_telescope_new_component(options)
       local ordinal = item
       local description
       if comp then
-        description = comp.description
+        description = comp.desc
       else
         description = component.stringify_alias(item)
       end
       if description then
-        ordinal = ordinal .. " " .. comp.description
+        ordinal = ordinal .. " " .. comp.desc
       end
       return {
         display = make_display,
         ordinal = ordinal,
-        description = comp.description,
+        desc = comp.desc,
         value = item,
       }
     end,
@@ -220,9 +220,9 @@ function Editor:on_cursor_move()
     if cur[2] < string.len(label) then
       cur[2] = string.len(label)
     end
-    if schema.description then
+    if schema.desc then
       vim.api.nvim_buf_set_extmark(self.bufnr, vtext_ns, cur[1] - 1, 0, {
-        virt_text = { { schema.description, "Comment" } },
+        virt_text = { { schema.desc, "Comment" } },
       })
     end
     if schema.subtype then
@@ -258,9 +258,9 @@ function Editor:render()
     local comp = component.get(params[1])
     local line = comp.name
     table.insert(highlights, { "OverseerComponent", #lines + 1, 0, string.len(comp.name) })
-    if comp.description then
+    if comp.desc then
       local prev_len = string.len(line)
-      line = string.format("%s (%s)", line, comp.description)
+      line = string.format("%s (%s)", line, comp.desc)
       table.insert(highlights, { "Comment", #lines + 1, prev_len + 1, -1 })
     end
     table.insert(lines, line)
@@ -324,8 +324,8 @@ function Editor:add_new_component(insert_position)
     format_item = function(item)
       local comp = component.get(item)
       if comp then
-        if comp.description then
-          return string.format("%s - %s", item, comp.description)
+        if comp.desc then
+          return string.format("%s - %s", item, comp.desc)
         else
           return item
         end

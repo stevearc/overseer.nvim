@@ -1,8 +1,8 @@
 return {
-  description = "Ability to rerun the task",
+  desc = "Ability to rerun the task",
   params = {
     delay = {
-      description = "How long to wait (in ms) post-result before triggering rerun",
+      desc = "How long to wait (in ms) post-result before triggering rerun",
       default = 500,
       type = "number",
       validate = function(v)
@@ -10,7 +10,7 @@ return {
       end,
     },
     interrupt = {
-      description = "If true, a rerun will cancel a currently running task",
+      desc = "If true, a rerun will cancel a currently running task",
       default = false,
       type = "bool",
     },

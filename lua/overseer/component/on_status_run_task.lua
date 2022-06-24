@@ -3,26 +3,26 @@ local util = require("overseer.util")
 local STATUS = constants.STATUS
 
 return {
-  description = "run another task on status change",
+  desc = "run another task on status change",
   params = {
     status = {
-      description = "What status to trigger on",
+      desc = "What status to trigger on",
       type = "enum",
       choices = STATUS.values,
       default = STATUS.SUCCESS,
     },
     task_names = {
-      description = "Names of the task templates to trigger",
+      desc = "Names of the task templates to trigger",
       type = "list",
     },
     sequence = {
-      description = "When true, tasks run one after another",
+      desc = "When true, tasks run one after another",
       type = "bool",
       optional = true,
     },
     once = {
       type = "bool",
-      description = "When true, only trigger task once then remove self",
+      desc = "When true, only trigger task once then remove self",
       default = true,
     },
   },

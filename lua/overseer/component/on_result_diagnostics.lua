@@ -2,7 +2,7 @@ local util = require("overseer.util")
 
 -- Looks for a result value of 'diagnostics' that is a list of quickfix items
 return {
-  description = "Display the result diagnostics",
+  desc = "Display the result diagnostics",
   params = {
     virtual_text = { type = "bool", optional = true },
     signs = { type = "bool", optional = true },
@@ -10,7 +10,7 @@ return {
     remove_during_rerun = {
       type = "bool",
       optional = true,
-      description = "Remove diagnostics while task is rerunning",
+      desc = "Remove diagnostics while task is rerunning",
     },
   },
   constructor = function(params)

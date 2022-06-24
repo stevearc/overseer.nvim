@@ -137,8 +137,8 @@ function Task:render(lines, highlights, detail)
   -- Render components
   if detail >= 3 then
     for _, comp in ipairs(self.components) do
-      if comp.description then
-        table.insert(lines, string.format("%s (%s)", comp.name, comp.description))
+      if comp.desc then
+        table.insert(lines, string.format("%s (%s)", comp.name, comp.desc))
         table.insert(highlights, { "OverseerComponent", #lines, 0, string.len(comp.name) })
         table.insert(highlights, { "Comment", #lines, string.len(comp.name) + 1, -1 })
       else

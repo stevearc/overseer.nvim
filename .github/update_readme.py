@@ -93,8 +93,8 @@ def update_config_options():
 def format_param(name: str, param: Dict) -> str:
     pieces = [f"**{name}**[{param['type']}]:"]
     required = not param.get("optional")
-    if param.get("description"):
-        pieces.append(param["description"])
+    if param.get("desc"):
+        pieces.append(param["desc"])
     if param.get("default") is not None:
         pieces.append("(default `%s`)" % json.dumps(param["default"]))
         required = False
@@ -114,8 +114,8 @@ def update_components_md():
         )
         lines.append(title)
         content_lines = []
-        if comp.get("description"):
-            content_lines.append(comp["description"])
+        if comp.get("desc"):
+            content_lines.append(comp["desc"])
         if comp.get("params"):
             for k, v in sorted(comp["params"].items()):
                 content_lines.append(format_param(k, v))
@@ -123,7 +123,7 @@ def update_components_md():
             if i < len(content_lines) - 1:
                 content_lines[i] = line + " \\\n"
             else:
-                content_lines[i] = line + " \n"
+                content_lines[i] = line + "\n"
         lines.extend(content_lines)
         lines.append("\n")
     replace_section(

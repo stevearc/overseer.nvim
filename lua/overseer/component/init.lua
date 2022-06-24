@@ -9,7 +9,7 @@ local M = {}
 ---`on_<event>_*` means "does something when <event> is fired
 ---@class overseer.ComponentDefinition
 ---@field name? string
----@field description string
+---@field desc string
 ---@field params? overseer.Params
 ---@field editable? boolean
 ---@field serialize? "exclude"|"fail"
@@ -33,7 +33,7 @@ local M = {}
 ---@class overseer.Component : overseer.ComponentSkeleton
 ---@field name string
 ---@field params table
----@field description? string
+---@field desc? string
 ---@field serialize? "exclude"|"fail"
 
 local registry = {}
@@ -60,7 +60,7 @@ local builtin_components = {
 ---@return overseer.Component
 local function validate_component(name, opts)
   vim.validate({
-    description = { opts.description, "s", true },
+    desc = { opts.desc, "s", true },
     params = { opts.params, "t", true },
     constructor = { opts.constructor, "f" },
     editable = { opts.editable, "b", true },
@@ -235,7 +235,7 @@ local function instantiate(comp_params, component)
   obj = component.constructor(comp_params)
   obj.name = getname(comp_params)
   obj.params = comp_params
-  obj.description = component.description
+  obj.desc = component.desc
   obj.serialize = component.serialize
   return obj
 end
@@ -283,7 +283,7 @@ local function simplify_params(params)
   for k, v in pairs(params) do
     ret[k] = {
       name = v.name,
-      description = v.description,
+      desc = v.desc,
       optional = v.optional,
       default = v.default,
       type = v.type or "string",
@@ -298,7 +298,7 @@ M.get_all_descriptions = function()
     local defn = M.get(name)
     table.insert(ret, {
       name = name,
-      description = defn.description,
+      desc = defn.desc,
       params = simplify_params(defn.params),
     })
   end

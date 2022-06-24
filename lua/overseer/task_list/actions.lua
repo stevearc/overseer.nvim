@@ -26,7 +26,7 @@ M = {
     end,
   },
   save = {
-    description = "save the task to a bundle file",
+    desc = "save the task to a bundle file",
     condition = function(task)
       return task:is_serializable()
     end,
@@ -65,7 +65,7 @@ M = {
     end,
   },
   ensure = {
-    description = "rerun the task if it fails",
+    desc = "rerun the task if it fails",
     condition = function(task)
       return true
     end,
@@ -77,7 +77,7 @@ M = {
     end,
   },
   watch = {
-    description = "rerun the task when you save a file",
+    desc = "rerun the task when you save a file",
     condition = function(task)
       return task:has_component("on_rerun_handler") and not task:has_component("rerun_on_save")
     end,
@@ -96,7 +96,7 @@ M = {
     end,
   },
   ["open float"] = {
-    description = "open terminal in a floating window",
+    desc = "open terminal in a floating window",
     condition = function(task)
       return task.bufnr and vim.api.nvim_buf_is_valid(task.bufnr)
     end,
@@ -105,7 +105,7 @@ M = {
     end,
   },
   open = {
-    description = "open terminal in the current window",
+    desc = "open terminal in the current window",
     condition = function(task)
       return task.bufnr and vim.api.nvim_buf_is_valid(task.bufnr)
     end,
@@ -115,7 +115,7 @@ M = {
     end,
   },
   ["open vsplit"] = {
-    description = "open terminal in a vertical split",
+    desc = "open terminal in a vertical split",
     condition = function(task)
       return task.bufnr and vim.api.nvim_buf_is_valid(task.bufnr)
     end,
@@ -125,7 +125,7 @@ M = {
     end,
   },
   ["set quickfix diagnostics"] = {
-    description = "put the diagnostics results into quickfix",
+    desc = "put the diagnostics results into quickfix",
     condition = function(task)
       return task.result
         and task.result.diagnostics
@@ -136,7 +136,7 @@ M = {
     end,
   },
   ["set loclist diagnostics"] = {
-    description = "put the diagnostics results into loclist",
+    desc = "put the diagnostics results into loclist",
     condition = function(task)
       return task.result
         and task.result.diagnostics

@@ -1,6 +1,6 @@
 -- Looks for a result value of 'diagnostics' that is a list of quickfix items
 return {
-  description = "Put result diagnostics into the quickfix",
+  desc = "Put result diagnostics into the quickfix",
   params = {
     use_loclist = { type = "bool", optional = true },
   },

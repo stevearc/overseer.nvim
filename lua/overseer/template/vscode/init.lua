@@ -66,13 +66,13 @@ local function extract_params(params, str, inputs)
           end
         end
         params[name] = {
-          description = schema.description,
+          desc = schema.desc,
           default = schema.default,
           type = "enum",
           choices = choices,
         }
       elseif schema.type == "promptString" then
-        params[name] = { description = schema.description, default = schema.default }
+        params[name] = { desc = schema.desc, default = schema.default }
       elseif schema.type == "command" then
         -- TODO command inputs not supported yet
       end
@@ -148,7 +148,7 @@ local function convert_vscode_task(defn)
   local opt = defn.options
 
   local tmpl = {
-    description = defn.detail,
+    desc = defn.detail,
     params = parse_params(defn),
     builder = function(self, params)
       local task = {

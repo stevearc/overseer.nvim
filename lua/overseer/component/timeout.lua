@@ -1,9 +1,9 @@
 ---@type overseer.ComponentDefinition
 local comp = {
-  description = "Cancel task if it exceeds a timeout",
+  desc = "Cancel task if it exceeds a timeout",
   params = {
     timeout = {
-      description = "Time to wait (in seconds) before canceling",
+      desc = "Time to wait (in seconds) before canceling",
       default = 120,
       type = "int",
       validate = function(v)

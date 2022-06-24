@@ -13,10 +13,10 @@ local function get_level_from_status(status)
 end
 
 return {
-  description = "vim.notify on result",
+  desc = "vim.notify on result",
   params = {
     statuses = {
-      description = "What statuses to notify on",
+      desc = "What statuses to notify on",
       type = "list",
       subtype = {
         type = "enum",

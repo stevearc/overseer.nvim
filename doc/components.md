@@ -13,18 +13,18 @@ See below for how to create your own [custom components](#custom-components).
 ### [on_output_summarize](../lua/overseer/component/on_output_summarize.lua)
 
 Summarize stdout/stderr in the sidebar \
-**max_lines**[int]: (default `4`) 
+**max_lines**[int]: (default `4`)
 
 ### [on_output_write_file](../lua/overseer/component/on_output_write_file.lua)
 
 Write task output to a file \
-\***filename**[string]: 
+\***filename**[string]:
 
 ### [on_rerun_handler](../lua/overseer/component/on_rerun_handler.lua)
 
 Ability to rerun the task \
 **delay**[number]: How long to wait (in ms) post-result before triggering rerun (default `500`) \
-**interrupt**[bool]: If true, a rerun will cancel a currently running task (default `false`) 
+**interrupt**[bool]: If true, a rerun will cancel a currently running task (default `false`)
 
 ### [on_result_diagnostics](../lua/overseer/component/on_result_diagnostics.lua)
 
@@ -32,31 +32,31 @@ Display the result diagnostics \
 **remove_during_rerun**[bool]: Remove diagnostics while task is rerunning \
 **signs**[bool]: \
 **underline**[bool]: \
-**virtual_text**[bool]: 
+**virtual_text**[bool]:
 
 ### [on_result_diagnostics_quickfix](../lua/overseer/component/on_result_diagnostics_quickfix.lua)
 
 Put result diagnostics into the quickfix \
-**use_loclist**[bool]: 
+**use_loclist**[bool]:
 
 ### [on_result_notify](../lua/overseer/component/on_result_notify.lua)
 
 vim.notify on result \
-**statuses**[list]: What statuses to notify on (default `["FAILURE", "SUCCESS"]`) 
+**statuses**[list]: What statuses to notify on (default `["FAILURE", "SUCCESS"]`)
 
 ### [on_result_notify_red_green](../lua/overseer/component/on_result_notify_red_green.lua)
 
-notify when task fails, or when it goes from failing to success 
+notify when task fails, or when it goes from failing to success
 
 ### [on_result_notify_system](../lua/overseer/component/on_result_notify_system.lua)
 
 send a system notification when task completes \
-**statuses**[list]: What statuses to notify on (default `["FAILURE", "SUCCESS"]`) 
+**statuses**[list]: What statuses to notify on (default `["FAILURE", "SUCCESS"]`)
 
 ### [on_result_rerun](../lua/overseer/component/on_result_rerun.lua)
 
 Rerun when task ends \
-**statuses**[list]: What statuses will trigger a rerun (default `["FAILURE"]`) 
+**statuses**[list]: What statuses will trigger a rerun (default `["FAILURE"]`)
 
 ### [on_status_run_task](../lua/overseer/component/on_status_run_task.lua)
 
@@ -64,24 +64,24 @@ run another task on status change \
 **once**[bool]: When true, only trigger task once then remove self (default `true`) \
 **sequence**[bool]: When true, tasks run one after another \
 **status**[enum]: What status to trigger on (default `"SUCCESS"`) \
-\***task_names**[list]: Names of the task templates to trigger 
+\***task_names**[list]: Names of the task templates to trigger
 
 ### [rerun_on_save](../lua/overseer/component/rerun_on_save.lua)
 
 Rerun on any buffer :write \
 **delay**[number]: How long to wait (in ms) post-result before triggering rerun (default `500`) \
-**dir**[string]: Only rerun when writing files in this directory 
+**dir**[string]: Only rerun when writing files in this directory
 
 ### [result_exit_code](../lua/overseer/component/result_exit_code.lua)
 
 Sets status based on exit code \
 **parser**[string]: \
-**success_codes**[list]: Additional exit codes to consider as success 
+**success_codes**[list]: Additional exit codes to consider as success
 
 ### [timeout](../lua/overseer/component/timeout.lua)
 
 Cancel task if it exceeds a timeout \
-**timeout**[int]: Time to wait (in seconds) before canceling (default `120`) 
+**timeout**[int]: Time to wait (in seconds) before canceling (default `120`)
 
 ## Custom components
 
@@ -91,7 +91,7 @@ The component definition should look like the following example:
 
 ```lua
 return {
-  description = "Include a description of your component",
+  desc = "Include a description of your component",
   -- Define parameters that can be passed in to the component
   params = {
     -- TODO

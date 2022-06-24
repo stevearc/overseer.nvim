@@ -4,10 +4,10 @@ local util = require("overseer.util")
 local STATUS = constants.STATUS
 
 return {
-  description = "Rerun when task ends",
+  desc = "Rerun when task ends",
   params = {
     statuses = {
-      description = "What statuses will trigger a rerun",
+      desc = "What statuses will trigger a rerun",
       type = "list",
       default = { STATUS.FAILURE },
       subtype = {

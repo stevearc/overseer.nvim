@@ -5,7 +5,7 @@ local util = require("overseer.util")
 local STATUS = constants.STATUS
 
 return {
-  description = "send a system notification when task completes",
+  desc = "send a system notification when task completes",
   system_notify = function(message, level)
     if files.is_windows then
       -- TODO
@@ -37,7 +37,7 @@ return {
   end,
   params = {
     statuses = {
-      description = "What statuses to notify on",
+      desc = "What statuses to notify on",
       type = "list",
       subtype = {
         type = "enum",

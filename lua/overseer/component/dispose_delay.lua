@@ -1,9 +1,9 @@
 ---@type overseer.ComponentDefinition
 local comp = {
-  description = "Dispose task after a timeout",
+  desc = "Dispose task after a timeout",
   params = {
     timeout = {
-      description = "Time to wait (in seconds) before disposing",
+      desc = "Time to wait (in seconds) before disposing",
       default = 300, -- 5 minutes
       type = "number",
       validate = function(v)

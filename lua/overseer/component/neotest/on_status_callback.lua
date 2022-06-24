@@ -1,5 +1,5 @@
 return {
-  description = "Call a callback when complete",
+  desc = "Call a callback when complete",
   editable = false,
   serialize = "fail",
   params = {

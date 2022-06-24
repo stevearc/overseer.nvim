@@ -142,8 +142,8 @@ M.run_template = function(opts, params, callback)
         prompt = "Task template:",
         kind = "overseer_template",
         format_item = function(tmpl)
-          if tmpl.description then
-            return string.format("%s (%s)", tmpl.name, tmpl.description)
+          if tmpl.desc then
+            return string.format("%s (%s)", tmpl.name, tmpl.desc)
           else
             return tmpl.name
           end

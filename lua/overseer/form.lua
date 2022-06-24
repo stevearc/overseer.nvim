@@ -8,7 +8,7 @@ local M = {}
 
 ---@class overseer.StringParam
 ---@field name? string
----@field description? string
+---@field desc? string
 ---@field validate? fun(value: any): boolean
 ---@field optional? boolean
 ---@field type? "string"
@@ -16,7 +16,7 @@ local M = {}
 
 ---@class overseer.BoolParam
 ---@field name? string
----@field description? string
+---@field desc? string
 ---@field validate? fun(value: any): boolean
 ---@field optional? boolean
 ---@field type "bool"
@@ -24,7 +24,7 @@ local M = {}
 
 ---@class overseer.NumberParam
 ---@field name? string
----@field description? string
+---@field desc? string
 ---@field validate? fun(value: any): boolean
 ---@field optional? boolean
 ---@field type "number"
@@ -32,7 +32,7 @@ local M = {}
 
 ---@class overseer.IntParam
 ---@field name? string
----@field description? string
+---@field desc? string
 ---@field validate? fun(value: any): boolean
 ---@field optional? boolean
 ---@field type? "int"
@@ -40,7 +40,7 @@ local M = {}
 
 ---@class overseer.ListParam
 ---@field name? string
----@field description? string
+---@field desc? string
 ---@field validate? fun(value: any): boolean
 ---@field optional? boolean
 ---@field type? "list"
@@ -50,7 +50,7 @@ local M = {}
 
 ---@class overseer.EnumParam
 ---@field name? string
----@field description? string
+---@field desc? string
 ---@field validate? fun(value: any): boolean
 ---@field optional? boolean
 ---@field type? "enum"
@@ -59,7 +59,7 @@ local M = {}
 
 ---@class overseer.OpaqueParam
 ---@field name? string
----@field description? string
+---@field desc? string
 ---@field validate? fun(value: any): boolean
 ---@field optional? boolean
 ---@field type? "opaque"
@@ -83,7 +83,7 @@ M.validate_params = function(params)
     end
     vim.validate({
       name = { param.name, "s", true },
-      description = { param.description, "s", true },
+      desc = { param.desc, "s", true },
       optional = { param.optional, "b", true },
       -- default = any type
     })
