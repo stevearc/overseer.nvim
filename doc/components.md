@@ -12,7 +12,7 @@ See below for how to create your own [custom components](#custom-components).
 
 ### [on_output_summarize](../lua/overseer/component/on_output_summarize.lua)
 
-Summarize stdout/stderr in the sidebar \
+Summarize task output in the task list \
 **max_lines**[int]: (default `4`)
 
 ### [on_output_write_file](../lua/overseer/component/on_output_write_file.lua)
@@ -20,61 +20,61 @@ Summarize stdout/stderr in the sidebar \
 Write task output to a file \
 \***filename**[string]:
 
-### [on_rerun_handler](../lua/overseer/component/on_rerun_handler.lua)
+### [on_restart_handler](../lua/overseer/component/on_restart_handler.lua)
 
-Ability to rerun the task \
-**delay**[number]: How long to wait (in ms) post-result before triggering rerun (default `500`) \
-**interrupt**[bool]: If true, a rerun will cancel a currently running task (default `false`)
+Allows task to be restarted \
+**delay**[number]: How long to wait (in ms) post-result before triggering restart (default `500`) \
+**interrupt**[bool]: If true, a restart will cancel a currently running task (default `false`)
 
 ### [on_result_diagnostics](../lua/overseer/component/on_result_diagnostics.lua)
 
-Display the result diagnostics \
-**remove_during_rerun**[bool]: Remove diagnostics while task is rerunning \
+If task result contains diagnostics, display them \
+**remove_on_restart**[bool]: Remove diagnostics when task restarts \
 **signs**[bool]: \
 **underline**[bool]: \
 **virtual_text**[bool]:
 
 ### [on_result_diagnostics_quickfix](../lua/overseer/component/on_result_diagnostics_quickfix.lua)
 
-Put result diagnostics into the quickfix \
-**use_loclist**[bool]:
+If task result contains diagnostics, add them to the quickfix \
+**use_loclist**[bool]: If true, use the loclist instead of quickfix
 
 ### [on_result_notify](../lua/overseer/component/on_result_notify.lua)
 
-vim.notify on result \
-**statuses**[list]: What statuses to notify on (default `["FAILURE", "SUCCESS"]`)
+vim.notify on task result \
+**statuses**[list]: List of statuses to notify on (default `["FAILURE", "SUCCESS"]`)
 
 ### [on_result_notify_red_green](../lua/overseer/component/on_result_notify_red_green.lua)
 
-notify when task fails, or when it goes from failing to success
+vim.notify when task fails, or when it goes from failing to success
 
 ### [on_result_notify_system](../lua/overseer/component/on_result_notify_system.lua)
 
 send a system notification when task completes \
 **statuses**[list]: What statuses to notify on (default `["FAILURE", "SUCCESS"]`)
 
-### [on_result_rerun](../lua/overseer/component/on_result_rerun.lua)
+### [on_result_restart](../lua/overseer/component/on_result_restart.lua)
 
-Rerun when task ends \
-**statuses**[list]: What statuses will trigger a rerun (default `["FAILURE"]`)
+Restart task when it completes \
+**statuses**[list]: What statuses will trigger a restart (default `["FAILURE"]`)
 
 ### [on_status_run_task](../lua/overseer/component/on_status_run_task.lua)
 
-run another task on status change \
-**once**[bool]: When true, only trigger task once then remove self (default `true`) \
+Run another task on status change \
+**once**[bool]: When true, only trigger task once then remove this component (default `true`) \
 **sequence**[bool]: When true, tasks run one after another \
 **status**[enum]: What status to trigger on (default `"SUCCESS"`) \
 \***task_names**[list]: Names of the task templates to trigger
 
-### [rerun_on_save](../lua/overseer/component/rerun_on_save.lua)
+### [restart_on_save](../lua/overseer/component/restart_on_save.lua)
 
-Rerun on any buffer :write \
-**delay**[number]: How long to wait (in ms) post-result before triggering rerun (default `500`) \
-**dir**[string]: Only rerun when writing files in this directory
+Restart on any buffer :write \
+**delay**[number]: How long to wait (in ms) post-result before triggering restart (default `500`) \
+**dir**[string]: Only restart when writing files in this directory
 
 ### [result_exit_code](../lua/overseer/component/result_exit_code.lua)
 
-Sets status based on exit code \
+Sets final task status based on exit code \
 **parser**[string]: \
 **success_codes**[list]: Additional exit codes to consider as success
 
@@ -144,7 +144,7 @@ return {
         -- Usually easier to deal with than using on_output directly.
       end,
       ---@param task overseer.Task
-      on_request_rerun = function(self, task)
+      on_request_restart = function(self, task)
         -- Called when an action requests that the task be restarted
       end,
       ---@param task overseer.Task

@@ -2,7 +2,7 @@ return {
   desc = "Allows task to be restarted",
   params = {
     delay = {
-      desc = "How long to wait (in ms) post-result before triggering rerun",
+      desc = "How long to wait (in ms) post-result before triggering restart",
       default = 500,
       type = "number",
       validate = function(v)
@@ -10,7 +10,7 @@ return {
       end,
     },
     interrupt = {
-      desc = "If true, a rerun will cancel a currently running task",
+      desc = "If true, a restart will cancel a currently running task",
       default = false,
       type = "bool",
     },
@@ -21,9 +21,9 @@ return {
       interrupt = { opts.interrupt, "b" },
     })
     return {
-      rerun_after_result = false,
+      restart_after_result = false,
       _trigger_active = false,
-      _trigger_rerun = function(self, task)
+      _trigger_restart = function(self, task)
         if self._trigger_active then
           return
         end
@@ -37,21 +37,21 @@ return {
         end, opts.delay)
       end,
       on_reset = function(self, task)
-        self.rerun_after_result = false
+        self.restart_after_result = false
       end,
-      on_request_rerun = function(self, task)
+      on_request_restart = function(self, task)
         if task:is_running() then
-          self.rerun_after_result = true
+          self.restart_after_result = true
           if opts.interrupt then
             task:stop()
           end
         else
-          self:_trigger_rerun(task)
+          self:_trigger_restart(task)
         end
       end,
       on_result = function(self, task)
-        if self.rerun_after_result then
-          self:_trigger_rerun(task)
+        if self.restart_after_result then
+          self:_trigger_restart(task)
         end
       end,
     }

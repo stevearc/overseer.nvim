@@ -7,10 +7,10 @@ return {
     virtual_text = { type = "bool", optional = true },
     signs = { type = "bool", optional = true },
     underline = { type = "bool", optional = true },
-    remove_during_rerun = {
+    remove_on_restart = {
       type = "bool",
       optional = true,
-      desc = "Remove diagnostics while task is rerunning",
+      desc = "Remove diagnostics when task restarts",
     },
   },
   constructor = function(params)
@@ -64,7 +64,7 @@ return {
         end
       end,
       on_reset = function(self, task)
-        if params.remove_during_rerun then
+        if params.remove_on_restart then
           remove_diagnostics(self)
         end
       end,

@@ -34,14 +34,14 @@ M = {
       task_bundle.save_task_bundle(nil, { task })
     end,
   },
-  rerun = {
+  restart = {
     condition = function(task)
-      return task:has_component("on_rerun_handler")
+      return task:has_component("on_restart_handler")
         and task.status ~= STATUS.PENDING
         and task.status ~= STATUS.RUNNING
     end,
     run = function(task)
-      task:rerun()
+      task:restart()
     end,
   },
   dispose = {
@@ -65,21 +65,21 @@ M = {
     end,
   },
   ensure = {
-    desc = "rerun the task if it fails",
+    desc = "restart the task if it fails",
     condition = function(task)
       return true
     end,
     run = function(task)
-      task:add_components({ "on_rerun_handler", "on_result_rerun" })
+      task:add_components({ "on_restart_handler", "on_result_restart" })
       if task.status == STATUS.FAILURE then
-        task:rerun()
+        task:restart()
       end
     end,
   },
   watch = {
-    desc = "rerun the task when you save a file",
+    desc = "restart the task when you save a file",
     condition = function(task)
-      return task:has_component("on_rerun_handler") and not task:has_component("rerun_on_save")
+      return task:has_component("on_restart_handler") and not task:has_component("restart_on_save")
     end,
     run = function(task)
       vim.ui.input({
@@ -88,8 +88,8 @@ M = {
         default = vim.fn.getcwd(0),
       }, function(dir)
         task:set_components({
-          { "on_rerun_handler", interrupt = true },
-          { "rerun_on_save", dir = dir },
+          { "on_restart_handler", interrupt = true },
+          { "restart_on_save", dir = dir },
         })
         task_list.update(task)
       end)

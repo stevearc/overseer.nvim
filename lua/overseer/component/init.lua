@@ -24,7 +24,7 @@ local M = {}
 ---@field on_complete? fun(self: overseer.Component, task: overseer.Task, status: overseer.Status, result: table)
 ---@field on_output? fun(self: overseer.Component, task: overseer.Task, data: string[])
 ---@field on_output_lines? fun(self: overseer.Component, task: overseer.Task, lines: string[])
----@field on_request_rerun? fun(self: overseer.Component, task: overseer.Task)
+---@field on_request_restart? fun(self: overseer.Component, task: overseer.Task)
 ---@field on_exit? fun(self: overseer.Component, task: overseer.Task, code: number)
 ---@field on_dispose? fun(self: overseer.Component, task: overseer.Task)
 ---@field render? fun(self: overseer.Component, task: overseer.Task, lines: string[], highlights: table[], detail: number)
@@ -42,15 +42,15 @@ local aliases = {}
 local builtin_components = {
   "on_output_summarize",
   "on_output_write_file",
-  "on_rerun_handler",
+  "on_restart_handler",
   "on_result_diagnostics",
   "on_result_diagnostics_quickfix",
   "on_result_notify",
   "on_result_notify_red_green",
   "on_result_notify_system",
-  "on_result_rerun",
+  "on_result_restart",
   "on_status_run_task",
-  "rerun_on_save",
+  "restart_on_save",
   "result_exit_code",
   "timeout",
 }

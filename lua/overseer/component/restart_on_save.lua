@@ -1,18 +1,18 @@
 local files = require("overseer.files")
 
 return {
-  desc = "Rerun on any buffer :write",
+  desc = "Restart on any buffer :write",
   params = {
     dir = {
       name = "directory",
-      desc = "Only rerun when writing files in this directory",
+      desc = "Only restart when writing files in this directory",
       optional = true,
       validate = function(v)
         return files.exists(v)
       end,
     },
     delay = {
-      desc = "How long to wait (in ms) post-result before triggering rerun",
+      desc = "How long to wait (in ms) post-result before triggering restart",
       type = "number",
       default = 500,
       validate = function(v)
@@ -32,13 +32,13 @@ return {
         task:inc_reference()
         self.id = vim.api.nvim_create_autocmd("BufWritePost", {
           pattern = "*",
-          desc = string.format("Rerun task %s on save", task.name),
+          desc = string.format("Restart task %s on save", task.name),
           callback = function(params)
             -- Only care about normal files
             if vim.api.nvim_buf_get_option(params.buf, "buftype") == "" then
               local bufname = vim.api.nvim_buf_get_name(params.buf)
               if not opts.dir or files.is_subpath(opts.dir, bufname) then
-                task:rerun()
+                task:restart()
               end
             end
           end,

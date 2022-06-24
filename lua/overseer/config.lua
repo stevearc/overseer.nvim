@@ -52,7 +52,7 @@ local default_config = {
       "on_output_summarize",
       "result_exit_code",
       "on_result_notify",
-      "on_rerun_handler",
+      "on_restart_handler",
       "dispose_delay",
     },
     -- Used for templates that define a task that should remain running and
@@ -61,8 +61,8 @@ local default_config = {
       "on_output_summarize",
       "result_exit_code",
       "on_result_notify",
-      "on_rerun_handler",
-      "on_result_rerun",
+      "on_restart_handler",
+      "on_result_restart",
     },
     -- Used for tasks generated from the VS Code integration (tasks.json)
     default_vscode = {

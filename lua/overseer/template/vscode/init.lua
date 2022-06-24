@@ -163,7 +163,7 @@ local function convert_vscode_task(defn)
         table.insert(task.components, "on_result_diagnostics")
       end
       if defn.isBackground then
-        table.insert(task.components, "on_result_rerun")
+        table.insert(task.components, "on_result_restart")
       end
       if opt then
         if opt.cwd then

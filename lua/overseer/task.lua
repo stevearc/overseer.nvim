@@ -442,9 +442,9 @@ function Task:dispose(force)
   end
   if self:is_running() then
     if force then
-      -- If we're forcing the dispose, remove the ability to rerun, then stop,
+      -- If we're forcing the dispose, remove the ability to restart, then stop,
       -- then dispose
-      self:remove_component("on_rerun_handler")
+      self:remove_component("on_restart_handler")
       self:stop()
     else
       error("Cannot call dispose on running task")
@@ -469,13 +469,13 @@ function Task:dispose(force)
 end
 
 ---@param force_stop? boolean If true, restart the Task even if it is currently running
-function Task:rerun(force_stop)
+function Task:restart(force_stop)
   vim.validate({ force_stop = { force_stop, "b", true } })
-  log:debug("Rerun task %s", self.name)
+  log:debug("Restart task %s", self.name)
   if force_stop and self:is_running() then
     self:stop()
   end
-  self:dispatch("on_request_rerun")
+  self:dispatch("on_request_restart")
 end
 
 function Task:_on_exit(_job_id, code)

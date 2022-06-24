@@ -24,7 +24,7 @@ return {
     return {
       on_result = function(self, task, status)
         if lookup[status] then
-          task:rerun()
+          task:restart()
         end
       end,
     }

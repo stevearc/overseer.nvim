@@ -10,7 +10,6 @@ TODO screenshots
 
 - [ ] Notification component that uses system notif IFF vim is not focused
 - [ ] Notification components should maybe use on_complete?
-- [ ] Rename rerun -> restart?
 - [ ] Open task list without entering
 - [ ] Refactor config window options
 - [ ] Dynamic window sizing for task editor
@@ -199,7 +198,7 @@ require("overseer").setup({
       "on_output_summarize",
       "result_exit_code",
       "on_result_notify",
-      "on_rerun_handler",
+      "on_restart_handler",
       "dispose_delay",
     },
     -- Used for templates that define a task that should remain running and
@@ -208,8 +207,8 @@ require("overseer").setup({
       "on_output_summarize",
       "result_exit_code",
       "on_result_notify",
-      "on_rerun_handler",
-      "on_result_rerun",
+      "on_restart_handler",
+      "on_result_restart",
     },
     -- Used for tasks generated from the VS Code integration (tasks.json)
     default_vscode = {
