@@ -4,7 +4,7 @@ local default_config = {
   -- When true, tries to detect a green color from your colorscheme to use for success highlight
   auto_detect_success_color = true,
   -- Configure the task list
-  sidebar = {
+  task_list = {
     -- Default detail level for tasks. Can be 1-3.
     default_detail = 1,
     -- max_width = {100, 0.2} means "the lesser of 100 columns or 20% of total"
@@ -33,17 +33,37 @@ local default_config = {
   -- and the floating window used for editing tasks
   form = {
     border = "rounded",
+    zindex = 40,
     min_width = 80,
     max_width = 0.9,
     min_height = 10,
     max_height = 0.9,
-    winblend = 10,
+    -- Set any window options here (e.g. winhighlight)
+    win_opts = {
+      winblend = 10,
+    },
   },
-  -- Configuration for task and test result floating windows
-  float_win = {
+  -- Configure the floating window used for confirmation prompts
+  confirm = {
+    border = "rounded",
+    zindex = 40,
+    min_width = 80,
+    max_width = 0.5,
+    min_height = 10,
+    max_height = 0.9,
+    -- Set any window options here (e.g. winhighlight)
+    win_opts = {
+      winblend = 10,
+    },
+  },
+  -- Configuration for task floating windows
+  task_win = {
     padding = 2,
     border = "rounded",
-    winblend = 10,
+    -- Set any window options here (e.g. winhighlight)
+    win_opts = {
+      winblend = 10,
+    },
   },
   -- Aliases for bundles of components. Redefine the builtins, or create your own.
   component_aliases = {

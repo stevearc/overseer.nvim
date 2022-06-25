@@ -21,8 +21,8 @@ return {
       optional = true,
     },
     once = {
-      type = "bool",
       desc = "When true, only trigger task once then remove this component",
+      type = "bool",
       default = true,
     },
   },

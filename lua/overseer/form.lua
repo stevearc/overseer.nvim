@@ -262,7 +262,7 @@ M.open_form_win = function(bufnr, opts)
     local win_opts = {
       relative = "editor",
       border = config.form.border,
-      zindex = 40,
+      zindex = config.form.zindex,
       width = width,
       height = height,
       col = math.floor((layout.get_editor_width() - width) / 2),
@@ -274,7 +274,9 @@ M.open_form_win = function(bufnr, opts)
   local winopt = calc_layout()
   winopt.style = "minimal"
   local winid = vim.api.nvim_open_win(bufnr, true, winopt)
-  vim.api.nvim_win_set_option(winid, "winblend", config.form.winblend)
+  for k, v in pairs(config.form.win_opts) do
+    vim.api.nvim_win_set_option(winid, k, v)
+  end
 
   local function set_layout()
     vim.api.nvim_win_set_config(winid, calc_layout())

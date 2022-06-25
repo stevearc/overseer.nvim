@@ -82,7 +82,7 @@ M.calculate_height = function(desired_height, opts)
 end
 
 M.open_fullscreen_float = function(bufnr)
-  local conf = config.float_win
+  local conf = config.task_win
   local width = M.get_editor_width() - 2 - 2 * conf.padding
   local height = M.get_editor_height() - 2 * conf.padding
   local row = conf.padding
@@ -94,9 +94,12 @@ M.open_fullscreen_float = function(bufnr)
     width = width,
     height = height,
     border = conf.border,
+    zindex = conf.zindex,
     style = "minimal",
   })
-  vim.api.nvim_win_set_option(winid, "winblend", conf.winblend)
+  for k, v in pairs(conf.win_opts) do
+    vim.api.nvim_win_set_option(winid, k, v)
+  end
   vim.api.nvim_create_autocmd("WinLeave", {
     desc = "Close float on WinLeave",
     once = true,

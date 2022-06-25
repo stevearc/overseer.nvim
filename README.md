@@ -11,7 +11,8 @@ TODO screenshots
 - [ ] Notification component that uses system notif IFF vim is not focused
 - [ ] Notification components should maybe use on_complete?
 - [ ] Open task list without entering
-- [ ] Refactor config window options
+- [ ] Custom positioning of task list (right, left, float)
+- [ ] Somewhere in config to add/change keybinds for task list
 - [ ] Dynamic window sizing for task editor
 - [ ] support other run strategies besides terminal
 - [ ] Finish guide.md
@@ -22,6 +23,7 @@ TODO screenshots
 - [ ] Remaining README todos
 - [ ] Extension doc (how to make your own template/component)
 - [ ] Vim help docs
+- [ ] vim.fn.confirm/vim.ui.confirm
 - [ ] Comparison to alternatives?
   - [yabs](https://github.com/pianocomposer321/yabs.nvim)
   - [toggletasks](https://github.com/jedrzejboczar/toggletasks.nvim)

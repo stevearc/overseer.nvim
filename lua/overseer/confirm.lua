@@ -89,17 +89,21 @@ return function(opts, callback)
     end
   end
 
-  local width = layout.calculate_width(desired_width, config.form)
-  local height = layout.calculate_height(#lines, config.form)
+  local width = layout.calculate_width(desired_width, config.confirm)
+  local height = layout.calculate_height(#lines, config.confirm)
   winid = vim.api.nvim_open_win(bufnr, true, {
     relative = "editor",
-    border = "rounded",
+    border = config.confirm.border,
+    zindex = config.confirm.zindex,
     style = "minimal",
     width = width,
     height = height,
     col = math.floor((layout.get_editor_width() - width) / 2),
     row = math.floor((layout.get_editor_height() - height) / 2),
   })
+  for k, v in pairs(config.confirm.win_opts) do
+    vim.api.nvim_win_set_option(winid, k, v)
+  end
 
   vim.api.nvim_create_autocmd("BufLeave", {
     buffer = bufnr,

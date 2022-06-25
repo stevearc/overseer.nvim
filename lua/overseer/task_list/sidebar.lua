@@ -46,7 +46,7 @@ function Sidebar.new()
 
   local tl = setmetatable({
     bufnr = bufnr,
-    default_detail = config.sidebar.default_detail,
+    default_detail = config.task_list.default_detail,
     task_detail = {},
     task_lines = {},
   }, { __index = Sidebar })
@@ -208,7 +208,7 @@ function Sidebar:render(tasks)
     task:render(lines, highlights, detail)
     table.insert(self.task_lines, { #lines, task })
     if i > 1 then
-      table.insert(lines, config.sidebar.separator)
+      table.insert(lines, config.task_list.separator)
       table.insert(highlights, { "OverseerTaskBorder", #lines, 0, -1 })
     end
   end
