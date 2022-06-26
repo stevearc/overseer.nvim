@@ -16,6 +16,10 @@ TODO screenshots
 - [ ] support other run strategies besides terminal
 - [ ] Finish guide.md
 - [ ] Finish components.md
+- [ ] Make sure VS Code dependsOn can be used on an actual task
+- [ ] Integration with launch.json preLaunchTask for dap/dap-ui
+- [ ] Split out VS Code task types into providers https://code.visualstudio.com/api/extension-guides/task-provider#task-definition
+- [ ] Rename template dir to provider, remove metagen from template, make all providers return list of templates
 - [ ] Document parsers & parser debugging
 - [ ] Document parser on result_exit_code
 - [ ] Remaining README todos
