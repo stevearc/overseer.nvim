@@ -54,19 +54,24 @@ M.is_open = function()
   return M.get_win_id() ~= nil
 end
 
-M.open = function()
+M.open = function(opts)
+  opts = vim.tbl_deep_extend("keep", opts or {}, {
+    enter = true,
+  })
   if M.is_open() then
     return
   end
   local winid = create_overseer_window()
-  vim.api.nvim_set_current_win(winid)
+  if opts.enter then
+    vim.api.nvim_set_current_win(winid)
+  end
 end
 
-M.toggle = function()
+M.toggle = function(opts)
   if M.is_open() then
     M.close()
   else
-    M.open()
+    M.open(opts)
   end
 end
 

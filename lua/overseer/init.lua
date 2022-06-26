@@ -86,12 +86,14 @@ end
 local function create_commands()
   vim.api.nvim_create_user_command("OverseerOpen", lazy("commands", "_open"), {
     desc = "Open the overseer window",
+    bang = true,
   })
   vim.api.nvim_create_user_command("OverseerClose", lazy("commands", "_close"), {
     desc = "Close the overseer window",
   })
   vim.api.nvim_create_user_command("OverseerToggle", lazy("commands", "_toggle"), {
     desc = "Toggle the overseer window",
+    bang = true,
   })
   vim.api.nvim_create_user_command("OverseerSaveBundle", lazy("commands", "_save_bundle"), {
     desc = "Serialize the current tasks to disk",

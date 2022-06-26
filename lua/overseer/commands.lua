@@ -11,16 +11,16 @@ local window = require("overseer.window")
 
 local M = {}
 
-M._open = function(_params)
-  window.open()
+M._open = function(params)
+  window.open({ enter = not params.bang })
 end
 
 M._close = function(_params)
   window.close()
 end
 
-M._toggle = function(_params)
-  window.toggle()
+M._toggle = function(params)
+  window.toggle({ enter = not params.bang })
 end
 
 M._save_bundle = function(params)

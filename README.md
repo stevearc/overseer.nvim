@@ -10,7 +10,6 @@ TODO screenshots
 
 - [ ] Notification component that uses system notif IFF vim is not focused
 - [ ] Notification components should maybe use on_complete?
-- [ ] Open task list without entering
 - [ ] Custom positioning of task list (right, left, float)
 - [ ] Somewhere in config to add/change keybinds for task list
 - [ ] Dynamic window sizing for task editor
@@ -246,19 +245,19 @@ require("overseer").setup({
 
 ## Commands
 
-| Command                | arg           | description                             |
-| ---------------------- | ------------- | --------------------------------------- |
-| `OverseerOpen`         |               | Open the overseer window                |
-| `OverseerClose`        |               | Close the overseer window               |
-| `OverseerToggle`       |               | Open or close the overseer window       |
-| `OverseerSaveBundle`   | `[name]`      | Serialize the current tasks to disk     |
-| `OverseerLoadBundle`   | `[name]`      | Load tasks that were serialized to disk |
-| `OverseerDeleteBundle` | `[name]`      | Delete a saved task bundle              |
-| `OverseerRunCmd`       | `[command]`   | Run a raw shell command                 |
-| `OverseerRun`          | `[name/tags]` | Run a task from a template              |
-| `OverseerBuild`        |               | Open the task builder                   |
-| `OverseerQuickAction`  | `[name]`      | Run an action on the most recent task   |
-| `OverseerTaskAction`   |               | Select a task to run an action on       |
+| Command                | arg           | description                                                                  |
+| ---------------------- | ------------- | ---------------------------------------------------------------------------- |
+| `OverseerOpen[!]`      |               | Open the overseer window. With `[!]` cursor stays in current window          |
+| `OverseerClose`        |               | Close the overseer window                                                    |
+| `OverseerToggle[!]`    |               | Open or close the overseer window. With `[!]` cursor stays in current window |
+| `OverseerSaveBundle`   | `[name]`      | Serialize the current tasks to disk                                          |
+| `OverseerLoadBundle`   | `[name]`      | Load tasks that were serialized to disk                                      |
+| `OverseerDeleteBundle` | `[name]`      | Delete a saved task bundle                                                   |
+| `OverseerRunCmd`       | `[command]`   | Run a raw shell command                                                      |
+| `OverseerRun`          | `[name/tags]` | Run a task from a template                                                   |
+| `OverseerBuild`        |               | Open the task builder                                                        |
+| `OverseerQuickAction`  | `[name]`      | Run an action on the most recent task                                        |
+| `OverseerTaskAction`   |               | Select a task to run an action on                                            |
 
 ## Task list
 
