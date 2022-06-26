@@ -338,6 +338,23 @@ describe("append", function()
   end)
 end)
 
+describe("set_defaults", function()
+  it("sets default values for parsed items", function()
+    local node = parser.set_defaults({ values = { foo = "bar" } }, parser.extract("(.+)", "word"))
+    local ctx = { item = {}, results = {} }
+    assert.equals(STATUS.RUNNING, node:ingest("foo", ctx))
+    assert.are.same({ { foo = "bar", word = "foo" } }, ctx.results)
+  end)
+
+  it("sets hoists current item into default values", function()
+    local node = parser.set_defaults(parser.loop(parser.extract("(.+)", "word")))
+    local ctx = { item = { foo = "bar" }, results = {} }
+    assert.equals(STATUS.RUNNING, node:ingest("foo", ctx))
+    assert.equals(STATUS.RUNNING, node:ingest("bar", ctx))
+    assert.are.same({ { foo = "bar", word = "foo" }, { foo = "bar", word = "bar" } }, ctx.results)
+  end)
+end)
+
 describe("loop", function()
   it("can propagate failures", function()
     local node = parser.loop(parser.extract("^a.*", "word"))

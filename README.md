@@ -19,7 +19,6 @@ TODO screenshots
 - [ ] Finish components.md
 - [ ] Document parsers & parser debugging
 - [ ] Document parser on result_exit_code
-- [ ] Rename the context parser
 - [ ] Remaining README todos
 - [ ] Extension doc (how to make your own template/component)
 - [ ] Vim help docs

@@ -344,7 +344,7 @@ local function convert_pattern(pattern, opts)
   }
   local extract = parser.extract(extract_opts, "\\v" .. pattern.regexp, unpack(args))
   if pattern.loop then
-    return parser.context(parser.loop(extract))
+    return parser.set_defaults(parser.loop(extract))
   end
   return extract
 end
