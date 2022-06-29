@@ -102,6 +102,20 @@ local function initialize()
   initialized = true
 end
 
+---@param defn overseer.TemplateDefinition
+local function validate_template_definition(defn)
+  defn.priority = defn.priority or DEFAULT_PRIORITY
+  vim.validate({
+    name = { defn.name, "s" },
+    desc = { defn.desc, "s", true },
+    tags = { defn.tags, "t", true },
+    params = { defn.params, "t" },
+    priority = { defn.priority, "n" },
+    builder = { defn.builder, "f" },
+  })
+  form.validate_params(defn.params)
+end
+
 ---@param name string
 ---@param defn? overseer.TemplateDefinition
 M.register = function(name, defn)
@@ -120,16 +134,7 @@ M.register = function(name, defn)
   if defn.generator then
     table.insert(providers, defn)
   else
-    defn.priority = defn.priority or DEFAULT_PRIORITY
-    vim.validate({
-      name = { name, "s" },
-      desc = { defn.desc, "s", true },
-      tags = { defn.tags, "t", true },
-      params = { defn.params, "t" },
-      priority = { defn.priority, "n" },
-      builder = { defn.builder, "f" },
-    })
-    form.validate_params(defn.params)
+    validate_template_definition(defn)
     registry[name] = defn
   end
 end
@@ -221,6 +226,7 @@ M.list = function(opts)
       local ok, tmpls = pcall(provider.generator, opts)
       if ok then
         for _, tmpl in ipairs(tmpls) do
+          validate_template_definition(tmpl)
           if condition_matches(tmpl.condition, tmpl.tags, opts) then
             table.insert(ret, tmpl)
           end
