@@ -109,7 +109,7 @@ M.run_template = function(opts, params, callback)
   local ft = vim.api.nvim_buf_get_option(0, "filetype")
 
   local function handle_tmpl(tmpl)
-    tmpl:build(opts.prompt, params, function(task)
+    template.build(tmpl, opts.prompt, params, function(task)
       if task and not opts.nostart then
         task:start()
       end

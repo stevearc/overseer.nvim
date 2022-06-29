@@ -3,46 +3,46 @@ local files = require("overseer.files")
 local form = require("overseer.form")
 local log = require("overseer.log")
 local Task = require("overseer.task")
-local template_builder = require("overseer.template_builder")
+local task_builder = require("overseer.task_builder")
 local util = require("overseer.util")
 local M = {}
 
----@class overseer.Template
+---@class overseer.TemplateProvider
+---@field name string
+---@field condition? overseer.SearchCondition
+---@field generator fun(opts: overseer.SearchParams): overseer.TemplateDefinition[]
+
+---@class overseer.TemplateDefinition
 ---@field name string
 ---@field desc? string
 ---@field tags? string[]
 ---@field params overseer.Params
----@field priority number
----@field builder? function
----@field metagen? function
----@field condition overseer.SearchCondition
-local Template = {}
-
----@class overseer.TemplateDefinition
----@field desc? string
----@field tags? string[]
----@field params overseer.Params
----@field priority number
----@field builder? function
----@field metagen? function
+---@field priority? number
 ---@field condition? overseer.SearchCondition
+---@field builder function
 
 ---@class overseer.SearchCondition
 ---@field filetype? string|string[]
 ---@field dir? string|string[]
----@field callback? fun(self: overseer.Template, search: overseer.SearchParams): boolean
+---@field callback? fun(search: overseer.SearchParams): boolean
 
 ---@alias overseer.Params table<string, overseer.Param>
 
 local DEFAULT_PRIORITY = 50
 
----@type table<string, overseer.Template>
+---@type table<string, overseer.TemplateDefinition>
 local registry = {}
 
----@param tmpl overseer.Template
+---@type overseer.TemplateProvider[]
+local providers = {}
+
+---@param condition? overseer.SearchCondition
+---@param tags? string[]
 ---@param search overseer.SearchParams
-local function tmpl_matches(tmpl, search)
-  local condition = tmpl.condition
+local function condition_matches(condition, tags, search)
+  if not condition then
+    return true
+  end
   if condition.filetype then
     if type(condition.filetype) == "string" then
       if condition.filetype ~= search.filetype then
@@ -68,10 +68,10 @@ local function tmpl_matches(tmpl, search)
   end
 
   if search.tags and not vim.tbl_isempty(search.tags) then
-    if not tmpl.tags then
+    if not tags then
       return false
     end
-    local tag_map = util.list_to_map(tmpl.tags)
+    local tag_map = util.list_to_map(tags)
     for _, v in ipairs(search.tags) do
       if not tag_map[v] then
         return false
@@ -80,7 +80,7 @@ local function tmpl_matches(tmpl, search)
   end
 
   if condition.callback then
-    if not condition.callback(tmpl, search) then
+    if not condition.callback(search) then
       return false
     end
   end
@@ -116,46 +116,32 @@ M.register = function(name, defn)
       return
     end
   end
-  registry[name] = Template.new(name, defn)
-end
-
----@param name string
----@param opts overseer.TemplateDefinition
----@return overseer.Template
-function Template.new(name, opts)
-  opts = opts or {}
-  vim.validate({
-    name = { name, "s" },
-    desc = { opts.desc, "s", true },
-    tags = { opts.tags, "t", true },
-    params = { opts.params, "t" },
-    priority = { opts.priority, "n", true },
-    builder = { opts.builder, "f", true },
-    metagen = { opts.metagen, "f", true },
-  })
-  if not opts.builder and not opts.metagen then
-    error("Template must have one of: builder, metagen")
-  end
-  opts.name = name
-  opts.priority = opts.priority or DEFAULT_PRIORITY
-  opts._type = "OverseerTemplate"
-  if opts.condition then
-    vim.validate({
-      -- filetype can be string or list of strings
-      -- dir can be string or list of strings
-      ["condition.callback"] = { opts.condition.callback, "f", true },
-    })
+  defn.name = name
+  if defn.generator then
+    table.insert(providers, defn)
   else
-    opts.condition = {}
+    defn.priority = defn.priority or DEFAULT_PRIORITY
+    vim.validate({
+      name = { name, "s" },
+      desc = { defn.desc, "s", true },
+      tags = { defn.tags, "t", true },
+      params = { defn.params, "t" },
+      priority = { defn.priority, "n" },
+      builder = { defn.builder, "f" },
+    })
+    form.validate_params(defn.params)
+    registry[name] = defn
   end
-  form.validate_params(opts.params)
-  return setmetatable(opts, { __index = Template })
 end
 
-function Template:build(prompt, params, callback)
+---@param tmpl overseer.TemplateDefinition
+---@param prompt "always"|"never"|"allow"|"missing"
+---@param params table
+---@param callback fun(task: overseer.Task|nil)
+M.build = function(tmpl, prompt, params, callback)
   local any_missing = false
   local required_missing = false
-  for k, schema in pairs(self.params) do
+  for k, schema in pairs(tmpl.params) do
     if params[k] == nil then
       if prompt == "never" then
         error(string.format("Missing param %s", k))
@@ -172,39 +158,41 @@ function Template:build(prompt, params, callback)
     prompt == "never"
     or (prompt == "allow" and not required_missing)
     or (prompt == "missing" and not any_missing)
-    or vim.tbl_isempty(self.params)
+    or vim.tbl_isempty(tmpl.params)
   then
-    callback(Task.new(self:builder(params)))
+    callback(Task.new(tmpl.builder(params)))
     return
   end
 
   local schema = {}
-  for k, v in pairs(self.params) do
+  for k, v in pairs(tmpl.params) do
     schema[k] = v
   end
-  template_builder.open(self.name, schema, params, function(final_params)
+  task_builder.open(tmpl.name, schema, params, function(final_params)
     if final_params then
-      callback(Task.new(self:builder(final_params)))
+      callback(Task.new(tmpl.builder(final_params)))
     else
       callback()
     end
   end)
 end
 
-function Template:wrap(override, default_params)
-  if type(override) == "string" then
-    override = { name = override }
-  end
-  override.build = function(newself, prompt, params, callback)
-    for k, v in pairs(default_params) do
-      params[k] = v
+---@param base overseer.TemplateDefinition
+---@param override? table
+---@param default_params? table
+---@return overseer.TemplateDefinition
+M.wrap = function(base, override, default_params)
+  override = override or {}
+  if default_params then
+    override.builder = function(_, params)
+      for k, v in pairs(default_params) do
+        params[k] = v
+      end
+      return base.builder(params)
     end
-    return self:build(prompt, params, callback)
   end
-  return setmetatable(override, { __index = self })
+  return setmetatable(override, { __index = base })
 end
-
-M.new = Template.new
 
 ---@class overseer.SearchParams
 ---@field filetype? string
@@ -212,7 +200,7 @@ M.new = Template.new
 ---@field dir string
 
 ---@param opts? overseer.SearchParams
----@return overseer.Template[]
+---@return overseer.TemplateDefinition[]
 M.list = function(opts)
   initialize()
   opts = opts or {}
@@ -222,23 +210,27 @@ M.list = function(opts)
     filetype = { opts.filetype, "s", true },
   })
   local ret = {}
-
   for _, tmpl in pairs(registry) do
-    if tmpl_matches(tmpl, opts) then
-      if tmpl.metagen then
-        local ok, tmpls = pcall(tmpl.metagen, tmpl, opts)
-        if ok then
-          for _, meta in ipairs(tmpls) do
-            table.insert(ret, meta)
+    if condition_matches(tmpl.condition, tmpl.tags, opts) then
+      table.insert(ret, tmpl)
+    end
+  end
+
+  for _, provider in ipairs(providers) do
+    if condition_matches(provider.condition, nil, opts) then
+      local ok, tmpls = pcall(provider.generator, opts)
+      if ok then
+        for _, tmpl in ipairs(tmpls) do
+          if condition_matches(tmpl.condition, tmpl.tags, opts) then
+            table.insert(ret, tmpl)
           end
-        else
-          log:error("Template metagen %s: %s", tmpl.name, tmpls)
         end
       else
-        table.insert(ret, tmpl)
+        log:error("Template provider %s: %s", provider.name, tmpls)
       end
     end
   end
+
   table.sort(ret, function(a, b)
     if a.priority == b.priority then
       return a.name < b.name
@@ -252,7 +244,7 @@ end
 
 ---@param name string
 ---@param opts? overseer.SearchParams
----@return overseer.Template?
+---@return overseer.TemplateDefinition?
 M.get_by_name = function(name, opts)
   initialize()
   local ret = registry[name]

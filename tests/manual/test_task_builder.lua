@@ -24,6 +24,6 @@ local schema = {
   },
 }
 
-overseer.template_builder.open("Test template builder", schema, {}, function(params)
+overseer.task_builder.open("Test template builder", schema, {}, function(params)
   vim.notify(vim.inspect(params))
 end)

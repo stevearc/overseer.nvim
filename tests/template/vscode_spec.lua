@@ -40,7 +40,7 @@ describe("vscode", function()
         },
       },
     })
-    local task = tmpl:builder({})
+    local task = tmpl.builder({})
     local dir = vim.fn.getcwd(0)
     assert.equals(string.format("%s/script 'code'", dir), task.cmd)
     assert.equals(dir, task.cwd)
@@ -62,7 +62,7 @@ describe("vscode", function()
         },
       },
     })
-    local task = tmpl:builder({ word = "hello" })
+    local task = tmpl.builder({ word = "hello" })
     assert.equals("echo 'hello'", task.cmd)
   end)
 

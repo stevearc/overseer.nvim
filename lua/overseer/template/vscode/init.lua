@@ -1,6 +1,5 @@
 local constants = require("overseer.constants")
 local files = require("overseer.files")
-local template = require("overseer.template")
 local variables = require("overseer.template.vscode.variables")
 local STATUS = constants.STATUS
 
@@ -119,9 +118,10 @@ local group_to_tag = {
 local function convert_vscode_task(defn)
   if defn.dependsOn then
     local sequence = defn.dependsOrder == "sequence"
-    return template.new(defn.label, {
+    return {
+      name = defn.label,
       params = {},
-      builder = function(self, params)
+      builder = function(params)
         return {
           name = defn.label,
           -- TODO this is kind of a hack. Create a dummy task that kicks off the others.
@@ -139,7 +139,7 @@ local function convert_vscode_task(defn)
           },
         }
       end,
-    })
+    }
   end
   local cmd = get_cmd(defn)
   if not cmd then
@@ -148,9 +148,10 @@ local function convert_vscode_task(defn)
   local opt = defn.options
 
   local tmpl = {
+    name = defn.label,
     desc = defn.detail,
     params = parse_params(defn),
-    builder = function(self, params)
+    builder = function(params)
       local task = {
         name = defn.label,
         cmd = variables.replace_vars(cmd, params),
@@ -197,18 +198,16 @@ local function convert_vscode_task(defn)
   -- NOTE: we intentionally do nothing with defn.runOptions.
   -- runOptions.reevaluateOnRun unfortunately doesn't mesh with how we re-run tasks
   -- runOptions.runOn allows tasks to auto-run, which I philosophically oppose
-  return template.new(defn.label, tmpl)
+  return tmpl
 end
 
----@type overseer.TemplateDefinition
-local tmpl = {
-  params = {},
+return {
   condition = {
-    callback = function(self, opts)
+    callback = function(opts)
       return files.exists(files.join(opts.dir, ".vscode", "tasks.json"))
     end,
   },
-  metagen = function(self, opts)
+  generator = function(opts)
     local content = files.load_json_file(files.join(opts.dir, ".vscode", "tasks.json"))
     local global_defaults = {}
     for k, v in pairs(content) do
@@ -242,5 +241,3 @@ local tmpl = {
   get_cmd = get_cmd,
   convert_vscode_task = convert_vscode_task,
 }
-
-return tmpl

@@ -1,4 +1,5 @@
 local files = require("overseer.files")
+local template = require("overseer.template")
 
 ---@type overseer.TemplateDefinition
 local tmpl = {
@@ -6,12 +7,24 @@ local tmpl = {
   params = {
     args = { optional = true, type = "list", delimiter = " " },
   },
+  builder = function(params)
+    local cmd = { "tox" }
+    if params.args then
+      cmd = vim.list_extend(cmd, params.args)
+    end
+    return {
+      cmd = cmd,
+    }
+  end,
+}
+
+return {
   condition = {
-    callback = function(self, opts)
+    callback = function(opts)
       return files.exists(files.join(opts.dir, "tox.ini"))
     end,
   },
-  metagen = function(self, opts)
+  generator = function(self, opts)
     local content = files.read_file(files.join(opts.dir, "tox.ini"))
     local targets = {}
     for line in vim.gsplit(content, "\n") do
@@ -30,21 +43,13 @@ local tmpl = {
       end
     end
 
-    local ret = { self }
+    local ret = { tmpl }
     for k in pairs(targets) do
-      table.insert(ret, self:wrap(string.format("tox -e %s", k), { args = { "-e", k } }))
+      table.insert(
+        ret,
+        template.wrap(tmpl, { name = string.format("tox -e %s", k) }, { args = { "-e", k } })
+      )
     end
     return ret
   end,
-  builder = function(self, params)
-    local cmd = { "tox" }
-    if params.args then
-      cmd = vim.list_extend(cmd, params.args)
-    end
-    return {
-      cmd = cmd,
-    }
-  end,
 }
-
-return tmpl
