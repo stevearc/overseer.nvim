@@ -1,52 +1,8 @@
 local constants = require("overseer.constants")
 local files = require("overseer.files")
+local log = require("overseer.log")
 local variables = require("overseer.template.vscode.variables")
 local STATUS = constants.STATUS
-
-local function get_npm_bin(name)
-  local package_bin = files.join("node_modules", ".bin", name)
-  if files.exists(package_bin) then
-    return package_bin
-  end
-  return name
-end
-
-local function get_cmd(defn)
-  -- TODO support more task types: gulp, grunt, jake
-  if defn.type == "process" then
-    local cmd = defn.args or {}
-    table.insert(cmd, 1, defn.command)
-    return cmd
-  elseif defn.type == "shell" then
-    local args = {}
-    for _, arg in ipairs(defn.args or {}) do
-      if type(arg) == "string" then
-        table.insert(args, vim.fn.shellescape(arg))
-      else
-        -- TODO we are ignoring the quoting option for now
-        table.insert(args, vim.fn.shellescape(arg.value))
-      end
-    end
-    if #args > 0 then
-      return string.format("%s %s", defn.command, table.concat(args, " "))
-    else
-      return defn.command
-    end
-  elseif defn.type == "npm" then
-    local use_yarn = files.exists("yarn.lock")
-    return { use_yarn and "yarn" or "npm", defn.script }
-  elseif defn.type == "typescript" then
-    local cmd = { get_npm_bin("tsc") }
-    if defn.tsconfig then
-      table.insert(cmd, "-p")
-      table.insert(cmd, defn.tsconfig)
-    end
-    if defn.option then
-      table.insert(cmd, string.format("--%s", defn.option))
-    end
-    return cmd
-  end
-end
 
 local function extract_params(params, str, inputs)
   if not str then
@@ -141,17 +97,21 @@ local function convert_vscode_task(defn)
       end,
     }
   end
-  local cmd = get_cmd(defn)
-  if not cmd then
+  local ok, task_provider = pcall(
+    require,
+    string.format("overseer.template.vscode.provider.%s", defn.type)
+  )
+  if not ok then
+    log:warn("No VS Code task provider for '%s'", defn.type)
     return nil
   end
-  local opt = defn.options
 
   local tmpl = {
     name = defn.label,
     desc = defn.detail,
     params = parse_params(defn),
     builder = function(params)
+      local cmd = task_provider.get_cmd(defn)
       local task = {
         name = defn.label,
         cmd = variables.replace_vars(cmd, params),
@@ -166,6 +126,7 @@ local function convert_vscode_task(defn)
       if defn.isBackground then
         table.insert(task.components, "on_result_restart")
       end
+      local opt = defn.options
       if opt then
         if opt.cwd then
           task.cwd = variables.replace_vars(opt.cwd, params)

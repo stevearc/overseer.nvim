@@ -8,24 +8,22 @@ History will be overwritten once it's ready for release
 
 TODO screenshots
 
-- [ ] Notification component that uses system notif IFF vim is not focused
-- [ ] Notification components should maybe use on_complete?
-- [ ] Custom positioning of task list (right, left, float)
-- [ ] Somewhere in config to add/change keybinds for task list
-- [ ] Dynamic window sizing for task editor
-- [ ] support other run strategies besides terminal
-- [ ] Finish guide.md
-- [ ] Finish components.md
 - [ ] Make sure VS Code dependsOn can be used on an actual task
 - [ ] Integration with launch.json preLaunchTask for dap/dap-ui
-- [ ] Split out VS Code task types into providers https://code.visualstudio.com/api/extension-guides/task-provider#task-definition
-- [ ] Rename template dir to provider, remove metagen from template, make all providers return list of templates
-- [ ] Document parsers & parser debugging
-- [ ] Document parser on result_exit_code
+- [ ] Notification component that uses system notif IFF vim is not focused
+- [ ] Custom positioning of task list (right, left, float)
+- [ ] Somewhere in config to add/change keybinds for task list
+- [ ] support other run strategies besides terminal
+- [ ] Documentation for parsers & parser debugging
+- [ ] Documention for parser on result_exit_code
+- [ ] Dynamic window sizing for task editor
 - [ ] Remaining README todos
+- [ ] More task providers: cmake, rake, jake, cargo
 - [ ] Extension doc (how to make your own template/component)
-- [ ] Vim help docs
 - [ ] vim.fn.confirm/vim.ui.confirm
+- [ ] Finish guide.md
+- [ ] Finish components.md
+- [ ] Vim help docs
 - [ ] Comparison to alternatives?
   - [yabs](https://github.com/pianocomposer321/yabs.nvim)
   - [toggletasks](https://github.com/jedrzejboczar/toggletasks.nvim)
@@ -363,7 +361,7 @@ Supported features:
 
 Unsupported features:
 
-- task types: gulp, grunt, and jake
+- task types: gulp, grunt, jake
 - shell-specific quoting
 - Specifying a custom shell to use
 - `problemMatcher.fileLocation`
