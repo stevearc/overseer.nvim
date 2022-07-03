@@ -71,6 +71,19 @@ local group_to_tag = {
   clean = constants.TAG.CLEAN,
 }
 
+local function get_provider(type)
+  local ok, task_provider = pcall(
+    require,
+    string.format("overseer.template.vscode.provider.%s", type)
+  )
+  if ok then
+    return task_provider
+  else
+    log:warn("No VS Code task provider for '%s'", type)
+    return nil
+  end
+end
+
 local function convert_vscode_task(defn)
   if defn.dependsOn then
     local sequence = defn.dependsOrder == "sequence"
@@ -97,13 +110,9 @@ local function convert_vscode_task(defn)
       end,
     }
   end
-  local ok, task_provider = pcall(
-    require,
-    string.format("overseer.template.vscode.provider.%s", defn.type)
-  )
-  if not ok then
-    log:warn("No VS Code task provider for '%s'", defn.type)
-    return nil
+  local task_provider = get_provider(defn.type)
+  if not task_provider then
+    return
   end
 
   local tmpl = {
@@ -199,6 +208,6 @@ return {
     return ret
   end,
   -- expose these for unit tests
-  get_cmd = get_cmd,
+  get_provider = get_provider,
   convert_vscode_task = convert_vscode_task,
 }

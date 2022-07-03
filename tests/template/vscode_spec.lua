@@ -5,12 +5,14 @@ local problem_matcher = require("overseer.template.vscode.problem_matcher")
 
 describe("vscode", function()
   it("parses process command and args", function()
-    local cmd = vscode.get_cmd({ type = "process", command = "ls", args = { "foo", "bar" } })
+    local provider = vscode.get_provider("process")
+    local cmd = provider.get_cmd({ type = "process", command = "ls", args = { "foo", "bar" } })
     assert.are.same({ "ls", "foo", "bar" }, cmd)
   end)
 
   it("parses shell command and args", function()
-    local cmd = vscode.get_cmd({
+    local provider = vscode.get_provider("shell")
+    local cmd = provider.get_cmd({
       type = "shell",
       command = "ls",
       args = { "foo", { value = "bar", quoting = "escape" } },
@@ -19,7 +21,8 @@ describe("vscode", function()
   end)
 
   it("strong quotes the args", function()
-    local cmd = vscode.get_cmd({
+    local provider = vscode.get_provider("shell")
+    local cmd = provider.get_cmd({
       type = "shell",
       command = "ls",
       args = { "foo bar", "baz" },
