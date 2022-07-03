@@ -54,6 +54,26 @@
       "label": "(vscode) compound sequence",
       "dependsOn": ["(vscode) sleep", "(vscode) test", "(vscode) prompt input"],
       "dependsOrder": "sequence"
+    },
+    {
+      "type": "shell",
+      "label": "(vscode) create/move/delete",
+      "command": "rm",
+      "args": ["vscode_moved_test_file.txt"],
+      "dependsOn": "(vscode) move"
+    },
+    {
+      "type": "shell",
+      "label": "(vscode) move",
+      "command": "mv",
+      "args": ["vscode_test_file.txt", "vscode_moved_test_file.txt"],
+      "dependsOn": "(vscode) create"
+    },
+    {
+      "type": "shell",
+      "label": "(vscode) create",
+      "command": "touch",
+      "args": ["vscode_test_file.txt"]
     }
   ],
   "inputs": [

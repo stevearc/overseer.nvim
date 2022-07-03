@@ -71,13 +71,22 @@ local group_to_tag = {
   clean = constants.TAG.CLEAN,
 }
 
+local BaseTaskProvider = {
+  get_cmd = function(defn)
+    error("Task provider must provide 'get_cmd' function")
+  end,
+  validate = function(defn)
+    return true
+  end,
+}
+
 local function get_provider(type)
   local ok, task_provider = pcall(
     require,
     string.format("overseer.template.vscode.provider.%s", type)
   )
   if ok then
-    return task_provider
+    return setmetatable(task_provider, { __index = BaseTaskProvider })
   else
     log:warn("No VS Code task provider for '%s'", type)
     return nil
@@ -85,36 +94,15 @@ local function get_provider(type)
 end
 
 local function convert_vscode_task(defn)
-  if defn.dependsOn then
-    local sequence = defn.dependsOrder == "sequence"
-    return {
-      name = defn.label,
-      params = {},
-      builder = function(params)
-        return {
-          name = defn.label,
-          -- TODO this is kind of a hack. Create a dummy task that kicks off the others.
-          cmd = "sleep 1",
-          components = {
-            "result_exit_code",
-            { "dispose_delay", timeout = 1 },
-            {
-              "on_status_run_task",
-              status = sequence and STATUS.SUCCESS or STATUS.RUNNING,
-              task_names = defn.dependsOn,
-              once = true,
-              sequence = sequence,
-            },
-          },
-        }
-      end,
-    }
-  end
   local task_provider = get_provider(defn.type)
-  if not task_provider then
+  if not task_provider or not task_provider.validate(defn) then
     return
   end
 
+  local sequence = defn.dependsOrder == "sequence"
+  if type(defn.dependsOn) == "string" then
+    defn.dependsOn = { defn.dependsOn }
+  end
   local tmpl = {
     name = defn.label,
     desc = defn.detail,
@@ -129,6 +117,16 @@ local function convert_vscode_task(defn)
           "default_vscode",
         },
       }
+      -- FIXME use an orchestrator once we have one
+      if defn.dependsOn then
+        table.insert(task.components, {
+          "on_status_run_task",
+          status = sequence and STATUS.SUCCESS or STATUS.RUNNING,
+          task_names = defn.dependsOn,
+          once = true,
+          sequence = sequence,
+        })
+      end
       if defn.problemMatcher then
         table.insert(task.components, "on_result_diagnostics")
       end

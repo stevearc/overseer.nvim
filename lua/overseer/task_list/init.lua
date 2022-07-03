@@ -89,7 +89,7 @@ end
 ---@field status_not? boolean
 ---@field recent_first? boolean
 
----@param opts overseer.ListTaskOpts
+---@param opts? overseer.ListTaskOpts
 ---@return overseer.Task[]
 M.list_tasks = function(opts)
   opts = opts or {}

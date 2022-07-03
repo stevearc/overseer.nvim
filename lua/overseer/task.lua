@@ -376,6 +376,18 @@ function Task:reset(soft)
   self:dispatch("on_reset", soft)
 end
 
+---Dispatch an event to all other tasks
+---@param name string
+function Task:broadcast(name, ...)
+  for _, task in ipairs(task_list.list_tasks()) do
+    if task.id ~= self.id then
+      task:dispatch(name, ...)
+    end
+  end
+end
+
+---Dispatch an event to all components
+---@param name string
 function Task:dispatch(name, ...)
   for _, comp in ipairs(self.components) do
     if type(comp[name]) == "function" then
@@ -518,20 +530,23 @@ function Task:start()
 
   vim.api.nvim_buf_call(self.bufnr, function()
     log:debug("Starting task %s", self.name)
+    local function on_stdout(data)
+      self:dispatch("on_output", data)
+      local lines = stdout_iter(data)
+      if not vim.tbl_isempty(lines) then
+        self:dispatch("on_output_lines", lines)
+      end
+    end
     chan_id = vim.fn.termopen(self.cmd, {
       cwd = self.cwd,
       env = self.env,
       on_stdout = function(j, d)
-        self:dispatch("on_output", d)
-        local lines = stdout_iter(d)
-        if not vim.tbl_isempty(lines) then
-          self:dispatch("on_output_lines", lines)
-        end
+        on_stdout(d)
       end,
       on_exit = function(j, c)
         log:debug("Task %s exited with code %s", self.name, c)
         -- Feed one last line end to flush the output
-        self:dispatch("on_output", { "" })
+        on_stdout({ "" })
         self:_on_exit(j, c)
       end,
     })

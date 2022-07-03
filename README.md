@@ -24,6 +24,7 @@ TODO screenshots
 - [ ] Finish guide.md
 - [ ] Finish components.md
 - [ ] Vim help docs
+- [ ] Debugging tips (e.g. finding logs)
 - [ ] Comparison to alternatives?
   - [yabs](https://github.com/pianocomposer321/yabs.nvim)
   - [toggletasks](https://github.com/jedrzejboczar/toggletasks.nvim)
@@ -43,6 +44,48 @@ TODO screenshots
 - [Architecture](#architecture)
 - [Highlight](#highlight)
 - [VS Code tasks](#vs-code-tasks)
+
+```json
+{
+  "version": "2.0.0",
+  "configurations": [
+    {
+      "name": "Attach to Node Functions",
+      "type": "node",
+      "request": "attach",
+      "port": 9230,
+      "preLaunchTask": "func: host start"
+    }
+  ]
+}
+```
+
+```json
+{
+  "version": "2.0.0",
+  "tasks": [
+    {
+      "type": "func",
+      "command": "host start",
+      "problemMatcher": "$func-node-watch",
+      "isBackground": true,
+      "dependsOn": "npm build (functions)"
+    },
+    {
+      "type": "shell",
+      "label": "npm build (functions)",
+      "command": "npm run build",
+      "dependsOn": "npm install (functions)",
+      "problemMatcher": "$tsc"
+    },
+    {
+      "type": "shell",
+      "label": "npm install (functions)",
+      "command": "npm install"
+    }
+  ]
+}
+```
 
 ## Features
 
