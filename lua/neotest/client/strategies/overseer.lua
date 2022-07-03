@@ -37,15 +37,16 @@ return function(spec)
       task:stop()
     end,
     attach = function()
-      if not task.bufnr or not vim.api.nvim_buf_is_valid(task.bufnr) then
+      local bufnr = task:get_bufnr()
+      if not bufnr or not vim.api.nvim_buf_is_valid(bufnr) then
         return
       end
       attach_win = lib.ui.float.open({
         height = spec.strategy.height,
         width = spec.strategy.width,
-        buffer = task.bufnr,
+        buffer = bufnr,
       })
-      async.api.nvim_buf_set_keymap(task.bufnr, "n", "q", "", {
+      async.api.nvim_buf_set_keymap(bufnr, "n", "q", "", {
         noremap = true,
         silent = true,
         callback = function()

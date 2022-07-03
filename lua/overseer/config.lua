@@ -1,4 +1,6 @@
 local default_config = {
+  -- Default task strategy
+  strategy = "terminal",
   -- Template modules to load
   templates = { "builtin" },
   -- When true, tries to detect a green color from your colorscheme to use for success highlight

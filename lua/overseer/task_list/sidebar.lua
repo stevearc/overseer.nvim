@@ -86,7 +86,7 @@ function Sidebar:toggle_preview()
     return
   end
   local task = self:_get_task_from_line()
-  if not task or not task.bufnr or not vim.api.nvim_buf_is_valid(task.bufnr) then
+  if not task or not task:get_bufnr() or not vim.api.nvim_buf_is_valid(task:get_bufnr()) then
     return
   end
 
@@ -94,7 +94,7 @@ function Sidebar:toggle_preview()
   local padding = 1
   local width = vim.o.columns - win_width - 2 - 2 * padding
   local col = (vim.fn.winnr() == 1 and (win_width + padding) or padding)
-  local winid = vim.api.nvim_open_win(task.bufnr, false, {
+  local winid = vim.api.nvim_open_win(task:get_bufnr(), false, {
     relative = "editor",
     border = "rounded",
     row = 1,
@@ -136,7 +136,7 @@ function Sidebar:update_preview()
     return
   end
   local task = self:_get_task_from_line()
-  if not task or not task.bufnr or not vim.api.nvim_buf_is_valid(task.bufnr) then
+  if not task or not task:get_bufnr() or not vim.api.nvim_buf_is_valid(task:get_bufnr()) then
     local winbuf = vim.api.nvim_win_get_buf(winid)
     if vim.api.nvim_buf_get_option(winbuf, "buftype") == "terminal" then
       local scratch = vim.api.nvim_create_buf(false, true)
@@ -155,8 +155,8 @@ function Sidebar:update_preview()
   end
 
   local preview_buf = vim.api.nvim_win_get_buf(winid)
-  if preview_buf ~= task.bufnr then
-    vim.api.nvim_win_set_buf(winid, task.bufnr)
+  if preview_buf ~= task:get_bufnr() then
+    vim.api.nvim_win_set_buf(winid, task:get_bufnr())
     util.scroll_to_end(winid)
   end
 end

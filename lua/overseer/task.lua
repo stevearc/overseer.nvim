@@ -2,6 +2,7 @@ local component = require("overseer.component")
 local constants = require("overseer.constants")
 local form = require("overseer.form")
 local log = require("overseer.log")
+local strategy = require("overseer.strategy")
 local task_list = require("overseer.task_list")
 local util = require("overseer.util")
 
@@ -15,6 +16,8 @@ local STATUS = constants.STATUS
 ---@field cmd string|string[]
 ---@field cwd? string
 ---@field env? table<string, string>
+---@field strategy_defn nil|string|table
+---@field strategy? overseer.Strategy
 ---@field name string
 ---@field bufnr number|nil
 ---@field exit_code number|nil
@@ -39,6 +42,7 @@ Task.params = {
 ---@field name? string
 ---@field cwd? string
 ---@field env? table<string, string>
+---@field strategy? string|table
 ---@field metadata? table
 ---@field components? table TODO more specific type
 
@@ -87,6 +91,8 @@ function Task.new_uninitialized(opts)
     cmd = opts.cmd,
     cwd = opts.cwd,
     env = opts.env,
+    strategy_defn = opts.strategy,
+    strategy = strategy.load(opts.strategy),
     name = name,
     bufnr = nil,
     exit_code = nil,
@@ -207,6 +213,7 @@ function Task:serialize()
     cmd = self.cmd,
     cwd = self.cwd,
     env = self.env,
+    strategy = self.strategy_defn,
     components = components,
   }
 end
@@ -344,6 +351,11 @@ function Task:is_disposed()
   return self.status == STATUS.DISPOSED
 end
 
+---@return number|nil
+function Task:get_bufnr()
+  return self.strategy:get_bufnr()
+end
+
 ---@param soft boolean
 function Task:reset(soft)
   if self:is_disposed() then
@@ -359,18 +371,18 @@ function Task:reset(soft)
   -- underlying process & buffer
   if not soft or not self:is_running() then
     self.status = STATUS.PENDING
-    local bufnr = self.bufnr
+    local bufnr = self:get_bufnr()
     self.prev_bufnr = bufnr
     vim.defer_fn(function()
       if bufnr and vim.api.nvim_buf_is_valid(bufnr) then
-        vim.api.nvim_buf_delete(bufnr, { force = true })
+        if util.is_bufnr_visible(bufnr) then
+          vim.api.nvim_buf_set_option(bufnr, "bufhidden", "wipe")
+        else
+          vim.api.nvim_buf_delete(bufnr, { force = true })
+        end
       end
-    end, 2000)
-    self.bufnr = nil
-    if self.chan_id then
-      vim.fn.jobstop(self.chan_id)
-      self.chan_id = nil
-    end
+    end, 1000)
+    self.strategy:reset()
   end
   task_list.touch_task(self)
   self:dispatch("on_reset", soft)
@@ -444,10 +456,11 @@ function Task:dispose(force)
     log:debug("Not disposing task %s: has %d references", self.name, self._references)
     return false
   end
-  local terminal_visible = util.is_bufnr_visible(self.bufnr)
+  local bufnr = self.strategy:get_bufnr()
+  local bufnr_visible = util.is_bufnr_visible(bufnr)
   if not force then
-    -- Can't dispose if the terminal is open
-    if terminal_visible then
+    -- Can't dispose if the strategy bufnr is open
+    if bufnr_visible then
       log:debug("Not disposing task %s: buffer is visible", self.name)
       return false
     end
@@ -464,17 +477,14 @@ function Task:dispose(force)
   end
   self.status = STATUS.DISPOSED
   log:debug("Disposing task %s", self.name)
-  if self.chan_id then
-    vim.fn.jobstop(self.chan_id)
-    self.chan_id = nil
-  end
+  self.strategy:dispose()
   self:dispatch("on_dispose")
   task_list.remove(self)
-  if self.bufnr and vim.api.nvim_buf_is_valid(self.bufnr) then
-    if terminal_visible then
-      vim.api.nvim_buf_set_option(self.bufnr, "bufhidden", "wipe")
+  if bufnr and vim.api.nvim_buf_is_valid(bufnr) then
+    if bufnr_visible then
+      vim.api.nvim_buf_set_option(bufnr, "bufhidden", "wipe")
     else
-      vim.api.nvim_buf_delete(self.bufnr, { force = true })
+      vim.api.nvim_buf_delete(bufnr, { force = true })
     end
   end
   return true
@@ -490,16 +500,16 @@ function Task:restart(force_stop)
   self:dispatch("on_request_restart")
 end
 
-function Task:_on_exit(_job_id, code)
-  self.chan_id = nil
+---Called when the task strategy exits
+---@param code number
+function Task:on_exit(code)
   self.exit_code = code
   if not self:is_running() then
     -- We've already finalized, so we probably canceled this task
     return
   end
   self:dispatch("on_exit", code)
-  -- We shouldn't hit this unless the components are missing a finalizer or
-  -- they errored
+  -- We shouldn't hit this unless there is no result component or it errored
   if self:is_running() then
     self:set_result(STATUS.FAILURE, { error = "Task did not produce a result before exiting" })
   end
@@ -507,54 +517,31 @@ end
 
 function Task:start()
   if self:is_complete() then
-    vim.notify(
-      string.format("Cannot start task '%s' that has completed", self.name),
-      vim.log.levels.ERROR
-    )
+    log:error("Cannot start task '%s' that has completed", self.name)
     return false
   end
   if self:is_disposed() then
-    vim.notify(
-      string.format("Cannot start task '%s' that has been disposed", self.name),
-      vim.log.levels.ERROR
-    )
+    log:error("Cannot start task '%s' that has been disposed", self.name)
     return false
   end
   if self:is_running() then
     return false
   end
-  self.bufnr = vim.api.nvim_create_buf(false, true)
-  local chan_id
-  local mode = vim.api.nvim_get_mode().mode
-  local stdout_iter = util.get_stdout_line_iter()
-
-  vim.api.nvim_buf_call(self.bufnr, function()
-    log:debug("Starting task %s", self.name)
-    local function on_stdout(data)
-      self:dispatch("on_output", data)
-      local lines = stdout_iter(data)
-      if not vim.tbl_isempty(lines) then
-        self:dispatch("on_output_lines", lines)
-      end
-    end
-    chan_id = vim.fn.termopen(self.cmd, {
-      cwd = self.cwd,
-      env = self.env,
-      on_stdout = function(j, d)
-        on_stdout(d)
-      end,
-      on_exit = function(j, c)
-        log:debug("Task %s exited with code %s", self.name, c)
-        -- Feed one last line end to flush the output
-        on_stdout({ "" })
-        self:_on_exit(j, c)
-      end,
-    })
-  end)
-  vim.api.nvim_buf_set_option(self.bufnr, "buflisted", false)
+  log:debug("Starting task %s", self.name)
+  local ok, err = pcall(self.strategy.start, self.strategy, self)
+  if not ok then
+    log:error("Strategy '%s' failed to start for task '%s': %s", self.strategy.name, self.name, err)
+    return false
+  end
+  self.status = STATUS.RUNNING
+  self:dispatch("on_start")
+  local bufnr = self.strategy:get_bufnr()
+  if bufnr then
+    vim.api.nvim_buf_set_option(bufnr, "buflisted", false)
+  end
 
   -- If this task's previous buffer was open in any wins, replace it
-  if self.prev_bufnr then
+  if bufnr and self.prev_bufnr then
     local prev_bufnr = self.prev_bufnr
     for _, win in ipairs(vim.api.nvim_list_wins()) do
       if vim.api.nvim_win_get_buf(win) == prev_bufnr then
@@ -563,40 +550,11 @@ function Task:start()
         pcall(vim.api.nvim_win_del_var, win, "sticky_bufnr")
         pcall(vim.api.nvim_win_del_var, win, "sticky_buftype")
         pcall(vim.api.nvim_win_del_var, win, "sticky_filetype")
-        vim.api.nvim_win_set_buf(win, self.bufnr)
+        vim.api.nvim_win_set_buf(win, bufnr)
       end
     end
   end
-
-  -- It's common to have autocmds that enter insert mode when opening a terminal
-  -- This is a hack so we don't end up in insert mode after starting a task
-  vim.defer_fn(function()
-    local new_mode = vim.api.nvim_get_mode().mode
-    if new_mode ~= mode then
-      if string.find(new_mode, "i") == 1 then
-        vim.api.nvim_feedkeys(vim.api.nvim_replace_termcodes("<ESC>", true, true, true), "n", false)
-        if string.find(mode, "v") == 1 or string.find(mode, "V") == 1 then
-          vim.cmd([[normal! gv]])
-        end
-      end
-    end
-  end, 10)
-
-  if chan_id == 0 then
-    vim.notify(string.format("Invalid arguments for task '%s'", self.name), vim.log.levels.ERROR)
-    return false
-  elseif chan_id == -1 then
-    vim.notify(
-      string.format("Command '%s' not executable", vim.inspect(self.cmd)),
-      vim.log.levels.ERROR
-    )
-    return false
-  else
-    self.chan_id = chan_id
-    self.status = STATUS.RUNNING
-    self:dispatch("on_start")
-    return true
-  end
+  return true
 end
 
 function Task:stop()
@@ -605,10 +563,7 @@ function Task:stop()
   end
   log:debug("Stopping task %s", self.name)
   self:set_result(STATUS.CANCELED)
-  if self.chan_id then
-    vim.fn.jobstop(self.chan_id)
-    self.chan_id = nil
-  end
+  self.strategy:stop()
   return true
 end
 

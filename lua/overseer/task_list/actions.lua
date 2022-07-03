@@ -98,30 +98,33 @@ M = {
   ["open float"] = {
     desc = "open terminal in a floating window",
     condition = function(task)
-      return task.bufnr and vim.api.nvim_buf_is_valid(task.bufnr)
+      local bufnr = task:get_bufnr()
+      return bufnr and vim.api.nvim_buf_is_valid(bufnr)
     end,
     run = function(task)
-      layout.open_fullscreen_float(task.bufnr)
+      layout.open_fullscreen_float(task:get_bufnr())
     end,
   },
   open = {
     desc = "open terminal in the current window",
     condition = function(task)
-      return task.bufnr and vim.api.nvim_buf_is_valid(task.bufnr)
+      local bufnr = task:get_bufnr()
+      return bufnr and vim.api.nvim_buf_is_valid(bufnr)
     end,
     run = function(task)
       vim.cmd([[normal! m']])
-      vim.api.nvim_win_set_buf(0, task.bufnr)
+      vim.api.nvim_win_set_buf(0, task:get_bufnr())
     end,
   },
   ["open vsplit"] = {
     desc = "open terminal in a vertical split",
     condition = function(task)
-      return task.bufnr and vim.api.nvim_buf_is_valid(task.bufnr)
+      local bufnr = task:get_bufnr()
+      return bufnr and vim.api.nvim_buf_is_valid(bufnr)
     end,
     run = function(task)
       vim.cmd([[vsplit]])
-      vim.api.nvim_win_set_buf(0, task.bufnr)
+      vim.api.nvim_win_set_buf(0, task:get_bufnr())
     end,
   },
   ["set quickfix diagnostics"] = {
