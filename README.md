@@ -26,10 +26,11 @@ TODO screenshots
 - [ ] Document different ways to do task dependencies
 - [ ] Debugging tips (e.g. finding logs)
 - [ ] Comparison to alternatives?
-  - [yabs](https://github.com/pianocomposer321/yabs.nvim)
-  - [toggletasks](https://github.com/jedrzejboczar/toggletasks.nvim)
-  - [vs-tasks](https://github.com/EthanJWright/vs-tasks.nvim)
-  - [tasks](https://github.com/GustavoKatel/tasks.nvim)
+  - [yabs.nvim](https://github.com/pianocomposer321/yabs.nvim)
+  - [toggletasks.nvim](https://github.com/jedrzejboczar/toggletasks.nvim)
+  - [vs-tasks.nvim](https://github.com/EthanJWright/vs-tasks.nvim)
+  - [tasks.nvim](https://github.com/GustavoKatel/tasks.nvim)
+  - [tasks.nvim](https://github.com/mg979/tasks.vim)
 
 ---
 
@@ -298,13 +299,13 @@ require("overseer").setup({
 | `OverseerOpen[!]`      |               | Open the overseer window. With `[!]` cursor stays in current window          |
 | `OverseerClose`        |               | Close the overseer window                                                    |
 | `OverseerToggle[!]`    |               | Open or close the overseer window. With `[!]` cursor stays in current window |
-| `OverseerSaveBundle`   | `[name]`      | Serialize the current tasks to disk                                          |
-| `OverseerLoadBundle`   | `[name]`      | Load tasks that were serialized to disk                                      |
+| `OverseerSaveBundle`   | `[name]`      | Serialize and save the current tasks to disk                                 |
+| `OverseerLoadBundle`   | `[name]`      | Load tasks that were saved to disk                                           |
 | `OverseerDeleteBundle` | `[name]`      | Delete a saved task bundle                                                   |
 | `OverseerRunCmd`       | `[command]`   | Run a raw shell command                                                      |
 | `OverseerRun`          | `[name/tags]` | Run a task from a template                                                   |
 | `OverseerBuild`        |               | Open the task builder                                                        |
-| `OverseerQuickAction`  | `[name]`      | Run an action on the most recent task                                        |
+| `OverseerQuickAction`  | `[action]`    | Run an action on the most recent task                                        |
 | `OverseerTaskAction`   |               | Select a task to run an action on                                            |
 
 ## Task list
