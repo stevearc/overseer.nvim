@@ -1,4 +1,5 @@
 local constants = require("overseer.constants")
+local Notifier = require("overseer.notifier")
 local util = require("overseer.util")
 local STATUS = constants.STATUS
 
@@ -27,6 +28,12 @@ return {
         STATUS.SUCCESS,
       },
     },
+    desktop = {
+      desc = "When to use a desktop notification",
+      type = "enum",
+      choices = { "always", "never", "unfocused" },
+      default = "never",
+    },
   },
   constructor = function(opts)
     opts = opts or {}
@@ -36,10 +43,12 @@ return {
     local lookup = util.list_to_map(opts.statuses)
 
     return {
+      notifier = Notifier.new({ desktop = opts.desktop }),
       on_result = function(self, task, status)
         if lookup[status] then
           local level = get_level_from_status(status)
-          vim.notify(string.format("%s %s", status, task.name), level)
+          local message = string.format("%s %s", status, task.name)
+          self.notifier:notify(message, level)
         end
       end,
     }

@@ -9,7 +9,6 @@ History will be overwritten once it's ready for release
 TODO screenshots
 
 - [ ] Integration with launch.json preLaunchTask for dap/dap-ui
-- [ ] Notification component that uses system notif IFF vim is not focused
 - [ ] More task providers: cmake, rake, jake, cargo
 
 Documentation TODOs

@@ -35,19 +35,6 @@ local default_config = {
       ["}"] = "NextTask",
     },
   },
-  -- Configure where the logs go and what level to use
-  -- Types are "echo", "notify", and "file"
-  log = {
-    {
-      type = "echo",
-      level = vim.log.levels.WARN,
-    },
-    {
-      type = "file",
-      filename = "overseer.log",
-      level = vim.log.levels.WARN,
-    },
-  },
   -- TODO: explain these
   actions = {},
   -- Configure the floating window used for task templates that require input
@@ -115,6 +102,19 @@ local default_config = {
   -- A list of components to preload on setup.
   -- Only matters if you want them to show up in the task editor.
   preload_components = {},
+  -- Configure where the logs go and what level to use
+  -- Types are "echo", "notify", and "file"
+  log = {
+    {
+      type = "echo",
+      level = vim.log.levels.WARN,
+    },
+    {
+      type = "file",
+      filename = "overseer.log",
+      level = vim.log.levels.WARN,
+    },
+  },
 }
 
 local M = vim.deepcopy(default_config)

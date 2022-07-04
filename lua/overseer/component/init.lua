@@ -50,7 +50,6 @@ local builtin_components = {
   "on_result_diagnostics_quickfix",
   "on_result_notify",
   "on_result_notify_red_green",
-  "on_result_notify_system",
   "on_result_restart",
   "restart_on_save",
   "result_exit_code",

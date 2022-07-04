@@ -66,6 +66,21 @@ local function do_setup()
       vim.g.session_save_commands = cmds
     end,
   })
+  local Notifier = require("overseer.notifier")
+  vim.api.nvim_create_autocmd("FocusGained", {
+    desc = "Track editor focus for overseer",
+    group = aug,
+    callback = function()
+      Notifier.focused = true
+    end,
+  })
+  vim.api.nvim_create_autocmd("FocusLost", {
+    desc = "Track editor focus for overseer",
+    group = aug,
+    callback = function()
+      Notifier.focused = false
+    end,
+  })
   local ok, cmp = pcall(require, "cmp")
   if ok then
     cmp.register_source("overseer", require("cmp_overseer").new())
