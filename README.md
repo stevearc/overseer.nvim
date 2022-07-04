@@ -202,6 +202,25 @@ require("overseer").setup({
     min_width = { 40, 0.1 },
     -- String that separates tasks
     separator = "────────────────────────────────────────",
+    -- Default direction. Can be "left" or "right"
+    direction = "left",
+    bindings = {
+      ["?"] = "ShowHelp",
+      ["<CR>"] = "RunAction",
+      ["<C-e>"] = "Edit",
+      ["o"] = "Open",
+      ["<C-v>"] = "OpenVsplit",
+      ["<C-f>"] = "OpenFloat",
+      ["p"] = "TogglePreview",
+      ["<C-l>"] = "IncreaseDetail",
+      ["<C-h>"] = "DecreaseDetail",
+      ["L"] = "IncreaseAllDetail",
+      ["H"] = "DecreaseAllDetail",
+      ["["] = "DecreaseWidth",
+      ["]"] = "IncreaseWidth",
+      ["{"] = "PrevTask",
+      ["}"] = "NextTask",
+    },
   },
   -- Configure where the logs go and what level to use
   -- Types are "echo", "notify", and "file"
