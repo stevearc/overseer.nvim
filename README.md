@@ -10,13 +10,13 @@ TODO screenshots
 
 - [ ] Integration with launch.json preLaunchTask for dap/dap-ui
 - [ ] Notification component that uses system notif IFF vim is not focused
-- [ ] Somewhere in config to add/change keybinds for task list
-- [ ] Extract cmd, cwd, env into strategy params
+- [ ] More task providers: cmake, rake, jake, cargo
+
+Documentation TODOs
+
 - [ ] Documentation for parsers & parser debugging
 - [ ] Documentation for parser on result_exit_code
-- [ ] Dynamic window sizing for task editor
 - [ ] Remaining README todos
-- [ ] More task providers: cmake, rake, jake, cargo
 - [ ] Extension doc (how to make your own template/component)
 - [ ] Finish guide.md
 - [ ] Finish components.md

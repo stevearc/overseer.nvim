@@ -64,14 +64,14 @@ function Sidebar.new()
     end,
   })
 
-  binding_util.create_bindings(bufnr, bindings, tl)
+  binding_util.create_plug_bindings(bufnr, bindings, tl)
+  binding_util.create_bindings_to_plug(bufnr, config.task_list.bindings, "OverseerTask:")
 
   return tl
 end
 
 function Sidebar:_get_task_from_line(lnum)
   lnum = lnum or vim.api.nvim_win_get_cursor(0)[1]
-  -- TODO could do binary search here
   for _, v in ipairs(self.task_lines) do
     if v[1] >= lnum then
       return v[2]

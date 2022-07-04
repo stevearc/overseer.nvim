@@ -2,17 +2,13 @@ local binding_util = require("overseer.binding_util")
 local M
 M = {
   {
-    lhs = "?",
-    mode = "n",
     desc = "Show default key bindings",
     plug = "<Plug>OverseerTask:ShowHelp",
     rhs = function()
-      binding_util.show_bindings(M)
+      binding_util.show_bindings("OverseerTask:")
     end,
   },
   {
-    lhs = "<CR>",
-    mode = "n",
     desc = "Open task action menu",
     plug = "<Plug>OverseerTask:RunAction",
     rhs = function(sidebar)
@@ -20,8 +16,6 @@ M = {
     end,
   },
   {
-    lhs = "<C-e>",
-    mode = "n",
     desc = "Edit task",
     plug = "<Plug>OverseerTask:Edit",
     rhs = function(sidebar)
@@ -29,8 +23,6 @@ M = {
     end,
   },
   {
-    lhs = "o",
-    mode = "n",
     desc = "Open task terminal in current window",
     plug = "<Plug>OverseerTask:Open",
     rhs = function(sidebar)
@@ -38,8 +30,6 @@ M = {
     end,
   },
   {
-    lhs = "<C-v>",
-    mode = "n",
     desc = "Open task terminal in a vsplit",
     plug = "<Plug>OverseerTask:OpenVsplit",
     rhs = function(sidebar)
@@ -47,8 +37,6 @@ M = {
     end,
   },
   {
-    lhs = "<C-f>",
-    mode = "n",
     desc = "Open task terminal in a floating window",
     plug = "<Plug>OverseerTask:OpenFloat",
     rhs = function(sidebar)
@@ -56,8 +44,6 @@ M = {
     end,
   },
   {
-    lhs = "p",
-    mode = "n",
     desc = "Toggle task terminal in a preview window",
     plug = "<Plug>OverseerTask:TogglePreview",
     rhs = function(sidebar)
@@ -65,8 +51,6 @@ M = {
     end,
   },
   {
-    lhs = "<C-l>",
-    mode = "n",
     desc = "Increase task detail level",
     plug = "<Plug>OverseerTask:IncreaseDetail",
     rhs = function(sidebar)
@@ -74,8 +58,6 @@ M = {
     end,
   },
   {
-    lhs = "<C-h>",
-    mode = "n",
     desc = "Decrease task detail level",
     plug = "<Plug>OverseerTask:DecreaseDetail",
     rhs = function(sidebar)
@@ -83,8 +65,6 @@ M = {
     end,
   },
   {
-    lhs = "L",
-    mode = "n",
     desc = "Increase all task detail levels",
     plug = "<Plug>OverseerTask:IncreaseAllDetail",
     rhs = function(sidebar)
@@ -92,8 +72,6 @@ M = {
     end,
   },
   {
-    lhs = "H",
-    mode = "n",
     desc = "Decrease all task detail levels",
     plug = "<Plug>OverseerTask:DecreaseAllDetail",
     rhs = function(sidebar)
@@ -101,8 +79,6 @@ M = {
     end,
   },
   {
-    lhs = "[",
-    mode = "n",
     desc = "Decrease window width",
     plug = "<Plug>OverseerTask:DecreaseWidth",
     rhs = function()
@@ -111,8 +87,6 @@ M = {
     end,
   },
   {
-    lhs = "]",
-    mode = "n",
     desc = "Increase window width",
     plug = "<Plug>OverseerTask:IncreaseWidth",
     rhs = function()
@@ -121,8 +95,6 @@ M = {
     end,
   },
   {
-    lhs = "{",
-    mode = { "n", "v" },
     desc = "Jump to previous task",
     plug = "<Plug>OverseerTask:PrevTask",
     rhs = function(sidebar)
@@ -130,8 +102,6 @@ M = {
     end,
   },
   {
-    lhs = "}",
-    mode = { "n", "v" },
     desc = "Jump to next task",
     plug = "<Plug>OverseerTask:NextTask",
     rhs = function(sidebar)
