@@ -18,6 +18,7 @@ local M = {}
 ---The intermediate form of a component returned by the constructor
 ---@class overseer.ComponentSkeleton
 ---@field on_init? fun(self: overseer.Component, task: overseer.Task)
+---@field on_pre_start? fun(self: overseer.Component, task: overseer.Task): nil|boolean
 ---@field on_start? fun(self: overseer.Component, task: overseer.Task)
 ---@field on_reset? fun(self: overseer.Component, task: overseer.Task, soft: boolean)
 ---@field on_result? fun(self: overseer.Component, task: overseer.Task, status: overseer.Status, result: table)
@@ -27,6 +28,7 @@ local M = {}
 ---@field on_request_restart? fun(self: overseer.Component, task: overseer.Task)
 ---@field on_exit? fun(self: overseer.Component, task: overseer.Task, code: number)
 ---@field on_dispose? fun(self: overseer.Component, task: overseer.Task)
+---@field on_status? fun(self: overseer.Component, task: overseer.Task, status: overseer.Status) Called when the task status changes
 ---@field render? fun(self: overseer.Component, task: overseer.Task, lines: string[], highlights: table[], detail: number)
 
 ---An instantiated component that is attached to a Task
@@ -40,6 +42,7 @@ local registry = {}
 local aliases = {}
 
 local builtin_components = {
+  "dependencies",
   "on_output_summarize",
   "on_output_write_file",
   "on_restart_handler",
@@ -49,7 +52,6 @@ local builtin_components = {
   "on_result_notify_red_green",
   "on_result_notify_system",
   "on_result_restart",
-  "on_status_run_task",
   "restart_on_save",
   "result_exit_code",
   "timeout",

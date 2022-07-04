@@ -65,15 +65,13 @@
     {
       "type": "shell",
       "label": "(vscode) move",
-      "command": "mv",
-      "args": ["vscode_test_file.txt", "vscode_moved_test_file.txt"],
+      "command": "mv vscode_test_file.txt vscode_moved_test_file.txt && sleep 4",
       "dependsOn": "(vscode) create"
     },
     {
       "type": "shell",
       "label": "(vscode) create",
-      "command": "touch",
-      "args": ["vscode_test_file.txt"]
+      "command": "touch vscode_test_file.txt && sleep 4"
     }
   ],
   "inputs": [

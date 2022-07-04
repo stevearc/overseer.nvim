@@ -167,6 +167,17 @@ M.get_preview_window = function()
   end
 end
 
+---@param name_or_config string|table
+---@return string
+---@return table|nil
+M.split_config = function(name_or_config)
+  if type(name_or_config) == "string" then
+    return name_or_config, nil
+  else
+    return name_or_config[1], name_or_config
+  end
+end
+
 ---@param bufnr? number
 ---@return boolean
 M.is_bufnr_visible = function(bufnr)

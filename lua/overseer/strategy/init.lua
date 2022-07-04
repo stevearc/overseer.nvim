@@ -10,6 +10,7 @@ local M = {}
 ---@field start fun(self: overseer.Strategy, task: overseer.Task)
 ---@field stop fun(self: overseer.Strategy)
 ---@field dispose fun(self: overseer.Strategy)
+---@field render nil|fun(self: overseer.Strategy, lines: string[], highlights: table, detail: number)
 
 local NilStrategy = {}
 
@@ -27,6 +28,7 @@ function NilStrategy:start()
 end
 
 function NilStrategy:stop() end
+
 function NilStrategy:dispose() end
 
 ---@param name_or_config string|table

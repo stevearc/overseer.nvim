@@ -2,7 +2,6 @@ local constants = require("overseer.constants")
 local files = require("overseer.files")
 local log = require("overseer.log")
 local variables = require("overseer.template.vscode.variables")
-local STATUS = constants.STATUS
 
 local function extract_params(params, str, inputs)
   if not str then
@@ -71,84 +70,64 @@ local group_to_tag = {
   clean = constants.TAG.CLEAN,
 }
 
-local BaseTaskProvider = {
-  get_cmd = function(defn)
-    error("Task provider must provide 'get_cmd' function")
-  end,
-  validate = function(defn)
-    return true
-  end,
-}
-
 local function get_provider(type)
   local ok, task_provider = pcall(
     require,
     string.format("overseer.template.vscode.provider.%s", type)
   )
   if ok then
-    return setmetatable(task_provider, { __index = BaseTaskProvider })
+    return task_provider
   else
-    log:warn("No VS Code task provider for '%s'", type)
     return nil
   end
 end
 
-local function convert_vscode_task(defn)
+local function get_task_builder(defn)
   local task_provider = get_provider(defn.type)
-  if not task_provider or not task_provider.validate(defn) then
-    return
+  if not task_provider then
+    return nil
   end
+  return function(params)
+    local cmd = task_provider.get_cmd(defn)
+    local task = {
+      name = defn.label,
+      cmd = variables.replace_vars(cmd, params),
+      components = {
+        { "vscode.result_vscode_task", problem_matcher = defn.problemMatcher },
+        "default_vscode",
+      },
+    }
+    if defn.problemMatcher then
+      table.insert(task.components, "on_result_diagnostics")
+    end
+    if defn.isBackground then
+      table.insert(task.components, "on_result_restart")
+    end
+    local opt = defn.options
+    if opt then
+      if opt.cwd then
+        task.cwd = variables.replace_vars(opt.cwd, params)
+      end
+      if opt.env then
+        local env = {}
+        for k, v in pairs(opt.env) do
+          env[k] = variables.replace_vars(v, params)
+        end
+        task.env = env
+      end
+    end
 
-  local sequence = defn.dependsOrder == "sequence"
-  if type(defn.dependsOn) == "string" then
-    defn.dependsOn = { defn.dependsOn }
+    return task
   end
+end
+
+local function convert_vscode_task(defn)
+  local task_builder = get_task_builder(defn)
+
   local tmpl = {
     name = defn.label,
     desc = defn.detail,
     params = parse_params(defn),
-    builder = function(params)
-      local cmd = task_provider.get_cmd(defn)
-      local task = {
-        name = defn.label,
-        cmd = variables.replace_vars(cmd, params),
-        components = {
-          { "vscode.result_vscode_task", problem_matcher = defn.problemMatcher },
-          "default_vscode",
-        },
-      }
-      -- FIXME use an orchestrator once we have one
-      if defn.dependsOn then
-        table.insert(task.components, {
-          "on_status_run_task",
-          status = sequence and STATUS.SUCCESS or STATUS.RUNNING,
-          task_names = defn.dependsOn,
-          once = true,
-          sequence = sequence,
-        })
-      end
-      if defn.problemMatcher then
-        table.insert(task.components, "on_result_diagnostics")
-      end
-      if defn.isBackground then
-        table.insert(task.components, "on_result_restart")
-      end
-      local opt = defn.options
-      if opt then
-        if opt.cwd then
-          task.cwd = variables.replace_vars(opt.cwd, params)
-        end
-        if opt.env then
-          local env = {}
-          for k, v in pairs(opt.env) do
-            env[k] = variables.replace_vars(v, params)
-          end
-          task.env = env
-        end
-      end
-
-      return task
-    end,
   }
 
   if defn.group then
@@ -160,6 +139,48 @@ local function convert_vscode_task(defn)
         tmpl.priority = 40
       end
     end
+  end
+  if defn.dependsOn then
+    if type(defn.dependsOn) == "string" then
+      defn.dependsOn = { defn.dependsOn }
+    end
+
+    if task_builder then
+      tmpl.builder = function(params)
+        local task_defn = task_builder(params)
+        table.insert(task_defn.components, {
+          "dependencies",
+          task_names = defn.dependsOn,
+          sequential = defn.dependsOrder == "sequence",
+        })
+        return task_defn
+      end
+      return tmpl
+    else
+      -- This is a meta-task (just an aggregation of other, dependency tasks).
+      -- Create a task with the orechestrator strategy
+      tmpl.params = {}
+      local dep_tasks = defn.dependsOn
+      if defn.dependsOrder ~= "sequence" then
+        dep_tasks = { dep_tasks }
+      end
+      tmpl.builder = function(params)
+        dep_tasks = vim.deepcopy(dep_tasks)
+        return {
+          name = defn.label,
+          strategy = { "orchestrator", tasks = dep_tasks },
+          components = {
+            "on_restart_handler",
+            "dispose_delay",
+          },
+        }
+      end
+    end
+  elseif task_builder then
+    tmpl.builder = task_builder
+  else
+    log:warn("No VS Code task provider for '%s'", defn.type)
+    return nil
   end
 
   -- NOTE: we ignore defn.presentation

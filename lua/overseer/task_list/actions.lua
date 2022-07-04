@@ -54,7 +54,8 @@ M = {
   },
   edit = {
     condition = function(task)
-      return task.status ~= STATUS.RUNNING
+      -- Only allow editing tasks with the terminal strategy for now
+      return task.status ~= STATUS.RUNNING and task.strategy.name == "terminal"
     end,
     run = function(task)
       task_editor.open(task, function(t)

@@ -68,6 +68,14 @@ M.remove = function(task)
   rerender()
 end
 
+---@param id number
+---@return overseer.Task|nil
+M.get = function(id)
+  return lookup[id]
+end
+
+---@param name string
+---@return overseer.Task|nil
 M.get_by_name = function(name)
   for _, task in ipairs(tasks) do
     if task.name == name then
@@ -77,6 +85,8 @@ M.get_by_name = function(name)
 end
 
 -- 1-indexed, most recent first
+---@param index number
+---@return overseer.Task|nil
 M.get_by_index = function(index)
   return tasks[#tasks + 1 - index]
 end

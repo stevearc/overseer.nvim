@@ -29,14 +29,21 @@ end
 
 local function default_formatter(level, msg, ...)
   local args = util.pack(...)
-  for i, v in ipairs(args) do
+  for i = 1, args.n do
+    local v = args[i]
     if type(v) == "table" then
       args[i] = vim.inspect(v)
+    elseif v == nil then
+      args[i] = "nil"
     end
   end
-  local text = string.format(msg, unpack(args))
-  local str_level = levels[level]
-  return string.format("[%s] %s", str_level, text)
+  local ok, text = pcall(string.format, msg, unpack(args))
+  if ok then
+    local str_level = levels[level]
+    return string.format("[%s] %s", str_level, text)
+  else
+    return string.format("[ERROR] error formatting log line: '%s' args %s", msg, vim.inspect(args))
+  end
 end
 
 local function create_file_handler(opts)

@@ -8,12 +8,11 @@ History will be overwritten once it's ready for release
 
 TODO screenshots
 
-- [ ] Make sure VS Code dependsOn can be used on an actual task
 - [ ] Integration with launch.json preLaunchTask for dap/dap-ui
 - [ ] Notification component that uses system notif IFF vim is not focused
 - [ ] Custom positioning of task list (right, left, float)
 - [ ] Somewhere in config to add/change keybinds for task list
-- [ ] support other run strategies besides terminal
+- [ ] Extract cmd, cwd, env into strategy params
 - [ ] Documentation for parsers & parser debugging
 - [ ] Documention for parser on result_exit_code
 - [ ] Dynamic window sizing for task editor
@@ -24,11 +23,13 @@ TODO screenshots
 - [ ] Finish guide.md
 - [ ] Finish components.md
 - [ ] Vim help docs
+- [ ] Document different ways to do task dependencies
 - [ ] Debugging tips (e.g. finding logs)
 - [ ] Comparison to alternatives?
   - [yabs](https://github.com/pianocomposer321/yabs.nvim)
   - [toggletasks](https://github.com/jedrzejboczar/toggletasks.nvim)
   - [vs-tasks](https://github.com/EthanJWright/vs-tasks.nvim)
+  - [tasks](https://github.com/GustavoKatel/tasks.nvim)
 
 ---
 

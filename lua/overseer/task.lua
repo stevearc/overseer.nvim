@@ -135,6 +135,10 @@ function Task:render(lines, highlights, detail)
   table.insert(highlights, { "Overseer" .. self.status, #lines, 0, string.len(self.status) })
   table.insert(highlights, { "OverseerTask", #lines, string.len(self.status) + 2, -1 })
 
+  if self.strategy.render then
+    self.strategy:render(lines, highlights, detail)
+  end
+
   if detail > 1 then
     local cmd_str = type(self.cmd) == "string" and self.cmd or table.concat(self.cmd, " ")
     table.insert(lines, cmd_str)
@@ -371,6 +375,7 @@ function Task:reset(soft)
   -- underlying process & buffer
   if not soft or not self:is_running() then
     self.status = STATUS.PENDING
+    self:dispatch("on_status", self.status)
     local bufnr = self:get_bufnr()
     self.prev_bufnr = bufnr
     vim.defer_fn(function()
@@ -400,18 +405,23 @@ end
 
 ---Dispatch an event to all components
 ---@param name string
+---@return any[]
 function Task:dispatch(name, ...)
+  local ret = {}
   for _, comp in ipairs(self.components) do
     if type(comp[name]) == "function" then
       local ok, err = pcall(comp[name], comp, self, ...)
       if not ok then
         log:error("Task %s dispatch %s: %s", self.name, name, err)
+      elseif err ~= nil then
+        table.insert(ret, err)
       end
     end
   end
   if self.id and not self:is_disposed() then
     task_list.update(self)
   end
+  return ret
 end
 
 ---@param status overseer.Status
@@ -425,6 +435,7 @@ function Task:set_result(status, data)
     return
   end
   self.status = status
+  self:dispatch("on_status", self.status)
   self.result = data or {}
   self:dispatch("on_result", status, self.result)
   if self:is_complete() then
@@ -476,6 +487,7 @@ function Task:dispose(force)
     end
   end
   self.status = STATUS.DISPOSED
+  self:dispatch("on_status", self.status)
   log:debug("Disposing task %s", self.name)
   self.strategy:dispose()
   self:dispatch("on_dispose")
@@ -527,6 +539,10 @@ function Task:start()
   if self:is_running() then
     return false
   end
+  if vim.tbl_contains(self:dispatch("on_pre_start"), false) then
+    log:debug("Component prevented task %s from starting", self.name)
+    return false
+  end
   log:debug("Starting task %s", self.name)
   local ok, err = pcall(self.strategy.start, self.strategy, self)
   if not ok then
@@ -534,6 +550,7 @@ function Task:start()
     return false
   end
   self.status = STATUS.RUNNING
+  self:dispatch("on_status", self.status)
   self:dispatch("on_start")
   local bufnr = self.strategy:get_bufnr()
   if bufnr then

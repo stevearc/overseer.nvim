@@ -84,15 +84,20 @@ end
 
 -- TEMPLATE LOADING/RUNNING
 
--- @param name (string) The name of the template to run
--- @param tags (list|string) List of tags used to filter when searching for template
--- @param nostart (bool) When true, create the task but do not start it
--- @param prompt (string) Controls when to prompt user for parameter input
---            always    Show when template has any params
---            missing   Show when template has any params not provided (default)
---            allow     Only show when required param is missing
---            never     Never show prompt (error if required param missing)
--- @param params (table) Parameters to pass to template
+-- Values for prompt:
+--   always    Show when template has any params
+--   missing   Show when template has any params not provided
+--   allow     Only show when required param is missing (default)
+--   never     Never show prompt (error if required param missing)
+---@class overseer.TemplateRunOpts
+---@field name? string The name of the template to run
+---@field tags? list|string List of tags used to filter when searching for template
+---@field nostart? boolean When true, create the task but do not start it
+---@field prompt? "always"|"missing"|"allow"|"never" Controls when to prompt user for parameter input
+
+---@param opts overseer.TemplateRunOpts
+---@param params? table Parameters to pass to template
+---@param callback? fun(task: overseer.Task)
 M.run_template = function(opts, params, callback)
   opts = opts or {}
   vim.validate({
@@ -103,7 +108,7 @@ M.run_template = function(opts, params, callback)
     params = { params, "t", true },
     callback = { callback, "f", true },
   })
-  opts.prompt = opts.prompt or "missing"
+  opts.prompt = opts.prompt or "allow"
   params = params or {}
   local dir = vim.fn.getcwd(0)
   local ft = vim.api.nvim_buf_get_option(0, "filetype")

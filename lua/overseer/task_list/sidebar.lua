@@ -197,7 +197,6 @@ function Sidebar:render(tasks)
   local ns = vim.api.nvim_create_namespace("overseer")
   vim.api.nvim_buf_clear_namespace(self.bufnr, ns, 0, -1)
 
-  vim.api.nvim_buf_set_option(self.bufnr, "modifiable", true)
   local lines = {}
   local highlights = {}
   self.task_lines = {}
@@ -212,13 +211,11 @@ function Sidebar:render(tasks)
       table.insert(highlights, { "OverseerTaskBorder", #lines, 0, -1 })
     end
   end
+  vim.api.nvim_buf_set_option(self.bufnr, "modifiable", true)
   vim.api.nvim_buf_set_lines(self.bufnr, 0, -1, true, lines)
   vim.api.nvim_buf_set_option(self.bufnr, "modifiable", false)
   vim.api.nvim_buf_set_option(self.bufnr, "modified", false)
-  for _, hl in ipairs(highlights) do
-    local group, row, col_start, col_end = unpack(hl)
-    vim.api.nvim_buf_add_highlight(self.bufnr, ns, group, row - 1, col_start, col_end)
-  end
+  util.add_highlights(self.bufnr, ns, highlights)
 
   return true
 end

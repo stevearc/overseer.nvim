@@ -133,6 +133,11 @@ return {
         -- Called when the task has reached a completed state.
       end,
       ---@param task overseer.Task
+      ---@param status overseer.Status Can be RUNNING (we can set results without completing the task), CANCELED, FAILURE, or SUCCESS
+      on_status = function(self, task, status)
+        -- Called when the task status changes
+      end,
+      ---@param task overseer.Task
       ---@param data string[] Output of process. See :help channel-lines
       on_output = function(self, task, data)
         -- Called when there is output from the task

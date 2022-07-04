@@ -19,7 +19,7 @@ local M = {}
 ---@field params overseer.Params
 ---@field priority? number
 ---@field condition? overseer.SearchCondition
----@field builder function
+---@field builder fun(params: table): overseer.TaskDefinition
 
 ---@class overseer.SearchCondition
 ---@field filetype? string|string[]
@@ -148,14 +148,18 @@ M.build = function(tmpl, prompt, params, callback)
   local required_missing = false
   for k, schema in pairs(tmpl.params) do
     if params[k] == nil then
-      if prompt == "never" then
-        error(string.format("Missing param %s", k))
+      if schema.default ~= nil then
+        params[k] = schema.default
+      else
+        if prompt == "never" then
+          error(string.format("Missing param %s", k))
+        end
+        any_missing = true
+        if not schema.optional then
+          required_missing = true
+        end
+        break
       end
-      any_missing = true
-      if not schema.optional then
-        required_missing = true
-      end
-      break
     end
   end
 
