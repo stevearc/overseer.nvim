@@ -191,6 +191,8 @@ Somewhere in your init.lua you will need to call `overseer.setup()`.
 
 ```lua
 require("overseer").setup({
+  -- Default task strategy
+  strategy = "terminal",
   -- Template modules to load
   templates = { "builtin" },
   -- When true, tries to detect a green color from your colorscheme to use for success highlight

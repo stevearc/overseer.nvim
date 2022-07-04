@@ -10,6 +10,12 @@ See below for how to create your own [custom components](#custom-components).
 
 ## Built-in components
 
+### [dependencies](../lua/overseer/component/dependencies.lua)
+
+Set dependencies for task \
+**sequential**[bool]: (default `false`) \
+\***task_names**[list[string]]: Names of dependency task templates
+
 ### [on_output_summarize](../lua/overseer/component/on_output_summarize.lua)
 
 Summarize task output in the task list \
@@ -57,14 +63,6 @@ send a system notification when task completes \
 
 Restart task when it completes \
 **statuses**[list[enum]]: What statuses will trigger a restart (default `["FAILURE"]`)
-
-### [on_status_run_task](../lua/overseer/component/on_status_run_task.lua)
-
-Run another task on status change \
-**once**[bool]: When true, only trigger task once then remove this component (default `true`) \
-**sequence**[bool]: When true, tasks run one after another \
-**status**[enum]: What status to trigger on (default `"SUCCESS"`) \
-\***task_names**[list[string]]: Names of the task templates to trigger
 
 ### [restart_on_save](../lua/overseer/component/restart_on_save.lua)
 
