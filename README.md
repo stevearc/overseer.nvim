@@ -10,27 +10,20 @@ TODO screenshots
 
 - [ ] Integration with launch.json preLaunchTask for dap/dap-ui
 - [ ] Notification component that uses system notif IFF vim is not focused
-- [ ] Custom positioning of task list (right, left, float)
 - [ ] Somewhere in config to add/change keybinds for task list
 - [ ] Extract cmd, cwd, env into strategy params
 - [ ] Documentation for parsers & parser debugging
-- [ ] Documention for parser on result_exit_code
+- [ ] Documentation for parser on result_exit_code
 - [ ] Dynamic window sizing for task editor
 - [ ] Remaining README todos
 - [ ] More task providers: cmake, rake, jake, cargo
 - [ ] Extension doc (how to make your own template/component)
-- [ ] vim.fn.confirm/vim.ui.confirm
 - [ ] Finish guide.md
 - [ ] Finish components.md
 - [ ] Vim help docs
 - [ ] Document different ways to do task dependencies
 - [ ] Debugging tips (e.g. finding logs)
-- [ ] Comparison to alternatives?
-  - [yabs.nvim](https://github.com/pianocomposer321/yabs.nvim)
-  - [toggletasks.nvim](https://github.com/jedrzejboczar/toggletasks.nvim)
-  - [vs-tasks.nvim](https://github.com/EthanJWright/vs-tasks.nvim)
-  - [tasks.nvim](https://github.com/GustavoKatel/tasks.nvim)
-  - [tasks.nvim](https://github.com/mg979/tasks.vim)
+- [ ] Comparison to alternatives
 
 ---
 
@@ -46,6 +39,7 @@ TODO screenshots
 - [Architecture](#architecture)
 - [Highlight](#highlight)
 - [VS Code tasks](#vs-code-tasks)
+- [Alternatives](#alternatives)
 
 ```json
 {
@@ -294,19 +288,19 @@ require("overseer").setup({
 
 ## Commands
 
-| Command                | arg           | description                                                                  |
-| ---------------------- | ------------- | ---------------------------------------------------------------------------- |
-| `OverseerOpen[!]`      |               | Open the overseer window. With `[!]` cursor stays in current window          |
-| `OverseerClose`        |               | Close the overseer window                                                    |
-| `OverseerToggle[!]`    |               | Open or close the overseer window. With `[!]` cursor stays in current window |
-| `OverseerSaveBundle`   | `[name]`      | Serialize and save the current tasks to disk                                 |
-| `OverseerLoadBundle`   | `[name]`      | Load tasks that were saved to disk                                           |
-| `OverseerDeleteBundle` | `[name]`      | Delete a saved task bundle                                                   |
-| `OverseerRunCmd`       | `[command]`   | Run a raw shell command                                                      |
-| `OverseerRun`          | `[name/tags]` | Run a task from a template                                                   |
-| `OverseerBuild`        |               | Open the task builder                                                        |
-| `OverseerQuickAction`  | `[action]`    | Run an action on the most recent task                                        |
-| `OverseerTaskAction`   |               | Select a task to run an action on                                            |
+| Command                | arg            | description                                                                  |
+| ---------------------- | -------------- | ---------------------------------------------------------------------------- |
+| `OverseerOpen[!]`      | `left`/`right` | Open the overseer window. With `[!]` cursor stays in current window          |
+| `OverseerClose`        |                | Close the overseer window                                                    |
+| `OverseerToggle[!]`    | `left`/`right` | Open or close the overseer window. With `[!]` cursor stays in current window |
+| `OverseerSaveBundle`   | `[name]`       | Serialize and save the current tasks to disk                                 |
+| `OverseerLoadBundle`   | `[name]`       | Load tasks that were saved to disk                                           |
+| `OverseerDeleteBundle` | `[name]`       | Delete a saved task bundle                                                   |
+| `OverseerRunCmd`       | `[command]`    | Run a raw shell command                                                      |
+| `OverseerRun`          | `[name/tags]`  | Run a task from a template                                                   |
+| `OverseerBuild`        |                | Open the task builder                                                        |
+| `OverseerQuickAction`  | `[action]`     | Run an action on the most recent task                                        |
+| `OverseerTaskAction`   |                | Select a task to run an action on                                            |
 
 ## Task list
 
@@ -419,3 +413,13 @@ Unsupported features:
 - Custom problem matcher patterns may fail due to differences between JS and vim regex (notably vim regex doesn't support non-capturing groups `(?:.*)` or character classes inside of brackets `[\d\s]`)
 - [Output behavior](https://code.visualstudio.com/docs/editor/tasks#_output-behavior) (probably not going to support this)
 - [Run behavior](https://code.visualstudio.com/docs/editor/tasks#_run-behavior) (probably not going to support this)
+
+## Alternatives
+
+TODO
+
+- [yabs.nvim](https://github.com/pianocomposer321/yabs.nvim)
+- [toggletasks.nvim](https://github.com/jedrzejboczar/toggletasks.nvim)
+- [vs-tasks.nvim](https://github.com/EthanJWright/vs-tasks.nvim)
+- [tasks.nvim](https://github.com/GustavoKatel/tasks.nvim)
+- [tasks.nvim](https://github.com/mg979/tasks.vim)

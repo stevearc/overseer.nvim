@@ -11,8 +11,12 @@ local window = require("overseer.window")
 
 local M = {}
 
+local function args_or_nil(args)
+  return args ~= "" and args or nil
+end
+
 M._open = function(params)
-  window.open({ enter = not params.bang })
+  window.open({ enter = not params.bang, direction = args_or_nil(params.args) })
 end
 
 M._close = function(_params)
@@ -20,19 +24,19 @@ M._close = function(_params)
 end
 
 M._toggle = function(params)
-  window.toggle({ enter = not params.bang })
+  window.toggle({ enter = not params.bang, direction = args_or_nil(params.args) })
 end
 
 M._save_bundle = function(params)
-  task_bundle.save_task_bundle(params.args ~= "" and params.args or nil)
+  task_bundle.save_task_bundle(args_or_nil(params.args))
 end
 
 M._load_bundle = function(params)
-  task_bundle.load_task_bundle(params.args ~= "" and params.args or nil)
+  task_bundle.load_task_bundle(args_or_nil(params.args))
 end
 
 M._delete_bundle = function(params)
-  task_bundle.delete_task_bundle(params.args ~= "" and params.args or nil)
+  task_bundle.delete_task_bundle(args_or_nil(params.args))
 end
 
 M._run_command = function(params)

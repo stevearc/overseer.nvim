@@ -9,3 +9,4 @@ TODO
 - defining tasks per-project
 - disabling built-in templates
 - link to creating custom components
+- run the default build/test/clean task

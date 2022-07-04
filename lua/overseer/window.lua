@@ -4,11 +4,11 @@ local task_list = require("overseer.task_list")
 local util = require("overseer.util")
 local M = {}
 
-local function create_overseer_window()
+---@param direction "left"|"right"
+local function create_overseer_window(direction)
   local bufnr = task_list.get_or_create_bufnr()
 
   local my_winid = vim.api.nvim_get_current_win()
-  local direction = "left"
   local modifier = direction == "left" and "topleft" or "botright"
   local winids = util.get_fixed_wins(bufnr)
   local split_target
@@ -57,11 +57,12 @@ end
 M.open = function(opts)
   opts = vim.tbl_deep_extend("keep", opts or {}, {
     enter = true,
+    direction = config.task_list.direction,
   })
   if M.is_open() then
     return
   end
-  local winid = create_overseer_window()
+  local winid = create_overseer_window(opts.direction)
   if opts.enter then
     vim.api.nvim_set_current_win(winid)
   end

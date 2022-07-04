@@ -15,6 +15,8 @@ local default_config = {
     min_width = { 40, 0.1 },
     -- String that separates tasks
     separator = "────────────────────────────────────────",
+    -- Default direction. Can be "left" or "right"
+    direction = "left",
   },
   -- Configure where the logs go and what level to use
   -- Types are "echo", "notify", and "file"
