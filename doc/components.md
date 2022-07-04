@@ -48,16 +48,13 @@ If task result contains diagnostics, add them to the quickfix \
 ### [on_result_notify](../lua/overseer/component/on_result_notify.lua)
 
 vim.notify on task result \
+**desktop**[enum]: When to use a desktop notification (default `"never"`) \
 **statuses**[list[enum]]: List of statuses to notify on (default `["FAILURE", "SUCCESS"]`)
 
 ### [on_result_notify_red_green](../lua/overseer/component/on_result_notify_red_green.lua)
 
-vim.notify when task fails, or when it goes from failing to success
-
-### [on_result_notify_system](../lua/overseer/component/on_result_notify_system.lua)
-
-send a system notification when task completes \
-**statuses**[list[enum]]: What statuses to notify on (default `["FAILURE", "SUCCESS"]`)
+vim.notify when task fails, or when it goes from failing to success \
+**desktop**[enum]: When to use a desktop notification (default `"never"`)
 
 ### [on_result_restart](../lua/overseer/component/on_result_restart.lua)
 
