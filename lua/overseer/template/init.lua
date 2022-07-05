@@ -130,7 +130,9 @@ M.register = function(name, defn)
       return
     end
   end
-  defn.name = name
+  if not defn.name then
+    defn.name = name
+  end
   if defn.generator then
     table.insert(providers, defn)
   else
