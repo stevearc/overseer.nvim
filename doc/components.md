@@ -175,6 +175,7 @@ return {
 
 ### Task result
 
-A note on the Task result table. There is technically no schema for it, as the only things that interact with it are components and actions. However, there are a couple of built-in uses for specific keys of the table:
+A note on the Task result table: there is technically no schema for it, as the only things that interact with it are components and actions. However, there are a couple of built-in uses for specific keys of the table:
 
-**diagnostics**: This key is used for diagnostics. It should be a list of quickfix items (see `:help setqflist`)
+**diagnostics**: This key is used for diagnostics. It should be a list of quickfix items (see `:help setqflist`) \
+**error**: This key will be set when there is an internal overseer error when running the task

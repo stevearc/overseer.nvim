@@ -194,6 +194,7 @@ M.wrap = function(base, override, default_params)
   override = override or {}
   if default_params then
     override.builder = function(_, params)
+      params = params or {}
       for k, v in pairs(default_params) do
         params[k] = v
       end
