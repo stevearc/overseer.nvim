@@ -66,6 +66,7 @@ local default_config = {
   },
   -- Configuration for task floating windows
   task_win = {
+    -- How much space to leave around the floating window
     padding = 2,
     border = "rounded",
     -- Set any window options here (e.g. winhighlight)

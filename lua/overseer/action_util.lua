@@ -32,7 +32,7 @@ M.run_action = function(opts, ...)
   local viable = {}
   local longest_name = 1
   for k, action in pairs(opts.actions) do
-    if action.condition(...) then
+    if action.condition == nil or action.condition(...) then
       if k == opts.name then
         if opts.pre_action then
           opts.pre_action(...)
@@ -74,7 +74,7 @@ M.run_action = function(opts, ...)
     end,
   }, function(action)
     if action then
-      if action.condition(unpack(args)) then
+      if action.condition == nil or action.condition(unpack(args)) then
         action.run(unpack(args))
       else
         log:warn("Can no longer perform action '%s' on task", action.name)

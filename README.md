@@ -252,6 +252,7 @@ require("overseer").setup({
   },
   -- Configuration for task floating windows
   task_win = {
+    -- How much space to leave around the floating window
     padding = 2,
     border = "rounded",
     -- Set any window options here (e.g. winhighlight)
@@ -368,6 +369,8 @@ require("lualine").setup({
 TODO
 
 ## Architecture
+
+TODO make a note about serialization
 
 ### Tasks
 

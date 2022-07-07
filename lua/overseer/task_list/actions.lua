@@ -45,9 +45,6 @@ M = {
     end,
   },
   dispose = {
-    condition = function(task)
-      return true
-    end,
     run = function(task)
       task:dispose(true)
     end,
@@ -67,9 +64,6 @@ M = {
   },
   ensure = {
     desc = "restart the task if it fails",
-    condition = function(task)
-      return true
-    end,
     run = function(task)
       task:add_components({ "on_restart_handler", "on_result_restart" })
       if task.status == STATUS.FAILURE then

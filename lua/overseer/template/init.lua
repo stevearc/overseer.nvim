@@ -117,7 +117,7 @@ local function validate_template_definition(defn)
 end
 
 ---@param name string
----@param defn? overseer.TemplateDefinition
+---@param defn? overseer.TemplateDefinition|overseer.TemplateProvider
 M.register = function(name, defn)
   if not defn then
     defn = require(string.format("overseer.template.%s", name))
