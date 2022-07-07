@@ -8,6 +8,8 @@ History will be overwritten once it's ready for release
 
 TODO screenshots
 
+- [ ] Maybe refactor template registration to not do the require (extract that logic), because we shouldn't need to do that at runtime.
+- [ ] Maybe enforce that templates have a name? The we don't need to set the name from the register fn.
 - [ ] Integration with launch.json preLaunchTask for dap/dap-ui
 - [ ] More task providers: cmake, rake, jake, cargo
 
@@ -17,13 +19,9 @@ Documentation TODOs
 - [ ] Documentation for parsers & parser debugging
 - [ ] Documentation for parser on result_exit_code
 - [ ] Remaining README todos
-- [ ] Extension doc (how to make your own template/component)
-- [ ] Finish guide.md
-- [ ] Finish components.md
 - [ ] Vim help docs
 - [ ] Document different ways to do task dependencies
 - [ ] Debugging tips (e.g. finding logs)
-- [ ] Comparison to alternatives
 
 ---
 
@@ -32,6 +30,7 @@ Documentation TODOs
 - [Installation](#installation)
 - [Setup](#setup)
 - [Commands](#commands)
+- [Running tasks](#running-tasks)
 - [Task list](#task-list)
 - [Third-party integrations](#third-party-integrations)
   - [Lualine](#lualine)
@@ -44,6 +43,7 @@ Documentation TODOs
   - [Highlights](#highlights)
 - [VS Code tasks](#vs-code-tasks)
 - [Alternatives](#alternatives)
+- [FAQ](#faq)
 
 ```json
 {
@@ -326,6 +326,12 @@ require("overseer").setup({
 | `OverseerQuickAction`  | `[action]`     | Run an action on the most recent task                                        |
 | `OverseerTaskAction`   |                | Select a task to run an action on                                            |
 
+## Running tasks
+
+TODO
+
+- run the default build/test/clean task
+
 ## Task list
 
 TODO
@@ -423,6 +429,42 @@ When you want to add custom tasks that you can run, templates are the way to go.
 ## Customization
 
 ### Custom tasks
+
+There are two ways to define a task for overseer.
+
+**1) directly registering**
+
+TODO
+
+**2) as a module**
+
+Similar to [custom components](#custom-components), templates can be lazy-loaded from a module in the `overseer.template` namespace. It is recommended that you namespace your tasks inside of a folder (e.g. `overseer/template/myplugin/first_task.lua`, referenced as `myplugin.first_task`). To load them, you would pass the require path in setup:
+
+```lua
+overseer.setup({
+  templates = { "builtin", "myplugin.first_task" },
+})
+```
+
+If you have multiple templates that you would like to expose as a bundle, you can create an alias module. For example, put the following into `overseer/template/myplugin/init.lua`:
+
+```lua
+return { "first_task", "second_task" }
+```
+
+This is how `builtin` references all of the different built-in templates.
+
+#### Template definition
+
+The definition of a template looks like this:
+
+```lua
+TODO
+```
+
+#### Template providers
+
+TODO
 
 ### Actions
 
@@ -554,6 +596,8 @@ A note on the Task result table: there is technically no schema for it, as the o
 
 ### Highlights
 
+Overseer defines the following highlights override them to customize the colors.
+
 | Group                | description                                             |
 | -------------------- | ------------------------------------------------------- |
 | `OverseerPENDING`    | Pending tasks                                           |
@@ -606,3 +650,9 @@ TODO
 - [vs-tasks.nvim](https://github.com/EthanJWright/vs-tasks.nvim)
 - [tasks.nvim](https://github.com/GustavoKatel/tasks.nvim)
 - [tasks.nvim](https://github.com/mg979/tasks.vim)
+
+## FAQ
+
+**Q: Why do my tasks disappear after a while?**
+
+The default behavior is for completed tasks to get _disposed_ after a 5 minute timeout. This frees their resources and removes them from the task list. You can change this by editing the `component_aliases` definition to either tweak the timeout (`{"dispose_delay", timeout = 900}`), or delete the "dispose_delay" component entirely. In that case, tasks will stick around until manually disposed.
