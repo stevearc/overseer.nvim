@@ -13,6 +13,7 @@ TODO screenshots
 
 Documentation TODOs
 
+- [ ] Document params
 - [ ] Documentation for parsers & parser debugging
 - [ ] Documentation for parser on result_exit_code
 - [ ] Remaining README todos
@@ -36,7 +37,11 @@ Documentation TODOs
   - [Lualine](#lualine)
   - [Neotest](#neotest)
 - [Architecture](#architecture)
-- [Highlight](#highlight)
+- [Customization](#customization)
+  - [Custom tasks](#custom-tasks)
+  - [Actions](#actions)
+  - [Custom components](#custom-components)
+  - [Highlights](#highlights)
 - [VS Code tasks](#vs-code-tasks)
 - [Alternatives](#alternatives)
 
@@ -366,15 +371,36 @@ require("lualine").setup({
 
 ### Neotest
 
-TODO
+There is a neotest strategy that functions the same as the default "integrated" strategy. To use it, simply pass it into your run options:
+
+```lua
+  neotest.run.run({ suite = true, strategy = "overseer" })
+```
+
+This will run the tests like usual, but the job running the tests will be managed by overseer.
+
+You can customize the default components by setting the `default_neotest` component alias (when unset it maps to `default`).
+
+```lua
+require('overseer').setup({
+  component_aliases = {
+    default_neotest = {
+      "on_output_summarize",
+      "result_exit_code",
+      "on_result_notify",
+      "dispose_delay",
+    },
+  }
+})
+```
+
+**Note**: Restarting the overseer task will rerun the tests, but the results will not be reported to neotest. This is due to technical limitations, and will hopefully be fixed in the future.
 
 ## Architecture
 
-TODO make a note about serialization
-
 ### Tasks
 
-Tasks represent a single command that is run. They appear in the [task list](#task-list), where you can manage them (start/stop/restart/edit/open terminal). You can create them directly, either with `OverseerBuild` or via the API `require('overseer.task').new()`.
+Tasks represent a single command that is run. They appear in the [task list](#task-list), where you can manage them (start/stop/restart/edit/open terminal). You can create them directly, either with `:OverseerBuild` or via the API `require('overseer.task').new()`.
 
 Most of the time, however, you will find it most convenient to create them using [templates](#templates).
 
@@ -384,13 +410,149 @@ Tasks are built using an [entity component system](https://en.wikipedia.org/wiki
 
 Components are designed to be easy to remove, customize, or replace. If you want to customize some aspect or behavior of a task, it's likely that it will be done through components.
 
-See [components](doc/components.md) for more information on built-in components and how to create your own.
+See [custom components](#custom-components) for how to customize them or define your own, and [components](doc/components.md) for a list of built-in components.
+
+**Note**: both tasks and components are designed to be serializable. They avoid putting things like functions in their constructors, and as a result can easily be serialized and saved to disk.
 
 ### Templates
 
-TODO
+Templates provide a way to construct a task, along with other metadata that aid in selecting and starting that task. They are the primary way to define tasks for overseer, and they are what appears when you use the command `:OverseerRun`.
 
-## Highlight
+When you want to add custom tasks that you can run, templates are the way to go. See [custom tasks](#custom-tasks) for more.
+
+## Customization
+
+### Custom tasks
+
+### Actions
+
+Actions can be performed on tasks by using the `RunAction` keybinding in the task list, or by the `OverseerQuickAction` and `OverseerTaskAction` commands. They are simply a custom function that will do something to or with a task.
+
+Browse the set of built-in actions at [lua/overseer/task_list/actions.lua](../lua/overseer/task_list/actions.lua)
+
+You can define your own or disable any of the built-in actions in the call to setup():
+
+```lua
+overseer.setup({
+  actions = {
+    ["My custom action"] = {
+      desc = "This is an optional description. It may be omitted.",
+      -- Optional function that will determine when this action is available
+      condition = function(task)
+        if task.name == "foobar" then
+          return true
+        else
+          return false
+        end
+      end,
+      run = function(task)
+        -- Your custom logic here
+      end,
+    },
+
+    -- Disable built-in actions by setting them to 'false'
+    watch = false,
+  },
+})
+```
+
+### Custom components
+
+When components are passed to a task (either from a template or a component alias), they can be specified as either a raw string (e.g. `"dispose_delay"`) or a table with configuration parameters (e.g. `{"dispose_delay", timeout = 10}`).
+
+Components are lazy-loaded via requiring in the `overseer.component` namespace. For example, the `timeout` component is loaded from `lua/overseer/component/timeout.lua`. It is recommended that for plugins or personal use, you namespace your own components behind an additional directory. For example, place your component in `lua/overseer/component/myplugin/mycomponent.lua`, and reference it as `myplugin.mycomponent`.
+
+The component definition should look like the following example:
+
+```lua
+return {
+  desc = "Include a description of your component",
+  -- Define parameters that can be passed in to the component
+  params = {
+    -- TODO
+  },
+  -- Optional, default true. Set to false to disallow editing this component in the task editor
+  editable = true,
+  -- Controls the serialization behavior when saving a task to disk.
+  -- "exclude" will allow task to be serialized, but this component will be excluded.
+  -- "fail" will prevent task from being serialized.
+  serialize = nil,
+  -- The params passed in will match the params defined above
+  constructor = function(params)
+    -- You may optionally define any of the methods below
+    return {
+      on_init = function(self, task)
+        -- Called when the task is created
+        -- This is a good place to initialize resources, if needed
+      end,
+      ---@return nil|boolean
+      on_pre_start = function(self, task)
+        -- Return false to prevent task from starting
+      end,
+      on_start = function(self, task)
+        -- Called when the task is started
+      end,
+      ---@param soft boolean When true, the components are being reset but the *task* is not. This is used to support commands that are watching the filesystem and rerunning themselves on file change.
+      on_reset = function(self, task, soft)
+        -- Called when the task is reset to run again
+      end,
+      ---@param status overseer.Status Can be RUNNING (we can set results without completing the task), CANCELED, FAILURE, or SUCCESS
+      ---@param result table A result table.
+      on_result = function(self, task, status, result)
+        -- Called when a component has results to set. Usually this is after the command has completed, but certain types of tasks may wish to set a result while still running.
+      end,
+      ---@param status overseer.Status Can be CANCELED, FAILURE, or SUCCESS
+      ---@param result table A result table.
+      on_complete = function(self, task, status, result)
+        -- Called when the task has reached a completed state.
+      end,
+      ---@param status overseer.Status Can be RUNNING (we can set results without completing the task), CANCELED, FAILURE, or SUCCESS
+      on_status = function(self, task, status)
+        -- Called when the task status changes
+      end,
+      ---@param data string[] Output of process. See :help channel-lines
+      on_output = function(self, task, data)
+        -- Called when there is output from the task
+      end,
+      ---@param lines string[] Completed lines of output, with ansi codes removed.
+      on_output_lines = function(self, task, lines)
+        -- Called when there is output from the task
+        -- Usually easier to deal with than using on_output directly.
+      end,
+      on_request_restart = function(self, task)
+        -- Called when an action requests that the task be restarted
+      end,
+      ---@param code number The process exit code
+      on_exit = function(self, task, code)
+        -- Called when the task command has completed
+      end,
+      on_dispose = function(self, task)
+        -- Called when the task is disposed
+        -- Will be called IFF on_init was called, and will be called exactly once.
+        -- This is a good place to free resources (e.g. timers, files, etc)
+      end,
+      ---@param lines string[] The list of lines to render into
+      ---@param highlights table[] List of highlights to apply after rendering
+      ---@param detail number The detail level of the task. Ranges from 1 to 3.
+      render = function(self, task, lines, highlights, detail)
+        -- Called from the task list. This can be used to display information there.
+        table.insert(lines, "Here is a line of output")
+        -- The format is {highlight_group, lnum, col_start, col_end}
+        table.insert(highlights, {'Title', #lines, 0, -1})
+      end,
+    }
+  end,
+}
+```
+
+#### Task result
+
+A note on the Task result table: there is technically no schema for it, as the only things that interact with it are components and actions. However, there are a couple of built-in uses for specific keys of the table:
+
+**diagnostics**: This key is used for diagnostics. It should be a list of quickfix items (see `:help setqflist`) \
+**error**: This key will be set when there is an internal overseer error when running the task
+
+### Highlights
 
 | Group                | description                                             |
 | -------------------- | ------------------------------------------------------- |

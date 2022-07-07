@@ -110,11 +110,9 @@ def format_param(name: str, param: Dict) -> str:
 def update_components_md():
     components = read_nvim_json('require("overseer.component").get_all_descriptions()')
     doc = os.path.join(ROOT, "doc", "components.md")
-    lines = ["\n"]
+    lines = ["# Built-in components\n", "\n"]
     for comp in components:
-        title = (
-            f"### [{comp['name']}](../lua/overseer/component/{comp['name']}.lua)\n\n"
-        )
+        title = f"## [{comp['name']}](../lua/overseer/component/{comp['name']}.lua)\n\n"
         lines.append(title)
         content_lines = []
         if comp.get("desc"):
@@ -129,12 +127,8 @@ def update_components_md():
                 content_lines[i] = line + "\n"
         lines.extend(content_lines)
         lines.append("\n")
-    replace_section(
-        doc,
-        r"^## Built-in components$",
-        r"^## Custom components$",
-        lines,
-    )
+    with open(doc, "w", encoding="utf-8") as ofile:
+        ofile.writelines(lines)
 
 
 def main() -> None:
