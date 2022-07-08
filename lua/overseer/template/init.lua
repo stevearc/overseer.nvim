@@ -189,24 +189,6 @@ M.build = function(tmpl, prompt, params, callback)
   end)
 end
 
----@param base overseer.TemplateDefinition
----@param override? table
----@param default_params? table
----@return overseer.TemplateDefinition
-M.wrap = function(base, override, default_params)
-  override = override or {}
-  if default_params then
-    override.builder = function(_, params)
-      params = params or {}
-      for k, v in pairs(default_params) do
-        params[k] = v
-      end
-      return base.builder(params)
-    end
-  end
-  return setmetatable(override, { __index = base })
-end
-
 ---@class overseer.SearchParams
 ---@field filetype? string
 ---@field tags? string[]

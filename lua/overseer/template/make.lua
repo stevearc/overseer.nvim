@@ -1,6 +1,6 @@
 local constants = require("overseer.constants")
 local files = require("overseer.files")
-local template = require("overseer.template")
+local overseer = require("overseer")
 local TAG = constants.TAG
 
 local make_targets = [[
@@ -59,7 +59,7 @@ return {
       if k == default_target then
         override.priority = 55
       end
-      table.insert(ret, template.wrap(tmpl, override, { args = { k } }))
+      table.insert(ret, overseer.wrap_template(tmpl, override, { args = { k } }))
     end
     return ret
   end,

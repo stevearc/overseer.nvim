@@ -1,3 +1,4 @@
+---@mod overseer
 local M = {}
 
 local setup_callbacks = {}
@@ -188,28 +189,30 @@ M.delete_task_bundle = lazy("task_bundle", "delete_task_bundle")
 
 M.run_template = lazy("commands", "run_template")
 
-local function create_wrapper(prefix)
-  return function(name, opts)
-    return setmetatable(opts, {
-      __index = function(t, key)
-        if key == "super" then
-          local super = require(prefix .. name)
-          rawset(t, "super", super)
-        else
-          return t.super[key]
-        end
-      end,
-    })
+---@param base overseer.TemplateDefinition
+---@param override? table<string, any>
+---@param default_params? table<string, any>
+---@return overseer.TemplateDefinition
+M.wrap_template = function(base, override, default_params)
+  override = override or {}
+  if default_params then
+    override.builder = function(_, params)
+      params = params or {}
+      for k, v in pairs(default_params) do
+        params[k] = v
+      end
+      return base.builder(params)
+    end
   end
+  return setmetatable(override, { __index = base })
 end
-
-M.wrap_template = create_wrapper("overseer.template.")
 
 ---@param defn overseer.TemplateDefinition|overseer.TemplateProvider
 M.register_template = lazy_pend("template", "register")
 
 -- Used for vim-session integration.
 local timer_active = false
+---@private
 M._start_tasks = function(str)
   -- HACK for some reason vim-session fires SessionSavePre multiple times, which
   -- can lead to multiple 'load' lines in the same session file. We need to make

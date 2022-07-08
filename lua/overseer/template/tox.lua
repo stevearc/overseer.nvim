@@ -1,5 +1,5 @@
 local files = require("overseer.files")
-local template = require("overseer.template")
+local overseer = require("overseer")
 
 ---@type overseer.TemplateDefinition
 local tmpl = {
@@ -47,7 +47,11 @@ return {
     for k in pairs(targets) do
       table.insert(
         ret,
-        template.wrap(tmpl, { name = string.format("tox -e %s", k) }, { args = { "-e", k } })
+        overseer.wrap_template(
+          tmpl,
+          { name = string.format("tox -e %s", k) },
+          { args = { "-e", k } }
+        )
       )
     end
     return ret

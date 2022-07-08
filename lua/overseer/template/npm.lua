@@ -1,5 +1,5 @@
 local files = require("overseer.files")
-local template = require("overseer.template")
+local overseer = require("overseer")
 
 ---@type overseer.TemplateDefinition
 local tmpl = {
@@ -36,7 +36,7 @@ return {
       for k in pairs(data.scripts) do
         table.insert(
           ret,
-          template.wrap(
+          overseer.wrap_template(
             tmpl,
             { name = string.format("%s %s", bin, k) },
             { args = { "run", k }, use_yarn = use_yarn }
@@ -44,7 +44,7 @@ return {
         )
       end
     end
-    table.insert(ret, template.wrap(tmpl, { name = bin }, { use_yarn = use_yarn }))
+    table.insert(ret, overseer.wrap_template(tmpl, { name = bin }, { use_yarn = use_yarn }))
     return ret
   end,
 }
