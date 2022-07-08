@@ -71,10 +71,8 @@ local group_to_tag = {
 }
 
 local function get_provider(type)
-  local ok, task_provider = pcall(
-    require,
-    string.format("overseer.template.vscode.provider.%s", type)
-  )
+  local ok, task_provider =
+    pcall(require, string.format("overseer.template.vscode.provider.%s", type))
   if ok then
     return task_provider
   else

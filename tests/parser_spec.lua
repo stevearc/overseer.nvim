@@ -209,11 +209,8 @@ describe("extract_nested", function()
   end)
 
   it("can return SUCCESS even when no children match", function()
-    local node = parser.extract_nested(
-      { fail_on_empty = false },
-      "child",
-      parser.extract("(%d+)", "num")
-    )
+    local node =
+      parser.extract_nested({ fail_on_empty = false }, "child", parser.extract("(%d+)", "num"))
     local ctx = { item = {}, results = {} }
     assert.equals(STATUS.SUCCESS, node:ingest("hello", ctx))
     assert.are.same({ { child = {} } }, ctx.results)
