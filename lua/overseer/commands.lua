@@ -97,30 +97,40 @@ end
 ---@field name? string The name of the template to run
 ---@field tags? list|string List of tags used to filter when searching for template
 ---@field nostart? boolean When true, create the task but do not start it
+---@field first? boolean When true, always show the task picker. When false, never show it. Default behavior will auto-set this based on presence of name and tags
 ---@field prompt? "always"|"missing"|"allow"|"never" Controls when to prompt user for parameter input
+---@field params? table Parameters to pass to template
+---@field action? string Run this action on the task after creation
 
 ---@param opts overseer.TemplateRunOpts
----@param params? table Parameters to pass to template
 ---@param callback? fun(task: overseer.Task)
-M.run_template = function(opts, params, callback)
+M.run_template = function(opts, callback)
   opts = opts or {}
   vim.validate({
     name = { opts.name, "s", true },
     tags = { opts.tags, "t", true },
     nostart = { opts.nostart, "b", true },
+    first = { opts.first, "b", true },
     prompt = { opts.prompt, "s", true },
-    params = { params, "t", true },
+    params = { opts.params, "t", true },
+    action = { opts.action, "s", true },
     callback = { callback, "f", true },
   })
   opts.prompt = opts.prompt or "allow"
-  params = params or {}
+  if opts.first == nil then
+    opts.first = opts.name or not vim.tbl_isempty(opts.tags or {})
+  end
+  opts.params = opts.params or {}
   local dir = vim.fn.getcwd(0)
   local ft = vim.api.nvim_buf_get_option(0, "filetype")
 
   local function handle_tmpl(tmpl)
-    template.build(tmpl, opts.prompt, params, function(task)
+    template.build(tmpl, opts.prompt, opts.params, function(task)
       if task and not opts.nostart then
         task:start()
+      end
+      if opts.action then
+        action_util.run_task_action(task, opts.action)
       end
       if callback then
         callback(task)
@@ -133,7 +143,7 @@ M.run_template = function(opts, params, callback)
     filetype = ft,
     tags = opts.tags,
   }
-  if opts.name then
+  if opts.name and opts.first then
     local tmpl = template.get_by_name(opts.name, tmpl_opts)
     if not tmpl then
       error(string.format("Could not find template '%s'", opts.name))
@@ -144,7 +154,7 @@ M.run_template = function(opts, params, callback)
     if #templates == 0 then
       log:error("Could not find any matching task templates for opts %s", opts)
       return
-    elseif #templates == 1 and (opts.name or not vim.tbl_isempty(opts.tags or {})) then
+    elseif #templates == 1 or opts.first then
       handle_tmpl(templates[1])
     else
       vim.ui.select(templates, {

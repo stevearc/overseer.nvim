@@ -39,16 +39,21 @@ local providers = {}
 ---@param condition? overseer.SearchCondition
 ---@param tags? string[]
 ---@param search overseer.SearchParams
-local function condition_matches(condition, tags, search)
+---@param match_tags boolean
+local function condition_matches(condition, tags, search, match_tags)
   if not condition then
     return true
   end
   if condition.filetype then
-    if type(condition.filetype) == "string" then
-      if condition.filetype ~= search.filetype then
-        return false
+    local search_fts = vim.split(search.filetype, ".", true)
+    local any_ft_match = false
+    for _, ft in util.iter_as_list(condition.filetype) do
+      if vim.tbl_contains(search_fts, ft) then
+        any_ft_match = true
+        break
       end
-    elseif not vim.tbl_contains(condition.filetype, search.filetype) then
+    end
+    if not any_ft_match then
       return false
     end
   end
@@ -67,7 +72,7 @@ local function condition_matches(condition, tags, search)
     end
   end
 
-  if search.tags and not vim.tbl_isempty(search.tags) then
+  if match_tags and search.tags and not vim.tbl_isempty(search.tags) then
     if not tags then
       return false
     end
@@ -102,6 +107,9 @@ local function load_template(name)
   else
     if not defn.name then
       defn.name = name
+    end
+    if not defn.params then
+      defn.params = {}
     end
     M.register(defn)
   end
@@ -206,18 +214,18 @@ M.list = function(opts)
   })
   local ret = {}
   for _, tmpl in pairs(registry) do
-    if condition_matches(tmpl.condition, tmpl.tags, opts) then
+    if condition_matches(tmpl.condition, tmpl.tags, opts, true) then
       table.insert(ret, tmpl)
     end
   end
 
   for _, provider in ipairs(providers) do
-    if condition_matches(provider.condition, nil, opts) then
+    if condition_matches(provider.condition, nil, opts, false) then
       local ok, tmpls = pcall(provider.generator, opts)
       if ok then
         for _, tmpl in ipairs(tmpls) do
           validate_template_definition(tmpl)
-          if condition_matches(tmpl.condition, tmpl.tags, opts) then
+          if condition_matches(tmpl.condition, tmpl.tags, opts, true) then
             table.insert(ret, tmpl)
           end
         end

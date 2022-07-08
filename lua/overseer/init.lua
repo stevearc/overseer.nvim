@@ -168,6 +168,7 @@ local function create_commands()
   })
 end
 
+---@param opts overseer.Config
 M.setup = function(opts)
   create_commands()
   pending_opts = opts
@@ -188,6 +189,10 @@ M.save_task_bundle = lazy("task_bundle", "save_task_bundle")
 M.delete_task_bundle = lazy("task_bundle", "delete_task_bundle")
 
 M.run_template = lazy("commands", "run_template")
+
+---@param task overseer.Task
+---@param name? string Name of action. When omittied, prompt user to pick.
+M.run_action = lazy("action_util", "run_task_action")
 
 ---@param base overseer.TemplateDefinition
 ---@param override? table<string, any>

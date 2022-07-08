@@ -6,22 +6,22 @@ return {
   params = {
     virtual_text = {
       desc = "Override the default diagnostics.virtual_text setting",
-      type = "bool",
+      type = "boolean",
       optional = true,
     },
     signs = {
       desc = "Override the default diagnostics.signs setting",
-      type = "bool",
+      type = "boolean",
       optional = true,
     },
     underline = {
       desc = "Override the default diagnostics.underline setting",
-      type = "bool",
+      type = "boolean",
       optional = true,
     },
     remove_on_restart = {
       desc = "Remove diagnostics when task restarts",
-      type = "bool",
+      type = "boolean",
       optional = true,
     },
   },

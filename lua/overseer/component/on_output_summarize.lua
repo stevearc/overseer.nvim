@@ -5,7 +5,7 @@ return {
   params = {
     max_lines = {
       desc = "Number of lines of output to show when detail > 1",
-      type = "int",
+      type = "integer",
       default = 4,
       validate = function(v)
         return v > 0

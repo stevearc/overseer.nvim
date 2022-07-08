@@ -9,7 +9,7 @@ return {
       desc = "Additional exit codes to consider as success",
       type = "list",
       optional = true,
-      subtype = { type = "int" },
+      subtype = { type = "integer" },
     },
     parser = { optional = true },
   },

@@ -5,7 +5,7 @@ local comp = {
     timeout = {
       desc = "Time to wait (in seconds) before canceling",
       default = 120,
-      type = "int",
+      type = "integer",
       validate = function(v)
         return v > 0
       end,

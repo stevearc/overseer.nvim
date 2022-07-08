@@ -12,7 +12,7 @@ return {
     interrupt = {
       desc = "If true, a restart will cancel a currently running task",
       default = false,
-      type = "bool",
+      type = "boolean",
     },
   },
   constructor = function(opts)

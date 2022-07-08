@@ -8,11 +8,11 @@ return {
   params = {
     task_id = {
       desc = "Id of the task template to trigger",
-      type = "int",
+      type = "integer",
     },
     once = {
       desc = "When true, only trigger task once then remove this component",
-      type = "bool",
+      type = "boolean",
       default = true,
     },
   },

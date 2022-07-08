@@ -16,10 +16,10 @@ local schema = {
     type = "list",
     optional = true,
   },
-  required_bool = { desc = "This is a required number param", type = "bool" },
+  required_bool = { desc = "This is a required number param", type = "boolean" },
   optional_bool = {
     desc = "This is an optional number param",
-    type = "bool",
+    type = "boolean",
     optional = true,
   },
 }

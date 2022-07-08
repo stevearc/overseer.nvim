@@ -192,7 +192,7 @@ function OrchestratorStrategy:_start_task_list(tasks, task_defns)
         task:start()
       else
         tasks[i] = -1
-        commands.run_template({ name = name, nostart = true }, params, function(new_task)
+        commands.run_template({ name = name, nostart = true, params = params }, function(new_task)
           new_task:add_component("on_status_broadcast")
           tasks[idx] = new_task.id
           count = count + 1

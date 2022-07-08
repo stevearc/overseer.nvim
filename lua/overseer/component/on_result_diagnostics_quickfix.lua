@@ -4,7 +4,7 @@ return {
   params = {
     use_loclist = {
       desc = "If true, use the loclist instead of quickfix",
-      type = "bool",
+      type = "boolean",
       optional = true,
     },
   },

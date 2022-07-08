@@ -6,7 +6,7 @@ local tmpl = {
   priority = 60,
   params = {
     args = { optional = true, type = "list", delimiter = " " },
-    use_yarn = { optional = true, type = "bool" },
+    use_yarn = { optional = true, type = "boolean" },
   },
   builder = function(params)
     local bin = params.use_yarn and "yarn" or "npm"

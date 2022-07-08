@@ -11,16 +11,15 @@ TODO screenshots
 - [ ] Integration with launch.json preLaunchTask for dap/dap-ui
 - [ ] More task providers: cmake, rake, jake, cargo
 - [ ] Allow declaring parsers with pure data
+- [ ] Customize keymaps in forms
 
 Documentation TODOs
 
-- [ ] Document params
 - [ ] Documentation for parsers & parser debugging
 - [ ] Documentation for parser on result_exit_code
 - [ ] Remaining README todos
 - [ ] Vim help docs
 - [ ] Document different ways to do task dependencies
-- [ ] Debugging tips (e.g. finding logs)
 
 ---
 
@@ -39,6 +38,7 @@ Documentation TODOs
   - [Custom tasks](#custom-tasks)
   - [Actions](#actions)
   - [Custom components](#custom-components)
+  - [Parameters](#parameters)
   - [Highlights](#highlights)
 - [VS Code tasks](#vs-code-tasks)
 - [Alternatives](#alternatives)
@@ -327,9 +327,28 @@ require("overseer").setup({
 
 ## Running tasks
 
-TODO
+The easiest way to select and run a task is `:OverseerRun`. This will open a `vim.ui.select` dialog and allow the user to select a task. Once selected, if the task requires any [parameters](#parameters), it will prompt the user for input. Once all inputs are satisfied, the task is started.
 
-- run the default build/test/clean task
+If you want to customize how the tasks are searched, selected, or run, you can call `overseer.run_template` directly. Some examples:
+
+```lua
+-- Run the task named "make all"
+-- equivalent to :OverseerRun make all
+overseer.run_template({name = "make all"})
+-- Run the default "build" task
+-- equivalent to :OverseerRun BUILD
+overseer.run_template({tags = {overseer.TAG.BUILD}})
+-- Run the task named "serve" with some default parameters
+overseer.run_template({name = "serve", params = {port = 8080}})
+-- Create a task but do not start it
+overseer.run_template({name = "make", nostart = true}, function(task)
+  -- do something with the task
+end)
+-- Run a task and immediately open the floating window
+overseer.run_template({name = "make", action = 'open float'})
+-- Run a task and always show the parameter prompt
+overseer.run_template({name = "npm watch", prompt = "always"})
+```
 
 ## Task list
 
@@ -433,7 +452,11 @@ There are two ways to define a task for overseer.
 
 **1) directly registering**
 
-TODO
+```lua
+overseer.register_template({
+  -- Template definition (see below)
+})
+```
 
 **2) as a module**
 
@@ -458,12 +481,61 @@ This is how `builtin` references all of the different built-in templates.
 The definition of a template looks like this:
 
 ```lua
-TODO
+{
+  -- Required fields
+  name = "Some Task",
+  builder = function(params)
+    -- This must return an overseer.TaskDefinition
+    return {
+      cmd = {'echo', 'hello', 'world'}
+    }
+  end,
+  -- Optional fields
+  desc = "Optional description of task",
+  -- Tags can be used in overseer.run_template()
+  tags = {overseer.TAG.BUILD},
+  params = {
+    -- TODO
+  },
+  -- Determines sort order when choosing tasks. Lower comes first.
+  priority = 50,
+  -- Add requirements for this template. If they are not met, the template will not be visible.
+  -- All fields are optional.
+  condition = {
+    -- A string or list of strings
+    -- Only matches when current buffer is one of the listed filetypes
+    filetype = {"c", "cpp"},
+    -- A string or list of strings
+    -- Only matches when cwd is inside one of the listed dirs
+    dir = "/home/user/my_project",
+    -- Arbitrary logic for determining if task is available
+    callback = function(search)
+      print(vim.inspect(search))
+      return true
+    end,
+  },
+}
 ```
 
 #### Template providers
 
-TODO
+Template providers are used to generate multiple templates dynamically. The main use case is generating one task per target (e.g. for a makefile), but can be used for any situation where you want the templates themselves to be generated at runtime.
+
+Providers are created the same way templates are (with `overseer.register_template`, or by putting them in a module). The structure is as follows:
+
+```lua
+{
+  generator = function(search)
+    -- Return a list of templates
+    -- See the built-in providers for make or npm for an example
+    return {...}
+  end,
+  -- Optional. Same as template.condition
+  condition = function(search)
+    return true
+  end,
+}
+```
 
 ### Actions
 
@@ -593,6 +665,60 @@ A note on the Task result table: there is technically no schema for it, as the o
 **diagnostics**: This key is used for diagnostics. It should be a list of quickfix items (see `:help setqflist`) \
 **error**: This key will be set when there is an internal overseer error when running the task
 
+### Parameters
+
+Parameters are a schema-defined set of options. They are used by both [components](#components) and [templates](#templates) to expose customization options.
+
+```lua
+local params = {
+  my_var = {
+    type = "string",
+    -- Optional fields that are available on any type
+    name = "More readable name",
+    desc = "A detailed description",
+    validate = function(value)
+      return true,
+    end,
+    optional = true,
+    default = "foobar",
+  }
+}
+```
+
+The following types are available:
+
+```lua
+{
+  type = "string"
+}
+{
+  type = "boolean"
+}
+{
+  type = "number"
+}
+{
+  type = "integer"
+}
+{
+  type = "list",
+  subtype = {
+    type = "string"
+  },
+  delimiter = ",",
+}
+{
+  type = "enum",
+  choices = {"ONE", "TWO", "THREE"},
+}
+{
+  -- This is used when the value is too complex to be represented or edited by the user in the task editor.
+  -- It should generally only be used by components (which are usually configured programmatically)
+  -- and not templates (which usually prompt the user for their parameters)
+  type = "opaque"
+}
+```
+
 ### Highlights
 
 Overseer defines the following highlights override them to customize the colors.
@@ -655,3 +781,19 @@ TODO
 **Q: Why do my tasks disappear after a while?**
 
 The default behavior is for completed tasks to get _disposed_ after a 5 minute timeout. This frees their resources and removes them from the task list. You can change this by editing the `component_aliases` definition to either tweak the timeout (`{"dispose_delay", timeout = 900}`), or delete the "dispose_delay" component entirely. In that case, tasks will stick around until manually disposed.
+
+**Q: How can I debug when something goes wrong?**
+
+The `overseer.log` file can be found at `:echo stdpath('log')` or `:echo stdpath('cache')`. If you need, you can crank up the detail of the logs by adjusting the level:
+
+```lua
+overseer.setup({
+  log = {
+    {
+      type = "file",
+      filename = "overseer.log",
+      level = vim.log.levels.DEBUG, -- or TRACE for max verbosity
+    },
+  },
+})
+```

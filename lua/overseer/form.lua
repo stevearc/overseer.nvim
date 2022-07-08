@@ -6,62 +6,40 @@ local M = {}
 
 ---@alias overseer.Param overseer.StringParam|overseer.BoolParam|overseer.NumberParam|overseer.IntParam|overseer.ListParam|overseer.EnumParam|overseer.OpaqueParam
 
----@class overseer.StringParam
+---@class overseer.BaseParam
 ---@field name? string
 ---@field desc? string
 ---@field validate? fun(value: any): boolean
 ---@field optional? boolean
+
+---@class overseer.StringParam : overseer.BaseParam
 ---@field type? "string"
 ---@field default? string
 
----@class overseer.BoolParam
----@field name? string
----@field desc? string
----@field validate? fun(value: any): boolean
----@field optional? boolean
----@field type "bool"
+---@class overseer.BoolParam : overseer.BaseParam
+---@field type "boolean"
 ---@field default? boolean
 
----@class overseer.NumberParam
----@field name? string
----@field desc? string
----@field validate? fun(value: any): boolean
----@field optional? boolean
+---@class overseer.NumberParam : overseer.BaseParam
 ---@field type "number"
 ---@field default? number
 
----@class overseer.IntParam
----@field name? string
----@field desc? string
----@field validate? fun(value: any): boolean
----@field optional? boolean
----@field type? "int"
+---@class overseer.IntParam : overseer.BaseParam
+---@field type? "integer"
 ---@field default? number
 
----@class overseer.ListParam
----@field name? string
----@field desc? string
----@field validate? fun(value: any): boolean
----@field optional? boolean
+---@class overseer.ListParam : overseer.BaseParam
 ---@field type? "list"
 ---@field subtype? overseer.Param
 ---@field delimiter? string
 ---@field default? table
 
----@class overseer.EnumParam
----@field name? string
----@field desc? string
----@field validate? fun(value: any): boolean
----@field optional? boolean
+---@class overseer.EnumParam : overseer.BaseParam
 ---@field type? "enum"
 ---@field default? string
 ---@field choices string[]
 
----@class overseer.OpaqueParam
----@field name? string
----@field desc? string
----@field validate? fun(value: any): boolean
----@field optional? boolean
+---@class overseer.OpaqueParam : overseer.BaseParam
 ---@field type? "opaque"
 ---@field default? any
 
@@ -142,9 +120,9 @@ local function validate_type(schema, value)
     return type(value) == "table" and vim.tbl_islist(value)
   elseif ptype == "number" then
     return type(value) == "number"
-  elseif ptype == "int" then
+  elseif ptype == "integer" then
     return type(value) == "number" and math.floor(value) == value
-  elseif ptype == "bool" then
+  elseif ptype == "boolean" then
     return type(value) == "boolean"
   elseif ptype == "string" then
     return true
@@ -216,12 +194,12 @@ M.parse_value = function(schema, value)
     if num then
       return true, num
     end
-  elseif schema.type == "int" then
+  elseif schema.type == "integer" then
     local num = tonumber(value)
     if num then
       return true, math.floor(num)
     end
-  elseif schema.type == "bool" then
+  elseif schema.type == "boolean" then
     if string.match(value, "^ye?s?") or string.match(value, "^tr?u?e?") then
       return true, true
     elseif string.match(value, "^no?") or string.match(value, "^fa?l?s?e?") then

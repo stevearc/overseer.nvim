@@ -11,7 +11,7 @@ return {
       type = "list",
     },
     sequential = {
-      type = "bool",
+      type = "boolean",
       default = false,
     },
   },
@@ -25,7 +25,7 @@ return {
           local dep_task = task_id and task_list.get(task_id)
           if not dep_task then
             -- If no task ID found, start the dependency
-            commands.run_template({ name = name, nostart = true }, nil, function(new_task)
+            commands.run_template({ name = name, nostart = true }, function(new_task)
               self.task_lookup[name] = new_task.id
               new_task:add_component({ "on_success_complete_dependency", task_id = task.id })
               new_task:start()
