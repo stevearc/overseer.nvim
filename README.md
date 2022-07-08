@@ -12,6 +12,7 @@ TODO screenshots
 - [ ] Maybe enforce that templates have a name? The we don't need to set the name from the register fn.
 - [ ] Integration with launch.json preLaunchTask for dap/dap-ui
 - [ ] More task providers: cmake, rake, jake, cargo
+- [ ] Allow declaring parsers with pure data
 
 Documentation TODOs
 

@@ -98,6 +98,19 @@ local function lazy(mod, fn)
   end
 end
 
+local function lazy_pend(mod, fn)
+  return function(...)
+    if initialized then
+      require(string.format("overseer.%s", mod))[fn](...)
+    else
+      local args = { ... }
+      M.on_setup(function()
+        require(string.format("overseer.%s", mod))[fn](unpack(args))
+      end)
+    end
+  end
+end
+
 local function create_commands()
   vim.api.nvim_create_user_command("OverseerOpen", lazy("commands", "_open"), {
     desc = "Open the overseer window",
@@ -191,6 +204,10 @@ local function create_wrapper(prefix)
 end
 
 M.wrap_template = create_wrapper("overseer.template.")
+
+---@param name string
+---@param defn? overseer.TemplateDefinition|overseer.TemplateProvider
+M.register_template = lazy_pend("template", "register")
 
 -- Used for vim-session integration.
 local timer_active = false
