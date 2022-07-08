@@ -3,13 +3,13 @@
 ## [dependencies](../lua/overseer/component/dependencies.lua)
 
 Set dependencies for task \
-**sequential**[bool]: (default `false`) \
+**sequential**[boolean]: (default `false`) \
 \***task_names**[list[string]]: Names of dependency task templates
 
 ## [on_output_summarize](../lua/overseer/component/on_output_summarize.lua)
 
 Summarize task output in the task list \
-**max_lines**[int]: Number of lines of output to show when detail > 1 (default `4`)
+**max_lines**[integer]: Number of lines of output to show when detail > 1 (default `4`)
 
 ## [on_output_write_file](../lua/overseer/component/on_output_write_file.lua)
 
@@ -20,20 +20,20 @@ Write task output to a file \
 
 Allows task to be restarted \
 **delay**[number]: How long to wait (in ms) post-result before triggering restart (default `500`) \
-**interrupt**[bool]: If true, a restart will cancel a currently running task (default `false`)
+**interrupt**[boolean]: If true, a restart will cancel a currently running task (default `false`)
 
 ## [on_result_diagnostics](../lua/overseer/component/on_result_diagnostics.lua)
 
 If task result contains diagnostics, display them \
-**remove_on_restart**[bool]: Remove diagnostics when task restarts \
-**signs**[bool]: Override the default diagnostics.signs setting \
-**underline**[bool]: Override the default diagnostics.underline setting \
-**virtual_text**[bool]: Override the default diagnostics.virtual_text setting
+**remove_on_restart**[boolean]: Remove diagnostics when task restarts \
+**signs**[boolean]: Override the default diagnostics.signs setting \
+**underline**[boolean]: Override the default diagnostics.underline setting \
+**virtual_text**[boolean]: Override the default diagnostics.virtual_text setting
 
 ## [on_result_diagnostics_quickfix](../lua/overseer/component/on_result_diagnostics_quickfix.lua)
 
 If task result contains diagnostics, add them to the quickfix \
-**use_loclist**[bool]: If true, use the loclist instead of quickfix
+**use_loclist**[boolean]: If true, use the loclist instead of quickfix
 
 ## [on_result_notify](../lua/overseer/component/on_result_notify.lua)
 
@@ -61,10 +61,10 @@ Restart on any buffer :write \
 
 Sets final task status based on exit code \
 **parser**[string]: \
-**success_codes**[list[int]]: Additional exit codes to consider as success
+**success_codes**[list[integer]]: Additional exit codes to consider as success
 
 ## [timeout](../lua/overseer/component/timeout.lua)
 
 Cancel task if it exceeds a timeout \
-**timeout**[int]: Time to wait (in seconds) before canceling (default `120`)
+**timeout**[integer]: Time to wait (in seconds) before canceling (default `120`)
 

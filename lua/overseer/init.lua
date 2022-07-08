@@ -112,60 +112,118 @@ local function lazy_pend(mod, fn)
   end
 end
 
+local commands = {
+  {
+    cmd = "OverseerOpen",
+    args = "`left`/`right`",
+    func = "_open",
+    def = {
+      desc = "Open the overseer window. With `!` cursor stays in current window",
+      nargs = "?",
+      bang = true,
+      complete = function(arg)
+        return vim.tbl_filter(function(dir)
+          return vim.startswith(dir, arg)
+        end, { "left", "right" })
+      end,
+    },
+  },
+  {
+    cmd = "OverseerClose",
+    func = "_close",
+    def = {
+      desc = "Close the overseer window",
+    },
+  },
+  {
+    cmd = "OverseerToggle",
+    args = "`left`/`right`",
+    func = "_toggle",
+    def = {
+      desc = "Toggle the overseer window. With `!` cursor stays in current window",
+      nargs = "?",
+      bang = true,
+      complete = function(arg)
+        return vim.tbl_filter(function(dir)
+          return vim.startswith(dir, arg)
+        end, { "left", "right" })
+      end,
+    },
+  },
+  {
+    cmd = "OverseerSaveBundle",
+    args = "`[name]`",
+    func = "_save_bundle",
+    def = {
+      desc = "Serialize and save the current tasks to disk",
+      nargs = "?",
+    },
+  },
+  {
+    cmd = "OverseerLoadBundle",
+    args = "`[name]`",
+    func = "_load_bundle",
+    def = {
+      desc = "Load tasks that were saved to disk",
+      nargs = "?",
+    },
+  },
+  {
+    cmd = "OverseerDeleteBundle",
+    args = "`[name]`",
+    func = "_delete_bundle",
+    def = {
+      desc = "Delete a saved task bundle",
+      nargs = "?",
+    },
+  },
+  {
+    cmd = "OverseerRunCmd",
+    args = "`[command]`",
+    func = "_run_command",
+    def = {
+      desc = "Run a raw shell command",
+      nargs = "?",
+    },
+  },
+  {
+    cmd = "OverseerRun",
+    args = "`[name/tags]`",
+    func = "_run_template",
+    def = {
+      desc = "Run a task from a template",
+      nargs = "*",
+    },
+  },
+  {
+    cmd = "OverseerBuild",
+    func = "_build_task",
+    def = {
+      desc = "Open the task builder",
+    },
+  },
+  {
+    cmd = "OverseerQuickAction",
+    args = "`[action]`",
+    func = "_quick_action",
+    def = {
+      nargs = "?",
+      desc = "Run an action on the most recent task",
+    },
+  },
+  {
+    cmd = "OverseerTaskAction",
+    func = "_task_action",
+    def = {
+      desc = "Select a task to run an action on",
+    },
+  },
+}
+
 local function create_commands()
-  vim.api.nvim_create_user_command("OverseerOpen", lazy("commands", "_open"), {
-    desc = "Open the overseer window",
-    nargs = "?",
-    bang = true,
-    complete = function(arg)
-      return vim.tbl_filter(function(dir)
-        return vim.startswith(dir, arg)
-      end, { "left", "right" })
-    end,
-  })
-  vim.api.nvim_create_user_command("OverseerClose", lazy("commands", "_close"), {
-    desc = "Close the overseer window",
-  })
-  vim.api.nvim_create_user_command("OverseerToggle", lazy("commands", "_toggle"), {
-    desc = "Toggle the overseer window",
-    nargs = "?",
-    bang = true,
-    complete = function(arg)
-      return vim.tbl_filter(function(dir)
-        return vim.startswith(dir, arg)
-      end, { "left", "right" })
-    end,
-  })
-  vim.api.nvim_create_user_command("OverseerSaveBundle", lazy("commands", "_save_bundle"), {
-    desc = "Serialize the current tasks to disk",
-    nargs = "?",
-  })
-  vim.api.nvim_create_user_command("OverseerLoadBundle", lazy("commands", "_load_bundle"), {
-    desc = "Load tasks that were serialized to disk",
-    nargs = "?",
-  })
-  vim.api.nvim_create_user_command("OverseerDeleteBundle", lazy("commands", "_delete_bundle"), {
-    desc = "Delete a saved task bundle",
-    nargs = "?",
-  })
-  vim.api.nvim_create_user_command("OverseerRunCmd", lazy("commands", "_run_command"), {
-    desc = "Run a raw shell command",
-    nargs = "?",
-  })
-  vim.api.nvim_create_user_command("OverseerRun", lazy("commands", "_run_template"), {
-    desc = "Run a task from a template",
-    nargs = "*",
-  })
-  vim.api.nvim_create_user_command("OverseerBuild", lazy("commands", "_build_task"), {
-    desc = "Build a task from scratch",
-  })
-  vim.api.nvim_create_user_command("OverseerQuickAction", lazy("commands", "_quick_action"), {
-    nargs = "?",
-    desc = "Run an action on the most recent task",
-  })
-  vim.api.nvim_create_user_command("OverseerTaskAction", lazy("commands", "_task_action"), {
-    desc = "Select a task to run an action on",
-  })
+  for _, v in pairs(commands) do
+    vim.api.nvim_create_user_command(v.cmd, lazy("commands", v.func), v.def)
+  end
 end
 
 ---@param opts overseer.Config
@@ -253,5 +311,19 @@ setmetatable(M, {
     end
   end,
 })
+
+---Used for documentation generation
+---@private
+M.get_all_commands = function()
+  local cmds = vim.deepcopy(commands)
+  for _, v in ipairs(cmds) do
+    for k, param in pairs(v.def) do
+      if type(param) == "function" then
+        v.def[k] = nil
+      end
+    end
+  end
+  return cmds
+end
 
 return M

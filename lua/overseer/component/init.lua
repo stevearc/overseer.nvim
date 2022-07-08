@@ -298,6 +298,8 @@ local function simplify_params(params)
   return ret
 end
 
+---Used for documentation generation
+---@private
 M.get_all_descriptions = function()
   local ret = {}
   for _, name in ipairs(builtin_components) do

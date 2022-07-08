@@ -4,6 +4,8 @@ import os
 import os.path
 import re
 import subprocess
+import textwrap
+from collections import defaultdict
 from typing import Any, Dict, List
 
 HERE = os.path.dirname(__file__)
@@ -107,6 +109,34 @@ def format_param(name: str, param: Dict) -> str:
     return line
 
 
+def format_md_table_row(
+    data: Dict, column_names: List[str], max_widths: Dict[str, int]
+) -> str:
+    cols = []
+    for col in column_names:
+        cols.append(data[col].ljust(max_widths[col]))
+    return "| " + " | ".join(cols) + " |\n"
+
+
+def format_md_table(rows: List[Dict], column_names: List[str]) -> List[str]:
+    max_widths: Dict[str, int] = defaultdict(lambda: 1)
+    for row in rows:
+        for col in column_names:
+            max_widths[col] = max(max_widths[col], len(row[col]))
+    lines = []
+    titles = []
+    for col in column_names:
+        titles.append(col.ljust(max_widths[col]))
+    lines.append("| " + " | ".join(titles) + " |\n")
+    seps = []
+    for col in column_names:
+        seps.append(max_widths[col] * "-")
+    lines.append("| " + " | ".join(seps) + " |\n")
+    for row in rows:
+        lines.append(format_md_table_row(row, column_names, max_widths))
+    return lines
+
+
 def update_components_md():
     components = read_nvim_json('require("overseer.component").get_all_descriptions()')
     doc = os.path.join(ROOT, "doc", "components.md")
@@ -131,10 +161,73 @@ def update_components_md():
         ofile.writelines(lines)
 
 
+def update_commands_md():
+    commands = read_nvim_json('require("overseer").get_all_commands()')
+    lines = ["\n"]
+    rows = []
+    for command in commands:
+        cmd = command["cmd"]
+        if command["def"].get("bang"):
+            cmd += "[!]"
+        rows.append(
+            {
+                "Command": "`" + cmd + "`",
+                "arg": command.get("args", ""),
+                "description": command["def"]["desc"],
+            }
+        )
+    lines.extend(format_md_table(rows, ["Command", "arg", "description"]))
+    lines.append("\n")
+    replace_section(
+        README,
+        r"^## Commands",
+        r"^#",
+        lines,
+    )
+
+
+def leftright(left: str, right: str, width: int = 80) -> str:
+    return left + right.rjust(max(1, width - len(left) - 1)) + "\n"
+
+
+def wrap(text: str, indent: int = 0, width: int = 80) -> List[str]:
+    return [
+        line + "\n"
+        for line in textwrap.wrap(
+            text,
+            initial_indent=indent * " ",
+            subsequent_indent=indent * " ",
+            width=width,
+        )
+    ]
+
+
+def update_commands_vimdoc():
+    commands = read_nvim_json('require("overseer").get_all_commands()')
+    lines = ["\n"]
+    for command in commands:
+        cmd = command["cmd"]
+        if command["def"].get("bang"):
+            cmd += "[!]"
+        if "args" in command:
+            cmd += " " + command["args"]
+        lines.append(leftright(cmd, f"*:{command['cmd']}*", 82))
+        lines.extend(wrap(command["def"]["desc"], 4))
+        lines.append("\n")
+    replace_section(
+        DOC,
+        r"^COMMANDS",
+        r"^-",
+        lines,
+    )
+
+
 def main() -> None:
     """Update the README"""
     update_config_options()
     update_components_md()
+    update_commands_md()
+    update_commands_vimdoc()
 
 
 if __name__ == "__main__":

@@ -90,8 +90,8 @@ Documentation TODOs
 
 Overseer was built to address two generic needs:
 
-1. I want a way to easily run and manage commands relevant to my current project
-1. I want to be able to integrate the results of those commands with neovim
+1. Easily run and manage commands relevant to my current project
+1. Easily integrate the results of those commands with neovim
 
 To address point 1, overseer has the following features:
 
@@ -311,19 +311,19 @@ require("overseer").setup({
 
 ## Commands
 
-| Command                | arg            | description                                                                  |
-| ---------------------- | -------------- | ---------------------------------------------------------------------------- |
-| `OverseerOpen[!]`      | `left`/`right` | Open the overseer window. With `[!]` cursor stays in current window          |
-| `OverseerClose`        |                | Close the overseer window                                                    |
-| `OverseerToggle[!]`    | `left`/`right` | Open or close the overseer window. With `[!]` cursor stays in current window |
-| `OverseerSaveBundle`   | `[name]`       | Serialize and save the current tasks to disk                                 |
-| `OverseerLoadBundle`   | `[name]`       | Load tasks that were saved to disk                                           |
-| `OverseerDeleteBundle` | `[name]`       | Delete a saved task bundle                                                   |
-| `OverseerRunCmd`       | `[command]`    | Run a raw shell command                                                      |
-| `OverseerRun`          | `[name/tags]`  | Run a task from a template                                                   |
-| `OverseerBuild`        |                | Open the task builder                                                        |
-| `OverseerQuickAction`  | `[action]`     | Run an action on the most recent task                                        |
-| `OverseerTaskAction`   |                | Select a task to run an action on                                            |
+| Command                | arg            | description                                                         |
+| ---------------------- | -------------- | ------------------------------------------------------------------- |
+| `OverseerOpen[!]`      | `left`/`right` | Open the overseer window. With `!` cursor stays in current window   |
+| `OverseerClose`        |                | Close the overseer window                                           |
+| `OverseerToggle[!]`    | `left`/`right` | Toggle the overseer window. With `!` cursor stays in current window |
+| `OverseerSaveBundle`   | `[name]`       | Serialize and save the current tasks to disk                        |
+| `OverseerLoadBundle`   | `[name]`       | Load tasks that were saved to disk                                  |
+| `OverseerDeleteBundle` | `[name]`       | Delete a saved task bundle                                          |
+| `OverseerRunCmd`       | `[command]`    | Run a raw shell command                                             |
+| `OverseerRun`          | `[name/tags]`  | Run a task from a template                                          |
+| `OverseerBuild`        |                | Open the task builder                                               |
+| `OverseerQuickAction`  | `[action]`     | Run an action on the most recent task                               |
+| `OverseerTaskAction`   |                | Select a task to run an action on                                   |
 
 ## Running tasks
 
