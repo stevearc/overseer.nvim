@@ -202,7 +202,7 @@ M.quick_action = function(name)
     sb:run_action(name)
     return
   end
-  local tasks = task_list.list_tasks({ unique = true, recent_first = true })
+  local tasks = task_list.list_tasks({ recent_first = true })
   local task
   if #tasks == 0 then
     vim.notify("No tasks available", vim.log.levels.WARN)
