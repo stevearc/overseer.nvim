@@ -205,8 +205,7 @@ end
 
 M.wrap_template = create_wrapper("overseer.template.")
 
----@param name string
----@param defn? overseer.TemplateDefinition|overseer.TemplateProvider
+---@param defn overseer.TemplateDefinition|overseer.TemplateProvider
 M.register_template = lazy_pend("template", "register")
 
 -- Used for vim-session integration.

@@ -87,17 +87,33 @@ local function condition_matches(condition, tags, search)
   return true
 end
 
+local function load_template(name)
+  local ok, defn = pcall(require, string.format("overseer.template.%s", name))
+  if not ok then
+    log:error("Error loading template '%s': %s", name, defn)
+    return
+  end
+  -- If this module was just a list of names, then it's an alias for a
+  -- collection of templates
+  if vim.tbl_islist(defn) then
+    for _, v in ipairs(defn) do
+      load_template(v)
+    end
+  else
+    if not defn.name then
+      defn.name = name
+    end
+    M.register(defn)
+  end
+end
+
 local initialized = false
 local function initialize()
   if initialized then
     return
   end
-  for _, name_or_defn in ipairs(config.templates) do
-    if type(name_or_defn) == "table" then
-      M.register(unpack(name_or_defn))
-    else
-      M.register(name_or_defn)
-    end
+  for _, name in ipairs(config.templates) do
+    load_template(name)
   end
   initialized = true
 end
@@ -116,28 +132,13 @@ local function validate_template_definition(defn)
   form.validate_params(defn.params)
 end
 
----@param name string
----@param defn? overseer.TemplateDefinition|overseer.TemplateProvider
-M.register = function(name, defn)
-  if not defn then
-    defn = require(string.format("overseer.template.%s", name))
-    -- If this module was just a list of names, then it's an alias for a
-    -- collection of templates
-    if vim.tbl_islist(defn) then
-      for _, v in ipairs(defn) do
-        M.register(v)
-      end
-      return
-    end
-  end
-  if not defn.name then
-    defn.name = name
-  end
+---@param defn overseer.TemplateDefinition|overseer.TemplateProvider
+M.register = function(defn)
   if defn.generator then
     table.insert(providers, defn)
   else
     validate_template_definition(defn)
-    registry[name] = defn
+    registry[defn.name] = defn
   end
 end
 

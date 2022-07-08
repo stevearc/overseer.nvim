@@ -8,8 +8,6 @@ History will be overwritten once it's ready for release
 
 TODO screenshots
 
-- [ ] Maybe refactor template registration to not do the require (extract that logic), because we shouldn't need to do that at runtime.
-- [ ] Maybe enforce that templates have a name? The we don't need to set the name from the register fn.
 - [ ] Integration with launch.json preLaunchTask for dap/dap-ui
 - [ ] More task providers: cmake, rake, jake, cargo
 - [ ] Allow declaring parsers with pure data
