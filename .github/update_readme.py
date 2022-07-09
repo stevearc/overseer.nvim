@@ -6,7 +6,7 @@ import re
 import subprocess
 import textwrap
 from collections import defaultdict
-from typing import Any, Dict, List
+from typing import Any, Dict, List, Tuple
 
 HERE = os.path.dirname(__file__)
 ROOT = os.path.abspath(os.path.join(HERE, os.path.pardir))
@@ -55,17 +55,26 @@ def replace_section(file: str, start_pat: str, end_pat: str, lines: List[str]) -
         ofile.write("".join(all_lines))
 
 
-def read_section(filename: str, start_pat: str, end_pat: str) -> List[str]:
+def read_section(
+    filename: str,
+    start_pat: str,
+    end_pat: str,
+    inclusive: Tuple[bool, bool] = (False, False),
+) -> List[str]:
     lines = []
     with open(filename, "r", encoding="utf-8") as ifile:
         inside_section = False
         for line in ifile:
             if inside_section:
                 if re.match(end_pat, line):
+                    if inclusive[1]:
+                        lines.append(line)
                     break
                 lines.append(line)
             elif re.match(start_pat, line):
                 inside_section = True
+                if inclusive[0]:
+                    lines.append(line)
     return lines
 
 
@@ -89,6 +98,20 @@ def update_config_options():
         r"^require\(\"overseer\"\).setup\({$",
         r"^}\)$",
         opt_lines,
+    )
+
+
+def update_options_vimdoc():
+    config_file = os.path.join(ROOT, "lua", "overseer", "config.lua")
+    opt_lines = read_section(config_file, r"^local default_config =", r"^}$")
+    lines = ["\n", ">\n", '    require("overseer").setup({\n']
+    lines.extend(indent(opt_lines, 4))
+    lines.extend(["    })\n", "<\n", "\n"])
+    replace_section(
+        DOC,
+        r"^OPTIONS",
+        r"^[=\-]",
+        lines,
     )
 
 
@@ -226,6 +249,7 @@ def update_commands_vimdoc():
 def main() -> None:
     """Update the README"""
     update_config_options()
+    update_options_vimdoc()
     update_components_md()
     update_commands_md()
     update_commands_vimdoc()
