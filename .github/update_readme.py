@@ -211,7 +211,8 @@ def update_commands_vimdoc():
             cmd += "[!]"
         if "args" in command:
             cmd += " " + command["args"]
-        lines.append(leftright(cmd, f"*:{command['cmd']}*", 82))
+        width = 82 + cmd.count("`")
+        lines.append(leftright(cmd, f"*:{command['cmd']}*", width))
         lines.extend(wrap(command["def"]["desc"], 4))
         lines.append("\n")
     replace_section(

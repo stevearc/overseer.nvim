@@ -9,34 +9,34 @@ CONTENTS                                                      *overseer-contents
 -------------------------------------------------------------------------------
 COMMANDS                                                      *overseer-commands*
 
-OverseerOpen[!] `left`/`right`                                    *:OverseerOpen*
+OverseerOpen[!] `left` | `right`                                      *:OverseerOpen*
     Open the overseer window. With `!` cursor stays in current window
 
 OverseerClose                                                    *:OverseerClose*
     Close the overseer window
 
-OverseerToggle[!] `left`/`right`                                *:OverseerToggle*
+OverseerToggle[!] `left` | `right`                                  *:OverseerToggle*
     Toggle the overseer window. With `!` cursor stays in current window
 
-OverseerSaveBundle `[name]`                                 *:OverseerSaveBundle*
+OverseerSaveBundle `[name]`                                   *:OverseerSaveBundle*
     Serialize and save the current tasks to disk
 
-OverseerLoadBundle `[name]`                                 *:OverseerLoadBundle*
+OverseerLoadBundle `[name]`                                   *:OverseerLoadBundle*
     Load tasks that were saved to disk
 
-OverseerDeleteBundle `[name]`                             *:OverseerDeleteBundle*
+OverseerDeleteBundle `[name]`                               *:OverseerDeleteBundle*
     Delete a saved task bundle
 
-OverseerRunCmd `[command]`                                      *:OverseerRunCmd*
+OverseerRunCmd `[command]`                                        *:OverseerRunCmd*
     Run a raw shell command
 
-OverseerRun `[name/tags]`                                          *:OverseerRun*
+OverseerRun `[name/tags]`                                            *:OverseerRun*
     Run a task from a template
 
 OverseerBuild                                                    *:OverseerBuild*
     Open the task builder
 
-OverseerQuickAction `[action]`                             *:OverseerQuickAction*
+OverseerQuickAction `[action]`                               *:OverseerQuickAction*
     Run an action on the most recent task
 
 OverseerTaskAction                                          *:OverseerTaskAction*

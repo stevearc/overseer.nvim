@@ -60,10 +60,7 @@ local function do_setup()
       -- For some reason, vim.json.encode encodes / as \/.
       local data = string.gsub(vim.json.encode(tasks), "\\/", "/")
       data = string.gsub(data, "'", "\\'")
-      table.insert(
-        cmds,
-        string.format("lua require('overseer')._start_tasks('%s')", data)
-      )
+      table.insert(cmds, string.format("lua require('overseer')._start_tasks('%s')", data))
       vim.g.session_save_commands = cmds
     end,
   })
@@ -115,7 +112,7 @@ end
 local commands = {
   {
     cmd = "OverseerOpen",
-    args = "`left`/`right`",
+    args = "`left` | `right`",
     func = "_open",
     def = {
       desc = "Open the overseer window. With `!` cursor stays in current window",
@@ -137,7 +134,7 @@ local commands = {
   },
   {
     cmd = "OverseerToggle",
-    args = "`left`/`right`",
+    args = "`left` | `right`",
     func = "_toggle",
     def = {
       desc = "Toggle the overseer window. With `!` cursor stays in current window",
