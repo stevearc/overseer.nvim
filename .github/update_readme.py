@@ -6,7 +6,7 @@ import re
 import subprocess
 import textwrap
 from collections import defaultdict
-from typing import Any, Dict, List, Tuple
+from typing import Any, Dict, List, Optional, Tuple
 
 HERE = os.path.dirname(__file__)
 ROOT = os.path.abspath(os.path.join(HERE, os.path.pardir))
@@ -98,20 +98,6 @@ def update_config_options():
         r"^require\(\"overseer\"\).setup\({$",
         r"^}\)$",
         opt_lines,
-    )
-
-
-def update_options_vimdoc():
-    config_file = os.path.join(ROOT, "lua", "overseer", "config.lua")
-    opt_lines = read_section(config_file, r"^local default_config =", r"^}$")
-    lines = ["\n", ">\n", '    require("overseer").setup({\n']
-    lines.extend(indent(opt_lines, 4))
-    lines.extend(["    })\n", "<\n", "\n"])
-    replace_section(
-        DOC,
-        r"^OPTIONS",
-        r"^[=\-]",
-        lines,
     )
 
 
@@ -208,9 +194,17 @@ def update_commands_md():
         lines,
     )
 
+def count_special(base: str, char: str) -> int:
+    c = base.count(char)
+    return 2 * (c // 2)
+
+def vimlen(string: str) -> int:
+    return len(string) - sum([count_special(string, c) for c in "`|*"])
+
 
 def leftright(left: str, right: str, width: int = 80) -> str:
-    return left + right.rjust(max(1, width - len(left) - 1)) + "\n"
+    spaces = max(1, width - vimlen(left) - vimlen(right))
+    return left + spaces * " " + right + '\n'
 
 
 def wrap(text: str, indent: int = 0, width: int = 80) -> List[str]:
@@ -225,34 +219,106 @@ def wrap(text: str, indent: int = 0, width: int = 80) -> List[str]:
     ]
 
 
-def update_commands_vimdoc():
+def get_commands_vimdoc() -> "VimdocSection":
+    section = VimdocSection("Commands", "overseer-commands", ["\n"])
     commands = read_nvim_json('require("overseer").get_all_commands()')
-    lines = ["\n"]
     for command in commands:
         cmd = command["cmd"]
         if command["def"].get("bang"):
             cmd += "[!]"
         if "args" in command:
             cmd += " " + command["args"]
-        width = 82 + cmd.count("`")
-        lines.append(leftright(cmd, f"*:{command['cmd']}*", width))
-        lines.extend(wrap(command["def"]["desc"], 4))
-        lines.append("\n")
-    replace_section(
-        DOC,
-        r"^COMMANDS",
-        r"^-",
-        lines,
-    )
+        section.body.append(leftright(cmd, f"*:{command['cmd']}*"))
+        section.body.extend(wrap(command["def"]["desc"], 4))
+    return section
+
+
+def get_options_vimdoc() -> "VimdocSection":
+    section = VimdocSection("options", "overseer-options")
+    config_file = os.path.join(ROOT, "lua", "overseer", "config.lua")
+    opt_lines = read_section(config_file, r"^local default_config =", r"^}$")
+    lines = ["\n", ">\n", '    require("overseer").setup({\n']
+    lines.extend(indent(opt_lines, 4))
+    lines.extend(["    })\n", "<\n"])
+    section.body = lines
+    return section
+
+
+class VimdocSection:
+    def __init__(
+        self,
+        name: str,
+        tag: str,
+        body: Optional[List[str]] = None,
+        sep: str = "-",
+        width: int = 80,
+    ):
+        self.name = name
+        self.tag = tag
+        self.body = body or []
+        self.sep = sep
+        self.width = width
+
+    def get_body(self) -> List[str]:
+        return self.body
+
+    def render(self) -> List[str]:
+        lines = [
+            self.width * self.sep + "\n",
+            leftright(self.name.upper(), f'*{self.tag}*', self.width),
+            "\n",
+        ]
+        return lines + self.get_body() + ["\n"]
+
+
+class VimdocToc(VimdocSection):
+    def __init__(self, name: str, tag: str, width: int = 80):
+        super().__init__(name, tag, width=width)
+        self.entries: List[Tuple[str, str]] = []
+        self.padding = 2
+
+    def get_body(self) -> List[str]:
+        lines = []
+        for i, (name, tag) in enumerate(self.entries):
+            left = self.padding * " " + f"{i+1}. {name.capitalize()}"
+            tag_start = self.width - 2 * self.padding - len(tag)
+            lines.append(left.ljust(tag_start, ".") + f"|{tag}|\n")
+        return lines
+
+
+class Vimdoc:
+    def __init__(self, filename: str, tags: List[str], width: int = 80):
+        self.prefix = [f"*{filename}*\n", " ".join(f"*{tag}*" for tag in tags) + "\n"]
+        self.sections = []
+        self.width = width
+
+    def render(self) -> List[str]:
+        header = self.prefix[:]
+        body = []
+        toc = VimdocToc("CONTENTS", "overseer-contents", width=self.width)
+        for section in self.sections:
+            toc.entries.append((section.name, section.tag))
+            body.extend(section.render())
+        body.append(self.width * "=" + "\n")
+        body.append("vim:ft=help:et:ts=2:sw=2:sts=2:norl\n")
+        return header + toc.render() + body
+
+
+def generate_vimdoc():
+    doc = Vimdoc("overseer.txt", ["Overseer", "overseer", "overseer.nvim"])
+    doc.sections.append(get_commands_vimdoc())
+    doc.sections.append(get_options_vimdoc())
+
+    with open(DOC, "w") as ofile:
+        ofile.writelines(doc.render())
 
 
 def main() -> None:
     """Update the README"""
     update_config_options()
-    update_options_vimdoc()
     update_components_md()
     update_commands_md()
-    update_commands_vimdoc()
+    generate_vimdoc()
 
 
 if __name__ == "__main__":
