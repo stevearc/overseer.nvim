@@ -15,4 +15,5 @@ overseer-commands	overseer.txt	/*overseer-commands*
 overseer-contents	overseer.txt	/*overseer-contents*
 overseer-options	overseer.txt	/*overseer-options*
 overseer.nvim	overseer.txt	/*overseer.nvim*
+overseer.run_tasks	overseer.txt	/*overseer.run_tasks*
 overseer.txt	overseer.txt	/*overseer.txt*
