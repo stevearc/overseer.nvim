@@ -194,9 +194,11 @@ def update_commands_md():
         lines,
     )
 
+
 def count_special(base: str, char: str) -> int:
     c = base.count(char)
     return 2 * (c // 2)
+
 
 def vimlen(string: str) -> int:
     return len(string) - sum([count_special(string, c) for c in "`|*"])
@@ -204,7 +206,7 @@ def vimlen(string: str) -> int:
 
 def leftright(left: str, right: str, width: int = 80) -> str:
     spaces = max(1, width - vimlen(left) - vimlen(right))
-    return left + spaces * " " + right + '\n'
+    return left + spaces * " " + right + "\n"
 
 
 def wrap(text: str, indent: int = 0, width: int = 80) -> List[str]:
@@ -265,7 +267,7 @@ class VimdocSection:
     def render(self) -> List[str]:
         lines = [
             self.width * self.sep + "\n",
-            leftright(self.name.upper(), f'*{self.tag}*', self.width),
+            leftright(self.name.upper(), f"*{self.tag}*", self.width),
             "\n",
         ]
         return lines + self.get_body() + ["\n"]
@@ -303,52 +305,68 @@ class Vimdoc:
         body.append("vim:ft=help:et:ts=2:sw=2:sts=2:norl\n")
         return header + toc.render() + body
 
+
 def convert_md_link(match):
     dest = match[1]
-    if dest.startswith('#'):
-        return f'|{dest[1:]}|'
+    if dest.startswith("#"):
+        return f"|{dest[1:]}|"
     return "FIXME_LINK"
 
-MD_LINK_PAT = re.compile(r'\[[^\]]+\]\(([^\)]+)\)')
+
+MD_LINK_PAT = re.compile(r"\[[^\]]+\]\(([^\)]+)\)")
+
+
 def convert_markdown_to_vimdoc(lines: List[str]) -> List[str]:
-    while lines[0] == '\n':
+    while lines[0] == "\n":
         lines.pop(0)
-    while lines[-1] == '\n':
+    while lines[-1] == "\n":
         lines.pop()
     i = 0
     code_block = False
     while i < len(lines):
         line = lines[i]
-        if line.startswith('```'):
+        if line.startswith("```"):
             code_block = not code_block
             if code_block:
-                lines[i] = '>\n'
+                lines[i] = ">\n"
             else:
-                lines[i] = '<\n'
+                lines[i] = "<\n"
         else:
             if code_block:
-                lines[i] = 4*' ' + line
+                lines[i] = 4 * " " + line
             else:
                 re.sub(MD_LINK_PAT, convert_md_link, line)
 
                 if len(line) > 100:
                     new_lines = wrap(line)
-                    lines[i:i+1] = new_lines
+                    lines[i : i + 1] = new_lines
                     i += len(new_lines)
                     continue
         i += 1
     return lines
 
-def convert_md_section(start_pat: str, end_pat: str, section_name: str, section_tag: str, inclusive: Tuple[bool, bool] = (False, False)) -> VimdocSection:
+
+def convert_md_section(
+    start_pat: str,
+    end_pat: str,
+    section_name: str,
+    section_tag: str,
+    inclusive: Tuple[bool, bool] = (False, False),
+) -> VimdocSection:
     lines = read_section(README, start_pat, end_pat, inclusive)
     lines = convert_markdown_to_vimdoc(lines)
     return VimdocSection(section_name, section_tag, lines)
+
 
 def generate_vimdoc():
     doc = Vimdoc("overseer.txt", ["Overseer", "overseer", "overseer.nvim"])
     doc.sections.append(get_commands_vimdoc())
     doc.sections.append(get_options_vimdoc())
-    doc.sections.append(convert_md_section('^## Running tasks', '^#', 'Running tasks', 'overseer.run_tasks'))
+    doc.sections.append(
+        convert_md_section(
+            "^## Running tasks", "^#", "Running tasks", "overseer.run_tasks"
+        )
+    )
 
     with open(DOC, "w") as ofile:
         ofile.writelines(doc.render())
