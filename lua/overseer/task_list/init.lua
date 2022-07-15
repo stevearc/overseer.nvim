@@ -92,7 +92,7 @@ M.get_by_index = function(index)
 end
 
 ---@class overseer.ListTaskOpts
----@field unique? boolean Deduplicates tasks by name
+---@field unique? boolean Deduplicates non-running tasks by name
 ---@field name? string|string[]
 ---@field name_not? boolean
 ---@field status? overseer.Status|overseer.Status[]
@@ -130,7 +130,14 @@ M.list_tasks = function(opts)
     then
       local idx = seen[task.name]
       if idx and opts.unique then
-        ret[idx] = task
+        local prev = ret[idx]
+        if prev:is_running() and task:is_running() then
+          -- If both tasks are running, do not apply uniqueness
+          table.insert(ret, task)
+        elseif not prev:is_running() then
+          -- If the prev task is not running, overwrite it
+          ret[idx] = task
+        end
       else
         table.insert(ret, task)
         seen[task.name] = #ret

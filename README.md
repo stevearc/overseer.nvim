@@ -9,15 +9,16 @@ History will be overwritten once it's ready for release
 TODO screenshots
 
 - [ ] Integration with launch.json preLaunchTask for dap/dap-ui
-- [ ] More task providers: cmake, rake, jake
 - [ ] Allow declaring parsers with pure data
 - [ ] Customize keymaps in forms
+- [ ] error if try to load bundle but dir is missing
 
 Documentation TODOs
 
 - [ ] Documentation for parsers & parser debugging
 - [ ] Documentation for parser on result_exit_code
-- [ ] Remaining README todos
+- [ ] Document task list
+- [ ] Document alternatives
 - [ ] Document different ways to do task dependencies
 - [ ] Vimdoc generation should check for missing tags
 
@@ -383,7 +384,7 @@ require("lualine").setup({
         [overseer.STATUS.SUCCESS] = "S:",
         [overseer.STATUS.RUNNING] = "R:",
       },
-      unique = false,     -- Unique-ify task count by name
+      unique = false,     -- Unique-ify non-running task count by name
       name = nil,         -- List of task names to search for
       name_not = false,   -- When true, invert the name search
       status = nil,       -- List of task statuses to display
