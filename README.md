@@ -11,7 +11,6 @@ TODO screenshots
 - [ ] Integration with launch.json preLaunchTask for dap/dap-ui
 - [ ] Allow declaring parsers with pure data
 - [ ] Customize keymaps in forms
-- [ ] error if try to load bundle but dir is missing
 
 Documentation TODOs
 

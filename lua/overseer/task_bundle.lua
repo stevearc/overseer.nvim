@@ -51,6 +51,9 @@ end
 
 M.list_task_bundles = function()
   local bundle_dir = get_bundle_dir()
+  if not files.exists(bundle_dir) then
+    return {}
+  end
   local fd = vim.loop.fs_opendir(bundle_dir, nil, 32)
   local entries = vim.loop.fs_readdir(fd)
   local ret = {}
@@ -73,6 +76,10 @@ M.load_task_bundle = function(name)
   if name then
     local filepath = files.join(get_bundle_dir(), string.format("%s.bundle.json", name))
     local data = files.load_json_file(filepath)
+    if not data then
+      vim.notify(string.format("Could not find task bundle %s", name), vim.log.levels.ERROR)
+      return
+    end
     local count = 0
     for _, params in ipairs(data) do
       local ok, task = pcall(Task.new, params)
