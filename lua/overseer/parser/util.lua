@@ -49,7 +49,7 @@ end
 ---@param data table
 ---@return boolean
 M.is_parser = function(data)
-  if not type(data) == "table" then
+  if type(data) ~= "table" then
     return false
   end
   return data.ingest or (vim.tbl_islist(data) and type(data[1]) == "string")
