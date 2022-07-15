@@ -14,6 +14,14 @@ overseer	overseer.txt	/*overseer*
 overseer-commands	overseer.txt	/*overseer-commands*
 overseer-contents	overseer.txt	/*overseer-contents*
 overseer-options	overseer.txt	/*overseer-options*
+overseer.actions	overseer.txt	/*overseer.actions*
+overseer.components	overseer.txt	/*overseer.components*
 overseer.nvim	overseer.txt	/*overseer.nvim*
+overseer.params	overseer.txt	/*overseer.params*
 overseer.run_tasks	overseer.txt	/*overseer.run_tasks*
+overseer.task-result	overseer.txt	/*overseer.task-result*
+overseer.tasks	overseer.txt	/*overseer.tasks*
+overseer.template-providers	overseer.txt	/*overseer.template-providers*
+overseer.templates	overseer.txt	/*overseer.templates*
 overseer.txt	overseer.txt	/*overseer.txt*
+task	overseer.txt	/*task*

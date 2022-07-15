@@ -18,7 +18,6 @@ Documentation TODOs
 - [ ] Documentation for parsers & parser debugging
 - [ ] Documentation for parser on result_exit_code
 - [ ] Remaining README todos
-- [ ] Vim help docs
 - [ ] Document different ways to do task dependencies
 
 ---
@@ -225,7 +224,7 @@ require("overseer").setup({
       ["}"] = "NextTask",
     },
   },
-  -- TODO: explain these
+  -- See :help overseer.actions
   actions = {},
   -- Configure the floating window used for task templates that require input
   -- and the floating window used for editing tasks
@@ -495,7 +494,7 @@ The definition of a template looks like this:
   -- Tags can be used in overseer.run_template()
   tags = {overseer.TAG.BUILD},
   params = {
-    -- TODO
+    -- See :help overseer.params
   },
   -- Determines sort order when choosing tasks. Lower comes first.
   priority = 50,
@@ -582,7 +581,7 @@ return {
   desc = "Include a description of your component",
   -- Define parameters that can be passed in to the component
   params = {
-    -- TODO
+    -- See :help overseer.params
   },
   -- Optional, default true. Set to false to disallow editing this component in the task editor
   editable = true,

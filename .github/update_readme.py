@@ -79,7 +79,7 @@ def read_section(
 
 
 def read_nvim_json(lua: str) -> Any:
-    cmd = f"""nvim --headless --noplugin -u /dev/null -c 'set runtimepath+=.' -c 'lua print(vim.json.encode({lua}))' +qall"""
+    cmd = f"nvim --headless --noplugin -u /dev/null -c 'set runtimepath+=.' -c 'lua print(vim.json.encode({lua}))' +qall"
     print(cmd)
     code, txt = subprocess.getstatusoutput(cmd)
     if code != 0:
@@ -232,6 +232,7 @@ def get_commands_vimdoc() -> "VimdocSection":
             cmd += " " + command["args"]
         section.body.append(leftright(cmd, f"*:{command['cmd']}*"))
         section.body.extend(wrap(command["def"]["desc"], 4))
+        section.body.append("\n")
     return section
 
 
@@ -244,6 +245,14 @@ def get_options_vimdoc() -> "VimdocSection":
     lines.extend(["    })\n", "<\n"])
     section.body = lines
     return section
+
+
+def trim_newlines(lines: List[str]) -> List[str]:
+    while lines and lines[0] == "\n":
+        lines.pop(0)
+    while lines and lines[-1] == "\n":
+        lines.pop()
+    return lines
 
 
 class VimdocSection:
@@ -270,7 +279,9 @@ class VimdocSection:
             leftright(self.name.upper(), f"*{self.tag}*", self.width),
             "\n",
         ]
-        return lines + self.get_body() + ["\n"]
+        lines.extend(trim_newlines(self.get_body()))
+        lines.append("\n")
+        return lines
 
 
 class VimdocToc(VimdocSection):
@@ -283,7 +294,7 @@ class VimdocToc(VimdocSection):
         lines = []
         for i, (name, tag) in enumerate(self.entries):
             left = self.padding * " " + f"{i+1}. {name.capitalize()}"
-            tag_start = self.width - 2 * self.padding - len(tag)
+            tag_start = self.width - 2 * self.padding - vimlen(tag)
             lines.append(left.ljust(tag_start, ".") + f"|{tag}|\n")
         return lines
 
@@ -291,7 +302,7 @@ class VimdocToc(VimdocSection):
 class Vimdoc:
     def __init__(self, filename: str, tags: List[str], width: int = 80):
         self.prefix = [f"*{filename}*\n", " ".join(f"*{tag}*" for tag in tags) + "\n"]
-        self.sections = []
+        self.sections: List[VimdocSection] = []
         self.width = width
 
     def render(self) -> List[str]:
@@ -302,18 +313,22 @@ class Vimdoc:
             toc.entries.append((section.name, section.tag))
             body.extend(section.render())
         body.append(self.width * "=" + "\n")
-        body.append("vim:ft=help:et:ts=2:sw=2:sts=2:norl\n")
+        body.append("vim:tw=80:ts=2:ft=help:norl:syntax=help:\n")
         return header + toc.render() + body
 
 
 def convert_md_link(match):
-    dest = match[1]
+    text = match[1]
+    dest = match[2]
     if dest.startswith("#"):
         return f"|{dest[1:]}|"
-    return "FIXME_LINK"
+    else:
+        return text
 
 
-MD_LINK_PAT = re.compile(r"\[[^\]]+\]\(([^\)]+)\)")
+MD_LINK_PAT = re.compile(r"\[([^\]]+)\]\(([^\)]+)\)")
+MD_BOLD_PAT = re.compile(r"\*\*([^\*]+)\*\*")
+MD_LINE_BREAK_PAT = re.compile(r"\s*\\$")
 
 
 def convert_markdown_to_vimdoc(lines: List[str]) -> List[str]:
@@ -335,13 +350,17 @@ def convert_markdown_to_vimdoc(lines: List[str]) -> List[str]:
             if code_block:
                 lines[i] = 4 * " " + line
             else:
-                re.sub(MD_LINK_PAT, convert_md_link, line)
+                line = MD_LINK_PAT.sub(convert_md_link, line)
+                line = MD_BOLD_PAT.sub(lambda x: x[1], line)
+                line = MD_LINE_BREAK_PAT.sub("", line)
 
-                if len(line) > 100:
+                if len(line) > 80:
                     new_lines = wrap(line)
                     lines[i : i + 1] = new_lines
                     i += len(new_lines)
                     continue
+                else:
+                    lines[i] = line
         i += 1
     return lines
 
@@ -360,15 +379,39 @@ def convert_md_section(
 
 def generate_vimdoc():
     doc = Vimdoc("overseer.txt", ["Overseer", "overseer", "overseer.nvim"])
-    doc.sections.append(get_commands_vimdoc())
-    doc.sections.append(get_options_vimdoc())
-    doc.sections.append(
-        convert_md_section(
-            "^## Running tasks", "^#", "Running tasks", "overseer.run_tasks"
-        )
+    doc.sections.extend(
+        [
+            get_commands_vimdoc(),
+            get_options_vimdoc(),
+            convert_md_section(
+                "^## Running tasks", "^#", "Running tasks", "overseer.run_tasks"
+            ),
+            convert_md_section("^### Custom tasks", "^#", "Tasks", "overseer.tasks"),
+            convert_md_section(
+                "^#### Template definition", "^#", "Templates", "overseer.templates"
+            ),
+            convert_md_section(
+                "^#### Template providers",
+                "^#",
+                "Template providers",
+                "overseer.template-providers",
+            ),
+            convert_md_section("^### Actions", "^#", "Actions", "overseer.actions"),
+            convert_md_section(
+                "^### Custom components", "^#", "Components", "overseer.components"
+            ),
+            convert_md_section(
+                "^#### Task result", "^#", "Task result", "overseer.task-result"
+            ),
+            convert_md_section(
+                "^### Parameters", "^#", "Parameters", "overseer.params"
+            ),
+            # TODO highlights
+        ]
     )
 
-    with open(DOC, "w") as ofile:
+    # TODO check for missing tags
+    with open(DOC, "w", encoding="utf-8") as ofile:
         ofile.writelines(doc.render())
 
 
