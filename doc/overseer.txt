@@ -5,14 +5,15 @@ CONTENTS                                                       *overseer-content
 
   1. Commands..............................................|overseer-commands|
   2. Options................................................|overseer-options|
-  3. Running tasks........................................|overseer.run_tasks|
-  4. Tasks....................................................|overseer.tasks|
-  5. Templates............................................|overseer.templates|
-  6. Template providers..........................|overseer.template-providers|
-  7. Actions................................................|overseer.actions|
-  8. Components..........................................|overseer.components|
-  9. Task result........................................|overseer.task-result|
-  10. Parameters.............................................|overseer.params|
+  3. Running tasks........................................|overseer-run-tasks|
+  4. Tasks....................................................|overseer-tasks|
+  5. Templates............................................|overseer-templates|
+  6. Template providers..........................|overseer-template-providers|
+  7. Actions................................................|overseer-actions|
+  8. Components..........................................|overseer-components|
+  9. Task result........................................|overseer-task-result|
+  10. Parameters.............................................|overseer-params|
+  11. Highlights.........................................|overseer-highlights|
 
 --------------------------------------------------------------------------------
 COMMANDS                                                       *overseer-commands*
@@ -176,7 +177,7 @@ OPTIONS                                                         *overseer-option
 <
 
 --------------------------------------------------------------------------------
-RUNNING TASKS                                                 *overseer.run_tasks*
+RUNNING TASKS                                                 *overseer-run-tasks*
 
 The easiest way to select and run a task is `:OverseerRun`. This will open a
 `vim.ui.select` dialog and allow the user to select a task. Once selected, if
@@ -206,7 +207,7 @@ call `overseer.run_template` directly. Some examples:
 <
 
 --------------------------------------------------------------------------------
-TASKS                                                             *overseer.tasks*
+TASKS                                                             *overseer-tasks*
 
 There are two ways to define a task for overseer.
 
@@ -243,7 +244,7 @@ can create an alias module. For example, put the following into
 This is how `builtin` references all of the different built-in templates.
 
 --------------------------------------------------------------------------------
-TEMPLATES                                                     *overseer.templates*
+TEMPLATES                                                     *overseer-templates*
 
 The definition of a template looks like this:
 
@@ -285,7 +286,7 @@ The definition of a template looks like this:
 <
 
 --------------------------------------------------------------------------------
-TEMPLATE PROVIDERS                                   *overseer.template-providers*
+TEMPLATE PROVIDERS                                   *overseer-template-providers*
 
 Template providers are used to generate multiple templates dynamically. The main
 use case is generating one task per target (e.g. for a makefile), but can be
@@ -311,7 +312,7 @@ as follows:
 <
 
 --------------------------------------------------------------------------------
-ACTIONS                                                         *overseer.actions*
+ACTIONS                                                         *overseer-actions*
 
 Actions can be performed on tasks by using the `RunAction` keybinding in the
 task list, or by the `OverseerQuickAction` and `OverseerTaskAction` commands.
@@ -347,7 +348,7 @@ setup():
 <
 
 --------------------------------------------------------------------------------
-COMPONENTS                                                   *overseer.components*
+COMPONENTS                                                   *overseer-components*
 
 When components are passed to a task (either from a template or a component
 alias), they can be specified as either a raw string (e.g. `"dispose_delay"`) or
@@ -445,7 +446,7 @@ The component definition should look like the following example:
 <
 
 --------------------------------------------------------------------------------
-TASK RESULT                                                 *overseer.task-result*
+TASK RESULT                                                 *overseer-task-result*
 
 A note on the Task result table: there is technically no schema for it, as the
 only things that interact with it are components and actions. However, there are
@@ -457,7 +458,7 @@ error: This key will be set when there is an internal overseer error when
 running the task
 
 --------------------------------------------------------------------------------
-PARAMETERS                                                       *overseer.params*
+PARAMETERS                                                       *overseer-params*
 
 Parameters are a schema-defined set of options. They are used by both
 |components| and |templates| to expose customization options.
@@ -511,6 +512,39 @@ The following types are available:
       type = "opaque"
     }
 <
+
+--------------------------------------------------------------------------------
+HIGHLIGHTS                                                   *overseer-highlights*
+
+OverseerPENDING                                               *hl-OverseerPENDING*
+    Pending tasks
+
+OverseerRUNNING                                               *hl-OverseerRUNNING*
+    Running tasks
+
+OverseerSUCCESS                                               *hl-OverseerSUCCESS*
+    Succeeded tasks
+
+OverseerCANCELED                                             *hl-OverseerCANCELED*
+    Canceled tasks
+
+OverseerFAILURE                                               *hl-OverseerFAILURE*
+    Failed tasks
+
+OverseerTask                                                     *hl-OverseerTask*
+    Used to render the name of a task or template
+
+OverseerTaskBorder                                         *hl-OverseerTaskBorder*
+    The separator in the task list
+
+OverseerOutput                                                 *hl-OverseerOutput*
+    The output summary in the task list
+
+OverseerComponent                                           *hl-OverseerComponent*
+    The name of a component in the task list or task editor
+
+OverseerField                                                   *hl-OverseerField*
+    The name of a field in the task or template editor
 
 ================================================================================
 vim:tw=80:ts=2:ft=help:norl:syntax=help:

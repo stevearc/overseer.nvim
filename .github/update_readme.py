@@ -181,15 +181,44 @@ def update_commands_md():
         rows.append(
             {
                 "Command": "`" + cmd + "`",
-                "arg": command.get("args", ""),
-                "description": command["def"]["desc"],
+                "Args": command.get("args", ""),
+                "Description": command["def"]["desc"],
             }
         )
-    lines.extend(format_md_table(rows, ["Command", "arg", "description"]))
+    lines.extend(format_md_table(rows, ["Command", "Args", "Description"]))
     lines.append("\n")
     replace_section(
         README,
         r"^## Commands",
+        r"^#",
+        lines,
+    )
+
+
+def update_highlights_md():
+    highlights = read_nvim_json('require("overseer").get_all_highlights()')
+    lines = [
+        "\n",
+        "Overseer defines the following highlights override them to customize the colors.\n",
+        "\n",
+    ]
+    rows = []
+    for hl in highlights:
+        name = hl["cmd"]
+        desc = hl.get("desc")
+        if desc is None:
+            continue
+        rows.append(
+            {
+                "Group": "`" + name + "`",
+                "Description": desc,
+            }
+        )
+    lines.extend(format_md_table(rows, ["Command", "Description"]))
+    lines.append("\n")
+    replace_section(
+        README,
+        r"^## Highlights",
         r"^#",
         lines,
     )
@@ -244,6 +273,20 @@ def get_options_vimdoc() -> "VimdocSection":
     lines.extend(indent(opt_lines, 4))
     lines.extend(["    })\n", "<\n"])
     section.body = lines
+    return section
+
+
+def get_highlights_vimdoc() -> "VimdocSection":
+    section = VimdocSection("Highlights", "overseer-highlights", ["\n"])
+    highlights = read_nvim_json('require("overseer").get_all_highlights()')
+    for hl in highlights:
+        name = hl["name"]
+        desc = hl.get("desc")
+        if desc is None:
+            continue
+        section.body.append(leftright(name, f"*hl-{name}*"))
+        section.body.extend(wrap(desc, 4))
+        section.body.append("\n")
     return section
 
 
@@ -384,29 +427,29 @@ def generate_vimdoc():
             get_commands_vimdoc(),
             get_options_vimdoc(),
             convert_md_section(
-                "^## Running tasks", "^#", "Running tasks", "overseer.run_tasks"
+                "^## Running tasks", "^#", "Running tasks", "overseer-run-tasks"
             ),
-            convert_md_section("^### Custom tasks", "^#", "Tasks", "overseer.tasks"),
+            convert_md_section("^### Custom tasks", "^#", "Tasks", "overseer-tasks"),
             convert_md_section(
-                "^#### Template definition", "^#", "Templates", "overseer.templates"
+                "^#### Template definition", "^#", "Templates", "overseer-templates"
             ),
             convert_md_section(
                 "^#### Template providers",
                 "^#",
                 "Template providers",
-                "overseer.template-providers",
+                "overseer-template-providers",
             ),
-            convert_md_section("^### Actions", "^#", "Actions", "overseer.actions"),
+            convert_md_section("^### Actions", "^#", "Actions", "overseer-actions"),
             convert_md_section(
-                "^### Custom components", "^#", "Components", "overseer.components"
-            ),
-            convert_md_section(
-                "^#### Task result", "^#", "Task result", "overseer.task-result"
+                "^### Custom components", "^#", "Components", "overseer-components"
             ),
             convert_md_section(
-                "^### Parameters", "^#", "Parameters", "overseer.params"
+                "^#### Task result", "^#", "Task result", "overseer-task-result"
             ),
-            # TODO highlights
+            convert_md_section(
+                "^### Parameters", "^#", "Parameters", "overseer-params"
+            ),
+            get_highlights_vimdoc(),
         ]
     )
 

@@ -19,6 +19,7 @@ Documentation TODOs
 - [ ] Documentation for parser on result_exit_code
 - [ ] Remaining README todos
 - [ ] Document different ways to do task dependencies
+- [ ] Vimdoc generation should check for missing tags
 
 ---
 
@@ -310,7 +311,7 @@ require("overseer").setup({
 
 ## Commands
 
-| Command                | arg           | description                                                         |
+| Command                | Args          | Description                                                         |
 | ---------------------- | ------------- | ------------------------------------------------------------------- |
 | `OverseerOpen[!]`      | `left/right`  | Open the overseer window. With `!` cursor stays in current window   |
 | `OverseerClose`        |               | Close the overseer window                                           |

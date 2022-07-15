@@ -17,22 +17,9 @@ local function do_setup()
   pending_opts = nil
   local util = require("overseer.util")
   local success_color = util.find_success_color()
-  vim.cmd(string.format(
-    [[
-    hi default link OverseerPENDING Normal
-    hi default link OverseerRUNNING Constant
-    hi default link OverseerSUCCESS %s
-    hi default link OverseerCANCELED DiagnosticWarn
-    hi default link OverseerFAILURE DiagnosticError
-    hi default link OverseerDISPOSED Comment
-    hi default link OverseerTask Title
-    hi default link OverseerTaskBorder FloatBorder
-    hi default link OverseerOutput Normal
-    hi default link OverseerComponent Constant
-    hi default link OverseerField Keyword
-  ]],
-    success_color
-  ))
+  for _, hl in ipairs(M.get_all_highlights()) do
+    vim.cmd(string.format("hi default link %s %s", hl.name, hl.default))
+  end
   local aug = vim.api.nvim_create_augroup("Overseer", {})
   if config.auto_detect_success_color then
     vim.api.nvim_create_autocmd("ColorScheme", {
@@ -318,6 +305,42 @@ M.get_all_commands = function()
     end
   end
   return cmds
+end
+
+---Used for documentation generation
+---@private
+M.get_all_highlights = function()
+  local util = require("overseer.util")
+  local success_color = util.find_success_color()
+  return {
+    { name = "OverseerPENDING", default = "Normal", desc = "Pending tasks" },
+    { name = "OverseerRUNNING", default = "Constant", desc = "Running tasks" },
+    { name = "OverseerSUCCESS", default = success_color, desc = "Succeeded tasks" },
+    { name = "OverseerCANCELED", default = "DiagnosticWarn", desc = "Canceled tasks" },
+    { name = "OverseerFAILURE", default = "DiagnosticError", desc = "Failed tasks" },
+    { name = "OverseerDISPOSED", default = "Comment" },
+    {
+      name = "OverseerTask",
+      default = "Title",
+      desc = "Used to render the name of a task or template",
+    },
+    {
+      name = "OverseerTaskBorder",
+      default = "FloatBorder",
+      desc = "The separator in the task list",
+    },
+    { name = "OverseerOutput", default = "Normal", desc = "The output summary in the task list" },
+    {
+      name = "OverseerComponent",
+      default = "Constant",
+      desc = "The name of a component in the task list or task editor",
+    },
+    {
+      name = "OverseerField",
+      default = "Keyword",
+      desc = "The name of a field in the task or template editor",
+    },
+  }
 end
 
 return M
