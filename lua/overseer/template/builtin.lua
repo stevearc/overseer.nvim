@@ -1,1 +1,1 @@
-return { "make", "npm", "tox", "vscode" }
+return { "cargo", "make", "npm", "tox", "vscode" }

@@ -256,12 +256,9 @@ M.run_action = lazy("action_util", "run_task_action")
 M.wrap_template = function(base, override, default_params)
   override = override or {}
   if default_params then
-    override.builder = function(_, params)
-      params = params or {}
-      for k, v in pairs(default_params) do
-        params[k] = v
-      end
-      return base.builder(params)
+    override.params = vim.deepcopy(base.params)
+    for k, v in pairs(default_params) do
+      override.params[k].default = v
     end
   end
   return setmetatable(override, { __index = base })
