@@ -112,7 +112,7 @@ end
 local commands = {
   {
     cmd = "OverseerOpen",
-    args = "`left` | `right`",
+    args = "`left/right`",
     func = "_open",
     def = {
       desc = "Open the overseer window. With `!` cursor stays in current window",
@@ -134,7 +134,7 @@ local commands = {
   },
   {
     cmd = "OverseerToggle",
-    args = "`left` | `right`",
+    args = "`left/right`",
     func = "_toggle",
     def = {
       desc = "Toggle the overseer window. With `!` cursor stays in current window",

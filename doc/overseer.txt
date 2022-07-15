@@ -17,13 +17,13 @@ CONTENTS                                                       *overseer-content
 --------------------------------------------------------------------------------
 COMMANDS                                                       *overseer-commands*
 
-OverseerOpen[!] `left` | `right`                                       *:OverseerOpen*
+OverseerOpen[!] `left/right`                                         *:OverseerOpen*
     Open the overseer window. With `!` cursor stays in current window
 
 OverseerClose                                                     *:OverseerClose*
     Close the overseer window
 
-OverseerToggle[!] `left` | `right`                                   *:OverseerToggle*
+OverseerToggle[!] `left/right`                                     *:OverseerToggle*
     Toggle the overseer window. With `!` cursor stays in current window
 
 OverseerSaveBundle `[name]`                                    *:OverseerSaveBundle*
