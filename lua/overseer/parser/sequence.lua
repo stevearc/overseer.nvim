@@ -1,21 +1,23 @@
 local parser = require("overseer.parser")
 local util = require("overseer.util")
+local parser_util = require("overseer.parser.util")
 local Sequence = {}
 
 function Sequence.new(opts, ...)
   local children
-  if opts.ingest then
+  if parser_util.is_parser(opts) then
+    -- No opts, children passed in as args
     children = util.pack(opts, ...)
     opts = {}
-  elseif vim.tbl_islist(opts) then
-    -- children are passed in as a list
+  elseif parser_util.tbl_is_parser_list(opts) then
+    -- No opts, children are passed in as a list
     children = opts
     opts = {}
   else
     if select("#", ...) == 1 then
       local arg1 = select(1, ...)
       -- we got opts, and children are passed in as a list
-      if vim.tbl_islist(arg1) then
+      if parser_util.tbl_is_parser_list(arg1) then
         children = arg1
       end
     end
@@ -37,7 +39,7 @@ function Sequence.new(opts, ...)
     any_failures = false,
     break_on_first_success = opts.break_on_first_success,
     break_on_first_failure = opts.break_on_first_failure,
-    children = children,
+    children = parser_util.hydrate_list(children),
   }, { __index = Sequence })
 end
 

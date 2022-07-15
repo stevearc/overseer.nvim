@@ -1,3 +1,5 @@
+---@mod overseer.parser.debug
+---Provides an environment for writing and debugging parsers
 local files = require("overseer.files")
 local parser = require("overseer.parser")
 local M = {}

@@ -1,9 +1,10 @@
 local parser = require("overseer.parser")
+local util = require("overseer.parser.util")
 local Invert = {}
 
 function Invert.new(child)
   return setmetatable({
-    child = child,
+    child = util.hydrate(child),
   }, { __index = Invert })
 end
 

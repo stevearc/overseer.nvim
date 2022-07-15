@@ -585,3 +585,20 @@ describe("parser", function()
     }, result)
   end)
 end)
+
+describe("deserialize", function()
+  it("creates parser from raw data passed in", function()
+    local p = parser.new({
+      { "always", { "invert", { "extract", { consume = true }, "apple", "fruit" } } },
+    })
+    p:ingest({
+      "foo",
+      "bar",
+      "apple",
+    })
+    local result = p:get_result()
+    assert.are.same({
+      { fruit = "apple" },
+    }, result)
+  end)
+end)

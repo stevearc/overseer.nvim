@@ -15,6 +15,18 @@ local function add_trace(id, action)
   end
 end
 
+---@class overseer.Parser
+---@field reset fun(self: overseer.Parser)
+---@field ingest fun(self: overseer.Parser, lines: string[])
+---@field subscribe fun(self: overseer.Parser, callback: fun(key: string, value: any))
+---@field unsubscribe fun(self: overseer.Parser, callback: fun(key: string, value: any))
+---@field get_result fun(self: overseer.Parser): table
+---@field get_remainder fun(self: overseer.Parser): table
+
+---@class overseer.ParserNode
+---@field ingest fun(self: overseer.ParserNode, line: string, ctx: table): overseer.ParserStatus
+---@field reset fun()
+
 setmetatable(M, {
   __index = function(_, key)
     local constructor = require(string.format("overseer.parser.%s", key))
@@ -46,12 +58,17 @@ setmetatable(M, {
   end,
 })
 
+---@alias overseer.ParserStatus "RUNNING"|"SUCCESS"|"FAILURE"
+
 M.STATUS = Enum.new({
   "RUNNING",
   "SUCCESS",
   "FAILURE",
 })
 
+---@class overseer.ListParser : overseer.Parser
+---@field tree overseer.ParserNode
+---@field subs fun(key: string, value: any)[]
 local ListParser = {}
 
 function ListParser.new(children)
@@ -105,6 +122,11 @@ function ListParser:get_remainder()
   end
 end
 
+---@class overseer.MapParser : overseer.Parser
+---@field children table<string, overseer.ParserNode>
+---@field results table<string, table>
+---@field items table<string, table>
+---@field subs fun(key: string, value: any)[]
 local MapParser = {}
 
 function MapParser.new(children)
@@ -176,72 +198,8 @@ function MapParser:get_remainder()
   end
 end
 
-local CustomParser = {}
-
-function CustomParser.new(config)
-  vim.validate({
-    ingest = { config._ingest, "f" },
-    reset = { config._reset, "f", true },
-    get_remainder = { config._get_remainder, "f", true },
-  })
-  config.results = {}
-  config.subs = {}
-  return setmetatable(config, { __index = CustomParser })
-end
-
-function CustomParser:reset()
-  self.results = {}
-  if self._reset then
-    self:_reset()
-  end
-end
-
-function CustomParser:ingest(lines)
-  local num_results = #self.results
-  local map_count
-  if not vim.tbl_islist(self.results) then
-    map_count = {}
-    for k, v in pairs(self.results) do
-      map_count[k] = #v
-    end
-  end
-  self:_ingest(lines)
-  if vim.tbl_islist(self.results) then
-    for i = num_results + 1, #self.results do
-      local result = self.results[i]
-      for _, cb in ipairs(self.subs) do
-        cb("", result)
-      end
-    end
-  else
-    for k, v in pairs(self.results) do
-      for i = map_count and map_count[k] or 1, #v do
-        for _, cb in ipairs(self.subs) do
-          cb(k, v[i])
-        end
-      end
-    end
-  end
-end
-
-function CustomParser:subscribe(callback)
-  table.insert(self.subs, callback)
-end
-
-function CustomParser:unsubscribe(callback)
-  util.tbl_remove(self.subs, callback)
-end
-
-function CustomParser:get_result()
-  return self.results
-end
-
-function CustomParser:get_remainder()
-  if self._get_remainder then
-    return self:_get_remainder()
-  end
-end
-
+---@param config table
+---@return overseer.Parser
 M.new = function(config)
   vim.validate({
     config = { config, "t" },
@@ -255,17 +213,12 @@ M.new = function(config)
   end
 end
 
-M.custom = function(config)
-  vim.validate({
-    config = { config, "t" },
-  })
-  return CustomParser.new(config)
-end
-
+---@param enabled boolean
 M.trace = function(enabled)
   debug = enabled
 end
 
+---@return boolean
 M.get_trace = function()
   return trace
 end

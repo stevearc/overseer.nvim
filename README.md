@@ -9,7 +9,6 @@ History will be overwritten once it's ready for release
 TODO screenshots
 
 - [ ] Integration with launch.json preLaunchTask for dap/dap-ui
-- [ ] Allow declaring parsers with pure data
 - [ ] Customize keymaps in forms
 
 Documentation TODOs

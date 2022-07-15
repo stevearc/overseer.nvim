@@ -3,13 +3,13 @@ local Inline = {}
 function Inline.new(callback, reset)
   return setmetatable({
     callback = callback,
-    reset = reset,
+    reset_fn = reset,
   }, { __index = Inline })
 end
 
 function Inline:reset()
-  if self.reset then
-    self.reset()
+  if self.reset_fn then
+    self.reset_fn()
   end
 end
 

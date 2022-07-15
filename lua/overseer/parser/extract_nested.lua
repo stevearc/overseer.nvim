@@ -1,4 +1,5 @@
 local parser = require("overseer.parser")
+local util = require("overseer.parser.util")
 local ExtractNested = {}
 
 function ExtractNested.new(opts, field, child)
@@ -12,7 +13,7 @@ function ExtractNested.new(opts, field, child)
     fail_on_empty = true,
   })
   return setmetatable({
-    child = child,
+    child = util.hydrate(child),
     field = field,
     append = opts.append,
     fail_on_empty = opts.fail_on_empty,

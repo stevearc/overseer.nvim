@@ -355,6 +355,19 @@ end
 
 ---@generic T : any
 ---@param list T[]
+---@param cb fun(item: T): boolean
+---@return boolean
+M.list_all = function(list, cb)
+  for _, v in ipairs(list) do
+    if not cb(v) then
+      return false
+    end
+  end
+  return true
+end
+
+---@generic T : any
+---@param list T[]
 ---@param key string
 ---@return table<string, T>
 M.tbl_group_by = function(list, key)

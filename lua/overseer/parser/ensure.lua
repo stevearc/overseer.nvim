@@ -1,4 +1,5 @@
 local parser = require("overseer.parser")
+local util = require("overseer.parser.util")
 local Ensure = {}
 
 local MAX_LOOP = 2
@@ -9,7 +10,7 @@ function Ensure.new(succeed, child)
     succeed = true
   end
   return setmetatable({
-    child = child,
+    child = util.hydrate(child),
     succeed = succeed,
   }, { __index = Ensure })
 end

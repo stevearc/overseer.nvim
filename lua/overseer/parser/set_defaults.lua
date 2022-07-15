@@ -1,3 +1,4 @@
+local util = require("overseer.parser.util")
 local SetDefaults = {}
 
 function SetDefaults.new(opts, child)
@@ -20,7 +21,7 @@ function SetDefaults.new(opts, child)
     default_values = opts.values,
     hoist_item = opts.hoist_item,
     current_defaults = nil,
-    child = child,
+    child = util.hydrate(child),
   }, { __index = SetDefaults })
 end
 

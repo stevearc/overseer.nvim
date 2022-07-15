@@ -1,4 +1,5 @@
 local parser = require("overseer.parser")
+local util = require("overseer.parser.util")
 local Loop = {}
 
 local MAX_LOOP = 2
@@ -17,7 +18,7 @@ function Loop.new(opts, child)
     repetitions = opts.repetitions,
     count = 0,
     done = nil,
-    child = child,
+    child = util.hydrate(child),
   }, { __index = Loop })
 end
 

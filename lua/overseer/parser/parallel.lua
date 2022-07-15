@@ -1,10 +1,11 @@
 local parser = require("overseer.parser")
 local util = require("overseer.util")
+local parser_util = require("overseer.parser.util")
 local Parallel = {}
 
 function Parallel.new(opts, ...)
   local children
-  if opts.ingest then
+  if parser_util.is_parser(opts) then
     children = util.pack(opts, ...)
     opts = {}
   else
@@ -24,7 +25,7 @@ function Parallel.new(opts, ...)
     break_on_first_success = opts.break_on_first_success,
     break_on_first_failure = opts.break_on_first_failure,
     restart_children = opts.restart_children,
-    children = children,
+    children = parser_util.hydrate_list(children),
   }, { __index = Parallel })
 end
 

@@ -1,4 +1,5 @@
 local parser = require("overseer.parser")
+local util = require("overseer.parser.util")
 local Always = {}
 
 function Always.new(succeed, child)
@@ -7,7 +8,7 @@ function Always.new(succeed, child)
     succeed = true
   end
   return setmetatable({
-    child = child,
+    child = util.hydrate(child),
     succeed = succeed,
   }, { __index = Always })
 end
