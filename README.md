@@ -30,6 +30,7 @@ Documentation TODOs
 - [Commands](#commands)
 - [Running tasks](#running-tasks)
 - [Task list](#task-list)
+- [Task editor](#task-editor)
 - [Third-party integrations](#third-party-integrations)
   - [Lualine](#lualine)
   - [Neotest](#neotest)
