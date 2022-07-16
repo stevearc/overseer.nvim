@@ -84,7 +84,7 @@ end
 M.open_fullscreen_float = function(bufnr)
   local conf = config.task_win
   local width = M.get_editor_width() - 2 - 2 * conf.padding
-  local height = M.get_editor_height() - 2 * conf.padding
+  local height = M.get_editor_height() - 2 - 2 * conf.padding
   local row = conf.padding
   local col = conf.padding
   local winid = vim.api.nvim_open_win(bufnr, true, {
