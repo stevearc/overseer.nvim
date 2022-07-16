@@ -139,7 +139,7 @@ function Task:render(lines, highlights, detail)
     self.strategy:render(lines, highlights, detail)
   end
 
-  if detail > 1 then
+  if detail > 1 and self.cmd then
     local cmd_str = type(self.cmd) == "string" and self.cmd or table.concat(self.cmd, " ")
     table.insert(lines, cmd_str)
   end

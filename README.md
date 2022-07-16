@@ -15,9 +15,11 @@ Documentation TODOs
 
 - [ ] Documentation for parsers & parser debugging
 - [ ] Documentation for parser on result_exit_code
-- [ ] Document task list
+- [ ] screenshot task list
+- [ ] screenshot task editor
 - [ ] Document alternatives
 - [ ] Document different ways to do task dependencies
+- [ ] Vimdoc generation for components
 - [ ] Vimdoc generation should check for missing tags
 
 ---
@@ -351,7 +353,36 @@ overseer.run_template({name = "npm watch", prompt = "always"})
 
 ## Task list
 
-TODO
+TODO screenshot
+
+Control the task list with `:OverseerOpen`, `:OverseerClose`, and `:OverseerToggle`.
+
+The task list displays all tasks that have been created. It shows the task status, name, and a
+summary of the task output (controlled by the `on_output_summarize` component). You can show more or
+less detail for a single task with `<C-l>` and `<C-h>` (by default), or for all tasks with `L` and
+`H`.
+
+`?` will show you a list of all the keybindings, and `<CR>` will open up a menu of all
+[actions](#actions) that you can perform on the selected task.
+
+When a task is disposed, it will be removed from the task list. By default, tasks will be disposed 5
+minutes after they finish running (controlled by the `dispose_delay` component).
+
+## Task editor
+
+TODO screenshot
+
+The task editor allows you to change the components on a task by hand. You shouldn't need to do this
+often (if you find yourself frequently making the same edits, consider turning that into an
+[action](#actions)), but it can be useful for experimentation and tweaking values on the fly.
+
+There are two ways to get to the task editor: `:OverseerBuild` will open it on a new task, and for
+existing tasks (that are not running) you can use the `edit` action.
+
+For the most part you can edit the values like a normal buffer, but there is a lot of magic involved
+to produce a "form-like" experience. For enum fields, you can autocomplete the possible values with
+omnicomplete (`<C-x><C-o>`). To delete a component, just delete its name (`dd` works fine). To add a
+new component, create a blank line (I typically use `o`)
 
 ## Third-party integrations
 
