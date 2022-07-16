@@ -565,6 +565,14 @@ overseer.setup({
     -- Disable built-in actions by setting them to 'false'
     watch = false,
   },
+  -- You can optionally add keymaps to run your action in the task list
+  -- It will always be available in the "RunAction" menu, but it may be
+  -- worth mapping it directly if you use it often.
+  task_list = {
+    bindings = {
+      ['P'] = '<CMD>OverseerQuickAction My custom action<CR>',
+    }
+  }
 })
 ```
 

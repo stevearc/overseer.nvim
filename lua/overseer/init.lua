@@ -192,7 +192,7 @@ local commands = {
     func = "_quick_action",
     def = {
       nargs = "?",
-      desc = "Run an action on the most recent task",
+      desc = "Run an action on the most recent task, or the task under the cursor",
     },
   },
   {

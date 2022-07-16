@@ -20,7 +20,10 @@ end
 ---@param prefix string
 M.create_bindings_to_plug = function(bufnr, bindings, prefix)
   for lhs, rhs in pairs(bindings) do
-    rhs = "<Plug>" .. prefix .. rhs
+    -- Prefix with <Plug> unless this is a <Cmd> or :Cmd mapping
+    if type(rhs) == "string" and not rhs:match("[<:]") then
+      rhs = "<Plug>" .. prefix .. rhs
+    end
     vim.keymap.set("n", lhs, rhs, { buffer = bufnr, remap = true })
   end
 end
