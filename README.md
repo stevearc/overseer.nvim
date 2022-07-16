@@ -16,7 +16,6 @@ Documentation TODOs
 - [ ] Documentation for parsers & parser debugging
 - [ ] Documentation for parser on result_exit_code
 - [ ] screenshot task list
-- [ ] screenshot task editor
 - [ ] Document alternatives
 - [ ] Document different ways to do task dependencies
 - [ ] Vimdoc generation for components
@@ -370,7 +369,7 @@ minutes after they finish running (controlled by the `dispose_delay` component).
 
 ## Task editor
 
-TODO screenshot
+<img width="515" alt="Screen Shot 2022-07-16 at 9 57 43 AM" src="https://user-images.githubusercontent.com/506791/179364674-526c8cbc-0cd8-48b0-ad68-3140c10178eb.png">
 
 The task editor allows you to change the components on a task by hand. You shouldn't need to do this
 often (if you find yourself frequently making the same edits, consider turning that into an
