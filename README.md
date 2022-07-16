@@ -91,19 +91,16 @@ Documentation TODOs
 
 Overseer was built to address two generic needs:
 
-1. Easily run and manage commands relevant to my current project
-1. Easily integrate the results of those commands with neovim
+**1. Easily run and manage commands relevant to my current project**
 
-To address point 1, overseer has the following features:
+- auto-detect tasks for common build systems (e.g. make, npm, tox)
+- define your own custom tasks
+- supports tasks from [VS Code's tasks.json file](https://code.visualstudio.com/docs/editor/tasks)
 
-- auto-detect targets for common build systems (e.g. make, npm, tox)
-- define your own custom tasks (can make them per-directory and/or per-filetype)
-- can read and run tasks from [VS Code's tasks.json file](https://code.visualstudio.com/docs/editor/tasks)
-
-To address point 2, overseer
+**2. Easily integrate the results of those commands with neovim**
 
 - has built-in methods of parsing command output and loading it into neovim diagnostics, quickfix, or loclist.
-- is _extremely_ customizable and extensible. It should be straightforward and simple to get the functionality you need.
+- is _extremely_ customizable. It should be straightforward and simple to get the functionality you need.
 
 Some examples of what overseer was built to do:
 
