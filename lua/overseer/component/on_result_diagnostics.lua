@@ -37,7 +37,7 @@ return {
       on_init = function(self, task)
         self.ns = vim.api.nvim_create_namespace(task.name)
       end,
-      on_result = function(self, task, status, result)
+      on_result = function(self, task, result)
         remove_diagnostics(self)
         if not result.diagnostics or vim.tbl_isempty(result.diagnostics) then
           return

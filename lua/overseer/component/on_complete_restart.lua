@@ -22,7 +22,7 @@ return {
     end
     local lookup = util.list_to_map(opts.statuses)
     return {
-      on_result = function(self, task, status)
+      on_complete = function(self, task, status)
         if lookup[status] then
           task:restart()
         end

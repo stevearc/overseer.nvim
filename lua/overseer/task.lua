@@ -425,22 +425,38 @@ function Task:dispatch(name, ...)
 end
 
 ---@param status overseer.Status
----@param data? table
-function Task:set_result(status, data)
+function Task:finalize(status)
   vim.validate({
     status = { status, "s" },
-    data = { data, "t", true },
+  })
+  if not self:is_running() then
+    log:warn("Task %s cannot set status to %s: not running", self.name, status)
+    return
+  elseif status ~= STATUS.SUCCESS and status ~= STATUS.FAILURE then
+    log:error("Task %s finalize passed invalid status %s", self.name, status)
+    return
+  end
+  self.status = status
+  local results = self:dispatch("on_pre_result")
+  if not vim.tbl_isempty(results) then
+    self.result = vim.tbl_deep_extend("force", self.result, unpack(results))
+  end
+  self:dispatch("on_status", self.status)
+  if self:is_complete() then
+    self:dispatch("on_complete", status, self.result)
+  end
+end
+
+---@param data? table
+function Task:set_result(data)
+  vim.validate({
+    data = { data, "t" },
   })
   if not self:is_running() then
     return
   end
-  self.status = status
-  self:dispatch("on_status", self.status)
-  self.result = data or {}
-  self:dispatch("on_result", status, self.result)
-  if self:is_complete() then
-    self:dispatch("on_complete", status, self.result)
-  end
+  self.result = data
+  self:dispatch("on_result", self.result)
 end
 
 ---Increment the refcount for this Task.
@@ -523,7 +539,8 @@ function Task:on_exit(code)
   self:dispatch("on_exit", code)
   -- We shouldn't hit this unless there is no result component or it errored
   if self:is_running() then
-    self:set_result(STATUS.FAILURE, { error = "Task did not produce a result before exiting" })
+    self:set_result({ error = "Task did not produce a result before exiting" })
+    self:finalize(STATUS.FAILURE)
   end
 end
 
@@ -579,7 +596,7 @@ function Task:stop()
     return false
   end
   log:debug("Stopping task %s", self.name)
-  self:set_result(STATUS.CANCELED)
+  self:finalize(STATUS.CANCELED)
   self.strategy:stop()
   return true
 end

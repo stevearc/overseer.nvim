@@ -10,7 +10,7 @@ return {
   },
   constructor = function(params)
     return {
-      on_result = function(self, task, status, result)
+      on_result = function(self, task, result)
         if not result.diagnostics or vim.tbl_isempty(result.diagnostics) then
           return
         end

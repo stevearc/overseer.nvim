@@ -99,7 +99,7 @@ local function get_task_builder(defn)
       table.insert(task.components, "on_result_diagnostics")
     end
     if defn.isBackground then
-      table.insert(task.components, "on_result_restart")
+      table.insert(task.components, "on_complete_restart")
     end
     local opt = defn.options
     if opt then

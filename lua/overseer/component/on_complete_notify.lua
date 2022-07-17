@@ -44,7 +44,7 @@ return {
 
     return {
       notifier = Notifier.new({ desktop = opts.desktop }),
-      on_result = function(self, task, status)
+      on_complete = function(self, task, status)
         if lookup[status] then
           local level = get_level_from_status(status)
           local message = string.format("%s %s", status, task.name)

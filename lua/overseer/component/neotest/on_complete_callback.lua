@@ -7,7 +7,7 @@ return {
   },
   constructor = function(params)
     return {
-      on_result = function(self, task, status)
+      on_complete = function(self, task, status)
         if task:is_complete() then
           params.callback(status)
         end

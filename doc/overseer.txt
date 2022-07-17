@@ -136,8 +136,8 @@ OPTIONS                                                         *overseer-option
         -- Most tasks are initialized with the default components
         default = {
           "on_output_summarize",
-          "result_exit_code",
-          "on_result_notify",
+          "on_exit_set_status",
+          "on_complete_notify",
           "on_restart_handler",
           "dispose_delay",
         },
@@ -145,10 +145,10 @@ OPTIONS                                                         *overseer-option
         -- restart on failure (e.g. a server or file-watching build process)
         default_persist = {
           "on_output_summarize",
-          "result_exit_code",
-          "on_result_notify",
+          "on_exit_set_status",
+          "on_complete_notify",
           "on_restart_handler",
-          "on_result_restart",
+          "on_complete_restart",
         },
         -- Used for tasks generated from the VS Code integration (tasks.json)
         default_vscode = {

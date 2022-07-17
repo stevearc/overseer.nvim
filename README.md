@@ -14,7 +14,8 @@ TODO screenshots
 Documentation TODOs
 
 - [ ] Documentation for parsers & parser debugging
-- [ ] Documentation for parser on result_exit_code
+- [ ] Documentation for parser on on_output_parse_diagnostics
+- [ ] Merge on_complete_notify_red_green behavior?
 - [ ] screenshot task list
 - [ ] Document alternatives
 - [ ] Document different ways to do task dependencies
@@ -267,8 +268,8 @@ require("overseer").setup({
     -- Most tasks are initialized with the default components
     default = {
       "on_output_summarize",
-      "result_exit_code",
-      "on_result_notify",
+      "on_exit_set_status",
+      "on_complete_notify",
       "on_restart_handler",
       "dispose_delay",
     },
@@ -276,10 +277,10 @@ require("overseer").setup({
     -- restart on failure (e.g. a server or file-watching build process)
     default_persist = {
       "on_output_summarize",
-      "result_exit_code",
-      "on_result_notify",
+      "on_exit_set_status",
+      "on_complete_notify",
       "on_restart_handler",
-      "on_result_restart",
+      "on_complete_restart",
     },
     -- Used for tasks generated from the VS Code integration (tasks.json)
     default_vscode = {
@@ -437,8 +438,8 @@ require('overseer').setup({
   component_aliases = {
     default_neotest = {
       "on_output_summarize",
-      "result_exit_code",
-      "on_result_notify",
+      "on_exit_set_status",
+      "on_complete_notify",
       "dispose_delay",
     },
   }
@@ -644,9 +645,13 @@ return {
       on_reset = function(self, task, soft)
         -- Called when the task is reset to run again
       end,
-      ---@param status overseer.Status Can be RUNNING (we can set results without completing the task), CANCELED, FAILURE, or SUCCESS
+      ---@return table
+      on_pre_result = function(self, task)
+        -- Called when the task is finalizing.
+        -- Return a map-like table value here to merge it into the task result.
+      end,
       ---@param result table A result table.
-      on_result = function(self, task, status, result)
+      on_result = function(self, task, result)
         -- Called when a component has results to set. Usually this is after the command has completed, but certain types of tasks may wish to set a result while still running.
       end,
       ---@param status overseer.Status Can be CANCELED, FAILURE, or SUCCESS
@@ -654,7 +659,7 @@ return {
       on_complete = function(self, task, status, result)
         -- Called when the task has reached a completed state.
       end,
-      ---@param status overseer.Status Can be RUNNING (we can set results without completing the task), CANCELED, FAILURE, or SUCCESS
+      ---@param status overseer.Status
       on_status = function(self, task, status)
         -- Called when the task status changes
       end,

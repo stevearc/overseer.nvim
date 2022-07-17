@@ -6,6 +6,11 @@ Set dependencies for task \
 **sequential**[boolean]: (default `false`) \
 \***task_names**[list[string]]: Names of dependency task templates
 
+## [on_output_parse_diagnostics](../lua/overseer/component/on_output_parse_diagnostics.lua)
+
+Parses task output and sets diagnostics \
+**parser**[opaque]: Parser definition to extract diagnostics from output
+
 ## [on_output_summarize](../lua/overseer/component/on_output_summarize.lua)
 
 Summarize task output in the task list \
@@ -60,7 +65,6 @@ Restart on any buffer :write \
 ## [result_exit_code](../lua/overseer/component/result_exit_code.lua)
 
 Sets final task status based on exit code \
-**parser**[string]: \
 **success_codes**[list[integer]]: Additional exit codes to consider as success
 
 ## [timeout](../lua/overseer/component/timeout.lua)

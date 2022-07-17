@@ -1,4 +1,4 @@
-local on_result_notify = require("overseer.component.on_result_notify")
+local on_complete_notify = require("overseer.component.on_complete_notify")
 local constants = require("overseer.constants")
 local Notifier = require("overseer.notifier")
 local STATUS = constants.STATUS
@@ -17,12 +17,12 @@ return {
     return {
       last_status = nil,
       notifier = Notifier.new({ desktop = opts.desktop }),
-      on_result = function(self, task, status)
+      on_complete = function(self, task, status)
         if
           status == STATUS.FAILURE
           or (status == STATUS.SUCCESS and self.last_status ~= STATUS.SUCCESS)
         then
-          local level = on_result_notify.get_level_from_status(status)
+          local level = on_complete_notify.get_level_from_status(status)
           local message = string.format("%s %s", status, task.name)
           self.notifier:notify(message, level)
           self.last_status = status

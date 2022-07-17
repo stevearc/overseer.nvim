@@ -21,7 +21,7 @@ return {
       interrupt = { opts.interrupt, "b" },
     })
     return {
-      restart_after_result = false,
+      restart_after_complete = false,
       _trigger_active = false,
       _trigger_restart = function(self, task)
         if self._trigger_active then
@@ -37,11 +37,11 @@ return {
         end, opts.delay)
       end,
       on_reset = function(self, task)
-        self.restart_after_result = false
+        self.restart_after_complete = false
       end,
       on_request_restart = function(self, task)
         if task:is_running() then
-          self.restart_after_result = true
+          self.restart_after_complete = true
           if opts.interrupt then
             task:stop()
           end
@@ -49,8 +49,8 @@ return {
           self:_trigger_restart(task)
         end
       end,
-      on_result = function(self, task)
-        if self.restart_after_result then
+      on_complete = function(self, task)
+        if self.restart_after_complete then
           self:_trigger_restart(task)
         end
       end,

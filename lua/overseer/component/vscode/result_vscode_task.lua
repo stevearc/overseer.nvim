@@ -61,7 +61,7 @@ return {
           for _, line in ipairs(lines) do
             if self.active then
               if end_test and end_test(line) then
-                task:set_result(constants.STATUS.RUNNING, self.parser:get_result())
+                task:set_result(self.parser:get_result())
                 self.active = false
               end
             elseif begin_test and begin_test(line) then
@@ -74,13 +74,14 @@ return {
           end
         end
       end,
+      on_pre_result = function(self, task)
+        if self.parser then
+          return self.parser:get_result()
+        end
+      end,
       on_exit = function(self, task, code)
         local status = code == 0 and STATUS.SUCCESS or STATUS.FAILURE
-        if self.parser then
-          task:set_result(status, self.parser:get_result())
-        else
-          task:set_result(status, {})
-        end
+        task:finalize(status)
       end,
     }
   end,

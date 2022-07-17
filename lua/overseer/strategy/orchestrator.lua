@@ -163,12 +163,12 @@ function OrchestratorStrategy:start_next()
       return
     elseif status == STATUS.FAILURE or status == STATUS.CANCELED then
       if self.task and self.task:is_running() then
-        self.task:set_result(status)
+        self.task:finalize(status)
       end
       return
     end
   end
-  self.task:set_result(STATUS.SUCCESS)
+  self.task:finalize(STATUS.SUCCESS)
   self:render_buf()
 end
 

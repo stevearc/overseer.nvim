@@ -24,7 +24,7 @@ return {
           self.output_file:write(chunk)
         end
       end,
-      on_result = function(self)
+      on_complete = function(self)
         self.output_file:flush()
       end,
       on_dispose = function(self)

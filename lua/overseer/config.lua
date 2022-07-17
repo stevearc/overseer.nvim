@@ -80,8 +80,8 @@ local default_config = {
     -- Most tasks are initialized with the default components
     default = {
       "on_output_summarize",
-      "result_exit_code",
-      "on_result_notify",
+      "on_exit_set_status",
+      "on_complete_notify",
       "on_restart_handler",
       "dispose_delay",
     },
@@ -89,10 +89,10 @@ local default_config = {
     -- restart on failure (e.g. a server or file-watching build process)
     default_persist = {
       "on_output_summarize",
-      "result_exit_code",
-      "on_result_notify",
+      "on_exit_set_status",
+      "on_complete_notify",
       "on_restart_handler",
-      "on_result_restart",
+      "on_complete_restart",
     },
     -- Used for tasks generated from the VS Code integration (tasks.json)
     default_vscode = {
@@ -139,7 +139,6 @@ end
 M.setup = function(opts)
   local component = require("overseer.component")
   local log = require("overseer.log")
-  local parsers = require("overseer.parsers")
   opts = opts or {}
   local newconf = vim.tbl_deep_extend("force", default_config, opts)
   for k, v in pairs(newconf) do
@@ -150,7 +149,6 @@ M.setup = function(opts)
 
   M.actions = merge_actions(require("overseer.task_list.actions"), newconf.actions)
 
-  parsers.register_builtin()
   for k, v in pairs(M.component_aliases) do
     component.alias(k, v)
   end

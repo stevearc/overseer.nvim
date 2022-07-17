@@ -21,7 +21,8 @@ local M = {}
 ---@field on_pre_start? fun(self: overseer.Component, task: overseer.Task): nil|boolean
 ---@field on_start? fun(self: overseer.Component, task: overseer.Task)
 ---@field on_reset? fun(self: overseer.Component, task: overseer.Task, soft: boolean)
----@field on_result? fun(self: overseer.Component, task: overseer.Task, status: overseer.Status, result: table)
+---@field on_pre_result? fun(self: overseer.Component, task: overseer.Task): nil|table
+---@field on_result? fun(self: overseer.Component, task: overseer.Task, result: table)
 ---@field on_complete? fun(self: overseer.Component, task: overseer.Task, status: overseer.Status, result: table)
 ---@field on_output? fun(self: overseer.Component, task: overseer.Task, data: string[])
 ---@field on_output_lines? fun(self: overseer.Component, task: overseer.Task, lines: string[])
@@ -43,16 +44,17 @@ local aliases = {}
 
 local builtin_components = {
   "dependencies",
+  "on_complete_notify",
+  "on_complete_notify_red_green",
+  "on_complete_restart",
+  "on_exit_set_status",
+  "on_output_parse_diagnostics",
   "on_output_summarize",
   "on_output_write_file",
   "on_restart_handler",
   "on_result_diagnostics",
   "on_result_diagnostics_quickfix",
-  "on_result_notify",
-  "on_result_notify_red_green",
-  "on_result_restart",
   "restart_on_save",
-  "result_exit_code",
   "timeout",
 }
 

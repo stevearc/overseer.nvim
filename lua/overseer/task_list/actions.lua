@@ -65,7 +65,7 @@ M = {
   ensure = {
     desc = "restart the task if it fails",
     run = function(task)
-      task:add_components({ "on_restart_handler", "on_result_restart" })
+      task:add_components({ "on_restart_handler", "on_complete_restart" })
       if task.status == STATUS.FAILURE then
         task:restart()
       end
