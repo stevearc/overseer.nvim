@@ -404,9 +404,13 @@ The component definition should look like the following example:
           on_reset = function(self, task, soft)
             -- Called when the task is reset to run again
           end,
-          ---@param status overseer.Status Can be RUNNING (we can set results without completing the task), CANCELED, FAILURE, or SUCCESS
+          ---@return table
+          on_pre_result = function(self, task)
+            -- Called when the task is finalizing.
+            -- Return a map-like table value here to merge it into the task result.
+          end,
           ---@param result table A result table.
-          on_result = function(self, task, status, result)
+          on_result = function(self, task, result)
             -- Called when a component has results to set. Usually this is after the command has completed, but certain types of tasks may wish to set a result while still running.
           end,
           ---@param status overseer.Status Can be CANCELED, FAILURE, or SUCCESS
@@ -414,7 +418,7 @@ The component definition should look like the following example:
           on_complete = function(self, task, status, result)
             -- Called when the task has reached a completed state.
           end,
-          ---@param status overseer.Status Can be RUNNING (we can set results without completing the task), CANCELED, FAILURE, or SUCCESS
+          ---@param status overseer.Status
           on_status = function(self, task, status)
             -- Called when the task status changes
           end,

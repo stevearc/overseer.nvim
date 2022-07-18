@@ -6,6 +6,27 @@ Set dependencies for task \
 **sequential**[boolean]: (default `false`) \
 \***task_names**[list[string]]: Names of dependency task templates
 
+## [on_complete_notify](../lua/overseer/component/on_complete_notify.lua)
+
+vim.notify on task result \
+**desktop**[enum]: When to use a desktop notification (default `"never"`) \
+**statuses**[list[enum]]: List of statuses to notify on (default `["FAILURE", "SUCCESS"]`)
+
+## [on_complete_notify_red_green](../lua/overseer/component/on_complete_notify_red_green.lua)
+
+vim.notify when task fails, or when it goes from failing to success \
+**desktop**[enum]: When to use a desktop notification (default `"never"`)
+
+## [on_complete_restart](../lua/overseer/component/on_complete_restart.lua)
+
+Restart task when it completes \
+**statuses**[list[enum]]: What statuses will trigger a restart (default `["FAILURE"]`)
+
+## [on_exit_set_status](../lua/overseer/component/on_exit_set_status.lua)
+
+Sets final task status based on exit code \
+**success_codes**[list[integer]]: Additional exit codes to consider as success
+
 ## [on_output_parse_diagnostics](../lua/overseer/component/on_output_parse_diagnostics.lua)
 
 Parses task output and sets diagnostics \
@@ -40,32 +61,11 @@ If task result contains diagnostics, display them \
 If task result contains diagnostics, add them to the quickfix \
 **use_loclist**[boolean]: If true, use the loclist instead of quickfix
 
-## [on_result_notify](../lua/overseer/component/on_result_notify.lua)
-
-vim.notify on task result \
-**desktop**[enum]: When to use a desktop notification (default `"never"`) \
-**statuses**[list[enum]]: List of statuses to notify on (default `["FAILURE", "SUCCESS"]`)
-
-## [on_result_notify_red_green](../lua/overseer/component/on_result_notify_red_green.lua)
-
-vim.notify when task fails, or when it goes from failing to success \
-**desktop**[enum]: When to use a desktop notification (default `"never"`)
-
-## [on_result_restart](../lua/overseer/component/on_result_restart.lua)
-
-Restart task when it completes \
-**statuses**[list[enum]]: What statuses will trigger a restart (default `["FAILURE"]`)
-
 ## [restart_on_save](../lua/overseer/component/restart_on_save.lua)
 
 Restart on any buffer :write \
 **delay**[number]: How long to wait (in ms) post-result before triggering restart (default `500`) \
 **dir**[string]: Only restart when writing files in this directory
-
-## [result_exit_code](../lua/overseer/component/result_exit_code.lua)
-
-Sets final task status based on exit code \
-**success_codes**[list[integer]]: Additional exit codes to consider as success
 
 ## [timeout](../lua/overseer/component/timeout.lua)
 
