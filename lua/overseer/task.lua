@@ -437,12 +437,10 @@ function Task:finalize(status)
     return
   end
   self.status = status
-  if self.status == STATUS.SUCCESS then
-    local results = self:dispatch("on_pre_result")
-    if not vim.tbl_isempty(results) then
-      self.result = vim.tbl_deep_extend("force", self.result, unpack(results))
-      self:dispatch("on_result", self.result)
-    end
+  local results = self:dispatch("on_pre_result")
+  if not vim.tbl_isempty(results) then
+    self.result = vim.tbl_deep_extend("force", self.result, unpack(results))
+    self:dispatch("on_result", self.result)
   end
   self:dispatch("on_status", self.status)
   if self:is_complete() then
