@@ -432,14 +432,17 @@ function Task:finalize(status)
   if not self:is_running() then
     log:warn("Task %s cannot set status to %s: not running", self.name, status)
     return
-  elseif status ~= STATUS.SUCCESS and status ~= STATUS.FAILURE then
+  elseif status ~= STATUS.SUCCESS and status ~= STATUS.FAILURE and status ~= STATUS.CANCELED then
     log:error("Task %s finalize passed invalid status %s", self.name, status)
     return
   end
   self.status = status
-  local results = self:dispatch("on_pre_result")
-  if not vim.tbl_isempty(results) then
-    self.result = vim.tbl_deep_extend("force", self.result, unpack(results))
+  if self.status == STATUS.SUCCESS then
+    local results = self:dispatch("on_pre_result")
+    if not vim.tbl_isempty(results) then
+      self.result = vim.tbl_deep_extend("force", self.result, unpack(results))
+      self:dispatch("on_result", self.result)
+    end
   end
   self:dispatch("on_status", self.status)
   if self:is_complete() then
@@ -539,7 +542,11 @@ function Task:on_exit(code)
   self:dispatch("on_exit", code)
   -- We shouldn't hit this unless there is no result component or it errored
   if self:is_running() then
-    self:set_result({ error = "Task did not produce a result before exiting" })
+    log:error(
+      "Task %s did not finalize during exit. Is it missing the on_exit_set_status component?",
+      self.name
+    )
+    self:set_result({ error = "Task did not finalize during exit" })
     self:finalize(STATUS.FAILURE)
   end
 end
