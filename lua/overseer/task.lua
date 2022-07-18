@@ -412,7 +412,7 @@ function Task:dispatch(name, ...)
     if type(comp[name]) == "function" then
       local ok, err = pcall(comp[name], comp, self, ...)
       if not ok then
-        log:error("Task %s dispatch %s: %s", self.name, name, err)
+        log:error("Task %s dispatch %s.%s: %s", self.name, comp.name, name, err)
       elseif err ~= nil then
         table.insert(ret, err)
       end
@@ -439,7 +439,7 @@ function Task:finalize(status)
   self.status = status
   local results = self:dispatch("on_pre_result")
   if not vim.tbl_isempty(results) then
-    self.result = vim.tbl_deep_extend("force", self.result, unpack(results))
+    self.result = vim.tbl_deep_extend("force", self.result or {}, unpack(results))
     self:dispatch("on_result", self.result)
   end
   self:dispatch("on_status", self.status)
