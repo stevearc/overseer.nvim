@@ -28,24 +28,36 @@ return {
         STATUS.SUCCESS,
       },
     },
-    desktop = {
-      desc = "When to use a desktop notification",
+    system = {
+      desc = "When to send a system notification",
       type = "enum",
       choices = { "always", "never", "unfocused" },
       default = "never",
     },
+    on_change = {
+      desc = "Only notify when task status changes from previous value",
+      long_desc = "This is mostly used when a task is going to be restarted, and you want notifications only when it goes from SUCCESS to FAILURE, or vice-versa",
+      type = "boolean",
+      default = false,
+    },
   },
-  constructor = function(opts)
-    opts = opts or {}
-    if type(opts.statuses) == "string" then
-      opts.statuses = { opts.statuses }
+  constructor = function(params)
+    if type(params.statuses) == "string" then
+      params.statuses = { params.statuses }
     end
-    local lookup = util.list_to_map(opts.statuses)
+    local lookup = util.list_to_map(params.statuses)
 
     return {
-      notifier = Notifier.new({ desktop = opts.desktop }),
+      last_status = nil,
+      notifier = Notifier.new({ system = params.system }),
       on_complete = function(self, task, status)
         if lookup[status] then
+          if params.on_change then
+            if status == self.last_status then
+              return
+            end
+            self.last_status = status
+          end
           local level = get_level_from_status(status)
           local message = string.format("%s %s", status, task.name)
           self.notifier:notify(message, level)

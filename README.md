@@ -15,7 +15,6 @@ Documentation TODOs
 
 - [ ] Documentation for parsers & parser debugging
 - [ ] Documentation for parser on on_output_parse_diagnostics
-- [ ] Merge on_complete_notify_red_green behavior?
 - [ ] screenshot task list
 - [ ] Document alternatives
 - [ ] Document different ways to do task dependencies

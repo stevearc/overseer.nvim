@@ -9,6 +9,7 @@ local M = {}
 ---@class overseer.BaseParam
 ---@field name? string
 ---@field desc? string
+---@field long_desc? string
 ---@field validate? fun(value: any): boolean
 ---@field optional? boolean
 

@@ -101,7 +101,7 @@ def update_config_options():
     )
 
 
-def format_param(name: str, param: Dict) -> str:
+def format_param(name: str, param: Dict) -> List[str]:
     typestr = param["type"]
     if "subtype" in param:
         typestr += "[" + str(param["subtype"]["type"]) + "]"
@@ -115,7 +115,10 @@ def format_param(name: str, param: Dict) -> str:
     line = " ".join(pieces)
     if required:
         line = "\\*" + line
-    return line
+    lines = [line]
+    if param.get('long_desc'):
+        lines.extend(wrap(param['long_desc'], 4, 100, ''))
+    return lines
 
 
 def format_md_table_row(
@@ -156,9 +159,11 @@ def update_components_md():
         content_lines = []
         if comp.get("desc"):
             content_lines.append(comp["desc"])
+        if comp.get("long_desc"):
+            content_lines.extend(wrap(comp["long_desc"], width=100, line_end=''))
         if comp.get("params"):
             for k, v in sorted(comp["params"].items()):
-                content_lines.append(format_param(k, v))
+                content_lines.extend(format_param(k, v))
         for i, line in enumerate(content_lines):
             if i < len(content_lines) - 1:
                 content_lines[i] = line + " \\\n"
@@ -238,9 +243,9 @@ def leftright(left: str, right: str, width: int = 80) -> str:
     return left + spaces * " " + right + "\n"
 
 
-def wrap(text: str, indent: int = 0, width: int = 80) -> List[str]:
+def wrap(text: str, indent: int = 0, width: int = 80, line_end: str = '\n') -> List[str]:
     return [
-        line + "\n"
+        line + line_end
         for line in textwrap.wrap(
             text,
             initial_indent=indent * " ",

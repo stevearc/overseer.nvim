@@ -10,6 +10,7 @@ local M = {}
 ---@class overseer.ComponentDefinition
 ---@field name? string
 ---@field desc string
+---@field long_desc? string
 ---@field params? overseer.Params
 ---@field editable? boolean
 ---@field serialize? "exclude"|"fail"
@@ -45,7 +46,6 @@ local aliases = {}
 local builtin_components = {
   "dependencies",
   "on_complete_notify",
-  "on_complete_notify_red_green",
   "on_complete_restart",
   "on_exit_set_status",
   "on_output_parse_diagnostics",
@@ -285,6 +285,7 @@ local function simplify_param(param)
   return {
     name = param.name,
     desc = param.desc,
+    long_desc = param.long_desc,
     optional = param.optional,
     default = param.default,
     type = param.type or "string",
@@ -309,6 +310,7 @@ M.get_all_descriptions = function()
     table.insert(ret, {
       name = name,
       desc = defn.desc,
+      long_desc = defn.long_desc,
       params = simplify_params(defn.params),
     })
   end

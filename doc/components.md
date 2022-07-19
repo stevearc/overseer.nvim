@@ -9,13 +9,11 @@ Set dependencies for task \
 ## [on_complete_notify](../lua/overseer/component/on_complete_notify.lua)
 
 vim.notify on task result \
-**desktop**[enum]: When to use a desktop notification (default `"never"`) \
-**statuses**[list[enum]]: List of statuses to notify on (default `["FAILURE", "SUCCESS"]`)
-
-## [on_complete_notify_red_green](../lua/overseer/component/on_complete_notify_red_green.lua)
-
-vim.notify when task fails, or when it goes from failing to success \
-**desktop**[enum]: When to use a desktop notification (default `"never"`)
+**on_change**[boolean]: Only notify when task status changes from previous value (default `false`) \
+    This is mostly used when a task is going to be restarted, and you want notifications only when \
+    it goes from SUCCESS to FAILURE, or vice-versa \
+**statuses**[list[enum]]: List of statuses to notify on (default `["FAILURE", "SUCCESS"]`) \
+**system**[enum]: When to send a system notification (default `"never"`)
 
 ## [on_complete_restart](../lua/overseer/component/on_complete_restart.lua)
 
