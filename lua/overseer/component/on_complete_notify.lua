@@ -14,7 +14,7 @@ local function get_level_from_status(status)
 end
 
 return {
-  desc = "vim.notify on task result",
+  desc = "vim.notify when task is completed",
   params = {
     statuses = {
       desc = "List of statuses to notify on",

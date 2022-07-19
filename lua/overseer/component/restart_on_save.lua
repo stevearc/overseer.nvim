@@ -29,6 +29,8 @@ return {
     return {
       id = nil,
       on_init = function(self, task)
+        -- This means that the task cannot be auto-disposed while this component
+        -- is attached
         task:inc_reference()
         self.id = vim.api.nvim_create_autocmd("BufWritePost", {
           pattern = "*",

@@ -14,7 +14,7 @@ TODO screenshots
 Documentation TODOs
 
 - [ ] Documentation for parsers & parser debugging
-- [ ] Documentation for parser on on_output_parse_diagnostics
+- [ ] Documentation for parser on on_output_parse_diagnostics (also: make it more general? No need to put it under diagnostics key)
 - [ ] screenshot task list
 - [ ] Document alternatives
 - [ ] Document different ways to do task dependencies
@@ -648,6 +648,7 @@ return {
       on_pre_result = function(self, task)
         -- Called when the task is finalizing.
         -- Return a map-like table value here to merge it into the task result.
+        return {foo = {"bar", "baz"}}
       end,
       ---@param result table A result table.
       on_result = function(self, task, result)

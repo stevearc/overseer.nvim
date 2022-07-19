@@ -20,6 +20,9 @@ local comp = {
       timer = nil,
       on_complete = function(self, task)
         self.timer = vim.loop.new_timer()
+        -- Start a repeating timer because the dispose could fail with a
+        -- temporary reason (e.g. the task buffer is open, or the action menu is
+        -- displayed for the task)
         self.timer:start(
           1000 * opts.timeout,
           1000 * opts.timeout,
