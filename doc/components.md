@@ -8,7 +8,7 @@ Set dependencies for task \
 
 ## [on_complete_notify](../lua/overseer/component/on_complete_notify.lua)
 
-vim.notify on task result \
+vim.notify when task is completed \
 **on_change**[boolean]: Only notify when task status changes from previous value (default `false`) \
     This is mostly used when a task is going to be restarted, and you want notifications only when \
     it goes from SUCCESS to FAILURE, or vice-versa \
@@ -25,10 +25,10 @@ Restart task when it completes \
 Sets final task status based on exit code \
 **success_codes**[list[integer]]: Additional exit codes to consider as success
 
-## [on_output_parse_diagnostics](../lua/overseer/component/on_output_parse_diagnostics.lua)
+## [on_output_parse](../lua/overseer/component/on_output_parse.lua)
 
-Parses task output and sets diagnostics \
-**parser**[opaque]: Parser definition to extract diagnostics from output
+Parses task output and sets task result \
+**parser**[opaque]: Parser definition to extract values from output
 
 ## [on_output_summarize](../lua/overseer/component/on_output_summarize.lua)
 
@@ -57,7 +57,10 @@ If task result contains diagnostics, display them \
 ## [on_result_diagnostics_quickfix](../lua/overseer/component/on_result_diagnostics_quickfix.lua)
 
 If task result contains diagnostics, add them to the quickfix \
-**use_loclist**[boolean]: If true, use the loclist instead of quickfix
+**close**[boolean]: If true, close the quickfix when there are no diagnostics (default `false`) \
+**open**[boolean]: If true, open the quickfix when there are diagnostics (default `false`) \
+**set_empty_results**[boolean]: If true, overwrite the quickfix even if there are no diagnostics (default `false`) \
+**use_loclist**[boolean]: If true, use the loclist instead of quickfix (default `false`)
 
 ## [restart_on_save](../lua/overseer/component/restart_on_save.lua)
 
