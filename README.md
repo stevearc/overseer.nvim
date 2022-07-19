@@ -14,7 +14,7 @@ TODO screenshots
 Documentation TODOs
 
 - [ ] Documentation for parsers & parser debugging
-- [ ] Documentation for parser on on_output_parse_diagnostics (also: make it more general? No need to put it under diagnostics key)
+- [ ] Documentation for parser on on_output_parse
 - [ ] screenshot task list
 - [ ] Document alternatives
 - [ ] Document different ways to do task dependencies

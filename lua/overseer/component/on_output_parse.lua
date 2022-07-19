@@ -1,10 +1,10 @@
 local parser = require("overseer.parser")
 
 return {
-  desc = "Parses task output and sets diagnostics",
+  desc = "Parses task output and sets task result",
   params = {
     parser = {
-      desc = "Parser definition to extract diagnostics from output",
+      desc = "Parser definition to extract values from output",
       type = "opaque",
       optional = true,
     },
@@ -12,7 +12,7 @@ return {
   constructor = function(params)
     return {
       on_init = function(self, task)
-        self.parser = parser.new({ diagnostics = params.parser })
+        self.parser = parser.new(params.parser)
         local cb = function(key, result)
           -- TODO reconsider this API for dispatching partial results
           -- task:dispatch("on_stream_result", key, result)
