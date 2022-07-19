@@ -6,7 +6,6 @@ return {
     parser = {
       desc = "Parser definition to extract values from output",
       type = "opaque",
-      optional = true,
     },
   },
   constructor = function(params)

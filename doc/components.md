@@ -28,7 +28,7 @@ Sets final task status based on exit code \
 ## [on_output_parse](../lua/overseer/component/on_output_parse.lua)
 
 Parses task output and sets task result \
-**parser**[opaque]: Parser definition to extract values from output
+\***parser**[opaque]: Parser definition to extract values from output
 
 ## [on_output_summarize](../lua/overseer/component/on_output_summarize.lua)
 

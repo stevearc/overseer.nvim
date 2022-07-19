@@ -41,6 +41,7 @@ Documentation TODOs
   - [Custom components](#custom-components)
   - [Parameters](#parameters)
   - [Highlights](#highlights)
+- [Parsing output](#parsing-output)
 - [VS Code tasks](#vs-code-tasks)
 - [Alternatives](#alternatives)
 - [FAQ](#faq)
@@ -775,6 +776,22 @@ Overseer defines the following highlights override them to customize the colors.
 | `OverseerOutput`     | The output summary in the task list                     |
 | `OverseerComponent`  | The name of a component in the task list or task editor |
 | `OverseerField`      | The name of a field in the task or template editor      |
+
+## Parsing output
+
+The primary way of parsing output with overseer is the `on_output_parse` component. This component leverages the built-in parser library, which is designed to support very simple or very complex output formats equally well. The structure of it is largely taken from the design of [behavior trees](https://en.wikipedia.org/wiki/Behavior_tree_(artificial_intelligence,_robotics_and_control)) for game AI. You can find API documentation for all the built-in nodes in [the parsers doc](doc/parsers.md).
+
+TODO complete this
+
+```lua
+{"on_output_parse", parser = {
+  diagnostics = {
+    { "extract", "^([^%s].+):(%d+): (.+)$", "filename", "lnum", "text" },
+  }
+}}
+```
+
+You can of course create your own components to parse output leveraging the `on_output` or `on_output_lines` methods. The integration should be straightforward; see [on_output_parse.lua](lua/overseer/component/on_output_parse.lua) for an example.
 
 ## VS Code tasks
 
