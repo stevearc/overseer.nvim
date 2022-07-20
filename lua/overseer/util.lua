@@ -473,7 +473,7 @@ M.find_success_color = function()
       local rgb = hsluv.hex_to_rgb(fg)
       -- Super simple "green" detection heuristic: g - r - b
       local score = rgb[2] - rgb[1] - rgb[3]
-      if score > -0.3 then
+      if score > -0.5 then
         if not best or score > best then
           best_grp = grp
           best = score
