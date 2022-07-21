@@ -26,6 +26,9 @@ return {
           if not dep_task then
             -- If no task ID found, start the dependency
             commands.run_template({ name = name, nostart = true }, function(new_task)
+              if not new_task then
+                return
+              end
               self.task_lookup[name] = new_task.id
               new_task:add_component({ "on_success_complete_dependency", task_id = task.id })
               new_task:start()

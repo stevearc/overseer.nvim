@@ -210,9 +210,29 @@ local function create_commands()
   end
 end
 
+-- Add support for preLaunchTask to nvim-dap
+local dap_patched = false
+local function patch_dap()
+  if dap_patched then
+    return
+  end
+  local ok, dap = pcall(require, "dap")
+  if not ok then
+    return
+  end
+  local daprun = dap.run
+  dap.run = function(config, opts)
+    local wrapper = require("overseer.dap").wrap_run(daprun)
+    dap.run = wrapper
+    wrapper(config, opts)
+  end
+  dap_patched = true
+end
+
 ---@param opts overseer.Config
 M.setup = function(opts)
   create_commands()
+  patch_dap()
   pending_opts = opts
   if initialized then
     do_setup()

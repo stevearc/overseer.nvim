@@ -103,7 +103,7 @@ end
 ---@field action? string Run this action on the task after creation
 
 ---@param opts overseer.TemplateRunOpts
----@param callback? fun(task: overseer.Task)
+---@param callback? fun(task: overseer.Task|nil, err: string|nil)
 M.run_template = function(opts, callback)
   opts = opts or {}
   vim.validate({
@@ -124,7 +124,18 @@ M.run_template = function(opts, callback)
   local dir = vim.fn.getcwd(0)
   local ft = vim.api.nvim_buf_get_option(0, "filetype")
 
+  ---@param tmpl? overseer.TaskDefinition
   local function handle_tmpl(tmpl)
+    if not tmpl then
+      local err = "Could not find template"
+      if opts.name then
+        err = string.format("%s '%s'", err, opts.name)
+      end
+      if callback then
+        callback(nil, err)
+      end
+      return
+    end
     template.build(tmpl, opts.prompt, opts.params, function(task)
       if task and not opts.nostart then
         task:start()
@@ -145,9 +156,6 @@ M.run_template = function(opts, callback)
   }
   if opts.name and opts.first then
     local tmpl = template.get_by_name(opts.name, tmpl_opts)
-    if not tmpl then
-      error(string.format("Could not find template '%s'", opts.name))
-    end
     handle_tmpl(tmpl)
   else
     local templates = template.list(tmpl_opts)
