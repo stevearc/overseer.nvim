@@ -1,5 +1,48 @@
 local util = require("overseer.parser.util")
-local SetDefaults = {}
+local SetDefaults = {
+  desc = "A decorator that adds values to any items extracted by the child",
+  doc_args = {
+    {
+      name = "opts",
+      type = "object",
+      desc = "Configuration options",
+      position_optional = true,
+      fields = {
+        {
+          name = "values",
+          type = "object",
+          desc = "Hardcoded key-value pairs to set as default values",
+        },
+        {
+          name = "hoist_item",
+          type = "boolean",
+          desc = "Take the current pending item, and use its fields as the default key-value pairs",
+          default = true,
+        },
+      },
+    },
+    {
+      name = "child",
+      type = "parser",
+      desc = "The child parser node",
+    },
+  },
+  examples = {
+    {
+      desc = [[Extract the filename from a header line, then for each line of output beneath it parse the test name + status, and also add the filename to each item]],
+      code = [[
+  {"sequence",
+    {"extract", {append = false}, "^Test result (.+)$", "filename"}
+    {"set_defaults",
+      {"loop",
+        {"extract", "^Test (.+): (.+)$", "test_name", "status"}
+      }
+    }
+  }
+      ]],
+    },
+  },
+}
 
 function SetDefaults.new(opts, child)
   if child == nil then
@@ -14,9 +57,6 @@ function SetDefaults.new(opts, child)
     values = { opts.values, "t" },
     hoist_item = { opts.hoist_item, "b" },
   })
-  if opts.ignore_failure == nil then
-    opts.ignore_failure = true
-  end
   return setmetatable({
     default_values = opts.values,
     hoist_item = opts.hoist_item,

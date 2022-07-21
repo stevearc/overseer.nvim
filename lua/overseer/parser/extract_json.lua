@@ -1,5 +1,39 @@
 local parser = require("overseer.parser")
-local ExtractJson = {}
+local ExtractJson = {
+  desc = "Parse a line as json and append it to the results",
+  doc_args = {
+    {
+      name = "opts",
+      type = "object",
+      desc = "Configuration options",
+      position_optional = true,
+      fields = {
+        {
+          name = "consume",
+          type = "boolean",
+          desc = "Consumes the line of input, blocking execution until the next line is fed in",
+          default = true,
+        },
+        {
+          name = "append",
+          type = "boolean",
+          desc = "After parsing, append the item to the results list. When false, the pending item will stick around.",
+          default = true,
+        },
+        {
+          name = "test",
+          type = "function",
+          desc = "A function that operates on the parsed value and returns true/false for SUCCESS/FAILURE",
+        },
+        {
+          name = "postprocess",
+          type = "function",
+          desc = "Call this function to do post-extraction processing on the values",
+        },
+      },
+    },
+  },
+}
 
 function ExtractJson.new(opts)
   opts = opts or {}

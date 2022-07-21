@@ -1,5 +1,14 @@
 local parser = require("overseer.parser")
-local SkipLines = {}
+local SkipLines = {
+  desc = "Skip over a set number of lines",
+  doc_args = {
+    {
+      name = "count",
+      type = "integer",
+      desc = "How many lines to skip",
+    },
+  },
+}
 
 function SkipLines.new(count)
   return setmetatable({ count = count, idx = 0 }, { __index = SkipLines })

@@ -6,7 +6,7 @@ import re
 import subprocess
 import textwrap
 from collections import defaultdict
-from typing import Any, Dict, List, Optional, Tuple
+from typing import Any, Dict, Iterable, List, Optional, Tuple
 
 HERE = os.path.dirname(__file__)
 ROOT = os.path.abspath(os.path.join(HERE, os.path.pardir))
@@ -28,7 +28,9 @@ def indent(lines: List[str], amount: int) -> List[str]:
     return ret
 
 
-def replace_section(file: str, start_pat: str, end_pat: str, lines: List[str]) -> None:
+def replace_section(
+    file: str, start_pat: str, end_pat: Optional[str], lines: List[str]
+) -> None:
     prefix_lines: List[str] = []
     postfix_lines: List[str] = []
     file_lines = prefix_lines
@@ -37,7 +39,7 @@ def replace_section(file: str, start_pat: str, end_pat: str, lines: List[str]) -
         inside_section = False
         for line in ifile:
             if inside_section:
-                if re.match(end_pat, line):
+                if end_pat is not None and re.match(end_pat, line):
                     inside_section = False
                     file_lines = postfix_lines
                     file_lines.append(line)
@@ -46,6 +48,8 @@ def replace_section(file: str, start_pat: str, end_pat: str, lines: List[str]) -
                     inside_section = True
                     found_section = True
                 file_lines.append(line)
+    if end_pat is None:
+        inside_section = False
 
     if inside_section or not found_section:
         raise Exception(f"could not find file section {start_pat}")
@@ -116,8 +120,8 @@ def format_param(name: str, param: Dict) -> List[str]:
     if required:
         line = "\\*" + line
     lines = [line]
-    if param.get('long_desc'):
-        lines.extend(wrap(param['long_desc'], 4, 100, ''))
+    if param.get("long_desc"):
+        lines.extend(wrap(param["long_desc"], 4, 100, ""))
     return lines
 
 
@@ -160,7 +164,7 @@ def update_components_md():
         if comp.get("desc"):
             content_lines.append(comp["desc"])
         if comp.get("long_desc"):
-            content_lines.extend(wrap(comp["long_desc"], width=100, line_end=''))
+            content_lines.extend(wrap(comp["long_desc"], width=100, line_end=""))
         if comp.get("params"):
             for k, v in sorted(comp["params"].items()):
                 content_lines.extend(format_param(k, v))
@@ -173,6 +177,116 @@ def update_components_md():
         lines.append("\n")
     with open(doc, "w", encoding="utf-8") as ofile:
         ofile.writelines(lines)
+
+
+def iter_parser_nodes() -> Iterable[Dict]:
+    for filename in sorted(os.listdir(os.path.join(ROOT, "lua", "overseer", "parser"))):
+        basename = os.path.splitext(filename)[0]
+        if basename == "init":
+            continue
+        parser = read_nvim_json(
+            f'require("overseer.parser").get_parser_docs("{basename}")'
+        )
+        if parser:
+            yield parser
+
+
+def format_parser_arg(arg: Dict) -> Iterable[str]:
+    pieces = [f"**{arg['name']}**[`{arg['type']}`]:", arg["desc"]]
+    if arg.get("default") is not None:
+        pieces.append("(default `%s`)" % json.dumps(arg["default"]))
+    yield " ".join(pieces) + " \\\n"
+    if arg.get("long_desc"):
+        yield from wrap(arg["long_desc"], 4, 100, " \\\n")
+    for subarg in arg.get("fields", []):
+        for line in format_parser_arg(subarg):
+            yield 4 * "&nbsp;" + line
+
+
+def format_parser_args(name: str, args: List[Dict]) -> Iterable[str]:
+    yield "```lua\n"
+
+    def arg_name(arg: Dict) -> str:
+        if arg.get("vararg"):
+            return arg["name"] + "..."
+        else:
+            return arg["name"]
+
+    required_args = ['"%s"' % name] + [
+        arg_name(arg) for arg in args if not arg.get("position_optional")
+    ]
+    yield "{" + ", ".join(required_args) + "}\n"
+    all_args = ['"%s"' % name] + [arg_name(arg) for arg in args]
+    if len(all_args) != len(required_args):
+        yield "{" + ", ".join(all_args) + "}\n"
+    yield "```\n"
+    yield "\n"
+    for arg in args:
+        yield from format_parser_arg(arg)
+
+
+def dedent(lines: List[str], amount: Optional[int] = None) -> List[str]:
+    if amount is None:
+        amount = len(lines[0])
+        for line in lines:
+            m = re.match(r"^\s+", line)
+            if not m:
+                return lines
+            amount = min(amount, len(m[0]))
+    return [line[amount:] for line in lines]
+
+
+def format_example_code(code: str) -> Iterable[str]:
+    lines = code.split("\n")
+    while re.match(r"^\s*$", lines[0]):
+        lines.pop(0)
+    while re.match(r"^\s*$", lines[-1]):
+        lines.pop()
+    for line in dedent(lines):
+        yield line + "\n"
+
+
+def update_parsers_md():
+    doc = os.path.join(ROOT, "doc", "parsers.md")
+    prefix = [
+        "\n",
+        "This is a list of the parser nodes that are built-in to overseer. They can be found in [lua/overseer/parser](../lua/overseer/parser)\n",
+        "\n",
+    ]
+    toc = []
+    lines = []
+    for parser in iter_parser_nodes():
+        toc.append(f"- [{parser['name']}](#{parser['name']})\n")
+        lines.append(
+            f"## [{parser['name']}](../lua/overseer/parser/{parser['name']}.lua)\n\n"
+        )
+        lines.append(parser["desc"] + " \\\n")
+        if parser.get("long_desc"):
+            lines.extend(wrap(parser["long_desc"], width=100))
+        lines.append("\n")
+        lines.extend(format_parser_args(parser["name"], parser["doc_args"]))
+        if parser.get("examples"):
+            lines.extend(["\n", "### Examples\n", "\n"])
+            for example in parser["examples"]:
+                lines.extend(
+                    [
+                        example["desc"] + "\n",
+                        "\n",
+                        "```lua\n",
+                    ]
+                )
+                lines.extend(format_example_code(example["code"]))
+                lines.extend(["```\n", "\n"])
+        lines.append("\n")
+    toc.append("\n")
+    while lines[-1] == "\n":
+        lines.pop()
+    replace_section(
+        doc,
+        r"^# Parser nodes",
+        None,
+        prefix + toc + lines,
+    )
 
 
 def update_commands_md():
@@ -243,7 +357,9 @@ def leftright(left: str, right: str, width: int = 80) -> str:
     return left + spaces * " " + right + "\n"
 
 
-def wrap(text: str, indent: int = 0, width: int = 80, line_end: str = '\n') -> List[str]:
+def wrap(
+    text: str, indent: int = 0, width: int = 80, line_end: str = "\n"
+) -> List[str]:
     return [
         line + line_end
         for line in textwrap.wrap(
@@ -467,6 +583,7 @@ def main() -> None:
     """Update the README"""
     update_config_options()
     update_components_md()
+    update_parsers_md()
     update_commands_md()
     generate_vimdoc()
 

@@ -28,9 +28,9 @@ M.hydrate = function(data)
   if data.ingest then
     return data
   else
-    local mod = require(string.format("overseer.parser.%s", data[1]))
+    local constructor = require("overseer.parser")[data[1]]
     local args = util.tbl_slice(data, 2)
-    return mod.new(unpack(args))
+    return constructor(unpack(args))
   end
 end
 

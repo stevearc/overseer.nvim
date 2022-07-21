@@ -100,7 +100,7 @@ local function create_source_bufnr()
     local lines = {
       'local parser = require("overseer.parser")',
       "return parser.new({",
-      '  parser.extract("(.*)", "text")',
+      '  {"extract", "(.*)", "text"}',
       "})",
     }
     vim.api.nvim_buf_set_lines(bufnr, 0, -1, true, lines)

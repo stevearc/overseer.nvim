@@ -1,6 +1,34 @@
 local parser = require("overseer.parser")
 local util = require("overseer.parser.util")
-local Loop = {}
+local Loop = {
+  desc = "A decorator that repeats the child",
+  doc_args = {
+    {
+      name = "opts",
+      type = "object",
+      desc = "Configuration options",
+      position_optional = true,
+      fields = {
+        {
+          name = "ignore_failure",
+          type = "boolean",
+          desc = "Keep looping even when the child fails",
+          default = false,
+        },
+        {
+          name = "repetitions",
+          type = "integer",
+          desc = "When set, loop a set number of times then return SUCCESS",
+        },
+      },
+    },
+    {
+      name = "child",
+      type = "parser",
+      desc = "The child parser node",
+    },
+  },
+}
 
 local MAX_LOOP = 2
 

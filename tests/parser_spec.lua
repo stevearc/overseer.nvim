@@ -471,7 +471,7 @@ describe("parallel", function()
 
   it("has option to restart children on each run", function()
     local node = parser.parallel(
-      { restart_children = true },
+      { reset_children = true },
       parser.sequence(parser.extract("%a+", "word"), parser.extract("%d+", "word"))
     )
     local ctx = { item = {}, results = {} }

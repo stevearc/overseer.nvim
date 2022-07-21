@@ -1,6 +1,32 @@
 local parser = require("overseer.parser")
 local util = require("overseer.parser.util")
-local Ensure = {}
+local Ensure = {
+  desc = "Decorator that runs a child until it succeeds",
+  doc_args = {
+    {
+      name = "succeed",
+      type = "boolean",
+      desc = "Set to false to run child until failure",
+      default = true,
+      position_optional = true,
+    },
+    {
+      name = "child",
+      type = "parser",
+      desc = "The child parser node",
+    },
+  },
+  examples = {
+    {
+      desc = [[An extract node that runs until it successfully parses]],
+      code = [[
+  {"ensure",
+    {"extract", "^([^%s].+):(%d+): (.+)$", "filename", "lnum", "text" }
+  }
+]],
+    },
+  },
+}
 
 local MAX_LOOP = 2
 

@@ -1,6 +1,73 @@
 local parser = require("overseer.parser")
 local util = require("overseer.parser.util")
-local ExtractNested = {}
+local ExtractNested = {
+  desc = "Run a subparser and put the extracted results on the field of an item",
+  doc_args = {
+    {
+      name = "opts",
+      type = "object",
+      desc = "Configuration options",
+      position_optional = true,
+      fields = {
+        {
+          name = "append",
+          type = "boolean",
+          desc = "After parsing, append the item to the results list. When false, the pending item will stick around.",
+          default = true,
+        },
+        {
+          name = "fail_on_empty",
+          type = "boolean",
+          desc = "Return FAILURE if there are no results from the child",
+          default = true,
+        },
+      },
+    },
+    {
+      name = "field",
+      type = "string",
+      desc = "The name of the field to add to the item",
+    },
+    {
+      name = "child",
+      type = "parser",
+      desc = "The child parser node",
+    },
+  },
+  examples = {
+    {
+      desc = [[Extract a golang test failure, then add the stacktrace to it (if present)]],
+      code = [[
+      {"extract",
+        {
+          regex = true,
+          append = false,
+        },
+        "\\v^--- (FAIL|PASS|SKIP): ([^[:space:] ]+) \\(([0-9\\.]+)s\\)",
+        "status",
+        "name",
+        "duration",
+      },
+      {"always",
+        {"sequence",
+          {"test", "^panic:"},
+          {"skip_until", "^goroutine%s"},
+          {"extract_nested",
+            { append = false },
+            "stacktrace",
+            {"loop",
+              {"sequence",
+                {"extract",{ append = false }, { "^(.+)%(.*%)$", "^created by (.+)$" }, "text"},
+                {"extract","^%s+([^:]+.go):([0-9]+)", "filename", "lnum"}
+              }
+            }
+          }
+        }
+      }
+      ]],
+    },
+  },
+}
 
 function ExtractNested.new(opts, field, child)
   if child == nil then

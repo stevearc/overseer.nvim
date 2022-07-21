@@ -1,6 +1,25 @@
 local parser = require("overseer.parser")
 local util = require("overseer.parser.util")
-local Invert = {}
+local Invert = {
+  desc = "A decorator that inverts the child's return value",
+  doc_args = {
+    {
+      name = "child",
+      type = "parser",
+      desc = "The child parser node",
+    },
+  },
+  examples = {
+    {
+      desc = [[An extract node that returns SUCCESS when it fails, and vice-versa]],
+      code = [[
+  {"invert",
+    {"extract", "^([^%s].+):(%d+): (.+)$", "filename", "lnum", "text" }
+  }
+]],
+    },
+  },
+}
 
 function Invert.new(child)
   return setmetatable({

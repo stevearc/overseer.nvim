@@ -1,5 +1,39 @@
 local parser = require("overseer.parser")
-local ExtractMultiline = {}
+local ExtractMultiline = {
+  desc = "Extract a multiline string as a single field on an item",
+  doc_args = {
+    {
+      name = "opts",
+      type = "object",
+      desc = "Configuration options",
+      position_optional = true,
+      fields = {
+        {
+          name = "append",
+          type = "boolean",
+          desc = "After parsing, append the item to the results list. When false, the pending item will stick around.",
+          default = true,
+        },
+      },
+    },
+    {
+      name = "pattern",
+      type = "string|function",
+      desc = "The lua pattern to use for matching. As long as the pattern matches, lines will continue to be appended to the field.",
+    },
+    {
+      name = "field",
+      type = "string",
+      desc = "The name of the field to add to the item",
+    },
+  },
+  examples = {
+    {
+      desc = [[Extract all indented lines as a message]],
+      code = [[{"extract_multiline", "^(    .+)", "message"}]],
+    },
+  },
+}
 
 function ExtractMultiline.new(opts, pattern, field)
   if field == nil then

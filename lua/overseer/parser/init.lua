@@ -226,4 +226,20 @@ M.get_trace = function()
   return trace
 end
 
+---Used for documentation generation
+---@private
+M.get_parser_docs = function(name)
+  local mod = require(string.format("overseer.parser.%s", name))
+  if mod.doc_args then
+    return {
+      name = name,
+      desc = mod.desc,
+      doc_args = mod.doc_args,
+      examples = mod.examples,
+    }
+  else
+    return {}
+  end
+end
+
 return M

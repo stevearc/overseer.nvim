@@ -1,6 +1,64 @@
 local parser = require("overseer.parser")
 local util = require("overseer.util")
-local Extract = {}
+
+local Extract = {
+  desc = "Parse a line into an object and append it to the results",
+  doc_args = {
+    {
+      name = "opts",
+      type = "object",
+      desc = "Configuration options",
+      position_optional = true,
+      fields = {
+        {
+          name = "consume",
+          type = "boolean",
+          desc = "Consumes the line of input, blocking execution until the next line is fed in",
+          default = true,
+        },
+        {
+          name = "append",
+          type = "boolean",
+          desc = "After parsing, append the item to the results list. When false, the pending item will stick around.",
+          default = true,
+        },
+        {
+          name = "regex",
+          type = "boolean",
+          desc = "Use vim regex instead of lua pattern (see :help pattern)",
+          default = true,
+        },
+        {
+          name = "postprocess",
+          type = "function",
+          desc = "Call this function to do post-extraction processing on the values",
+        },
+      },
+    },
+    {
+      name = "pattern",
+      type = "string|function",
+      desc = "The lua pattern to use for matching. Must have the same number of capture groups as there are field arguments.",
+      long_desc = "Can also be a list of strings/functions and it will try matching against all of them",
+    },
+    {
+      name = "field",
+      type = "string",
+      vararg = true,
+      desc = 'The name of the extracted capture group. Use `"_"` to discard.',
+    },
+  },
+  examples = {
+    {
+      desc = [[Convert a line in the format of `/path/to/file.txt:123: This is a message` into an item `{filename = "/path/to/file.txt", lnum = 123, text = "This is a message"}`]],
+      code = [[{"extract", "^([^%s].+):(%d+): (.+)$", "filename", "lnum", "text" }]],
+    },
+    {
+      desc = [[The same logic, but using a vim regex]],
+      code = [[{"extract", {regex = true}, "\\v^([^:space:].+):(\\d+): (.+)$", "filename", "lnum", "text" }]],
+    },
+  },
+}
 
 function Extract.new(opts, pattern, ...)
   local fields

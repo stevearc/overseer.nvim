@@ -6,20 +6,17 @@ A task runner and job management plugin for Neovim
 
 History will be overwritten once it's ready for release
 
-TODO screenshots
+TODO screenshots/teaser video
 
 - [ ] Integration with launch.json preLaunchTask for dap/dap-ui
 - [ ] Customize keymaps in forms
+- [ ] Restart should _always_ stop running task. Add some other logic to watch for queueing if desired
 
 Documentation TODOs
 
-- [ ] Documentation for parsers & parser debugging
-- [ ] Documentation for parser on on_output_parse
 - [ ] screenshot task list
 - [ ] Document alternatives
 - [ ] Document different ways to do task dependencies
-- [ ] Vimdoc generation for components
-- [ ] Vimdoc generation should check for missing tags
 
 ---
 
@@ -779,19 +776,24 @@ Overseer defines the following highlights override them to customize the colors.
 
 ## Parsing output
 
-The primary way of parsing output with overseer is the `on_output_parse` component. This component leverages the built-in parser library, which is designed to support very simple or very complex output formats equally well. The structure of it is largely taken from the design of [behavior trees](https://en.wikipedia.org/wiki/Behavior_tree_(artificial_intelligence,_robotics_and_control)) for game AI. You can find API documentation for all the built-in nodes in [the parsers doc](doc/parsers.md).
-
-TODO complete this
+The primary way of parsing output with overseer is the `on_output_parse` component.
 
 ```lua
+-- Definition of a component that parses output in the form of:
+-- /path/to/file.txt:123: This is a message
+-- You would typically use this in the components list of a task definition returned by a template
 {"on_output_parse", parser = {
+  -- Put the parser results into the 'diagnostics' field on the task result
   diagnostics = {
+    -- Extract fields using lua patterns
     { "extract", "^([^%s].+):(%d+): (.+)$", "filename", "lnum", "text" },
   }
 }}
 ```
 
-You can of course create your own components to parse output leveraging the `on_output` or `on_output_lines` methods. The integration should be straightforward; see [on_output_parse.lua](lua/overseer/component/on_output_parse.lua) for an example.
+This is a simple example, but the parser library is flexible enough to parse nearly any output format. See more detailed documentation in [the parsers doc](doc/parsers.md).
+
+You can of course create your own components to parse output leveraging the `on_output` or `on_output_lines` methods. The integration should be straightforward; see [on_output_parse.lua](lua/overseer/component/on_output_parse.lua) to see how the built-in component leverages these methods.
 
 ## VS Code tasks
 

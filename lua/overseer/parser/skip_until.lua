@@ -1,6 +1,36 @@
 local parser = require("overseer.parser")
 local util = require("overseer.util")
-local SkipUntil = {}
+local SkipUntil = {
+  desc = "Skip over lines until one matches",
+  doc_args = {
+    {
+      name = "opts",
+      type = "object",
+      desc = "Configuration options",
+      position_optional = true,
+      fields = {
+        {
+          name = "skip_matching_line",
+          type = "boolean",
+          desc = "Consumes the line that matches. Later nodes will only see the next line.",
+          default = true,
+        },
+      },
+    },
+    {
+      name = "pattern",
+      vararg = true,
+      type = "string",
+      desc = "The lua pattern to use for matching. The node succeeds if any of these patterns match.",
+    },
+  },
+  examples = {
+    {
+      desc = [[Skip input until we see "Error" or "Warning"]],
+      code = [[{"skip_until", "^Error:", "^Warning:"}]],
+    },
+  },
+}
 
 function SkipUntil.new(opts, ...)
   local patterns
