@@ -81,6 +81,7 @@ An extract node that returns SUCCESS even when it fails
 }
 ```
 
+
 ## [append](../lua/overseer/parser/append.lua)
 
 Append the current item to the results list \
@@ -115,6 +116,7 @@ An extract node that runs until it successfully parses
 }
 ```
 
+
 ## [extract](../lua/overseer/parser/extract.lua)
 
 Parse a line into an object and append it to the results \
@@ -130,7 +132,7 @@ Parse a line into an object and append it to the results \
 &nbsp;&nbsp;&nbsp;&nbsp;**regex**[`boolean`]: Use vim regex instead of lua pattern (see :help pattern) (default `true`) \
 &nbsp;&nbsp;&nbsp;&nbsp;**postprocess**[`function`]: Call this function to do post-extraction processing on the values \
 **pattern**[`string|function`]: The lua pattern to use for matching. Must have the same number of capture groups as there are field arguments. \
- Can also be a list of strings/functions and it will try matching against all of them \
+    Can also be a list of strings/functions and it will try matching against all of them \
 **field**[`string`]: The name of the extracted capture group. Use `"_"` to discard. \
 
 ### Examples
@@ -146,6 +148,7 @@ The same logic, but using a vim regex
 ```lua
 {"extract", {regex = true}, "\\v^([^:space:].+):(\\d+): (.+)$", "filename", "lnum", "text" }
 ```
+
 
 ## [extract_json](../lua/overseer/parser/extract_json.lua)
 
@@ -183,6 +186,7 @@ Extract all indented lines as a message
 ```lua
 {"extract_multiline", "^(    .+)", "message"}
 ```
+
 
 ## [extract_nested](../lua/overseer/parser/extract_nested.lua)
 
@@ -232,6 +236,7 @@ Extract a golang test failure, then add the stacktrace to it (if present)
 }
 ```
 
+
 ## [invert](../lua/overseer/parser/invert.lua)
 
 A decorator that inverts the child's return value \
@@ -251,6 +256,7 @@ An extract node that returns SUCCESS when it fails, and vice-versa
   {"extract", "^([^%s].+):(%d+): (.+)$", "filename", "lnum", "text" }
 }
 ```
+
 
 ## [loop](../lua/overseer/parser/loop.lua)
 
@@ -306,6 +312,7 @@ Extract the message text from one line, then the filename and lnum from the next
 }
 ```
 
+
 ## [set_defaults](../lua/overseer/parser/set_defaults.lua)
 
 A decorator that adds values to any items extracted by the child \
@@ -334,6 +341,7 @@ Extract the filename from a header line, then for each line of output beneath it
   }
 }
 ```
+
 
 ## [skip_lines](../lua/overseer/parser/skip_lines.lua)
 
@@ -365,6 +373,7 @@ Skip input until we see "Error" or "Warning"
 ```lua
 {"skip_until", "^Error:", "^Warning:"}
 ```
+
 
 ## [test](../lua/overseer/parser/test.lua)
 
