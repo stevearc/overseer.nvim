@@ -44,4 +44,4 @@ function ExtractJson:ingest(line, ctx)
   return self.consume and parser.STATUS.RUNNING or parser.STATUS.SUCCESS
 end
 
-return ExtractJson.new
+return ExtractJson

@@ -18,4 +18,4 @@ function SkipLines:ingest()
   end
 end
 
-return SkipLines.new
+return SkipLines

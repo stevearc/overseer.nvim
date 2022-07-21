@@ -35,4 +35,4 @@ function Test:ingest(line)
   return parser.STATUS.FAILURE
 end
 
-return Test.new
+return Test

@@ -66,4 +66,4 @@ function Parallel:ingest(...)
   end
 end
 
-return Parallel.new
+return Parallel

@@ -23,4 +23,4 @@ function Invert:ingest(...)
   end
 end
 
-return Invert.new
+return Invert

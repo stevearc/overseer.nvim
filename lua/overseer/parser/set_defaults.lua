@@ -44,4 +44,4 @@ function SetDefaults:ingest(line, ctx)
   return status
 end
 
-return SetDefaults.new
+return SetDefaults

@@ -25,4 +25,4 @@ function Always:ingest(...)
   return self.succeed and parser.STATUS.SUCCESS or parser.STATUS.FAILURE
 end
 
-return Always.new
+return Always

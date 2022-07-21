@@ -33,4 +33,4 @@ function Ensure:ingest(...)
   return parser.STATUS.RUNNING
 end
 
-return Ensure.new
+return Ensure

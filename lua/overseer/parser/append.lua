@@ -18,4 +18,4 @@ function Append:ingest(line, ctx)
   return parser.STATUS.SUCCESS
 end
 
-return Append.new
+return Append

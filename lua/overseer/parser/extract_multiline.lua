@@ -64,4 +64,4 @@ function ExtractMultiline:ingest(line, ctx)
   end
 end
 
-return ExtractMultiline.new
+return ExtractMultiline

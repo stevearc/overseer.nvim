@@ -44,4 +44,4 @@ function SkipUntil:ingest(line)
   return parser.STATUS.RUNNING
 end
 
-return SkipUntil.new
+return SkipUntil

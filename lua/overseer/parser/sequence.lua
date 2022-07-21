@@ -77,4 +77,4 @@ function Sequence:ingest(...)
   end
 end
 
-return Sequence.new
+return Sequence

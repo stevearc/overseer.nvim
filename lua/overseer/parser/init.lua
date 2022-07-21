@@ -29,10 +29,13 @@ end
 
 setmetatable(M, {
   __index = function(_, key)
-    local constructor = require(string.format("overseer.parser.%s", key))
-    if debug and key ~= "util" and key ~= "debug" then
+    local mod = require(string.format("overseer.parser.%s", key))
+    if key == "util" or key == "debug" then
+      return mod
+    end
+    if debug then
       return function(...)
-        local node = constructor(...)
+        local node = mod.new(...)
         local ingest = node.ingest
         local reset = node.reset
         node.reset = function(self)
@@ -53,7 +56,7 @@ setmetatable(M, {
         return node
       end
     else
-      return constructor
+      return mod.new
     end
   end,
 })

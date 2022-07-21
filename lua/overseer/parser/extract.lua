@@ -89,4 +89,4 @@ function Extract:ingest(line, ctx)
   return self.consume and parser.STATUS.RUNNING or parser.STATUS.SUCCESS
 end
 
-return Extract.new
+return Extract

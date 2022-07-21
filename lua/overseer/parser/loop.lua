@@ -55,4 +55,4 @@ function Loop:ingest(...)
   return parser.STATUS.RUNNING
 end
 
-return Loop.new
+return Loop

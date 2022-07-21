@@ -17,4 +17,4 @@ function Inline:ingest(...)
   return self.callback(...)
 end
 
-return Inline.new
+return Inline

@@ -58,4 +58,4 @@ function ExtractNested:ingest(line, ctx)
   self.done = st
   return self.done
 end
-return ExtractNested.new
+return ExtractNested
