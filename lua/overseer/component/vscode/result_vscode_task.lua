@@ -1,7 +1,5 @@
-local constants = require("overseer.constants")
 local parser = require("overseer.parser")
 local problem_matcher = require("overseer.template.vscode.problem_matcher")
-local STATUS = constants.STATUS
 
 local function pattern_to_test(pattern)
   if not pattern then
@@ -78,10 +76,6 @@ return {
         if self.parser then
           return self.parser:get_result()
         end
-      end,
-      on_exit = function(self, task, code)
-        local status = code == 0 and STATUS.SUCCESS or STATUS.FAILURE
-        task:finalize(status)
       end,
     }
   end,
