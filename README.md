@@ -2,13 +2,14 @@
 
 A task runner and job management plugin for Neovim
 
-**PRE-ALPHA**
+**ALPHA** - This is very close to general release, but there are a few changes I need to make first (mostly adding documentation).
 
-History will be overwritten once it's ready for release
+APIs are not guaranteed to be stable, though they will not be broken without reason.
 
-TODO screenshots/teaser video
+TODO
 
 - [ ] Customize keymaps in forms
+- [ ] screenshots/teaser video
 - [ ] screenshot task list
 - [ ] Document alternatives
 - [ ] Document different ways to do task dependencies
