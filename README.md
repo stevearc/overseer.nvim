@@ -9,8 +9,13 @@ History will be overwritten once it's ready for release
 TODO screenshots/teaser video
 
 - [ ] Integration with launch.json preLaunchTask for dap/dap-ui
+  - [ ] don't wait for background preLaunchTask to complete https://qa.wujigu.com/qa/?qa=707542/visual-studio-code-how-to-make-vscode-not-wait-for-finishing-a-prelaunchtask
+  - [ ] postDebugTask
+  - [ ] Search for task as `type: name`
 - [ ] Customize keymaps in forms
 - [ ] Restart should _always_ stop running task. Add some other logic to watch for queueing if desired
+- [ ] run_template should accept cwd and env args
+- [ ] when running sequential/parallel tasks, they should respect the cwd & env args
 
 Documentation TODOs
 
@@ -31,6 +36,7 @@ Documentation TODOs
 - [Third-party integrations](#third-party-integrations)
   - [Lualine](#lualine)
   - [Neotest](#neotest)
+  - [DAP](#dap)
 - [Architecture](#architecture)
 - [Customization](#customization)
   - [Custom tasks](#custom-tasks)
@@ -445,6 +451,10 @@ require('overseer').setup({
 
 **Note**: Restarting the overseer task will rerun the tests, but the results will not be reported to neotest. This is due to technical limitations, and will hopefully be fixed in the future.
 
+### DAP
+
+If you have both overseer and [nvim-dap](https://github.com/mfussenegger/nvim-dap) installed, overseer will automatically run the `preLaunchTask` and `postDebugTask` when present in a debug configuration.
+
 ## Architecture
 
 ### Tasks
@@ -810,6 +820,7 @@ Supported features:
 - [Background tasks](https://code.visualstudio.com/docs/editor/tasks#_background-watching-tasks)
 - `group` (sets template tag; supports `BUILD`, `TEST`, and `CLEAN`) and `isDefault` (sets priority)
 - [Operating system specific properties](https://code.visualstudio.com/docs/editor/tasks#_operating-system-specific-properties)
+- Integration with [launch.json](https://code.visualstudio.com/docs/editor/debugging#_launchjson-attributes) (preLaunchTask and postDebugTask) when used with [nvim-dap](https://github.com/mfussenegger/nvim-dap)
 
 Unsupported features:
 

@@ -95,7 +95,7 @@ end
 --   never     Never show prompt (error if required param missing)
 ---@class overseer.TemplateRunOpts
 ---@field name? string The name of the template to run
----@field tags? list|string List of tags used to filter when searching for template
+---@field tags? string[] List of tags used to filter when searching for template
 ---@field nostart? boolean When true, create the task but do not start it
 ---@field first? boolean When true, always show the task picker. When false, never show it. Default behavior will auto-set this based on presence of name and tags
 ---@field prompt? "always"|"missing"|"allow"|"never" Controls when to prompt user for parameter input
