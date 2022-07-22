@@ -8,15 +8,13 @@ History will be overwritten once it's ready for release
 
 TODO screenshots/teaser video
 
-- [ ] Integration with launch.json preLaunchTask for dap/dap-ui
-  - [ ] don't wait for background preLaunchTask to complete https://qa.wujigu.com/qa/?qa=707542/visual-studio-code-how-to-make-vscode-not-wait-for-finishing-a-prelaunchtask
+- [ ] VS Code add problemMatcher, add patterns?, add type handlers
+- [ ] Document extending VSCode behavior
+- [ ] config to not patch nvim-dap
 - [ ] Customize keymaps in forms
 - [ ] Restart should _always_ stop running task. Add some other logic to watch for queueing if desired
 - [ ] run_template should accept cwd and env args
 - [ ] when running sequential/parallel tasks, they should respect the cwd & env args
-
-Documentation TODOs
-
 - [ ] screenshot task list
 - [ ] Document alternatives
 - [ ] Document different ways to do task dependencies
@@ -46,48 +44,6 @@ Documentation TODOs
 - [VS Code tasks](#vs-code-tasks)
 - [Alternatives](#alternatives)
 - [FAQ](#faq)
-
-```json
-{
-  "version": "2.0.0",
-  "configurations": [
-    {
-      "name": "Attach to Node Functions",
-      "type": "node",
-      "request": "attach",
-      "port": 9230,
-      "preLaunchTask": "func: host start"
-    }
-  ]
-}
-```
-
-```json
-{
-  "version": "2.0.0",
-  "tasks": [
-    {
-      "type": "func",
-      "command": "host start",
-      "problemMatcher": "$func-node-watch",
-      "isBackground": true,
-      "dependsOn": "npm build (functions)"
-    },
-    {
-      "type": "shell",
-      "label": "npm build (functions)",
-      "command": "npm run build",
-      "dependsOn": "npm install (functions)",
-      "problemMatcher": "$tsc"
-    },
-    {
-      "type": "shell",
-      "label": "npm install (functions)",
-      "command": "npm install"
-    }
-  ]
-}
-```
 
 ## Features
 

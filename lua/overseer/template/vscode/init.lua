@@ -120,15 +120,21 @@ local function get_task_builder(defn)
 end
 
 local function convert_vscode_task(defn)
-  local task_builder = get_task_builder(defn)
-
+  local alias = string.format("%s: %s", defn.type, defn.command)
   local tmpl = {
-    name = defn.label,
+    name = defn.label or alias,
     -- VS Code seems to be able to specify tasks as type: label (e.g. "npm: build")
-    aliases = { string.format("%s: %s", defn.type, defn.label) },
+    aliases = { alias },
     desc = defn.detail,
     params = parse_params(defn),
   }
+
+  local task_builder = get_task_builder(defn)
+  -- If we don't have a task builder, but the type exists, then we don't support this task type
+  if not task_builder and defn.type then
+    log:warn("Unsupported VSCode task type '%s' for task %s", defn.type, tmpl.name)
+    return nil
+  end
 
   if defn.group then
     if type(defn.group) == "string" then

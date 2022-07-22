@@ -16,8 +16,8 @@ return function(spec)
   })
   table.insert(opts.components, { "on_output_write_file", filename = output_path })
   table.insert(opts.components, {
-    "neotest.on_complete_callback",
-    callback = function()
+    "on_complete_callback",
+    on_complete = function()
       finish_cond:notify_all()
     end,
   })
