@@ -2,6 +2,7 @@
 -- any jobs, but will instead wrap and manage a collection of other tasks.
 local commands = require("overseer.commands")
 local constants = require("overseer.constants")
+local log = require("overseer.log")
 local task_list = require("overseer.task_list")
 local util = require("overseer.util")
 local STATUS = constants.STATUS
@@ -193,17 +194,22 @@ function OrchestratorStrategy:_start_task_list(tasks, task_defns)
         task:start()
       else
         tasks[i] = -1
-        commands.run_template({ name = name, nostart = true, params = params }, function(new_task)
-          if not new_task then
-            return
+        commands.run_template(
+          { name = name, nostart = true, params = params },
+          function(new_task, err)
+            if not new_task then
+              log:error("Orchestrator could not start task '%s': %s", name, err)
+              self.task:finalize(STATUS.FAILURE)
+              return
+            end
+            new_task:add_component("orchestrator.on_status_broadcast")
+            tasks[idx] = new_task.id
+            count = count + 1
+            if count == task_count then
+              self:start_next()
+            end
           end
-          new_task:add_component("on_status_broadcast")
-          tasks[idx] = new_task.id
-          count = count + 1
-          if count == task_count then
-            self:start_next()
-          end
-        end)
+        )
       end
     end
   end
@@ -212,7 +218,7 @@ end
 ---@param task overseer.Task
 function OrchestratorStrategy:start(task)
   self.task = task
-  task:add_component("on_broadcast_update_orchestrator")
+  task:add_component("orchestrator.on_broadcast_update_orchestrator")
   self:_start_task_list(self.tasks, self.task_defns)
 end
 
