@@ -24,6 +24,7 @@ vim.notify when task is completed \
 ## [on_complete_restart](../lua/overseer/component/on_complete_restart.lua)
 
 Restart task when it completes \
+**delay**[number]: How long to wait (in ms) post-result before triggering restart (default `500`) \
 **statuses**[list[enum]]: What statuses will trigger a restart (default `["FAILURE"]`)
 
 ## [on_exit_set_status](../lua/overseer/component/on_exit_set_status.lua)
@@ -46,12 +47,6 @@ Summarize task output in the task list \
 Write task output to a file \
 \***filename**[string]: Name of file to write output to
 
-## [on_restart_handler](../lua/overseer/component/on_restart_handler.lua)
-
-Allows task to be restarted \
-**delay**[number]: How long to wait (in ms) post-result before triggering restart (default `500`) \
-**interrupt**[boolean]: If true, a restart will cancel a currently running task (default `false`)
-
 ## [on_result_diagnostics](../lua/overseer/component/on_result_diagnostics.lua)
 
 If task result contains diagnostics, display them \
@@ -72,7 +67,8 @@ If task result contains diagnostics, add them to the quickfix \
 
 Restart on any buffer :write \
 **delay**[number]: How long to wait (in ms) post-result before triggering restart (default `500`) \
-**dir**[string]: Only restart when writing files in this directory
+**dir**[string]: Only restart when writing files in this directory \
+**interrupt**[boolean]: Interrupt running tasks (default `true`)
 
 ## [timeout](../lua/overseer/component/timeout.lua)
 
