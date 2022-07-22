@@ -62,6 +62,8 @@ OPTIONS                                                         *overseer-option
       templates = { "builtin" },
       -- When true, tries to detect a green color from your colorscheme to use for success highlight
       auto_detect_success_color = true,
+      -- Patch nvim-dap to support preLaunchTask and postDebugTask
+      dap = true,
       -- Configure the task list
       task_list = {
         -- Default detail level for tasks. Can be 1-3.
@@ -359,8 +361,9 @@ setup():
 COMPONENTS                                                   *overseer-components*
 
 When components are passed to a task (either from a template or a component
-alias), they can be specified as either a raw string (e.g. `"on_complete_dispose"`) or
-a table with configuration parameters (e.g. `{"on_complete_dispose", timeout = 10}`).
+alias), they can be specified as either a raw string (e.g.
+`"on_complete_dispose"`) or a table with configuration parameters (e.g.
+`{"on_complete_dispose", timeout = 10}`).
 
 Components are lazy-loaded via requiring in the `overseer.component` namespace.
 For example, the `timeout` component is loaded from

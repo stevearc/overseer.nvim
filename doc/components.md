@@ -6,6 +6,12 @@ Set dependencies for task \
 **sequential**[boolean]: (default `false`) \
 \***task_names**[list[string]]: Names of dependency task templates
 
+## [on_complete_dispose](../lua/overseer/component/on_complete_dispose.lua)
+
+After task is completed, dispose it after a timeout \
+**statuses**[list[enum]]: Tasks with one of these statuses will be disposed (default `["SUCCESS", "FAILURE", "CANCELED"]`) \
+**timeout**[number]: Time to wait (in seconds) before disposing (default `300`)
+
 ## [on_complete_notify](../lua/overseer/component/on_complete_notify.lua)
 
 vim.notify when task is completed \
