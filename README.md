@@ -135,7 +135,7 @@ git clone --depth=1 https://github.com/stevearc/overseer.nvim.git \
 
 ## Setup
 
-Somewhere in your init.lua you will need to call `overseer.setup()`.
+Somewhere in your init.lua you will need to call `overseer.setup()`. Don't worry about lazy loading; overseer lazy-loads itself!
 
 ```lua
 require("overseer").setup({
