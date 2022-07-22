@@ -84,7 +84,6 @@ local default_config = {
       "on_output_summarize",
       "on_exit_set_status",
       "on_complete_notify",
-      "on_restart_handler",
       "on_complete_dispose",
     },
     -- Used for templates that define a task that should remain running and
@@ -93,7 +92,6 @@ local default_config = {
       "on_output_summarize",
       "on_exit_set_status",
       "on_complete_notify",
-      "on_restart_handler",
       "on_complete_restart",
     },
     -- Used for tasks generated from the VS Code integration (tasks.json)

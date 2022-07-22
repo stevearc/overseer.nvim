@@ -19,6 +19,11 @@ return {
         return v > 0
       end,
     },
+    interrupt = {
+      desc = "Interrupt running tasks",
+      type = "boolean",
+      default = true,
+    },
   },
   constructor = function(opts)
     vim.validate({
@@ -28,6 +33,7 @@ return {
 
     return {
       id = nil,
+      restart_after_complete = false,
       on_init = function(self, task)
         -- This means that the task cannot be auto-disposed while this component
         -- is attached
@@ -40,11 +46,23 @@ return {
             if vim.api.nvim_buf_get_option(params.buf, "buftype") == "" then
               local bufname = vim.api.nvim_buf_get_name(params.buf)
               if not opts.dir or files.is_subpath(opts.dir, bufname) then
-                task:restart()
+                if not task:restart(opts.interrupt) then
+                  self.restart_after_complete = true
+                end
               end
             end
           end,
         })
+      end,
+      on_reset = function(self, task)
+        self.restart_after_complete = false
+      end,
+      on_complete = function(self, task, status)
+        if self.restart_after_complete then
+          vim.schedule(function()
+            task:restart(opts.interrupt)
+          end)
+        end
       end,
       on_dispose = function(self, task)
         task:dec_reference()

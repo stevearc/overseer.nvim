@@ -15,6 +15,14 @@ return {
         choices = STATUS.values,
       },
     },
+    delay = {
+      desc = "How long to wait (in ms) post-result before triggering restart",
+      default = 500,
+      type = "number",
+      validate = function(v)
+        return v > 0
+      end,
+    },
   },
   constructor = function(opts)
     if type(opts.statuses) == "string" then
@@ -24,7 +32,12 @@ return {
     return {
       on_complete = function(self, task, status)
         if lookup[status] then
-          task:restart()
+          vim.defer_fn(function()
+            -- Only continue with the restart if the status hasn't changed
+            if task.status == status then
+              task:restart()
+            end
+          end, opts.delay)
         end
       end,
     }

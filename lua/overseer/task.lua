@@ -495,9 +495,9 @@ function Task:dispose(force)
   end
   if self:is_running() then
     if force then
-      -- If we're forcing the dispose, remove the ability to restart, then stop,
-      -- then dispose
-      self:remove_component("on_restart_handler")
+      -- If we're forcing the dispose, remove the "restart after complete" component (if any),
+      -- then stop, then dispose
+      self:remove_component("on_complete_restart")
       self:stop()
     else
       error("Cannot call dispose on running task")
@@ -520,13 +520,21 @@ function Task:dispose(force)
 end
 
 ---@param force_stop? boolean If true, restart the Task even if it is currently running
+---@return boolean
 function Task:restart(force_stop)
   vim.validate({ force_stop = { force_stop, "b", true } })
   log:debug("Restart task %s", self.name)
-  if force_stop and self:is_running() then
-    self:stop()
+  if self:is_running() then
+    if force_stop then
+      self:stop()
+    else
+      return false
+    end
   end
-  self:dispatch("on_request_restart")
+
+  self:reset(false)
+  self:start()
+  return true
 end
 
 ---Called when the task strategy exits

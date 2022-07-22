@@ -27,7 +27,6 @@ local M = {}
 ---@field on_complete? fun(self: overseer.Component, task: overseer.Task, status: overseer.Status, result: table)
 ---@field on_output? fun(self: overseer.Component, task: overseer.Task, data: string[])
 ---@field on_output_lines? fun(self: overseer.Component, task: overseer.Task, lines: string[])
----@field on_request_restart? fun(self: overseer.Component, task: overseer.Task)
 ---@field on_exit? fun(self: overseer.Component, task: overseer.Task, code: number)
 ---@field on_dispose? fun(self: overseer.Component, task: overseer.Task)
 ---@field on_status? fun(self: overseer.Component, task: overseer.Task, status: overseer.Status) Called when the task status changes
@@ -52,7 +51,6 @@ local builtin_components = {
   "on_output_parse",
   "on_output_summarize",
   "on_output_write_file",
-  "on_restart_handler",
   "on_result_diagnostics",
   "on_result_diagnostics_quickfix",
   "restart_on_save",

@@ -9,7 +9,6 @@ History will be overwritten once it's ready for release
 TODO screenshots/teaser video
 
 - [ ] Customize keymaps in forms
-- [ ] Restart should _always_ stop running task. Add some other logic to watch for queueing if desired
 - [ ] screenshot task list
 - [ ] Document alternatives
 - [ ] Document different ways to do task dependencies
@@ -630,9 +629,6 @@ return {
       on_output_lines = function(self, task, lines)
         -- Called when there is output from the task
         -- Usually easier to deal with than using on_output directly.
-      end,
-      on_request_restart = function(self, task)
-        -- Called when an action requests that the task be restarted
       end,
       ---@param code number The process exit code
       on_exit = function(self, task, code)

@@ -42,9 +42,15 @@ function TerminalStrategy:start(task)
       cwd = task.cwd,
       env = task.env,
       on_stdout = function(j, d)
+        if self.chan_id ~= j then
+          return
+        end
         on_stdout(d)
       end,
       on_exit = function(j, c)
+        if self.chan_id ~= j then
+          return
+        end
         log:debug("Task %s exited with code %s", task.name, c)
         -- Feed one last line end to flush the output
         on_stdout({ "" })

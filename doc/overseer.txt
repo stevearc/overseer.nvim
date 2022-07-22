@@ -435,9 +435,6 @@ The component definition should look like the following example:
             -- Called when there is output from the task
             -- Usually easier to deal with than using on_output directly.
           end,
-          on_request_restart = function(self, task)
-            -- Called when an action requests that the task be restarted
-          end,
           ---@param code number The process exit code
           on_exit = function(self, task, code)
             -- Called when the task command has completed

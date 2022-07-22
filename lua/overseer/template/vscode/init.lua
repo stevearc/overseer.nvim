@@ -180,7 +180,6 @@ local function convert_vscode_task(defn)
           name = defn.label,
           strategy = { "orchestrator", tasks = dep_tasks },
           components = {
-            "on_restart_handler",
             "on_complete_dispose",
           },
         }

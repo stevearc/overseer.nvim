@@ -36,12 +36,10 @@ M = {
   },
   restart = {
     condition = function(task)
-      return task:has_component("on_restart_handler")
-        and task.status ~= STATUS.PENDING
-        and task.status ~= STATUS.RUNNING
+      return task.status ~= STATUS.PENDING
     end,
     run = function(task)
-      task:restart()
+      task:restart(true)
     end,
   },
   dispose = {
@@ -64,8 +62,11 @@ M = {
   },
   ensure = {
     desc = "restart the task if it fails",
+    condition = function(task)
+      return not task:has_component("on_complete_restart")
+    end,
     run = function(task)
-      task:add_components({ "on_restart_handler", "on_complete_restart" })
+      task:add_components({ "on_complete_restart" })
       if task.status == STATUS.FAILURE then
         task:restart()
       end
@@ -74,7 +75,7 @@ M = {
   watch = {
     desc = "restart the task when you save a file",
     condition = function(task)
-      return task:has_component("on_restart_handler") and not task:has_component("restart_on_save")
+      return not task:has_component("restart_on_save")
     end,
     run = function(task)
       vim.ui.input({
@@ -83,7 +84,7 @@ M = {
         default = vim.fn.getcwd(0),
       }, function(dir)
         task:set_components({
-          { "on_restart_handler", interrupt = true },
+          -- TODO prompt for "interrupt" too
           { "restart_on_save", dir = dir },
         })
         task_list.update(task)
