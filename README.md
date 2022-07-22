@@ -9,7 +9,6 @@ APIs are not guaranteed to be stable, though they will not be broken without rea
 TODO
 
 - [ ] screenshots/teaser video
-- [ ] screenshot task list
 - [ ] Document different ways to do task dependencies
 
 ---
@@ -330,7 +329,7 @@ overseer.run_template({name = "npm watch", prompt = "always"})
 
 ## Task list
 
-TODO screenshot
+![Screenshot from 2022-07-22 08-44-37](https://user-images.githubusercontent.com/506791/180475623-1e9a9612-5a93-4520-a9bc-4e12b0496411.png)
 
 Control the task list with `:OverseerOpen`, `:OverseerClose`, and `:OverseerToggle`.
 

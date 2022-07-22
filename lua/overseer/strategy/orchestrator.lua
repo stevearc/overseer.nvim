@@ -165,6 +165,7 @@ function OrchestratorStrategy:start_next()
       if self.task and self.task:is_running() then
         self.task:finalize(status)
       end
+      self:render_buf()
       return
     end
   end

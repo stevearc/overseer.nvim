@@ -72,6 +72,26 @@
       "type": "shell",
       "label": "(vscode) create",
       "command": "touch vscode_test_file.txt && sleep 4"
+    },
+    {
+      "label": "Build/Test/Serve pipeline",
+      "dependsOn": ["make build", "run tests", "run webserver"],
+      "dependsOrder": "sequence"
+    },
+    {
+      "label": "make build",
+      "type": "shell",
+      "command": "echo make: Nothing to be done for 'all'. && sleep 4"
+    },
+    {
+      "label": "run tests",
+      "type": "shell",
+      "command": "echo 'starting tests...' && sleep 4 && echo 'Tests passed'"
+    },
+    {
+      "label": "run webserver",
+      "type": "shell",
+      "command": "echo 'Serving on 127.0.0.1:8080' && sleep 120"
     }
   ],
   "inputs": [
