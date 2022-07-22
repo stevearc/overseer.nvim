@@ -10,7 +10,6 @@ TODO
 
 - [ ] screenshots/teaser video
 - [ ] screenshot task list
-- [ ] Document alternatives
 - [ ] Document different ways to do task dependencies
 
 ---
@@ -814,13 +813,15 @@ Unsupported features:
 
 ## Alternatives
 
-TODO
+There are several other job/task plugins in the neovim ecosystem. To me, the main differentiating features that overseer offers are **unparalleled extensibility** and the **most complete support for `tasks.json`**. If you're still shopping around, these are the others that I'm aware of (please submit a PR if I'm missing any):
 
-- [yabs.nvim](https://github.com/pianocomposer321/yabs.nvim)
-- [toggletasks.nvim](https://github.com/jedrzejboczar/toggletasks.nvim)
-- [vs-tasks.nvim](https://github.com/EthanJWright/vs-tasks.nvim)
-- [tasks.nvim](https://github.com/GustavoKatel/tasks.nvim)
-- [tasks.nvim](https://github.com/mg979/tasks.vim)
+- [asynctasks.vim](https://github.com/skywind3000/asynctasks.vim) - Modern Task System for Project Building, Testing and Deploying
+- [async.vim](https://github.com/prabirshrestha/async.vim) - normalize async job control api for vim and neovim
+- [yabs.nvim](https://github.com/pianocomposer321/yabs.nvim) - Yet Another Build System/Code Runner for Neovim
+- [toggletasks.nvim](https://github.com/jedrzejboczar/toggletasks.nvim) - Neovim task runner: JSON/YAML + toggleterm.nvim + telescope.nvim
+- [vs-tasks.nvim](https://github.com/EthanJWright/vs-tasks.nvim) - A telescope plugin that runs tasks similar to VS Code's task implementation
+- [tasks.nvim](https://github.com/GustavoKatel/tasks.nvim) - Yet another task runner/manager for Neovim
+- [tasks.nvim](https://github.com/mg979/tasks.vim) - Async jobs and tasks
 
 ## FAQ
 
