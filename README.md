@@ -8,7 +8,6 @@ History will be overwritten once it's ready for release
 
 TODO screenshots/teaser video
 
-- [ ] config to not patch nvim-dap
 - [ ] dispose_delay component can select which statuses
 - [ ] Customize keymaps in forms
 - [ ] Restart should _always_ stop running task. Add some other logic to watch for queueing if desired

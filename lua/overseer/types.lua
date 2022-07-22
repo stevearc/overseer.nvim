@@ -2,6 +2,7 @@
 ---@field strategy? string
 ---@field templates? string[]
 ---@field auto_detect_success_color? boolean
+---@field dap? boolean
 ---@field task_list? overseer.ConfigTaskList
 ---@field actions? any TODO
 ---@field form? overseer.ConfigFloatWin
