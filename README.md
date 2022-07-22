@@ -8,9 +8,8 @@ History will be overwritten once it's ready for release
 
 TODO screenshots/teaser video
 
-- [ ] VS Code add problemMatcher, add patterns?, add type handlers
-- [ ] Document extending VSCode behavior
 - [ ] config to not patch nvim-dap
+- [ ] dispose_delay component can select which statuses
 - [ ] Customize keymaps in forms
 - [ ] Restart should _always_ stop running task. Add some other logic to watch for queueing if desired
 - [ ] run_template should accept cwd and env args
@@ -763,6 +762,8 @@ You can of course create your own components to parse output leveraging the `on_
 
 Overseer can read [VS Code's tasks.json file](https://code.visualstudio.com/docs/editor/tasks). By default, VS Code tasks will show up when you `:OverseerRun`. Overseer is _nearly_ at feature parity, but it's not quite (nor will it ever be) at 100%.
 
+Some VS Code extensions add additional tasks, task types, or problem matchers. You can't install those extensions for neovim, but there are ways to similarly extend the functionality of overseer. See [Extending VS Code tasks](doc/extending_vscode.md) for more information.
+
 Supported features:
 
 - Task types: process, shell, typescript, node
@@ -774,7 +775,7 @@ Supported features:
 - [Background tasks](https://code.visualstudio.com/docs/editor/tasks#_background-watching-tasks)
 - `group` (sets template tag; supports `BUILD`, `TEST`, and `CLEAN`) and `isDefault` (sets priority)
 - [Operating system specific properties](https://code.visualstudio.com/docs/editor/tasks#_operating-system-specific-properties)
-- Integration with [launch.json](https://code.visualstudio.com/docs/editor/debugging#_launchjson-attributes) (preLaunchTask and postDebugTask) when used with [nvim-dap](https://github.com/mfussenegger/nvim-dap)
+- Integration with [launch.json](https://code.visualstudio.com/docs/editor/debugging#_launchjson-attributes) (see [DAP](#dap))
 
 Unsupported features:
 

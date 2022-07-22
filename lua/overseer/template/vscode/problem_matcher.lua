@@ -236,6 +236,18 @@ local default_matchers = {
   },
 }
 
+---@param name string
+---@param defn table
+M.register_pattern = function(name, defn)
+  default_patterns[name] = defn
+end
+
+---@param name string
+---@param defn table
+M.register_problem_matcher = function(name, defn)
+  default_matchers[name] = defn
+end
+
 local severity_to_type = {
   error = "E",
   warning = "W",
