@@ -1,7 +1,48 @@
+local binding_util = require("overseer.binding_util")
+local config = require("overseer.config")
 local form = require("overseer.form")
 local util = require("overseer.util")
 
 local M = {}
+
+local bindings = {
+  {
+    desc = "Show default key bindings",
+    plug = "<Plug>OverseerTaskEditor:ShowHelp",
+    rhs = function()
+      -- FIXME this leaves the editor window, which closes it
+      binding_util.show_bindings("OverseerTaskEditor:")
+    end,
+  },
+  {
+    desc = "Move to next form field, or submit the task if on the last field",
+    plug = "<Plug>OverseerTaskEditor:NextOrSubmit",
+    rhs = function(builder)
+      builder:confirm()
+    end,
+  },
+  {
+    desc = "Submit the task",
+    plug = "<Plug>OverseerTaskEditor:Submit",
+    rhs = function(builder)
+      builder:submit()
+    end,
+  },
+  {
+    desc = "Move to the next field",
+    plug = "<Plug>OverseerTaskEditor:Next",
+    rhs = function(builder)
+      builder:next_field()
+    end,
+  },
+  {
+    desc = "Move to the previous field",
+    plug = "<Plug>OverseerTaskEditor:Prev",
+    rhs = function(builder)
+      builder:prev_field()
+    end,
+  },
+}
 
 local Builder = {}
 
@@ -134,21 +175,11 @@ function Builder:init_autocmds()
 end
 
 function Builder:init_keymaps()
-  vim.keymap.set({ "n", "i" }, "<CR>", function()
-    self:confirm()
-  end, { buffer = self.bufnr })
-  vim.keymap.set({ "n", "i" }, "<C-r>", function()
-    self:submit()
-  end, { buffer = self.bufnr })
-  vim.keymap.set({ "n", "i" }, "<C-s>", function()
-    self:submit()
-  end, { buffer = self.bufnr })
-  vim.keymap.set({ "n", "i" }, "<Tab>", function()
-    self:next_field()
-  end, { buffer = self.bufnr })
-  vim.keymap.set({ "n", "i" }, "<S-Tab>", function()
-    self:prev_field()
-  end, { buffer = self.bufnr })
+  binding_util.create_plug_bindings(self.bufnr, bindings, self)
+  for mode, user_bindings in pairs(config.task_editor.bindings) do
+    binding_util.create_bindings_to_plug(self.bufnr, mode, user_bindings, "OverseerTaskEditor:")
+  end
+
   -- Some shenanigans to make <C-u> behave the way we expect
   vim.keymap.set("i", "<C-u>", function()
     local cur = vim.api.nvim_win_get_cursor(0)

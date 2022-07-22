@@ -65,7 +65,7 @@ function Sidebar.new()
   })
 
   binding_util.create_plug_bindings(bufnr, bindings, tl)
-  binding_util.create_bindings_to_plug(bufnr, config.task_list.bindings, "OverseerTask:")
+  binding_util.create_bindings_to_plug(bufnr, "n", config.task_list.bindings, "OverseerTask:")
 
   return tl
 end

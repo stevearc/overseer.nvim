@@ -6,6 +6,8 @@
 ---@field task_list? overseer.ConfigTaskList
 ---@field actions? any TODO
 ---@field form? overseer.ConfigFloatWin
+---@field task_launcher? table
+---@field task_editor? table
 ---@field confirm? overseer.ConfigFloatWin
 ---@field task_win? overseer.ConfigTaskWin
 ---@field component_aliases? table<string, overseer.Serialized[]>

@@ -1,8 +1,28 @@
+local binding_util = require("overseer.binding_util")
 local component = require("overseer.component")
+local config = require("overseer.config")
 local form = require("overseer.form")
 local Task = require("overseer.task")
 local util = require("overseer.util")
 local M = {}
+
+local bindings = {
+  {
+    desc = "Show default key bindings",
+    plug = "<Plug>OverseerLauncher:ShowHelp",
+    rhs = function(editor)
+      -- FIXME this leaves the editor window, which closes it
+      binding_util.show_bindings("OverseerLauncher:")
+    end,
+  },
+  {
+    desc = "Submit the task",
+    plug = "<Plug>OverseerLauncher:Submit",
+    rhs = function(editor)
+      editor:submit()
+    end,
+  },
+}
 
 -- Telescope-specific settings for picking a new component
 local function get_telescope_new_component(options)
@@ -121,15 +141,11 @@ function Editor.new(task, task_cb)
     cleanup = cleanup,
     autocmds = autocmds,
   }, { __index = Editor })
-  vim.keymap.set("n", "<CR>", function()
-    editor:submit()
-  end, { buffer = bufnr })
-  vim.keymap.set({ "n", "i" }, "<C-r>", function()
-    editor:submit()
-  end, { buffer = bufnr })
-  vim.keymap.set({ "n", "i" }, "<C-s>", function()
-    editor:submit()
-  end, { buffer = bufnr })
+
+  binding_util.create_plug_bindings(bufnr, bindings, editor)
+  for mode, user_bindings in pairs(config.task_launcher.bindings) do
+    binding_util.create_bindings_to_plug(bufnr, mode, user_bindings, "OverseerLauncher:")
+  end
 
   table.insert(
     editor.autocmds,

@@ -54,6 +54,35 @@ local default_config = {
       winblend = 10,
     },
   },
+  task_launcher = {
+    bindings = {
+      i = {
+        ["<C-s>"] = "Submit",
+      },
+      n = {
+        ["<CR>"] = "Submit",
+        ["<C-s>"] = "Submit",
+        ["?"] = "ShowHelp",
+      },
+    },
+  },
+  task_editor = {
+    bindings = {
+      i = {
+        ["<CR>"] = "NextOrSubmit",
+        ["<C-s>"] = "Submit",
+        ["<Tab>"] = "Next",
+        ["<S-Tab>"] = "Prev",
+      },
+      n = {
+        ["<CR>"] = "NextOrSubmit",
+        ["<C-s>"] = "Submit",
+        ["<Tab>"] = "Next",
+        ["<S-Tab>"] = "Prev",
+        ["?"] = "ShowHelp",
+      },
+    },
+  },
   -- Configure the floating window used for confirmation prompts
   confirm = {
     border = "rounded",

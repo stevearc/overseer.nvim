@@ -8,7 +8,6 @@ APIs are not guaranteed to be stable, though they will not be broken without rea
 
 TODO
 
-- [ ] Customize keymaps in forms
 - [ ] screenshots/teaser video
 - [ ] screenshot task list
 - [ ] Document alternatives
