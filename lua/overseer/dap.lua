@@ -1,20 +1,38 @@
 local constants = require("overseer.constants")
+local dap = require("dap")
+local log = require("overseer.log")
 local STATUS = constants.STATUS
 local TAG = constants.TAG
 local M = {}
 
+---@param name string
+---@param cb fun(task: overseer.Task|nil, err: string|nil)
+local function get_task(name, cb)
+  local args = { nostart = true }
+  if name == "${defaultBuildTask}" then
+    args.tags = { TAG.BUILD }
+  else
+    args.name = name
+  end
+  require("overseer").run_template(args, cb)
+end
+
 M.wrap_run = function(daprun)
   return function(config, opts)
-    if config.preLaunchTask then
-      local args = { nostart = true }
-      if config.preLaunchTask == "${defaultBuildTask}" then
-        args.tags = { TAG.BUILD }
-      else
-        args.name = config.preLaunchTask
-      end
-      require("overseer").run_template(args, function(task, err)
+    dap.listeners.after.event_terminated["overseer"] = function()
+      get_task(config.postDebugTask, function(task, err)
         if err then
-          require("overseer.log"):error("Could not run preLaunchTask %s", config.preLaunchTask)
+          log:error("Could not run postDebugTask %s", config.postDebugTask)
+        elseif task then
+          task:start()
+        end
+      end)
+    end
+
+    if config.preLaunchTask then
+      get_task(config.preLaunchTask, function(task, err)
+        if not task then
+          log:error("Could not run preLaunchTask %s: %s", config.preLaunchTask, err)
           return
         end
         task:add_component({
