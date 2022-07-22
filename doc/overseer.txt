@@ -139,7 +139,7 @@ OPTIONS                                                         *overseer-option
           "on_exit_set_status",
           "on_complete_notify",
           "on_restart_handler",
-          "dispose_delay",
+          "on_complete_dispose",
         },
         -- Used for templates that define a task that should remain running and
         -- restart on failure (e.g. a server or file-watching build process)
@@ -359,8 +359,8 @@ setup():
 COMPONENTS                                                   *overseer-components*
 
 When components are passed to a task (either from a template or a component
-alias), they can be specified as either a raw string (e.g. `"dispose_delay"`) or
-a table with configuration parameters (e.g. `{"dispose_delay", timeout = 10}`).
+alias), they can be specified as either a raw string (e.g. `"on_complete_dispose"`) or
+a table with configuration parameters (e.g. `{"on_complete_dispose", timeout = 10}`).
 
 Components are lazy-loaded via requiring in the `overseer.component` namespace.
 For example, the `timeout` component is loaded from

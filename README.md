@@ -8,11 +8,8 @@ History will be overwritten once it's ready for release
 
 TODO screenshots/teaser video
 
-- [ ] dispose_delay component can select which statuses
 - [ ] Customize keymaps in forms
 - [ ] Restart should _always_ stop running task. Add some other logic to watch for queueing if desired
-- [ ] run_template should accept cwd and env args
-- [ ] when running sequential/parallel tasks, they should respect the cwd & env args
 - [ ] screenshot task list
 - [ ] Document alternatives
 - [ ] Document different ways to do task dependencies
@@ -226,7 +223,7 @@ require("overseer").setup({
       "on_exit_set_status",
       "on_complete_notify",
       "on_restart_handler",
-      "dispose_delay",
+      "on_complete_dispose",
     },
     -- Used for templates that define a task that should remain running and
     -- restart on failure (e.g. a server or file-watching build process)
@@ -319,7 +316,7 @@ less detail for a single task with `<C-l>` and `<C-h>` (by default), or for all 
 [actions](#actions) that you can perform on the selected task.
 
 When a task is disposed, it will be removed from the task list. By default, tasks will be disposed 5
-minutes after they finish running (controlled by the `dispose_delay` component).
+minutes after they finish running (controlled by the `on_complete_dispose` component).
 
 ## Task editor
 
@@ -395,7 +392,7 @@ require('overseer').setup({
       "on_output_summarize",
       "on_exit_set_status",
       "on_complete_notify",
-      "dispose_delay",
+      "on_complete_dispose",
     },
   }
 })
@@ -566,7 +563,7 @@ overseer.setup({
 
 ### Custom components
 
-When components are passed to a task (either from a template or a component alias), they can be specified as either a raw string (e.g. `"dispose_delay"`) or a table with configuration parameters (e.g. `{"dispose_delay", timeout = 10}`).
+When components are passed to a task (either from a template or a component alias), they can be specified as either a raw string (e.g. `"on_complete_dispose"`) or a table with configuration parameters (e.g. `{"on_complete_dispose", timeout = 10}`).
 
 Components are lazy-loaded via requiring in the `overseer.component` namespace. For example, the `timeout` component is loaded from `lua/overseer/component/timeout.lua`. It is recommended that for plugins or personal use, you namespace your own components behind an additional directory. For example, place your component in `lua/overseer/component/myplugin/mycomponent.lua`, and reference it as `myplugin.mycomponent`.
 
@@ -804,7 +801,7 @@ TODO
 
 **Q: Why do my tasks disappear after a while?**
 
-The default behavior is for completed tasks to get _disposed_ after a 5 minute timeout. This frees their resources and removes them from the task list. You can change this by editing the `component_aliases` definition to either tweak the timeout (`{"dispose_delay", timeout = 900}`), or delete the "dispose_delay" component entirely. In that case, tasks will stick around until manually disposed.
+The default behavior is for completed tasks to get _disposed_ after a 5 minute timeout. This frees their resources and removes them from the task list. You can change this by editing the `component_aliases` definition to either tweak the timeout (`{"on_complete_dispose", timeout = 900}`), or delete the "on_complete_dispose" component entirely. In that case, tasks will stick around until manually disposed.
 
 **Q: How can I debug when something goes wrong?**
 

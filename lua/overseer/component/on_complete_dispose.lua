@@ -1,3 +1,6 @@
+local constants = require("overseer.constants")
+local STATUS = constants.STATUS
+
 ---@type overseer.ComponentDefinition
 local comp = {
   desc = "After task is completed, dispose it after a timeout",
@@ -10,6 +13,15 @@ local comp = {
         return v > 0
       end,
     },
+    statuses = {
+      desc = "Tasks with one of these statuses will be disposed",
+      type = "list",
+      default = { STATUS.SUCCESS, STATUS.FAILURE, STATUS.CANCELED },
+      subtype = {
+        type = "enum",
+        choices = STATUS.values,
+      },
+    },
   },
   constructor = function(opts)
     opts = opts or {}
@@ -19,6 +31,9 @@ local comp = {
     return {
       timer = nil,
       on_complete = function(self, task)
+        if not vim.tbl_contains(opts.statuses, task.status) then
+          return
+        end
         self.timer = vim.loop.new_timer()
         -- Start a repeating timer because the dispose could fail with a
         -- temporary reason (e.g. the task buffer is open, or the action menu is

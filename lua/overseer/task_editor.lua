@@ -462,9 +462,12 @@ function Editor:submit()
   for k, v in pairs(self.task_data) do
     self.task[k] = v
   end
-  if not util.is_shell_cmd(self.task_data.cmd) then
-    self.task.cmd = vim.split(self.task_data.cmd, "%s+")
-  end
+  -- This was causing problems if the original task we're editing was a string and had quoted args
+  -- (e.g. "sleep '10'"). I think it's fine if the task editor always returns the cmd as a string,
+  -- so let's do that for now.
+  -- if not util.is_shell_cmd(self.task_data.cmd) then
+  --   self.task.cmd = vim.split(self.task_data.cmd, "%s+")
+  -- end
   if not self.task_name:match("^%s*$") then
     self.task.name = self.task_name
   end

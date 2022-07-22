@@ -3,6 +3,9 @@ local files = require("overseer.files")
 local log = require("overseer.log")
 local variables = require("overseer.template.vscode.variables")
 
+---@param params table
+---@param str string
+---@param inputs table
 local function extract_params(params, str, inputs)
   if not str then
     return
@@ -43,6 +46,7 @@ local function parse_params(defn)
     input_lookup[input.id] = input
   end
   local params = {}
+  -- TODO I think we need to parse more than the 'command', in the case of custom tasks
   extract_params(params, defn.command, input_lookup)
   if defn.args then
     for _, arg in ipairs(defn.args) do
@@ -177,7 +181,7 @@ local function convert_vscode_task(defn)
           strategy = { "orchestrator", tasks = dep_tasks },
           components = {
             "on_restart_handler",
-            "dispose_delay",
+            "on_complete_dispose",
           },
         }
       end
@@ -185,6 +189,7 @@ local function convert_vscode_task(defn)
   elseif task_builder then
     tmpl.builder = task_builder
   else
+    -- We should never hit this else since we early return above
     log:warn("No VS Code task provider for '%s'", defn.type)
     return nil
   end

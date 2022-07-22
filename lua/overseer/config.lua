@@ -85,7 +85,7 @@ local default_config = {
       "on_exit_set_status",
       "on_complete_notify",
       "on_restart_handler",
-      "dispose_delay",
+      "on_complete_dispose",
     },
     -- Used for templates that define a task that should remain running and
     -- restart on failure (e.g. a server or file-watching build process)
