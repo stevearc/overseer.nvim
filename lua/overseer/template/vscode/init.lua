@@ -124,6 +124,8 @@ local function convert_vscode_task(defn)
 
   local tmpl = {
     name = defn.label,
+    -- VS Code seems to be able to specify tasks as type: label (e.g. "npm: build")
+    aliases = { string.format("%s: %s", defn.type, defn.label) },
     desc = defn.detail,
     params = parse_params(defn),
   }

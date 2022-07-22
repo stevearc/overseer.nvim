@@ -11,7 +11,6 @@ TODO screenshots/teaser video
 - [ ] Integration with launch.json preLaunchTask for dap/dap-ui
   - [ ] don't wait for background preLaunchTask to complete https://qa.wujigu.com/qa/?qa=707542/visual-studio-code-how-to-make-vscode-not-wait-for-finishing-a-prelaunchtask
   - [ ] postDebugTask
-  - [ ] Search for task as `type: name`
 - [ ] Customize keymaps in forms
 - [ ] Restart should _always_ stop running task. Add some other logic to watch for queueing if desired
 - [ ] run_template should accept cwd and env args

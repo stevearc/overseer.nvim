@@ -14,6 +14,7 @@ local M = {}
 
 ---@class overseer.TemplateDefinition
 ---@field name string
+---@field aliases? string[]
 ---@field desc? string
 ---@field tags? string[]
 ---@field params overseer.Params
@@ -258,6 +259,13 @@ M.get_by_name = function(name, opts)
   for _, tmpl in ipairs(M.list(opts)) do
     if tmpl.name == name then
       return tmpl
+    end
+    if tmpl.aliases then
+      for _, alias in ipairs(tmpl.aliases) do
+        if alias == name then
+          return tmpl
+        end
+      end
     end
   end
 end
