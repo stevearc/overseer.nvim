@@ -4,7 +4,9 @@
 
 Set dependencies for task \
 **sequential**[boolean]: (default `false`) \
-\***task_names**[list[string]]: Names of dependency task templates
+\***task_names**[list[string]]: Names of dependency task templates \
+    This can be a list of strings (template names) or tables (name with params, e.g. {"shell", cmd = \
+    "sleep 10"})
 
 ## [on_complete_dispose](../lua/overseer/component/on_complete_dispose.lua)
 
