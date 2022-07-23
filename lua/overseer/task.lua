@@ -38,6 +38,7 @@ Task.params = {
 }
 
 ---@class overseer.TaskDefinition
+---@field cmd string|string[]
 ---@field args? string[]
 ---@field name? string
 ---@field cwd? string
