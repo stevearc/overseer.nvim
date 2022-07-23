@@ -93,7 +93,7 @@ end
 ---@field name? string The name of the template to run
 ---@field tags? string[] List of tags used to filter when searching for template
 ---@field nostart? boolean When true, create the task but do not start it
----@field first? boolean When true, always show the task picker. When false, never show it. Default behavior will auto-set this based on presence of name and tags
+---@field first? boolean When true, take first result and never show the task picker. Default behavior will auto-set this based on presence of name and tags
 ---@field prompt? "always"|"missing"|"allow"|"never" Controls when to prompt user for parameter input
 ---@field params? table Parameters to pass to template
 ---@field action? string Run this action on the task after creation
