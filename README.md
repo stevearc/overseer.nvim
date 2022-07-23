@@ -318,7 +318,7 @@ overseer.run_template({tags = {overseer.TAG.BUILD}})
 -- Run the task named "serve" with some default parameters
 overseer.run_template({name = "serve", params = {port = 8080}})
 -- Create a task but do not start it
-overseer.run_template({name = "make", nostart = true}, function(task)
+overseer.run_template({name = "make", autostart = false}, function(task)
   -- do something with the task
 end)
 -- Run a task and immediately open the floating window

@@ -8,7 +8,7 @@ local M = {}
 ---@param name string
 ---@param cb fun(task: overseer.Task|nil, err: string|nil)
 local function get_task(name, cb)
-  local args = { nostart = true }
+  local args = { autostart = false }
   if name == "${defaultBuildTask}" then
     args.tags = { TAG.BUILD }
   else

@@ -195,7 +195,7 @@ function OrchestratorStrategy:_start_task_list(tasks, task_defns)
       else
         tasks[i] = -1
         commands.run_template(
-          { name = name, nostart = true, params = params },
+          { name = name, autostart = false, params = params },
           function(new_task, err)
             if not new_task then
               log:error("Orchestrator could not start task '%s': %s", name, err)

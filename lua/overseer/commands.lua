@@ -92,7 +92,7 @@ end
 ---@class overseer.TemplateRunOpts
 ---@field name? string The name of the template to run
 ---@field tags? string[] List of tags used to filter when searching for template
----@field nostart? boolean When true, create the task but do not start it
+---@field autostart? boolean When true, start the task after creating it (default true)
 ---@field first? boolean When true, take first result and never show the task picker. Default behavior will auto-set this based on presence of name and tags
 ---@field prompt? "always"|"missing"|"allow"|"never" Controls when to prompt user for parameter input
 ---@field params? table Parameters to pass to template
@@ -101,18 +101,20 @@ end
 ---@param opts overseer.TemplateRunOpts
 ---@param callback? fun(task: overseer.Task|nil, err: string|nil)
 M.run_template = function(opts, callback)
-  opts = opts or {}
+  opts = vim.tbl_deep_extend("keep", opts or {}, {
+    autostart = true,
+    prompt = "allow",
+  })
   vim.validate({
     name = { opts.name, "s", true },
     tags = { opts.tags, "t", true },
-    nostart = { opts.nostart, "b", true },
+    autostart = { opts.autostart, "b", true },
     first = { opts.first, "b", true },
     prompt = { opts.prompt, "s", true },
     params = { opts.params, "t", true },
     action = { opts.action, "s", true },
     callback = { callback, "f", true },
   })
-  opts.prompt = opts.prompt or "allow"
   if opts.first == nil then
     opts.first = opts.name or not vim.tbl_isempty(opts.tags or {})
   end
@@ -134,7 +136,7 @@ M.run_template = function(opts, callback)
     end
     template.build(tmpl, opts.prompt, opts.params, function(task)
       if task then
-        if not opts.nostart then
+        if opts.autostart then
           task:start()
         end
         if opts.action then

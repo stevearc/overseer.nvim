@@ -25,7 +25,7 @@ return {
           local dep_task = task_id and task_list.get(task_id)
           if not dep_task then
             -- If no task ID found, start the dependency
-            commands.run_template({ name = name, nostart = true }, function(new_task)
+            commands.run_template({ name = name, autostart = false }, function(new_task)
               if not new_task then
                 return
               end
