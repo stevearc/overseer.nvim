@@ -54,7 +54,10 @@ local function parse_line(line)
 end
 
 function Builder.new(title, schema, params, callback)
-  local keys = vim.tbl_keys(schema)
+  -- Filter out the opaque types
+  local keys = vim.tbl_filter(function(key)
+    return schema[key].type ~= "opaque"
+  end, vim.tbl_keys(schema))
   -- Sort the params by required, then if they have no value, then by name
   table.sort(keys, function(a, b)
     local aparam = schema[a]
