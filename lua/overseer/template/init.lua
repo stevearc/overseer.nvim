@@ -154,7 +154,7 @@ end
 ---@param tmpl overseer.TemplateDefinition
 ---@param prompt "always"|"never"|"allow"|"missing"
 ---@param params table
----@param callback fun(task: overseer.Task|nil)
+---@param callback fun(task: overseer.Task|nil, err: string|nil)
 M.build = function(tmpl, prompt, params, callback)
   local any_missing = false
   local required_missing = false
@@ -164,13 +164,13 @@ M.build = function(tmpl, prompt, params, callback)
         params[k] = schema.default
       else
         if prompt == "never" then
-          error(string.format("Missing param %s", k))
+          return callback(nil, string.format("Missing param %s", k))
         end
         any_missing = true
         if not schema.optional then
           required_missing = true
+          break
         end
-        break
       end
     end
   end
