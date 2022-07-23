@@ -322,7 +322,11 @@ overseer.run_template({name = "make", autostart = false}, function(task)
   -- do something with the task
 end)
 -- Run a task and immediately open the floating window
-overseer.run_template({name = "make", action = 'open float'})
+overseer.run_template({name = "make"}, function(task)
+  if task then
+    overseer.run_action(task, 'open float')
+  end
+end)
 -- Run a task and always show the parameter prompt
 overseer.run_template({name = "npm watch", prompt = "always"})
 ```
