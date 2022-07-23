@@ -261,7 +261,6 @@ M.save_task_bundle = lazy("task_bundle", "save_task_bundle")
 M.delete_task_bundle = lazy("task_bundle", "delete_task_bundle")
 
 M.run_template = lazy("commands", "run_template")
-M.run_cmd = lazy("commands", "run_cmd")
 
 ---@param task overseer.Task
 ---@param name? string Name of action. When omittied, prompt user to pick.

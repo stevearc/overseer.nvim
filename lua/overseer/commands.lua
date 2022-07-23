@@ -40,17 +40,13 @@ M._delete_bundle = function(params)
 end
 
 M._run_command = function(params)
-  if params.args ~= "" then
-    M.run_cmd({ cmd = params.args })
-  else
-    vim.ui.input({
-      prompt = "Command:",
-    }, function(cmd)
-      if cmd then
-        M.run_cmd({ cmd = cmd })
-      end
-    end)
-  end
+  local tmpl_params = {
+    cmd = params.args ~= "" and params.args or nil,
+  }
+  M.run_template({
+    name = "shell",
+    params = tmpl_params,
+  })
 end
 
 M._run_template = function(params)
@@ -182,12 +178,6 @@ M.run_template = function(opts, callback)
       end)
     end
   end
-end
-
-M.run_cmd = function(opts)
-  local task = Task.new(opts)
-  task:start()
-  return task
 end
 
 M.build_task = function()
