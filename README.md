@@ -2,16 +2,9 @@
 
 A task runner and job management plugin for Neovim
 
-**ALPHA** - This is very close to general release, but there are a few changes I need to make first (mostly adding documentation).
+**BETA** - [APIs](#api) are not guaranteed to be stable, but a best-effort will be made to retain backwards-compatibility
 
-APIs are not guaranteed to be stable, though they will not be broken without reason.
-
-TODO
-
-- [ ] screenshots/teaser video
-- [ ] Document different ways to do task dependencies
-
----
+https://user-images.githubusercontent.com/506791/180620617-2b1bb0a8-5f39-4936-97c2-04c92f1e2974.mp4
 
 - [Features](#features)
 - [Requirements](#requirements)
@@ -36,6 +29,7 @@ TODO
 - [VS Code tasks](#vs-code-tasks)
 - [Running tasks sequentially](#running-tasks-sequentially)
 - [Alternatives](#alternatives)
+- [API](#api)
 - [FAQ](#faq)
 
 ## Features
@@ -857,6 +851,18 @@ There are several other job/task plugins in the neovim ecosystem. To me, the mai
 - [vs-tasks.nvim](https://github.com/EthanJWright/vs-tasks.nvim) - A telescope plugin that runs tasks similar to VS Code's task implementation
 - [tasks.nvim](https://github.com/GustavoKatel/tasks.nvim) - Yet another task runner/manager for Neovim
 - [tasks.nvim](https://github.com/mg979/tasks.vim) - Async jobs and tasks
+
+## API
+
+As overseer is in beta status, the API is not completely solidified. Breaking change _may_ be made if necessary to improve the plugin, but they _will not_ be made unless absolutely necessary. Wherever possible, functions will be gracefully deprecated with clear migration messages.
+
+The official API surface includes:
+
+- All functions exposed in [overseer/init.lua](lua/overseer/init.lua)
+- Config options passed to `setup()`
+- [Components](#components), including names and parameters
+- [Commands](#commands)
+- [Parsers](#parsing-output), including names and parameters
 
 ## FAQ
 
