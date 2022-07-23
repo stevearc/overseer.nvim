@@ -115,21 +115,13 @@ local default_config = {
       "on_complete_notify",
       "on_complete_dispose",
     },
-    -- Used for templates that define a task that should remain running and
-    -- restart on failure (e.g. a server or file-watching build process)
-    default_persist = {
-      "on_output_summarize",
-      "on_exit_set_status",
-      "on_complete_notify",
-      "on_complete_restart",
-    },
-    -- Used for tasks generated from the VS Code integration (tasks.json)
-    default_vscode = {
-      "default",
-      "on_result_diagnostics",
-      "on_result_diagnostics_quickfix",
-    },
   },
+  -- This is run before creating tasks from a template
+  pre_task_hook = function(task_defn, util)
+    -- util.add_component(task_defn, "on_result_diagnostics", {"timeout", timeout = 20})
+    -- util.remove_component(task_defn, "on_complete_dispose")
+    -- task_defn.env = { MY_VAR = 'value' }
+  end,
   -- A list of components to preload on setup.
   -- Only matters if you want them to show up in the task editor.
   preload_components = {},

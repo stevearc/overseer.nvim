@@ -381,6 +381,9 @@ M.tbl_group_by = function(list, key)
   return ret
 end
 
+---@generic T : any
+---@param list_or_obj T|T[]
+---@return fun(): integer, T
 M.iter_as_list = function(list_or_obj)
   if list_or_obj == nil then
     return function() end

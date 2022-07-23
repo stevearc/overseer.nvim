@@ -1,3 +1,4 @@
+local component = require("overseer.component")
 local config = require("overseer.config")
 local files = require("overseer.files")
 local form = require("overseer.form")
@@ -141,6 +142,46 @@ local function validate_template_definition(defn)
   form.validate_params(defn.params)
 end
 
+---@class overseer.TaskUtil
+local task_util = {}
+---@param task_defn overseer.TaskDefinition
+---@param ... overseer.Serialized
+function task_util.add_component(task_defn, ...)
+  local names = vim.tbl_map(util.split_config, { ... })
+  task_util.remove_component(task_defn, names)
+  vim.list_extend(task_defn.components, { ... })
+end
+---@param task_defn overseer.TaskDefinition
+---@param ... string
+function task_util.remove_component(task_defn, ...)
+  local to_remove = util.list_to_map({ ... })
+  task_defn.components = vim.tbl_filter(function(comp)
+    return not to_remove[util.split_config(comp)]
+  end, task_defn.components)
+end
+---@param task_defn overseer.TaskDefinition
+---@param name string
+---@return boolean
+function task_util.has_component(task_defn, name)
+  for _, comp in ipairs(task_defn.components) do
+    if name == util.split_config(comp) then
+      return true
+    end
+  end
+  return false
+end
+
+---@param tmpl overseer.TemplateDefinition
+---@param params table
+---@return overseer.Task
+local function build_task(tmpl, params)
+  local task_defn = tmpl.builder(params)
+  task_defn.components = component.resolve(task_defn.components or { "default" })
+  config.pre_task_hook(task_defn, task_util)
+  local task = Task.new(task_defn)
+  return task
+end
+
 ---@param defn overseer.TemplateDefinition|overseer.TemplateProvider
 M.register = function(defn)
   if defn.generator then
@@ -181,7 +222,7 @@ M.build = function(tmpl, prompt, params, callback)
     or (prompt == "missing" and not any_missing)
     or vim.tbl_isempty(tmpl.params)
   then
-    callback(Task.new(tmpl.builder(params)))
+    callback(build_task(tmpl, params))
     return
   end
 
@@ -191,7 +232,7 @@ M.build = function(tmpl, prompt, params, callback)
   end
   task_builder.open(tmpl.name, schema, params, function(final_params)
     if final_params then
-      callback(Task.new(tmpl.builder(final_params)))
+      callback(build_task(tmpl, final_params))
     else
       callback()
     end

@@ -11,6 +11,7 @@
 ---@field confirm? overseer.ConfigFloatWin
 ---@field task_win? overseer.ConfigTaskWin
 ---@field component_aliases? table<string, overseer.Serialized[]>
+---@field pre_task_hook? fun(task_defn: overseer.TaskDefinition, util: overseer.TaskUtil)
 ---@field preload_components? string[]
 ---@field log table[]
 
