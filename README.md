@@ -34,6 +34,7 @@ TODO
   - [Highlights](#highlights)
 - [Parsing output](#parsing-output)
 - [VS Code tasks](#vs-code-tasks)
+- [Running tasks sequentially](#running-tasks-sequentially)
 - [Alternatives](#alternatives)
 - [FAQ](#faq)
 
@@ -813,6 +814,45 @@ Unsupported features:
 - Custom problem matcher patterns may fail due to differences between JS and vim regex (notably vim regex doesn't support non-capturing groups `(?:.*)` or character classes inside of brackets `[\d\s]`)
 - [Output behavior](https://code.visualstudio.com/docs/editor/tasks#_output-behavior) (probably not going to support this)
 - [Run behavior](https://code.visualstudio.com/docs/editor/tasks#_run-behavior) (probably not going to support this)
+
+## Running tasks sequentially
+
+There are currently two ways to get tasks to run sequentially. The first is by using the [dependencies](doc/components.md#dependencies) component. For example, if you wanted to create a `npm serve` task that runs `npm build` first, you could create it like so:
+
+```lua
+overseer.run_template({name = 'npm serve', autostart = false}, function(task)
+  if task then
+    task:add_component({'dependencies', task_names = {
+      'npm build',
+      -- You can also pass in params to the task
+      {'shell', cmd = 'sleep 10'},
+    }, sequential = true})
+    task:start()
+  end
+end)
+```
+
+Another approach to running tasks in a specific order is to use the [orchestrator](lua/overseer/strategy/orchestrator.lua) strategy. This creates a single "orchestration" task that is responsible for running the other tasks in the correct order. You can create it like so:
+
+```lua
+local task = overseer.new_task({
+  name = "Build and serve app",
+  strategy = {
+    "orchestrator",
+    tasks = {
+      "make clean", -- Step 1: clean
+      {             -- Step 2: build js and css in parallel
+         "npm build",
+        { "shell", cmd = "lessc styles.less styles.css" },
+      },
+      "npm serve",  -- Step 3: serve
+    },
+  },
+})
+task:start()
+```
+
+Lastly, you can always leverage the `.vscode/tasks.json` format to specify task dependencies using the `dependsOn` keyword. It will use one of the two above methods under the hood.
 
 ## Alternatives
 
