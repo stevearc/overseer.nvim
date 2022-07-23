@@ -133,11 +133,13 @@ M.run_template = function(opts, callback)
       return
     end
     template.build(tmpl, opts.prompt, opts.params, function(task)
-      if task and not opts.nostart then
-        task:start()
-      end
-      if opts.action then
-        action_util.run_task_action(task, opts.action)
+      if task then
+        if not opts.nostart then
+          task:start()
+        end
+        if opts.action then
+          action_util.run_task_action(task, opts.action)
+        end
       end
       if callback then
         callback(task)

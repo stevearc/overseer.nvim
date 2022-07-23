@@ -5,6 +5,8 @@ local util = require("overseer.util")
 
 local M = {}
 
+---@param task overseer.Task
+---@param name? string
 M.run_task_action = function(task, name)
   M.run_action({
     actions = config.actions,
