@@ -7,29 +7,23 @@ local task_list = require("overseer.task_list")
 local util = require("overseer.util")
 local STATUS = constants.STATUS
 
----@param items table
----@param cb fun(item: any)
-local function for_each(items, cb)
-  for _, sub in ipairs(items) do
-    if type(sub) == "table" and vim.tbl_islist(sub) then
-      for_each(sub, cb)
-    else
-      cb(sub)
+---@param tasks table
+---@param cb fun(task: overseer.Task)
+local function for_each_task(tasks, cb)
+  for _, section in ipairs(tasks) do
+    for _, id in ipairs(section) do
+      local task = task_list.get(id)
+      if task then
+        cb(task)
+      end
     end
   end
 end
 
----@param tasks table
----@param cb fun(task: overseer.Task)
-local function for_each_task(tasks, cb)
-  for_each(tasks, function(id)
-    local task = task_list.get(id)
-    if task then
-      cb(task)
-    end
-  end)
-end
-
+---@class overseer.OrchestratorStrategy
+---@field bufnr integer
+---@field task_defns overseer.Serialized[][]
+---@field tasks integer[][]
 local OrchestratorStrategy = {}
 
 ---@return overseer.Strategy
@@ -40,10 +34,20 @@ function OrchestratorStrategy.new(opts)
   vim.validate({
     tasks = { opts.tasks, "t" },
   })
+  -- Each entry in tasks can be either a task definition, OR a list of task definitions.
+  -- Convert it to each entry being a list of task definitions.
+  local task_defns = {}
+  for i, v in ipairs(opts.tasks) do
+    if type(v) == "table" and vim.tbl_islist(v) then
+      task_defns[i] = v
+    else
+      task_defns[i] = { v }
+    end
+  end
   return setmetatable({
     task = nil,
     bufnr = vim.api.nvim_create_buf(false, true),
-    task_defns = opts.tasks,
+    task_defns = task_defns,
     tasks = {},
   }, { __index = OrchestratorStrategy })
 end
@@ -66,15 +70,8 @@ function OrchestratorStrategy:render_buf()
     return vim.api.nvim_strwidth(task.name) + task.status:len() + 1
   end
 
-  for i, tasks in ipairs(self.tasks) do
-    if vim.tbl_islist(tasks) then
-      columns[i] = tasks
-    else
-      columns[i] = { tasks }
-    end
-    columns[i] = vim.tbl_map(function(id)
-      return task_list.get(id)
-    end, columns[i])
+  for i, task_ids in ipairs(self.tasks) do
+    columns[i] = vim.tbl_map(task_list.get, task_ids)
     col_widths[i] = 1
     for _, task in ipairs(columns[i]) do
       col_widths[i] = math.max(col_widths[i], calc_width(task))
@@ -97,8 +94,10 @@ function OrchestratorStrategy:render_buf()
           highlights,
           { string.format("Overseer%s", task.status), #lines + 1, col_start, col_end }
         )
-        col_start = col_start + line[#line]:len() + 4
+      else
+        table.insert(line, string.rep(" ", col_widths[j]))
       end
+      col_start = col_start + line[#line]:len() + 4
     end
     table.insert(lines, table.concat(line, " -> "))
   end
@@ -121,105 +120,89 @@ function OrchestratorStrategy:get_bufnr()
   return self.bufnr
 end
 
-local function get_status(task_or_list)
-  if type(task_or_list) == "table" and vim.tbl_islist(task_or_list) then
-    for _, v in ipairs(task_or_list) do
-      local status = get_status(v)
-      if status ~= STATUS.SUCCESS then
-        return status
-      end
-    end
-    return STATUS.SUCCESS
-  else
-    local task = task_list.get(task_or_list)
-    return task and task.status or STATUS.FAILURE
-  end
-end
-
-function OrchestratorStrategy:start_tasks(task_or_list)
-  if type(task_or_list) == "table" and vim.tbl_islist(task_or_list) then
-    for _, v in ipairs(task_or_list) do
-      self:start_tasks(v)
-    end
-  else
-    local task = task_list.get(task_or_list)
-    if task then
-      task:start()
+---@param task_ids integer[]
+local function get_status(task_ids)
+  for _, v in ipairs(task_ids) do
+    local task = task_list.get(v)
+    local status = task and task.status or STATUS.FAILURE
+    if status ~= STATUS.SUCCESS then
+      return status
     end
   end
+  return STATUS.SUCCESS
 end
 
 function OrchestratorStrategy:start_next()
-  if not self.task or self.task:is_disposed() then
-    return
-  end
-  for _, section in ipairs(self.tasks) do
-    local status = get_status(section)
-    if status == STATUS.PENDING then
-      self:start_tasks(section)
-      self:render_buf()
-      return
-    elseif status == STATUS.RUNNING then
-      self:render_buf()
-      return
-    elseif status == STATUS.FAILURE or status == STATUS.CANCELED then
-      if self.task and self.task:is_running() then
-        self.task:finalize(status)
-      end
-      self:render_buf()
-      return
-    end
-  end
-  self.task:finalize(STATUS.SUCCESS)
-  self:render_buf()
-end
-
----@param tasks table
----@param task_defns table
-function OrchestratorStrategy:_start_task_list(tasks, task_defns)
-  local task_count = 0
-  for_each(task_defns, function()
-    task_count = task_count + 1
-  end)
-  local count = 0
-  for i, def in ipairs(task_defns) do
-    if type(def) == "table" and vim.tbl_islist(def) then
-      tasks[i] = tasks[i] or {}
-      self:_start_task_list(tasks[i], def)
-    else
-      local idx = i
-      local name, params = util.split_config(def)
-      local task = tasks[i] and task_list.get(tasks[i])
-      if task then
-        task:start()
-      else
-        tasks[i] = -1
-        commands.run_template(
-          { name = name, autostart = false, params = params },
-          function(new_task, err)
-            if not new_task then
-              log:error("Orchestrator could not start task '%s': %s", name, err)
-              self.task:finalize(STATUS.FAILURE)
-              return
-            end
-            new_task:add_component("orchestrator.on_status_broadcast")
-            tasks[idx] = new_task.id
-            count = count + 1
-            if count == task_count then
-              self:start_next()
-            end
+  if self.task and not self.task:is_complete() then
+    local all_success = false
+    for i, section in ipairs(self.tasks) do
+      local status = get_status(section)
+      if status == STATUS.PENDING then
+        for _, id in ipairs(section) do
+          local task = task_list.get(id)
+          if task and task:is_pending() then
+            task:start()
           end
-        )
+        end
+        break
+      elseif status == STATUS.RUNNING then
+        break
+      elseif status == STATUS.FAILURE or status == STATUS.CANCELED then
+        if self.task and self.task:is_running() then
+          self.task:finalize(status)
+        end
+        break
       end
+      all_success = i == #self.tasks
+    end
+    if all_success then
+      self.task:finalize(STATUS.SUCCESS)
     end
   end
+  self:render_buf()
 end
 
 ---@param task overseer.Task
 function OrchestratorStrategy:start(task)
   self.task = task
   task:add_component("orchestrator.on_broadcast_update_orchestrator")
-  self:_start_task_list(self.tasks, self.task_defns)
+  local function section_complete(idx)
+    for _, v in ipairs(self.tasks[idx]) do
+      if v == -1 then
+        return false
+      end
+    end
+    return vim.tbl_count(self.tasks[idx]) == vim.tbl_count(self.task_defns[idx])
+  end
+  for i, section in ipairs(self.task_defns) do
+    self.tasks[i] = self.tasks[i] or {}
+    for j, def in ipairs(section) do
+      local task_idx = { i, j }
+      local name, params = util.split_config(def)
+      local subtask = self.tasks[i][j] and task_list.get(self.tasks[i][j])
+      if not subtask or subtask:is_disposed() then
+        self.tasks[i][j] = -1
+        commands.run_template(
+          { name = name, autostart = false, params = params },
+          vim.schedule_wrap(function(new_task, err)
+            if not new_task then
+              log:error("Orchestrator could not start task '%s': %s", name, err)
+              self.task:finalize(STATUS.FAILURE)
+              return
+            end
+            new_task:add_component("orchestrator.on_status_broadcast")
+            self.tasks[task_idx[1]][task_idx[2]] = new_task.id
+            if section_complete(1) then
+              self:start_next()
+            end
+          end)
+        )
+      end
+    end
+  end
+  if section_complete(1) then
+    self:start_next()
+  end
 end
 
 function OrchestratorStrategy:stop()

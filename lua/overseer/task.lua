@@ -431,7 +431,7 @@ function Task:finalize(status)
     status = { status, "s" },
   })
   if not self:is_running() then
-    log:warn("Task %s cannot set status to %s: not running", self.name, status)
+    log:warn("Task %s cannot change status from %s to %s", self.name, self.status, status)
     return
   elseif status ~= STATUS.SUCCESS and status ~= STATUS.FAILURE and status ~= STATUS.CANCELED then
     log:error("Task %s finalize passed invalid status %s", self.name, status)
