@@ -6,28 +6,29 @@ local problem_matcher = require("overseer.template.vscode.problem_matcher")
 describe("vscode", function()
   it("parses process command and args", function()
     local provider = vscode.get_provider("process")
-    local cmd = provider.get_cmd({ type = "process", command = "ls", args = { "foo", "bar" } })
-    assert.are.same({ "ls", "foo", "bar" }, cmd)
+    local opts =
+      provider.get_task_opts({ type = "process", command = "ls", args = { "foo", "bar" } })
+    assert.are.same({ "ls", "foo", "bar" }, opts.cmd)
   end)
 
   it("parses shell command and args", function()
     local provider = vscode.get_provider("shell")
-    local cmd = provider.get_cmd({
+    local opts = provider.get_task_opts({
       type = "shell",
       command = "ls",
       args = { "foo", { value = "bar", quoting = "escape" } },
     })
-    assert.are.same("ls 'foo' 'bar'", cmd)
+    assert.are.same("ls 'foo' 'bar'", opts.cmd)
   end)
 
   it("strong quotes the args", function()
     local provider = vscode.get_provider("shell")
-    local cmd = provider.get_cmd({
+    local opts = provider.get_task_opts({
       type = "shell",
       command = "ls",
       args = { "foo bar", "baz" },
     })
-    assert.are.same("ls 'foo bar' 'baz'", cmd)
+    assert.are.same("ls 'foo bar' 'baz'", opts.cmd)
   end)
 
   it("interpolates variables in command, args, and opts", function()

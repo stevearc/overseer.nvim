@@ -1,6 +1,7 @@
 local constants = require("overseer.constants")
 local files = require("overseer.files")
 local log = require("overseer.log")
+local problem_matcher = require("overseer.template.vscode.problem_matcher")
 local variables = require("overseer.template.vscode.variables")
 
 ---@param params table
@@ -74,10 +75,31 @@ local group_to_tag = {
   clean = constants.TAG.CLEAN,
 }
 
+local function register_provider(task_provider)
+  if task_provider.problem_patterns then
+    for k, v in pairs(task_provider.problem_patterns) do
+      problem_matcher.register_pattern(k, v)
+    end
+  end
+  if task_provider.problem_matchers then
+    for k, v in pairs(task_provider.problem_matchers) do
+      problem_matcher.register_problem_matcher(k, v)
+    end
+  end
+  if task_provider.on_load then
+    task_provider.on_load()
+  end
+end
+
+local registered_providers = {}
 local function get_provider(type)
   local ok, task_provider =
     pcall(require, string.format("overseer.template.vscode.provider.%s", type))
   if ok then
+    if not registered_providers[type] then
+      register_provider(task_provider)
+      registered_providers[type] = true
+    end
     return task_provider
   else
     return nil
@@ -90,13 +112,20 @@ local function get_task_builder(defn)
     return nil
   end
   return function(params)
-    local cmd = task_provider.get_cmd(defn)
+    local task_opts = task_provider.get_task_opts(defn)
+    local opts = vim.tbl_deep_extend("force", defn.options or {}, task_opts)
+    local pmatcher = defn.problemMatcher
+    if task_provider.problem_matcher then
+      pmatcher = task_provider.problem_matcher
+    end
     local task = {
       name = defn.label,
-      cmd = variables.replace_vars(cmd, params),
+      cmd = variables.replace_vars(opts.cmd, params),
+      cwd = variables.replace_vars(opts.cwd, params),
+      env = variables.replace_vars(opts.env, params),
       components = {
         "default",
-        { "vscode.result_vscode_task", problem_matcher = defn.problemMatcher },
+        { "vscode.result_vscode_task", problem_matcher = pmatcher },
         "on_result_diagnostics",
         "on_result_diagnostics_quickfix",
       },
@@ -107,20 +136,6 @@ local function get_task_builder(defn)
     if defn.isBackground then
       table.insert(task.components, "on_complete_restart")
     end
-    local opt = defn.options
-    if opt then
-      if opt.cwd then
-        task.cwd = variables.replace_vars(opt.cwd, params)
-      end
-      if opt.env then
-        local env = {}
-        for k, v in pairs(opt.env) do
-          env[k] = variables.replace_vars(v, params)
-        end
-        task.env = env
-      end
-    end
-
     return task
   end
 end

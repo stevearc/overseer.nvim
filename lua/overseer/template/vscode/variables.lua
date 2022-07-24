@@ -25,12 +25,16 @@ M.get_selected_text = function()
   return table.concat(lines, "\n")
 end
 
+---@param str string|table|nil
+---@param params table
 M.replace_vars = function(str, params)
+  if not str then
+    return nil
+  end
   if type(str) == "table" then
     local ret = {}
-    for _, substr in ipairs(str) do
-      local interp = M.replace_vars(substr, params)
-      table.insert(ret, interp)
+    for k, substr in pairs(str) do
+      ret[k] = M.replace_vars(substr, params)
     end
     return ret
   end

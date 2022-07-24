@@ -239,12 +239,18 @@ local default_matchers = {
 ---@param name string
 ---@param defn table
 M.register_pattern = function(name, defn)
+  if name:find("$", nil, true) ~= 1 then
+    name = "$" .. name
+  end
   default_patterns[name] = defn
 end
 
 ---@param name string
 ---@param defn table
 M.register_problem_matcher = function(name, defn)
+  if name:find("$", nil, true) ~= 1 then
+    name = "$" .. name
+  end
   default_matchers[name] = defn
 end
 

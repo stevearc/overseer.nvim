@@ -9,7 +9,7 @@ local function get_npm_bin(name)
   return name
 end
 
-M.get_cmd = function(defn)
+M.get_task_opts = function(defn)
   local cmd = { get_npm_bin("tsc") }
   if defn.tsconfig then
     table.insert(cmd, "-p")
@@ -18,7 +18,9 @@ M.get_cmd = function(defn)
   if defn.option then
     table.insert(cmd, string.format("--%s", defn.option))
   end
-  return cmd
+  return {
+    cmd = cmd,
+  }
 end
 
 return M

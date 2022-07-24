@@ -10,6 +10,17 @@ M.is_mac = vim.loop.os_uname().sysname == "Darwin"
 ---@type string
 M.sep = M.is_windows and "\\" or "/"
 
+---@param ... string
+---@return boolean
+M.any_exists = function(...)
+  for _, name in ipairs({ ... }) do
+    if M.exists(name) then
+      return true
+    end
+  end
+  return false
+end
+
 ---@param filepath string
 ---@return boolean
 M.exists = function(filepath)

@@ -11,10 +11,31 @@ To define a custom task type, simply add a new module to the neovim path. For a 
 local M = {}
 
 ---@param defn table This is the decoded JSON data for the task
----@return string[] The shell command to run
-M.get_cmd = function(defn)
-  return vim.list_extend({"cowsay"}, defn.words)
+---@return table
+M.get_task_opts = function(defn)
+  return {
+    -- cmd is required. It can be a string or list of strings.
+    cmd = vim.list_extend({"cowsay"}, defn.words)
+    -- Optional working directory for task
+    cwd = nil,
+    -- Optionally specify environment variables for the task
+    env = nil,
+    -- Can override the problem matcher in the task definition
+    problem_matcher = nil,
+  }
 end
+
+-- You can
+M.problem_patterns = {
+  mypat = {
+    -- Note that the regexp is a vim-flavored regex with "very magic" enabled (:help magic)
+    regexp = "^\\s*(.*):(\\d+) (.+)$",
+    kind = "location",
+    file = 1,
+    line = 2,
+    message = 3,
+  }
+}
 
 return M
 ```
@@ -23,24 +44,37 @@ You can see how the existing task types were implemented in the [overseer/templa
 
 ## Problem matchers and patterns
 
-See the [VSCode docs for defining a problem matcher](https://code.visualstudio.com/docs/editor/tasks#_defining-a-problem-matcher). To add a new matcher or pattern you will need to call the appropriate register method.
+See the [VSCode docs for defining a problem matcher](https://code.visualstudio.com/docs/editor/tasks#_defining-a-problem-matcher). These can be defined in your provider module as well.
 
 ```lua
-local problem_matcher = require("overseer.template.vscode.problem_matcher")
+-- lua/overseer/template/vscode/provider/cowsay.lua
+local M = {}
 
-problem_matcher.register_pattern("$mypat", {
-  -- Note that the regexp is a vim-flavored regex with "very magic" enabled (:help magic)
-  regexp = "^\\s*(.*):(\\d+) (.+)$",
-  kind = "location",
-  file = 1,
-  line = 2,
-  message = 3,
-})
+M.get_task_opts = function(defn)
+  -- ...
+end
 
-problem_matcher.register_problem_matcher('$mymatch', {
-  fileLocation = { "relative", "${cwd}" },
-  pattern = "$mypat",
-})
+M.problem_patterns = {
+  -- This will provide the problem matcher pattern '$mypat'
+  mypat = {
+    -- Note that the regexp is a vim-flavored regex with "very magic" enabled (:help magic)
+    regexp = "^\\s*(.*):(\\d+) (.+)$",
+    kind = "location",
+    file = 1,
+    line = 2,
+    message = 3,
+  }
+}
+
+M.problem_matchers = {
+  -- This will provide the problem matcher '$mymatch'
+  mymatch = {
+    fileLocation = { "relative", "${cwd}" },
+    pattern = "$mypat",
+  }
+}
+
+return M
 ```
 
 You can see the existing patterns and problem matchers in [problem_matcher.lua](../lua/overseer/template/vscode/problem_matcher.lua)

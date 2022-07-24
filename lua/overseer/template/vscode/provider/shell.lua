@@ -1,6 +1,7 @@
 local M = {}
 
-M.get_cmd = function(defn)
+M.get_task_opts = function(defn)
+  local ret = {}
   local args = {}
   for _, arg in ipairs(defn.args or {}) do
     if type(arg) == "string" then
@@ -11,10 +12,11 @@ M.get_cmd = function(defn)
     end
   end
   if #args > 0 then
-    return string.format("%s %s", defn.command, table.concat(args, " "))
+    ret.cmd = string.format("%s %s", defn.command, table.concat(args, " "))
   else
-    return defn.command
+    ret.cmd = defn.command
   end
+  return ret
 end
 
 return M
