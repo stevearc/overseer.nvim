@@ -29,17 +29,20 @@ return {
           local dep_task = task_id and task_list.get(task_id)
           if not dep_task then
             -- If no task ID found, start the dependency
-            commands.run_template(
-              { name = name, params = dep_params, autostart = false },
-              function(new_task)
-                if not new_task then
-                  return
-                end
-                self.task_lookup[name] = new_task.id
-                new_task:add_component({ "on_success_complete_dependency", task_id = task.id })
-                new_task:start()
+            commands.run_template({
+              name = name,
+              params = dep_params,
+              autostart = false,
+              cwd = task.cwd,
+              env = task.env,
+            }, function(new_task)
+              if not new_task then
+                return
               end
-            )
+              self.task_lookup[name] = new_task.id
+              new_task:add_component({ "on_success_complete_dependency", task_id = task.id })
+              new_task:start()
+            end)
             started_any = true
             if params.sequential then
               return false

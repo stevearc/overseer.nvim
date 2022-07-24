@@ -183,7 +183,13 @@ function OrchestratorStrategy:start(task)
       if not subtask or subtask:is_disposed() then
         self.tasks[i][j] = -1
         commands.run_template(
-          { name = name, autostart = false, params = params },
+          {
+            name = name,
+            autostart = false,
+            params = params,
+            cwd = self.task.cwd,
+            env = self.task.env,
+          },
           vim.schedule_wrap(function(new_task, err)
             if not new_task then
               log:error("Orchestrator could not start task '%s': %s", name, err)
