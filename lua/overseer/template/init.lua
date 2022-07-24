@@ -173,11 +173,18 @@ end
 
 ---@param tmpl overseer.TemplateDefinition
 ---@param params table
+---@param opts overseer.TemplateBuildOpts
 ---@return overseer.Task
-local function build_task(tmpl, params)
+local function build_task(tmpl, opts, params)
   local task_defn = tmpl.builder(params)
   task_defn.components = component.resolve(task_defn.components or { "default" })
   config.pre_task_hook(task_defn, task_util)
+  if opts.cwd then
+    task_defn.cwd = opts.cwd
+  end
+  if task_defn.env or opts.env then
+    task_defn.env = vim.tbl_deep_extend("force", task_defn.env or {}, opts.env or {})
+  end
   local task = Task.new(task_defn)
   return task
 end
@@ -192,19 +199,30 @@ M.register = function(defn)
   end
 end
 
+---@class overseer.TemplateBuildOpts
+---@field prompt "always"|"never"|"allow"|"missing"
+---@field params table
+---@field cwd? string
+---@field env? table<string, string>
+
 ---@param tmpl overseer.TemplateDefinition
----@param prompt "always"|"never"|"allow"|"missing"
----@param params table
+---@param opts overseer.TemplateBuildOpts
 ---@param callback fun(task: overseer.Task|nil, err: string|nil)
-M.build = function(tmpl, prompt, params, callback)
+M.build = function(tmpl, opts, callback)
+  vim.validate({
+    prompt = { opts.prompt, "s" },
+    params = { opts.params, "t" },
+    cwd = { opts.cwd, "s", true },
+    env = { opts.env, "t", true },
+  })
   local any_missing = false
   local required_missing = false
   for k, schema in pairs(tmpl.params) do
-    if params[k] == nil then
+    if opts.params[k] == nil then
       if schema.default ~= nil then
-        params[k] = schema.default
+        opts.params[k] = schema.default
       else
-        if prompt == "never" then
+        if opts.prompt == "never" then
           return callback(nil, string.format("Missing param %s", k))
         end
         any_missing = true
@@ -217,12 +235,12 @@ M.build = function(tmpl, prompt, params, callback)
   end
 
   if
-    prompt == "never"
-    or (prompt == "allow" and not required_missing)
-    or (prompt == "missing" and not any_missing)
+    opts.prompt == "never"
+    or (opts.prompt == "allow" and not required_missing)
+    or (opts.prompt == "missing" and not any_missing)
     or vim.tbl_isempty(tmpl.params)
   then
-    callback(build_task(tmpl, params))
+    callback(build_task(tmpl, opts, opts.params))
     return
   end
 
@@ -230,9 +248,9 @@ M.build = function(tmpl, prompt, params, callback)
   for k, v in pairs(tmpl.params) do
     schema[k] = v
   end
-  task_builder.open(tmpl.name, schema, params, function(final_params)
+  task_builder.open(tmpl.name, schema, opts.params, function(final_params)
     if final_params then
-      callback(build_task(tmpl, final_params))
+      callback(build_task(tmpl, opts, final_params))
     else
       callback()
     end

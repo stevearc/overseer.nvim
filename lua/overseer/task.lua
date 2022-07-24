@@ -64,6 +64,10 @@ function Task.new_uninitialized(opts)
     components = { opts.components, "t", true },
     metadata = { opts.metadata, "t", true },
   })
+  if opts.env and vim.tbl_isempty(opts.env) then
+    -- For some reason termopen() doesn't like an empty env table
+    opts.env = nil
+  end
 
   if not opts.components then
     opts.components = { "default" }

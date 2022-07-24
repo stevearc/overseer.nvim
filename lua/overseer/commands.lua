@@ -96,6 +96,8 @@ end
 ---@field first? boolean When true, take first result and never show the task picker. Default behavior will auto-set this based on presence of name and tags
 ---@field prompt? "always"|"missing"|"allow"|"never" Controls when to prompt user for parameter input
 ---@field params? table Parameters to pass to template
+---@field cwd? string
+---@field env? table<string, string>
 
 ---@param opts overseer.TemplateRunOpts
 ---@param callback? fun(task: overseer.Task|nil, err: string|nil)
@@ -132,7 +134,7 @@ M.run_template = function(opts, callback)
       end
       return
     end
-    template.build(tmpl, opts.prompt, opts.params, function(task)
+    template.build(tmpl, opts, function(task)
       if task then
         if opts.autostart then
           task:start()
