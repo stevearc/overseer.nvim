@@ -1,5 +1,6 @@
 local config = require("overseer.config")
 local log = require("overseer.log")
+local util = require("overseer.util")
 local M = {}
 
 ---@class overseer.Strategy
@@ -39,13 +40,7 @@ M.load = function(name_or_config)
   end
   local conf
   local name
-  if type(name_or_config) == "string" then
-    name = name_or_config
-    conf = {}
-  else
-    conf = name_or_config
-    name = conf[1]
-  end
+  name, conf = util.split_config(name_or_config)
   local ok, strategy = pcall(require, string.format("overseer.strategy.%s", name))
   if ok then
     local instance = strategy.new(conf)

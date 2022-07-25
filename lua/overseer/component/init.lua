@@ -1,6 +1,7 @@
 local config = require("overseer.config")
 local form = require("overseer.form")
 local log = require("overseer.log")
+local util = require("overseer.util")
 local M = {}
 
 ---Definition used to instantiate a Component
@@ -123,20 +124,11 @@ M.get_alias = function(name)
   return aliases[name]
 end
 
+---@param comp_params table
+---@return string
 local function getname(comp_params)
-  if type(comp_params) == "string" then
-    return comp_params
-  else
-    local name = comp_params[1]
-    if not name then
-      -- We store these as json, and when we load them again the indexes are
-      -- converted to strings
-      name = comp_params["1"]
-      comp_params[1] = name
-      comp_params["1"] = nil
-    end
-    return name
-  end
+  local name = util.split_config(comp_params)
+  return name
 end
 
 ---@param name string

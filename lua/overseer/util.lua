@@ -174,6 +174,11 @@ M.split_config = function(name_or_config)
   if type(name_or_config) == "string" then
     return name_or_config, nil
   else
+    if not name_or_config[1] and name_or_config["1"] then
+      -- This was likely loaded from json, so the first element got coerced to a string key
+      name_or_config[1] = name_or_config["1"]
+      name_or_config["1"] = nil
+    end
     return name_or_config[1], name_or_config
   end
 end
