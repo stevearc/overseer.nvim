@@ -407,10 +407,8 @@ The component definition should look like the following example:
       },
       -- Optional, default true. Set to false to disallow editing this component in the task editor
       editable = true,
-      -- Controls the serialization behavior when saving a task to disk.
-      -- "exclude" will allow task to be serialized, but this component will be excluded.
-      -- "fail" will prevent task from being serialized.
-      serialize = nil,
+      -- When false, don't serialize this component when saving a task to disk
+      serializable = true,
       -- The params passed in will match the params defined above
       constructor = function(params)
         -- You may optionally define any of the methods below
