@@ -318,7 +318,12 @@ end
 local function convert_pattern(pattern, opts)
   opts = opts or {}
   if type(pattern) == "string" then
-    pattern = vim.deepcopy(default_patterns[pattern])
+    if default_patterns[pattern] then
+      pattern = vim.deepcopy(default_patterns[pattern])
+    else
+      log:error("Could not find problem matcher pattern '%s'", pattern)
+      return nil
+    end
   end
   local args = {}
   local full_line_key
@@ -374,7 +379,7 @@ M.resolve_problem_matcher = function(problem_matcher)
   if type(problem_matcher) == "string" then
     local pm = default_matchers[problem_matcher]
     if not pm then
-      log:warn("Could not find problem matcher %s", problem_matcher)
+      log:error("Could not find problem matcher '%s'", problem_matcher)
     end
     return pm
   elseif vim.tbl_islist(problem_matcher) then
@@ -394,7 +399,8 @@ M.resolve_problem_matcher = function(problem_matcher)
     if default_matchers[problem_matcher.base] then
       return vim.tbl_deep_extend("keep", problem_matcher, default_matchers[problem_matcher.base])
     else
-      log:warn("Could not find problem matcher %s", problem_matcher.base)
+      log:error("Could not find problem matcher '%s'", problem_matcher.base)
+      return nil
     end
   end
   return problem_matcher
@@ -419,11 +425,20 @@ M.get_parser_from_problem_matcher = function(problem_matcher)
     local ret = {}
     for i, v in ipairs(pattern) do
       local append = i == #pattern
-      table.insert(ret, convert_pattern(v, { append = append, qf_type = qf_type }))
+      local parse_node = convert_pattern(v, { append = append, qf_type = qf_type })
+      if not parse_node then
+        return nil
+      end
+      table.insert(ret, parse_node)
     end
     return ret
   else
-    return { convert_pattern(pattern, { qf_type = qf_type }) }
+    local parse_node = convert_pattern(pattern, { qf_type = qf_type })
+    if parse_node then
+      return { parse_node }
+    else
+      return nil
+    end
   end
 end
 
