@@ -381,7 +381,7 @@ M.resolve_problem_matcher = function(problem_matcher)
     if not pm then
       log:error("Could not find problem matcher '%s'", problem_matcher)
     end
-    return pm
+    return M.resolve_problem_matcher(pm)
   elseif vim.tbl_islist(problem_matcher) then
     local children = {}
     for _, v in ipairs(problem_matcher) do
