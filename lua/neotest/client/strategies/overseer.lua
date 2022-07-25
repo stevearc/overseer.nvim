@@ -15,16 +15,13 @@ return function(spec)
     components = { "default_neotest" },
   })
   table.insert(opts.components, { "on_output_write_file", filename = output_path })
-  table.insert(opts.components, {
-    "on_complete_callback",
-    on_complete = function()
-      finish_cond:notify_all()
-    end,
-  })
   opts.cmd = spec.command
   opts.env = spec.env
   opts.cwd = spec.cwd
   local task = overseer.new_task(opts)
+  task:subscribe("on_complete", function()
+    finish_cond:notify_all()
+  end)
   task:start()
   return {
     is_complete = function()

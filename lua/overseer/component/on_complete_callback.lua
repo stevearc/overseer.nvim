@@ -1,4 +1,5 @@
 return {
+  deprecated_message = "Use task:subscribe instead",
   desc = "Call a callback when task completes",
   params = {
     on_complete = {

@@ -15,6 +15,7 @@ local M = {}
 ---@field editable? boolean
 ---@field serialize? "exclude"|"fail"
 ---@field constructor fun(params: table): overseer.ComponentSkeleton
+---@field deprecated_message? string
 
 ---The intermediate form of a component returned by the constructor
 ---@class overseer.ComponentSkeleton
@@ -87,6 +88,9 @@ local function validate_component(name, opts)
     opts.editable = true
   end
   opts.name = name
+  if opts.deprecated_message then
+    log:warn("Overseer component %s is deprecated: %s", name, opts.deprecated_message)
+  end
   return opts
 end
 
