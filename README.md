@@ -866,7 +866,7 @@ The official API surface includes:
 
 **Q: Why do my tasks disappear after a while?**
 
-The default behavior is for completed tasks to get _disposed_ after a 5 minute timeout. This frees their resources and removes them from the task list. You can change this by editing the `component_aliases` definition to either tweak the timeout (`{"on_complete_dispose", timeout = 900}`), or delete the "on_complete_dispose" component entirely. In that case, tasks will stick around until manually disposed.
+The default behavior is for completed tasks to get _disposed_ after a 5 minute timeout. This frees their resources and removes them from the task list. You can change this by editing the `component_aliases` definition to tweak the timeout (`{"on_complete_dispose", timeout = 900}`), only dispose succeeded/failed tasks (`{"on_complete_dispose", statuses = {"SUCCESS"}}`), or delete the "on_complete_dispose" component entirely. In that case, tasks will stick around until manually disposed.
 
 **Q: How can I debug when something goes wrong?**
 
