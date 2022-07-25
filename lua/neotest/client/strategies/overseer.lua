@@ -36,6 +36,17 @@ return function(spec)
     stop = function()
       task:stop()
     end,
+    output_stream = function()
+      local sender, receiver = async.control.channel.mpsc()
+      task:subscribe("on_output", function(_, data)
+        sender.send(table.concat(data, "\n"))
+      end)
+      return function()
+        return async.lib.first(function()
+          finish_cond:wait()
+        end, receiver.recv)
+      end
+    end,
     attach = function()
       local bufnr = task:get_bufnr()
       if not bufnr or not vim.api.nvim_buf_is_valid(bufnr) then

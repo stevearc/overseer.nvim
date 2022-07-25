@@ -22,6 +22,7 @@ local STATUS = constants.STATUS
 ---@field bufnr number|nil
 ---@field exit_code number|nil
 ---@field components overseer.Component[]
+---@field _subscribers table<string, function[]>
 local Task = {}
 
 local next_id = 1
@@ -92,6 +93,7 @@ function Task.new_uninitialized(opts)
     result = nil,
     metadata = opts.metadata or {},
     _references = 0,
+    _subscribers = {},
     status = STATUS.PENDING,
     cmd = opts.cmd,
     cwd = opts.cwd,
@@ -340,6 +342,31 @@ function Task:has_component(name)
   return vim.tbl_isempty(new_comps)
 end
 
+---Subscribe to events on this task
+---Listeners cannot be serialized, so will not be saved when saving task to disk and will not be
+---copied when cloning the task.
+---@param event string
+---@param callback fun(task: overseer.Task)
+function Task:subscribe(event, callback)
+  if not self._subscribers[event] then
+    self._subscribers[event] = {}
+  end
+  table.insert(self._subscribers[event], callback)
+end
+
+---@param event string
+---@param callback fun(task: overseer.Task)
+function Task:unsubscribe(event, callback)
+  if self._subscribers[event] then
+    for i, v in ipairs(self._subscribers[event]) do
+      if v == callback then
+        table.remove(self._subscribers[event], i)
+        return
+      end
+    end
+  end
+end
+
 ---@return boolean
 function Task:is_pending()
   return self.status == STATUS.PENDING
@@ -420,6 +447,14 @@ function Task:dispatch(name, ...)
         log:error("Task %s dispatch %s.%s: %s", self.name, comp.name, name, err)
       elseif err ~= nil then
         table.insert(ret, err)
+      end
+    end
+  end
+  if self._subscribers[name] then
+    for _, cb in ipairs(self._subscribers[name]) do
+      local ok, err = pcall(cb, self, ...)
+      if not ok then
+        log:error("Task %s dispatch callback %s: %s", self.name, name, err)
       end
     end
   end
