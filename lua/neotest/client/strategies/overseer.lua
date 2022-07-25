@@ -19,6 +19,7 @@ return function(spec)
   opts.env = spec.env
   opts.cwd = spec.cwd
   local task = overseer.new_task(opts)
+  task:set_include_in_bundle(false)
   task:subscribe("on_complete", function()
     finish_cond:notify_all()
   end)
