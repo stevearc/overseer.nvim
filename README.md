@@ -885,3 +885,7 @@ overseer.setup({
   },
 })
 ```
+
+**Q: Can I use this to asynchronously lint my files on save?**
+
+You absolutely can. All the pieces are here to build something like ALE, it just needs the configs for different lint tools. Personally, I think that the existing plugin ecosystem has solved this sufficiently well and I don't see a value add from building _another_ on top of overseer. I'm using [null-ls](https://github.com/jose-elias-alvarez/null-ls.nvim) in my own config and think it's great.
