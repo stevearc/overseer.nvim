@@ -197,6 +197,9 @@ function OrchestratorStrategy:start(task)
               return
             end
             new_task:add_component("orchestrator.on_status_broadcast")
+            -- Don't include child tasks when saving to bundle. We will re-create them when the
+            -- orchestration task is loaded.
+            new_task:set_include_in_bundle(false)
             self.tasks[task_idx[1]][task_idx[2]] = new_task.id
             if section_complete(1) then
               self:start_next()

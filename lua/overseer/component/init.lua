@@ -14,7 +14,7 @@ local M = {}
 ---@field long_desc? string
 ---@field params? overseer.Params
 ---@field editable? boolean
----@field serialize? "exclude"|"fail"
+---@field serializable? boolean
 ---@field constructor fun(params: table): overseer.ComponentSkeleton
 ---@field deprecated_message? string
 
@@ -39,7 +39,7 @@ local M = {}
 ---@field name string
 ---@field params table
 ---@field desc? string
----@field serialize? "exclude"|"fail"
+---@field serializable boolean
 
 local registry = {}
 local aliases = {}
@@ -68,8 +68,15 @@ local function validate_component(name, opts)
     params = { opts.params, "t", true },
     constructor = { opts.constructor, "f" },
     editable = { opts.editable, "b", true },
-    serialize = { opts.serialize, "s", true }, -- 'exclude' or 'fail'
+    serializable = { opts.serializable, "b", true },
   })
+  if opts.serializable == nil then
+    opts.serializable = true
+  end
+  --@deprecated This check is for backwards compatibility
+  if opts.serialize == "fail" then
+    opts.serializable = false
+  end
   if name:match("%s") then
     error("Component name cannot have whitespace")
   end
@@ -234,7 +241,7 @@ local function instantiate(comp_params, component)
   obj.name = getname(comp_params)
   obj.params = comp_params
   obj.desc = component.desc
-  obj.serialize = component.serialize
+  obj.serializable = component.serializable
   return obj
 end
 

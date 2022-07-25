@@ -93,6 +93,7 @@ function Task.new_uninitialized(opts)
     result = nil,
     metadata = opts.metadata or {},
     _references = 0,
+    _include_in_bundle = true,
     _subscribers = {},
     status = STATUS.PENDING,
     cmd = opts.cmd,
@@ -114,6 +115,7 @@ end
 ---@param opts overseer.TaskDefinition
 ---@return overseer.Task
 function Task.new(opts)
+  log:trace("New task: %s", opts)
   local task = Task.new_uninitialized(opts)
   task.id = next_id
   next_id = next_id + 1
@@ -198,13 +200,20 @@ function Task:render(lines, highlights, detail)
   end
 end
 
+---@deprecated
 function Task:is_serializable()
-  for _, comp in ipairs(self.components) do
-    if comp.serialize == "fail" then
-      return false
-    end
-  end
   return true
+end
+
+---Check if task should be included when saving "all" tasks to a bundle file
+---@return boolean
+function Task:should_include_in_bundle()
+  return self._include_in_bundle
+end
+
+---@param include boolean
+function Task:set_include_in_bundle(include)
+  self._include_in_bundle = include
 end
 
 -- Returns the arguments require to create a clone of this task
@@ -212,9 +221,7 @@ end
 function Task:serialize()
   local components = {}
   for _, comp in ipairs(self.components) do
-    if comp.serialize == "fail" then
-      error(string.format("Cannot serialize component %s", comp.name))
-    elseif comp.serialize ~= "exclude" then
+    if comp.serializable then
       table.insert(components, comp.params)
     end
   end

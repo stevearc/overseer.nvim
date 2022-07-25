@@ -16,7 +16,7 @@ return {
       default = true,
     },
   },
-  serialize = "exclude",
+  serializable = false,
   constructor = function(params)
     return {
       on_status = function(self, task)

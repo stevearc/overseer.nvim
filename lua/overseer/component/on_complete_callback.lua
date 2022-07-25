@@ -13,7 +13,7 @@ return {
       optional = true,
     },
   },
-  serialize = "exclude",
+  serializable = false,
   constructor = function(params)
     return {
       on_complete = function(self, task, status)

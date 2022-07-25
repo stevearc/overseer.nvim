@@ -118,9 +118,7 @@ M.save_task_bundle = function(name, tasks)
     if tasks then
       serialized = {}
       for _, task in ipairs(tasks) do
-        if task:is_serializable() then
-          table.insert(serialized, task:serialize())
-        end
+        table.insert(serialized, task:serialize())
       end
     else
       serialized = task_list.serialize_tasks()

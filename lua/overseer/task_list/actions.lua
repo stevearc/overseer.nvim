@@ -27,9 +27,6 @@ M = {
   },
   save = {
     desc = "save the task to a bundle file",
-    condition = function(task)
-      return task:is_serializable()
-    end,
     run = function(task)
       task_bundle.save_task_bundle(nil, { task })
     end,

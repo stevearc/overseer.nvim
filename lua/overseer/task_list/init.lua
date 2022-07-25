@@ -50,7 +50,7 @@ end
 M.serialize_tasks = function()
   local ret = {}
   for _, task in ipairs(tasks) do
-    if task:is_serializable() then
+    if task:should_include_in_bundle() then
       table.insert(ret, task:serialize())
     end
   end
