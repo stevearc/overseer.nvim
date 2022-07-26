@@ -241,6 +241,7 @@ end
 
 ---@param opts overseer.Config
 M.setup = function(opts)
+  opts = opts or {}
   create_commands()
   patch_dap(opts.dap ~= false)
   pending_opts = opts
