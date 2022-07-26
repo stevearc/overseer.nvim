@@ -152,7 +152,6 @@ require("overseer").setup({
     separator = "────────────────────────────────────────",
     -- Default direction. Can be "left" or "right"
     direction = "left",
-    -- Set keymap to false to remove default behavior
     bindings = {
       ["?"] = "ShowHelp",
       ["<CR>"] = "RunAction",
