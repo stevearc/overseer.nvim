@@ -26,19 +26,21 @@ M.create_bindings_to_plug = function(bufnr, mode, bindings, prefix)
   end
   for lhs, rhs in pairs(bindings) do
     -- Prefix with <Plug> unless this is a <Cmd> or :Cmd mapping
-    if type(rhs) == "string" and not rhs:match("[<:]") then
-      rhs = "<Plug>" .. prefix .. rhs
-    end
-    if mode == "i" then
-      -- HACK for some reason I can't get plug mappings to work in insert mode
-      for _, map in ipairs(maps) do
-        if map.lhs == rhs then
-          rhs = map.callback or map.rhs
-          break
+    if rhs ~= "None" then
+      if type(rhs) == "string" and not rhs:match("[<:]") then
+        rhs = "<Plug>" .. prefix .. rhs
+      end
+      if mode == "i" then
+        -- HACK for some reason I can't get plug mappings to work in insert mode
+        for _, map in ipairs(maps) do
+          if map.lhs == rhs then
+            rhs = map.callback or map.rhs
+            break
+          end
         end
       end
+      vim.keymap.set(mode, lhs, rhs, { buffer = bufnr, remap = true })
     end
-    vim.keymap.set(mode, lhs, rhs, { buffer = bufnr, remap = true })
   end
 end
 
