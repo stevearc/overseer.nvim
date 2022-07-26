@@ -26,7 +26,7 @@ M.create_bindings_to_plug = function(bufnr, mode, bindings, prefix)
   end
   for lhs, rhs in pairs(bindings) do
     -- Prefix with <Plug> unless this is a <Cmd> or :Cmd mapping
-    if rhs ~= "None" then
+    if rhs then
       if type(rhs) == "string" and not rhs:match("[<:]") then
         rhs = "<Plug>" .. prefix .. rhs
       end
