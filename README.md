@@ -398,15 +398,35 @@ require("lualine").setup({
 
 ### Neotest
 
-There is a neotest strategy that functions the same as the default "integrated" strategy. To use it, simply pass it into your run options:
+To run all neotest processes using overseer, add it as a custom consumer:
 
 ```lua
-  neotest.run.run({ suite = true, strategy = "overseer" })
+require('neotest').setup({
+  consumers = {
+    overseer = require("neotest.consumers.overseer"),
+  },
+})
 ```
 
-This will run the tests like usual, but the job running the tests will be managed by overseer.
+This will automatically hook `neotest.run` and force it to use overseer to run tests wherever possible. If you would instead like to only use the overseer consumer explicitly, you can disable the monkey patching:
 
-You can customize the default components by setting the `default_neotest` component alias (when unset it maps to `default`).
+```lua
+require('neotest').setup({
+  consumers = {
+    overseer = require("neotest.consumers.overseer"),
+  },
+  overseer = {
+    enabled = true,
+    -- When this is true (the default), it will replace all neotest.run.* commands
+    force_default = false,
+  },
+})
+
+-- Now neotest.run is unchanged; to run tests with overseer use:
+neotest.overseer.run({})
+```
+
+You can customize the default components of neotest tasks by setting the `default_neotest` component alias (when unset it maps to `default`).
 
 ```lua
 require('overseer').setup({
@@ -420,8 +440,6 @@ require('overseer').setup({
   }
 })
 ```
-
-**Note**: Restarting the overseer task will rerun the tests, but the results will not be reported to neotest. This is due to technical limitations, and will hopefully be fixed in the future.
 
 ### DAP
 

@@ -353,7 +353,7 @@ end
 ---Listeners cannot be serialized, so will not be saved when saving task to disk and will not be
 ---copied when cloning the task.
 ---@param event string
----@param callback fun(task: overseer.Task)
+---@param callback fun(task: overseer.Task) Callback can return false to unsubscribe itself
 function Task:subscribe(event, callback)
   if not self._subscribers[event] then
     self._subscribers[event] = {}
@@ -458,11 +458,17 @@ function Task:dispatch(name, ...)
     end
   end
   if self._subscribers[name] then
+    local to_unsub = {}
     for _, cb in ipairs(self._subscribers[name]) do
       local ok, err = pcall(cb, self, ...)
       if not ok then
         log:error("Task %s dispatch callback %s: %s", self.name, name, err)
+      elseif err == false then
+        table.insert(to_unsub, cb)
       end
+    end
+    for _, unsub_cb in ipairs(to_unsub) do
+      util.tbl_remove(self._subscribers[name], unsub_cb)
     end
   end
   if self.id and not self:is_disposed() then
