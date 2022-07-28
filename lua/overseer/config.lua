@@ -158,10 +158,36 @@ local function merge_actions(default_actions, user_actions)
   return actions
 end
 
+---If user creates a mapping for an action, remove the default mapping to that action
+---(unless they explicitly specify that key as well)
+---@param user_conf overseer.Config
+local function remove_binding_conflicts(user_conf)
+  for key, configval in pairs(user_conf) do
+    if type(configval) == "table" and configval.bindings then
+      local orig_bindings = default_config[key].bindings
+      local rev = {}
+      -- Make a reverse lookup of shortcut-to-key
+      -- e.g. ["Open"] = "o"
+      for k, v in pairs(orig_bindings) do
+        rev[v] = k
+      end
+      for k, v in pairs(configval.bindings) do
+        -- If the user is choosing to map a command to a different key, remove the original default
+        -- map (e.g. if {"u" = "Open"}, then set {"o" = false})
+        if rev[v] and rev[v] ~= k and not configval.bindings[rev[v]] then
+          configval.bindings[rev[v]] = false
+        end
+      end
+    end
+  end
+end
+
+---@param opts? overseer.Config
 M.setup = function(opts)
   local component = require("overseer.component")
   local log = require("overseer.log")
   opts = opts or {}
+  remove_binding_conflicts(opts)
   local newconf = vim.tbl_deep_extend("force", default_config, opts)
   for k, v in pairs(newconf) do
     M[k] = v
