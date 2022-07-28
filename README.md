@@ -153,6 +153,7 @@ require("overseer").setup({
     -- Default direction. Can be "left" or "right"
     direction = "left",
     -- Set keymap to false to remove default behavior
+    -- You can add custom keymaps here as well (anything you vim.keymap.set accepts)
     bindings = {
       ["?"] = "ShowHelp",
       ["<CR>"] = "RunAction",
@@ -188,6 +189,8 @@ require("overseer").setup({
     },
   },
   task_launcher = {
+    -- Set keymap to false to remove default behavior
+    -- You can add custom keymaps here as well (anything you vim.keymap.set accepts)
     bindings = {
       i = {
         ["<C-s>"] = "Submit",
@@ -200,6 +203,8 @@ require("overseer").setup({
     },
   },
   task_editor = {
+    -- Set keymap to false to remove default behavior
+    -- You can add custom keymaps here as well (anything you vim.keymap.set accepts)
     bindings = {
       i = {
         ["<CR>"] = "NextOrSubmit",
