@@ -171,14 +171,19 @@ M.parse_value = function(schema, value)
     return true, nil
   elseif schema.type == "list" then
     local values = vim.split(value, "%s*" .. schema.delimiter .. "%s*")
-    local success
-    for i, v in ipairs(values) do
-      success, values[i] = M.parse_value(schema.subtype, v)
-      if not success then
-        return false, nil
+    local ret = {}
+    for _, v in ipairs(values) do
+      -- Skip over empty/whitespace entries. This makes deleting a single entry more graceful
+      -- e.g. "FOO, BAR" --(delete)--> "FOO, " ==> should parse the same as "FOO"
+      if not v:match("^%s*$") then
+        local success, parsed = M.parse_value(schema.subtype, v)
+        table.insert(ret, parsed)
+        if not success then
+          return false, nil
+        end
       end
     end
-    return true, values
+    return true, ret
   elseif schema.type == "enum" then
     local key = "^" .. value:lower()
     local best
