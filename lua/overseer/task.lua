@@ -416,7 +416,6 @@ function Task:reset(soft)
     self.status = STATUS.PENDING
     self:dispatch("on_status", self.status)
     local bufnr = self:get_bufnr()
-    self.prev_bufnr = bufnr
     vim.defer_fn(function()
       if bufnr and vim.api.nvim_buf_is_valid(bufnr) then
         if util.is_bufnr_visible(bufnr) then
@@ -654,6 +653,7 @@ function Task:start()
       end
     end
   end
+  self.prev_bufnr = bufnr
   return true
 end
 
