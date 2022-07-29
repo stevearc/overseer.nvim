@@ -250,26 +250,36 @@ M.setup = function(opts)
   end
 end
 
+---@param opts overseer.TaskDefinition
+---@return overseer.Task
 M.new_task = lazy("task", "new")
 
 M.toggle = lazy("window", "toggle")
 M.open = lazy("window", "open")
 M.close = lazy("window", "close")
 
+---@return string[]
 M.list_task_bundles = lazy("task_bundle", "list_task_bundles")
+---@param name? string
 M.load_task_bundle = lazy("task_bundle", "load_task_bundle")
+---@param name? string
+---@param tasks overseer.Task[]
 M.save_task_bundle = lazy("task_bundle", "save_task_bundle")
+---@param name? string
 M.delete_task_bundle = lazy("task_bundle", "delete_task_bundle")
 
+---@param opts overseer.TemplateRunOpts
+---@param callback? fun(task: overseer.Task|nil, err: string|nil)
 M.run_template = lazy("commands", "run_template")
 
 ---@param task overseer.Task
 ---@param name? string Name of action. When omittied, prompt user to pick.
 M.run_action = lazy("action_util", "run_task_action")
 
----@param base overseer.TemplateDefinition
----@param override? table<string, any>
----@param default_params? table<string, any>
+---Create a new template by overriding fields on another
+---@param base overseer.TemplateDefinition The base template definition to wrap
+---@param override? table<string, any> Override any fields on the base
+---@param default_params? table<string, any> Provide default values for any parameters on the base
 ---@return overseer.TemplateDefinition
 M.wrap_template = function(base, override, default_params)
   override = override or {}

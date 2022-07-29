@@ -49,6 +49,7 @@ local function get_bundle_previewer()
   })
 end
 
+---@return string[]
 M.list_task_bundles = function()
   local bundle_dir = get_bundle_dir()
   if not files.exists(bundle_dir) then
@@ -72,6 +73,7 @@ M.list_task_bundles = function()
   return ret
 end
 
+---@param name? string
 M.load_task_bundle = function(name)
   if name then
     local filepath = files.join(get_bundle_dir(), string.format("%s.bundle.json", name))
@@ -111,6 +113,8 @@ M.load_task_bundle = function(name)
   end
 end
 
+---@param name? string
+---@param tasks overseer.Task[]
 M.save_task_bundle = function(name, tasks)
   if name then
     local filename = string.format("%s.bundle.json", name)
@@ -162,6 +166,7 @@ M.save_task_bundle = function(name, tasks)
   end
 end
 
+---@param name? string
 M.delete_task_bundle = function(name)
   if name then
     local filename = string.format("%s.bundle.json", name)

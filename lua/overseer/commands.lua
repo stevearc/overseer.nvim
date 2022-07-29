@@ -84,11 +84,12 @@ end
 
 -- TEMPLATE LOADING/RUNNING
 
--- Values for prompt:
---   always    Show when template has any params
---   missing   Show when template has any params not provided
---   allow     Only show when required param is missing (default)
---   never     Never show prompt (error if required param missing)
+---Options for running a template
+---Values for prompt:
+---  always    Show when template has any params
+---  missing   Show when template has any params not provided
+---  allow     Only show when required param is missing (default)
+---  never     Never show prompt (error if required param missing)
 ---@class overseer.TemplateRunOpts
 ---@field name? string The name of the template to run
 ---@field tags? string[] List of tags used to filter when searching for template
