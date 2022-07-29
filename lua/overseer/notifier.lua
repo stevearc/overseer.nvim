@@ -21,12 +21,15 @@ local function system_notify(message, level)
     log:warn("System notifications are not supported on Windows yet")
     return
   elseif files.is_mac then
-    job_id = vim.fn.jobstart({
-      "reattach-to-user-namespace",
+    local cmd = {
       "osascript",
       "-e",
       string.format('display notification "%s" with title "%s"', "Overseer task complete", message),
-    }, {
+    }
+    if vim.fn.executable("reattach-to-user-namespace") == 1 then
+      table.insert(cmd, 1, "reattach-to-user-namespace")
+    end
+    job_id = vim.fn.jobstart(cmd, {
       stdin = "null",
     })
   else
