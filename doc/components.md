@@ -47,7 +47,7 @@ Summarize task output in the task list \
 ## [on_output_write_file](../lua/overseer/component/on_output_write_file.lua)
 
 Write task output to a file \
-\***filename**[string]: Name of file to write output to
+**filename**[string]: Name of file to write output to
 
 ## [on_result_diagnostics](../lua/overseer/component/on_result_diagnostics.lua)
 
