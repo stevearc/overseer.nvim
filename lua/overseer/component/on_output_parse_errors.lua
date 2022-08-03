@@ -14,13 +14,13 @@ return {
         self.items = {}
       end,
       on_output_lines = function(self, task, lines)
-        vim.list_extend(
-          self.items,
-          vim.fn.getqflist({
-            efm = params.errorformat,
-            lines = lines,
-          })
-        )
+        local qf = vim.fn.getqflist({
+          efm = params.errorformat,
+          lines = lines,
+        })
+        if qf.items then
+          vim.list_extend(self.items, qf.items)
+        end
       end,
       on_pre_result = function(self, task)
         return {

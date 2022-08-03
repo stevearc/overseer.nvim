@@ -1,5 +1,4 @@
 local constants = require("overseer.constants")
-local files = require("overseer.files")
 local layout = require("overseer.layout")
 local task_bundle = require("overseer.task_bundle")
 local task_list = require("overseer.task_list")
@@ -169,15 +168,18 @@ M = {
   ["open output in quickfix"] = {
     desc = "parse the task output with 'errorformat' and set in the quickfix",
     condition = function(task)
-      return task:is_complete() and task:has_component("on_output_write_file")
+      local bufnr = task:get_bufnr()
+      return task:is_complete()
+        and bufnr
+        and vim.api.nvim_buf_is_valid(bufnr)
+        and vim.api.nvim_buf_is_loaded(bufnr)
     end,
     run = function(task)
-      local comp = task:get_component("on_output_write_file")
-      local content = files.read_file(comp.filename)
+      local lines = vim.api.nvim_buf_get_lines(task:get_bufnr(), 0, -1, true)
       vim.fn.setqflist({}, " ", {
         title = task.name,
         context = task.name,
-        lines = vim.split(content, "\n"),
+        lines = lines,
       })
       vim.cmd("botright copen")
     end,

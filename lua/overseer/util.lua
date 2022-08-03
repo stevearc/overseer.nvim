@@ -305,7 +305,9 @@ end
 ---@param str string
 ---@return string
 M.remove_ansi = function(str)
-  return str:gsub("\x1b%[[%d;]*%dm", "")
+  return str
+    :gsub("\x1b%[[%d;]*m", "") -- Strip color codes
+    :gsub("\x1b%[%d*K", "") -- Strip the "erase in line" codes
 end
 
 M.get_stdout_line_iter = function()
@@ -386,10 +388,13 @@ end
 M.tbl_group_by = function(list, key)
   local ret = {}
   for _, v in ipairs(list) do
-    if not ret[v[key]] then
-      ret[v[key]] = {}
+    local k = v[key]
+    if k then
+      if not ret[k] then
+        ret[k] = {}
+      end
+      table.insert(ret[k], v)
     end
-    table.insert(ret[v[key]], v)
   end
   return ret
 end
