@@ -223,6 +223,14 @@ M.leave_insert = function()
   end
 end
 
+---Set the appropriate window options for a terminal buffer
+M.set_term_window_opts = function(winid)
+  winid = winid or 0
+  vim.api.nvim_win_set_option(winid, "number", false)
+  vim.api.nvim_win_set_option(winid, "relativenumber", false)
+  vim.api.nvim_win_set_option(winid, "signcolumn", "no")
+end
+
 ---@generic T : any
 ---@param tbl T[]
 ---@return T[]

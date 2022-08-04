@@ -109,6 +109,18 @@ M = {
       vim.api.nvim_win_set_buf(0, task:get_bufnr())
     end,
   },
+  ["open hsplit"] = {
+    desc = "open terminal in a horizontal split",
+    condition = function(task)
+      local bufnr = task:get_bufnr()
+      return bufnr and vim.api.nvim_buf_is_valid(bufnr)
+    end,
+    run = function(task)
+      vim.cmd([[split]])
+      util.set_term_window_opts()
+      vim.api.nvim_win_set_buf(0, task:get_bufnr())
+    end,
+  },
   ["open vsplit"] = {
     desc = "open terminal in a vertical split",
     condition = function(task)
@@ -117,6 +129,7 @@ M = {
     end,
     run = function(task)
       vim.cmd([[vsplit]])
+      util.set_term_window_opts()
       vim.api.nvim_win_set_buf(0, task:get_bufnr())
     end,
   },
