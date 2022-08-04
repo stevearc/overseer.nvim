@@ -18,7 +18,7 @@ local M = {}
 ---@field aliases? string[]
 ---@field desc? string
 ---@field tags? string[]
----@field params overseer.Params
+---@field params? overseer.Params
 ---@field priority? number
 ---@field condition? overseer.SearchCondition
 ---@field builder fun(params: table): overseer.TaskDefinition
@@ -110,9 +110,6 @@ local function load_template(name)
     if not defn.name then
       defn.name = name
     end
-    if not defn.params then
-      defn.params = {}
-    end
     M.register(defn)
   end
 end
@@ -131,6 +128,7 @@ end
 ---@param defn overseer.TemplateDefinition
 local function validate_template_definition(defn)
   defn.priority = defn.priority or DEFAULT_PRIORITY
+  defn.params = defn.params or {}
   vim.validate({
     name = { defn.name, "s" },
     desc = { defn.desc, "s", true },
