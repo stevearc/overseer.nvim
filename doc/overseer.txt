@@ -286,7 +286,24 @@ The definition of a template looks like this:
       builder = function(params)
         -- This must return an overseer.TaskDefinition
         return {
-          cmd = {'echo', 'hello', 'world'}
+          -- cmd is the only required field
+          cmd = {'echo'},
+          -- additional arguments for the cmd
+          args = {"hello", "world"},
+          -- the name of the task (defaults to the cmd of the task)
+          name = "Greet",
+          -- set the working directory for the task
+          cwd = "/tmp",
+          -- additional environment variables
+          env = {
+            VAR = "FOO",
+          },
+          -- the list of components or component aliases to add to the task
+          components = {"my_custom_component", "default"},
+          -- arbitrary table of data for your own personal use
+          metadata = {
+            foo = "bar",
+          },
         }
       end,
       -- Optional fields
