@@ -28,6 +28,7 @@ local default_config = {
       ["<C-e>"] = "Edit",
       ["o"] = "Open",
       ["<C-v>"] = "OpenVsplit",
+      ["<C-s>"] = "OpenSplit",
       ["<C-f>"] = "OpenFloat",
       ["p"] = "TogglePreview",
       ["<C-l>"] = "IncreaseDetail",

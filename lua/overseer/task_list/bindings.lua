@@ -30,6 +30,13 @@ M = {
     end,
   },
   {
+    desc = "Open task terminal in a split",
+    plug = "<Plug>OverseerTask:OpenSplit",
+    rhs = function(sidebar)
+      sidebar:run_action("open hsplit")
+    end,
+  },
+  {
     desc = "Open task terminal in a vsplit",
     plug = "<Plug>OverseerTask:OpenVsplit",
     rhs = function(sidebar)

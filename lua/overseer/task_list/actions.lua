@@ -116,6 +116,15 @@ M = {
       return bufnr and vim.api.nvim_buf_is_valid(bufnr)
     end,
     run = function(task)
+      -- If we're currently in the task list, open a split in the nearest other window
+      if vim.api.nvim_buf_get_option(0, "filetype") == "OverseerList" then
+        for _, winid in ipairs(util.get_fixed_wins()) do
+          if not vim.api.nvim_win_get_option(winid, "winfixwidth") then
+            util.go_win_no_au(winid)
+            break
+          end
+        end
+      end
       vim.cmd([[split]])
       util.set_term_window_opts()
       vim.api.nvim_win_set_buf(0, task:get_bufnr())
