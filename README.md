@@ -4,6 +4,8 @@ A task runner and job management plugin for Neovim
 
 **BETA** - [APIs](#api) are not guaranteed to be stable, but a best-effort will be made to retain backwards-compatibility
 
+Please leave feedback about what's hard, what's confusing, and where the documentation is lacking. I have a lot of plans for overseer, but I prioritize what's next based on requests.
+
 https://user-images.githubusercontent.com/506791/180620617-2b1bb0a8-5f39-4936-97c2-04c92f1e2974.mp4
 
 - [Features](#features)

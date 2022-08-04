@@ -44,9 +44,9 @@ Task.params = {
 ---@field name? string
 ---@field cwd? string
 ---@field env? table<string, string>
----@field strategy? string|table
+---@field strategy? overseer.Serialized
 ---@field metadata? table
----@field components? table TODO more specific type
+---@field components? overseer.Serialized[]
 
 ---Create an uninitialized Task with no ID that will not be run
 ---This is used by the Task previewer (loading task bundles) so that we can use
