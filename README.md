@@ -626,7 +626,9 @@ overseer.setup({
 
 When components are passed to a task (either from a template or a component alias), they can be specified as either a raw string (e.g. `"on_complete_dispose"`) or a table with configuration parameters (e.g. `{"on_complete_dispose", timeout = 10}`).
 
-Components are lazy-loaded via requiring in the `overseer.component` namespace. For example, the `timeout` component is loaded from `lua/overseer/component/timeout.lua`. It is recommended that for plugins or personal use, you namespace your own components behind an additional directory. For example, place your component in `lua/overseer/component/myplugin/mycomponent.lua`, and reference it as `myplugin.mycomponent`.
+Components are lazy-loaded via requiring in the `overseer.component` namespace. For example, the `timeout` component is loaded from `lua/overseer/component/timeout.lua`. It is _recommended_ that for plugins or personal use, you namespace your own components behind an additional directory. For example, place your component in `lua/overseer/component/myplugin/mycomponent.lua`, and reference it as `myplugin.mycomponent`.
+
+Paths given are all relative to any runtimepath (`:help rtp`), so in practice it's probably easiest to put it in `~/.config/nvim`. The full path to your custom component would then become `~/.config/nvim/lua/overseer/component/myplugin/mycomponent.lua`.
 
 The component definition should look like the following example:
 
