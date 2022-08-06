@@ -20,13 +20,15 @@ end
 M.wrap_run = function(daprun)
   return function(config, opts)
     dap.listeners.after.event_terminated["overseer"] = function()
-      get_task(config.postDebugTask, function(task, err)
-        if err then
-          log:error("Could not run postDebugTask %s", config.postDebugTask)
-        elseif task then
-          task:start()
-        end
-      end)
+      if config.postDebugTask then
+        get_task(config.postDebugTask, function(task, err)
+          if err then
+            log:error("Could not run postDebugTask %s", config.postDebugTask)
+          elseif task then
+            task:start()
+          end
+        end)
+      end
     end
 
     if config.preLaunchTask then
