@@ -96,7 +96,7 @@ function Sidebar:toggle_preview()
   local col = (vim.fn.winnr() == 1 and (win_width + padding) or padding)
   local winid = vim.api.nvim_open_win(task:get_bufnr(), false, {
     relative = "editor",
-    border = "rounded",
+    border = config.task_win.border,
     row = 1,
     col = col,
     width = width,
@@ -104,7 +104,9 @@ function Sidebar:toggle_preview()
     style = "minimal",
   })
   vim.api.nvim_win_set_option(winid, "previewwindow", true)
-  vim.api.nvim_win_set_option(winid, "winblend", 10)
+  for k, v in pairs(config.task_win.win_opts) do
+    vim.api.nvim_win_set_option(winid, k, v)
+  end
   if winid then
     util.scroll_to_end(winid)
   end
