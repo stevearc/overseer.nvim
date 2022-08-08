@@ -102,6 +102,7 @@ function Sidebar:toggle_preview()
     width = width,
     height = vim.api.nvim_win_get_height(0),
     style = "minimal",
+    noautocmd = true,
   })
   vim.api.nvim_win_set_option(winid, "previewwindow", true)
   for k, v in pairs(config.task_win.win_opts) do
