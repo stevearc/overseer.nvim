@@ -152,6 +152,10 @@ M.start_debug_session = function()
       vim.api.nvim_buf_delete(buf, { force = true })
     end
   end
+  local overseer_dir = files.join(vim.fn.stdpath("cache"), "overseer")
+  if vim.fn.isdirectory(overseer_dir) == 0 then
+    vim.fn.mkdir(overseer_dir)
+  end
   vim.cmd([[tabnew]])
   create_source_bufnr()
   local source_win = vim.api.nvim_get_current_win()
