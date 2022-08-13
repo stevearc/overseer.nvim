@@ -12,6 +12,10 @@ local task_groups = {}
 
 function neotest.overseer.run(args)
   args = args or {}
+  if type(args) == "string" then
+    args = { args }
+  end
+
   if args.strategy and args.strategy ~= "overseer" then
     return neotest.run.run(args)
   else
