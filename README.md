@@ -586,7 +586,7 @@ Providers are created the same way templates are (with `overseer.register_templa
 
 Actions can be performed on tasks by using the `RunAction` keybinding in the task list, or by the `OverseerQuickAction` and `OverseerTaskAction` commands. They are simply a custom function that will do something to or with a task.
 
-Browse the set of built-in actions at [lua/overseer/task_list/actions.lua](../lua/overseer/task_list/actions.lua)
+Browse the set of built-in actions at [lua/overseer/task_list/actions.lua](lua/overseer/task_list/actions.lua)
 
 You can define your own or disable any of the built-in actions in the call to setup():
 
