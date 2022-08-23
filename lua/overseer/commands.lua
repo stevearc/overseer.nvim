@@ -53,7 +53,9 @@ M._run_template = function(params)
   local name
   local tags = {}
   for _, str in ipairs(params.fargs) do
-    if constants.TAG:contains(str) then
+    if str == "" then
+      -- pass
+    elseif constants.TAG:contains(str) then
       table.insert(tags, str)
     else
       name = str
@@ -75,7 +77,11 @@ M._build_task = function(_params)
 end
 
 M._quick_action = function(params)
-  M.quick_action(params.fargs[1])
+  local action_name = params.fargs[1]
+  if action_name == "" then
+    action_name = nil
+  end
+  M.quick_action(action_name)
 end
 
 M._task_action = function(params)
@@ -196,6 +202,7 @@ M.build_task = function()
   end)
 end
 
+---@param name string Name of action to run
 M.quick_action = function(name)
   if vim.api.nvim_buf_get_option(0, "filetype") == "OverseerList" then
     local sb = sidebar.get_or_create()
@@ -210,7 +217,7 @@ M.quick_action = function(name)
   else
     task = tasks[1]
   end
-  action_util.run_task_action(task)
+  action_util.run_task_action(task, name)
 end
 
 M.task_action = function()

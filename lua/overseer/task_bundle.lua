@@ -114,7 +114,7 @@ M.load_task_bundle = function(name)
 end
 
 ---@param name? string
----@param tasks overseer.Task[]
+---@param tasks? overseer.Task[]
 M.save_task_bundle = function(name, tasks)
   if name then
     local filename = string.format("%s.bundle.json", name)
