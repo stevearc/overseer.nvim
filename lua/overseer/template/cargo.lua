@@ -36,6 +36,7 @@ return {
       { args = { "bench" } },
       { args = { "update" } },
       { args = { "publish" } },
+      { args = { "run" } },
     }
     local ret = {}
     for _, command in ipairs(commands) do
