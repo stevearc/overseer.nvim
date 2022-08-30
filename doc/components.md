@@ -39,6 +39,18 @@ Sets final task status based on exit code \
 Parses task output and sets task result \
 \***parser**[opaque]: Parser definition to extract values from output
 
+## [on_output_parse_errorformat](../lua/overseer/component/on_output_parse_errorformat.lua)
+
+Parse task output using 'errorformat' \
+**errorformat**[string]: See :help errorformat
+
+## [on_output_quickfix](../lua/overseer/component/on_output_quickfix.lua)
+
+Set all task output into the quickfix (on complete) \
+**close**[boolean]: If true, close the quickfix when task succeeds (default `false`) \
+**errorformat**[string]: See :help errorformat \
+**open**[boolean]: If true, open the quickfix when there are diagnostics (default `false`)
+
 ## [on_output_summarize](../lua/overseer/component/on_output_summarize.lua)
 
 Summarize task output in the task list \
@@ -47,7 +59,7 @@ Summarize task output in the task list \
 ## [on_output_write_file](../lua/overseer/component/on_output_write_file.lua)
 
 Write task output to a file \
-**filename**[string]: Name of file to write output to
+\***filename**[string]: Name of file to write output to
 
 ## [on_result_diagnostics](../lua/overseer/component/on_result_diagnostics.lua)
 
@@ -62,7 +74,7 @@ If task result contains diagnostics, display them \
 If task result contains diagnostics, add them to the quickfix \
 **close**[boolean]: If true, close the quickfix when there are no diagnostics (default `false`) \
 **open**[boolean]: If true, open the quickfix when there are diagnostics (default `false`) \
-**set_empty_results**[boolean]: If true, overwrite the quickfix even if there are no diagnostics (default `false`) \
+**set_empty_results**[boolean]: If true, overwrite the current quickfix even if there are no diagnostics (default `false`) \
 **use_loclist**[boolean]: If true, use the loclist instead of quickfix (default `false`)
 
 ## [restart_on_save](../lua/overseer/component/restart_on_save.lua)
