@@ -3,15 +3,10 @@ return {
   params = {
     filename = {
       desc = "Name of file to write output to",
-      optional = true,
     },
   },
   constructor = function(params)
-    if not params.filename then
-      params.filename = vim.fn.tempname()
-    end
     return {
-      filename = params.filename,
       on_init = function(self)
         self.output_file = assert(io.open(params.filename, "w"))
       end,

@@ -166,7 +166,7 @@ M = {
     end,
   },
   ["open output in quickfix"] = {
-    desc = "parse the task output with 'errorformat' and set in the quickfix",
+    desc = "open the entire task output in quickfix",
     condition = function(task)
       local bufnr = task:get_bufnr()
       return task:is_complete()
