@@ -234,6 +234,19 @@ local default_matchers = {
       column = 4,
     },
   },
+  -- from https://github.com/microsoft/vscode-cpptools/blob/main/Extension/package.json#L76
+  ["$gcc"] = {
+    fileLocation = { "autoDetect", "${cwd}" },
+    pattern = {
+      -- regexp = "^(.*?):(\\d+):(\\d*):?\\s+(?:fatal\\s+)?(warning|error):\\s+(.*)$",
+      regexp = "^([^:]*):(\\d+):(\\d*):?\\s+(fatal\\s+)?(warning|error):\\s+(.*)$",
+      file = 1,
+      line = 2,
+      column = 3,
+      severity = 5,
+      message = 6,
+    },
+  },
 }
 
 ---@param name string
