@@ -39,17 +39,14 @@ Sets final task status based on exit code \
 Parses task output and sets task result \
 \***parser**[opaque]: Parser definition to extract values from output
 
-## [on_output_parse_errorformat](../lua/overseer/component/on_output_parse_errorformat.lua)
-
-Parse task output using 'errorformat' \
-**errorformat**[string]: See :help errorformat
-
 ## [on_output_quickfix](../lua/overseer/component/on_output_quickfix.lua)
 
 Set all task output into the quickfix (on complete) \
-**close**[boolean]: If true, close the quickfix when task succeeds (default `false`) \
+**close**[boolean]: If true, close the quickfix when no items found (default `false`) \
 **errorformat**[string]: See :help errorformat \
-**open**[boolean]: If true, open the quickfix when there are diagnostics (default `false`)
+**items_only**[boolean]: If true, only show valid matches in the quickfix (default `false`) \
+**open**[boolean]: If true, open the quickfix when any items found (default `false`) \
+**set_diagnostics**[boolean]: If true, add the found items to diagnostics (default `false`)
 
 ## [on_output_summarize](../lua/overseer/component/on_output_summarize.lua)
 
