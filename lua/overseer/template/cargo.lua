@@ -23,7 +23,7 @@ local tmpl = {
 return {
   condition = {
     callback = function(opts)
-      return files.exists(files.join(opts.dir, "Cargo.toml"))
+      return files.exists(vim.fn.findfile("Cargo.toml", opts.dir .. ";"))
     end,
   },
   generator = function(opts)
