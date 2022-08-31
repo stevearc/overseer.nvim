@@ -51,7 +51,6 @@ local builtin_components = {
   "on_complete_restart",
   "on_exit_set_status",
   "on_output_parse",
-  "on_output_parse_errorformat",
   "on_output_quickfix",
   "on_output_summarize",
   "on_output_write_file",
