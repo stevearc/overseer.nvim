@@ -42,6 +42,12 @@ return {
         if not result.diagnostics or vim.tbl_isempty(result.diagnostics) then
           return
         end
+        -- QF items might have bufnr instead of filename, but we need filename for grouping
+        for _, diag in ipairs(result.diagnostics) do
+          if not diag.filename and diag.bufnr and diag.bufnr ~= 0 then
+            diag.filename = vim.api.nvim_buf_get_name(diag.bufnr)
+          end
+        end
         local grouped = util.tbl_group_by(result.diagnostics, "filename")
         for filename, items in pairs(grouped) do
           local diagnostics = {}
@@ -58,20 +64,16 @@ return {
             })
           end
           local bufnr = vim.fn.bufadd(filename)
-          if bufnr then
-            vim.diagnostic.set(self.ns, bufnr, diagnostics, {
-              virtual_text = params.virtual_text,
-              signs = params.signs,
-              underline = params.underline,
-            })
-            table.insert(self.bufnrs, bufnr)
-            if not vim.api.nvim_buf_is_loaded(bufnr) then
-              util.set_bufenter_callback(bufnr, "diagnostics_show", function()
-                vim.diagnostic.show(self.ns, bufnr)
-              end)
-            end
-          else
-            vim.notify(string.format("Could not find file '%s'", filename), vim.log.levels.WARN)
+          vim.diagnostic.set(self.ns, bufnr, diagnostics, {
+            virtual_text = params.virtual_text,
+            signs = params.signs,
+            underline = params.underline,
+          })
+          table.insert(self.bufnrs, bufnr)
+          if not vim.api.nvim_buf_is_loaded(bufnr) then
+            util.set_bufenter_callback(bufnr, "diagnostics_show", function()
+              vim.diagnostic.show(self.ns, bufnr)
+            end)
           end
         end
       end,

@@ -165,6 +165,25 @@ M = {
       vim.fn.setloclist(winid, task.result.diagnostics)
     end,
   },
+  ["open output in quickfix"] = {
+    desc = "open the entire task output in quickfix",
+    condition = function(task)
+      local bufnr = task:get_bufnr()
+      return task:is_complete()
+        and bufnr
+        and vim.api.nvim_buf_is_valid(bufnr)
+        and vim.api.nvim_buf_is_loaded(bufnr)
+    end,
+    run = function(task)
+      local lines = vim.api.nvim_buf_get_lines(task:get_bufnr(), 0, -1, true)
+      vim.fn.setqflist({}, " ", {
+        title = task.name,
+        context = task.name,
+        lines = lines,
+      })
+      vim.cmd("botright copen")
+    end,
+  },
 }
 
 return M

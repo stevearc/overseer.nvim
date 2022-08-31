@@ -18,7 +18,7 @@ return {
       default = false,
     },
     set_empty_results = {
-      desc = "If true, overwrite the quickfix even if there are no diagnostics",
+      desc = "If true, overwrite the current quickfix even if there are no diagnostics",
       type = "boolean",
       default = false,
     },

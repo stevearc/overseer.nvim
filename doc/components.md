@@ -39,6 +39,15 @@ Sets final task status based on exit code \
 Parses task output and sets task result \
 \***parser**[opaque]: Parser definition to extract values from output
 
+## [on_output_quickfix](../lua/overseer/component/on_output_quickfix.lua)
+
+Set all task output into the quickfix (on complete) \
+**close**[boolean]: If true, close the quickfix when no items found (default `false`) \
+**errorformat**[string]: See :help errorformat \
+**items_only**[boolean]: If true, only show valid matches in the quickfix (default `false`) \
+**open**[boolean]: If true, open the quickfix when any items found (default `false`) \
+**set_diagnostics**[boolean]: If true, add the found items to diagnostics (default `false`)
+
 ## [on_output_summarize](../lua/overseer/component/on_output_summarize.lua)
 
 Summarize task output in the task list \
@@ -62,7 +71,7 @@ If task result contains diagnostics, display them \
 If task result contains diagnostics, add them to the quickfix \
 **close**[boolean]: If true, close the quickfix when there are no diagnostics (default `false`) \
 **open**[boolean]: If true, open the quickfix when there are diagnostics (default `false`) \
-**set_empty_results**[boolean]: If true, overwrite the quickfix even if there are no diagnostics (default `false`) \
+**set_empty_results**[boolean]: If true, overwrite the current quickfix even if there are no diagnostics (default `false`) \
 **use_loclist**[boolean]: If true, use the loclist instead of quickfix (default `false`)
 
 ## [restart_on_save](../lua/overseer/component/restart_on_save.lua)

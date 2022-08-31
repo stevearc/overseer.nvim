@@ -268,6 +268,12 @@ require("overseer").setup({
       "on_complete_notify",
       "on_complete_dispose",
     },
+    -- Tasks from tasks.json use these components
+    default_vscode = {
+      "default",
+      "on_result_diagnostics",
+      "on_result_diagnostics_quickfix",
+    },
   },
   -- This is run before creating tasks from a template
   pre_task_hook = function(task_defn, util)
