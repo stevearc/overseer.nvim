@@ -508,4 +508,38 @@ M.find_success_color = function()
   return "DiagnosticInfo"
 end
 
+---@param func fun(any)
+---@param opts? {delay?: integer|fun(any): integer, reset_timer_on_call?: boolean}
+M.debounce = function(func, opts)
+  vim.validate({
+    func = { func, "f" },
+    opts = { opts, "t", true },
+  })
+  opts = opts or {}
+  opts.delay = opts.delay or 300
+  local timer = nil
+  return function(...)
+    if timer then
+      if opts.reset_timer_on_call then
+        timer:close()
+        timer = nil
+      else
+        return timer
+      end
+    end
+    local args = { ... }
+    local delay = opts.delay
+    if type(delay) == "function" then
+      delay = delay(unpack(args))
+    end
+    timer = vim.loop.new_timer()
+    timer:start(delay, 0, function()
+      timer:close()
+      timer = nil
+      vim.schedule_wrap(func)(unpack(args))
+    end)
+    return timer
+  end
+end
+
 return M

@@ -203,7 +203,7 @@ function Sidebar:render(tasks)
   local lines = {}
   local highlights = {}
   self.task_lines = {}
-  -- Iterate backwards so we should most recent tasks first
+  -- Iterate backwards so we show most recent tasks first
   for i = #tasks, 1, -1 do
     local task = tasks[i]
     local detail = self.task_detail[task.id] or self.default_detail
