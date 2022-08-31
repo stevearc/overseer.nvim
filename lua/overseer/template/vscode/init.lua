@@ -124,10 +124,8 @@ local function get_task_builder(defn)
       cwd = variables.replace_vars(opts.cwd, params),
       env = variables.replace_vars(opts.env, params),
       components = {
-        "default",
+        "default_vscode",
         { "vscode.result_vscode_task", problem_matcher = pmatcher },
-        "on_result_diagnostics",
-        "on_result_diagnostics_quickfix",
       },
     }
     if defn.problemMatcher then
