@@ -285,6 +285,12 @@ require("overseer").setup({
   -- A list of components to preload on setup.
   -- Only matters if you want them to show up in the task editor.
   preload_components = {},
+  -- Controls when the parameter prompt is shown when running a template
+  --   always    Show when template has any params
+  --   missing   Show when template has any params not explicitly passed in
+  --   allow     Only show when a required param is missing
+  --   never     Never show prompt (error if required param missing)
+  default_template_prompt = "allow",
   -- Configure where the logs go and what level to use
   -- Types are "echo", "notify", and "file"
   log = {
