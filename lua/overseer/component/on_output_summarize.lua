@@ -56,12 +56,19 @@ return {
       render = function(self, task, lines, highlights, detail)
         local prefix = "out: "
         if detail == 1 then
-          local last_line = self.lines[#self.lines]
-          if last_line and last_line ~= "" then
-            table.insert(lines, prefix .. last_line)
-            table.insert(highlights, { "Comment", #lines, 0, 4 })
-            table.insert(highlights, { "OverseerOutput", #lines, 4, -1 })
+          local i = #lines
+          while
+            not vim.tbl_isempty(lines)
+            and (lines[#lines] == "" or lines[#lines]:match("^%[Process exited"))
+          do
+            i = i - 1
           end
+          if not self.lines[i] then
+            return
+          end
+          table.insert(lines, prefix .. self.lines[i])
+          table.insert(highlights, { "Comment", #lines, 0, 4 })
+          table.insert(highlights, { "OverseerOutput", #lines, 4, -1 })
         else
           for _, line in ipairs(self.lines) do
             table.insert(lines, prefix .. line)
