@@ -198,9 +198,9 @@ M.is_bufnr_visible = function(bufnr)
 end
 
 ---@generic T : any
----@param list T[]
+---@param list T[]|string
 ---@param keyfn? fun(item: T): string
----@return table<string, T>
+---@return table<T, boolean>
 M.list_to_map = function(list, keyfn)
   local map = {}
   if type(list) == "string" then

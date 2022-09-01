@@ -48,13 +48,9 @@ M.touch_task = function(task)
 end
 
 M.serialize_tasks = function()
-  local ret = {}
-  for _, task in ipairs(tasks) do
-    if task:should_include_in_bundle() then
-      table.insert(ret, task:serialize())
-    end
-  end
-  return ret
+  return vim.tbl_map(function(task)
+    return task:serialize()
+  end, M.list_tasks({ bundleable = true }))
 end
 
 M.remove = function(task)
@@ -93,11 +89,13 @@ end
 
 ---@class overseer.ListTaskOpts
 ---@field unique? boolean Deduplicates non-running tasks by name
----@field name? string|string[]
----@field name_not? boolean
----@field status? overseer.Status|overseer.Status[]
----@field status_not? boolean
----@field recent_first? boolean
+---@field name? string|string[] Only list tasks with this name or names
+---@field name_not? boolean Invert the name search (tasks *without* that name)
+---@field status? overseer.Status|overseer.Status[] Only list tasks with this status or statuses
+---@field status_not? boolean Invert the status search
+---@field recent_first? boolean The most recent tasks are first in the list
+---@field bundleable? boolean Only list tasks that should be included in a bundle
+---@field filter? fun(task: overseer.Task): boolean
 
 ---@param opts? overseer.ListTaskOpts
 ---@return overseer.Task[]
@@ -110,6 +108,8 @@ M.list_tasks = function(opts)
     -- status is string or list
     status_not = { opts.status_not, "b", true },
     recent_first = { opts.recent_first, "b", true },
+    bundleable = { opts.bundleable, "b", true },
+    filter = { opts.filter, "f", true },
   })
   local name = util.list_to_map(opts.name or {})
   local status = util.list_to_map(opts.status or {})
@@ -122,11 +122,9 @@ M.list_tasks = function(opts)
         or (name[task.name] and not opts.name_not)
         or (not name[task.name] and opts.name_not)
       )
-      and (
-        not opts.status
-        or (status[task.status] and not opts.status_not)
-        or (not status[task.status] and opts.status_not)
-      )
+      and (not opts.status or (status[task.status] and not opts.status_not) or (not status[task.status] and opts.status_not))
+      and (not opts.bundleable or task:should_include_in_bundle())
+      and (not opts.filter or opts.filter(task))
     then
       local idx = seen[task.name]
       if idx and opts.unique then

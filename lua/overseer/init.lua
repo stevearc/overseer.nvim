@@ -268,12 +268,16 @@ M.save_task_bundle = lazy("task_bundle", "save_task_bundle")
 ---@param name? string
 M.delete_task_bundle = lazy("task_bundle", "delete_task_bundle")
 
+---@param opts? overseer.ListTaskOpts
+---@return overseer.Task[]
+M.list_tasks = lazy("task_list", "list_tasks")
+
 ---@param opts overseer.TemplateRunOpts
 ---@param callback? fun(task: overseer.Task|nil, err: string|nil)
 M.run_template = lazy("commands", "run_template")
 
 ---@param task overseer.Task
----@param name? string Name of action. When omittied, prompt user to pick.
+---@param name? string Name of action. When omitted, prompt user to pick.
 M.run_action = lazy("action_util", "run_task_action")
 
 ---Create a new template by overriding fields on another
