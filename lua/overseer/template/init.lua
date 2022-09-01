@@ -94,7 +94,8 @@ local function condition_matches(condition, tags, search, match_tags)
   return true
 end
 
-local function load_template(name)
+---@param name string
+M.load_template = function(name)
   local ok, defn = pcall(require, string.format("overseer.template.%s", name))
   if not ok then
     log:error("Error loading template '%s': %s", name, defn)
@@ -104,7 +105,7 @@ local function load_template(name)
   -- collection of templates
   if vim.tbl_islist(defn) then
     for _, v in ipairs(defn) do
-      load_template(v)
+      M.load_template(v)
     end
   else
     if not defn.name then
@@ -120,7 +121,7 @@ local function initialize()
     return
   end
   for _, name in ipairs(config.templates) do
-    load_template(name)
+    M.load_template(name)
   end
   initialized = true
 end

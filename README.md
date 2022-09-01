@@ -547,6 +547,8 @@ Similar to [custom components](#custom-components), templates can be lazy-loaded
 overseer.setup({
   templates = { "builtin", "myplugin.first_task" },
 })
+-- You can also load them separately from setup
+overseer.load_template("myplugin.second_task")
 ```
 
 If you have multiple templates that you would like to expose as a bundle, you can create an alias module. For example, put the following into `overseer/template/myplugin/init.lua`:

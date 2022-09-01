@@ -76,6 +76,9 @@ local function do_setup()
   end
 end
 
+---When this function is called, complete the overseer setup
+---@param mod string Name of overseer module
+---@param fn string Name of function to wrap
 local function lazy(mod, fn)
   return function(...)
     do_setup()
@@ -83,6 +86,10 @@ local function lazy(mod, fn)
   end
 end
 
+---When this function is called, if overseer has not loaded yet defer the call until after overseer
+---has loaded.
+---@param mod string Name of overseer module
+---@param fn string Name of function to wrap
 local function lazy_pend(mod, fn)
   return function(...)
     if initialized then
@@ -300,6 +307,8 @@ end
 
 ---@param defn overseer.TemplateDefinition|overseer.TemplateProvider
 M.register_template = lazy_pend("template", "register")
+---@param name string
+M.load_template = lazy_pend("template", "load_template")
 
 -- Used for vim-session integration.
 local timer_active = false
