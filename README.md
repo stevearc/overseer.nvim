@@ -20,6 +20,7 @@ https://user-images.githubusercontent.com/506791/180620617-2b1bb0a8-5f39-4936-97
   - [Lualine](#lualine)
   - [Neotest](#neotest)
   - [DAP](#dap)
+  - [Session managers](#session-managers)
 - [Architecture](#architecture)
 - [Customization](#customization)
   - [Custom tasks](#custom-tasks)
@@ -465,6 +466,40 @@ require('overseer').setup({
 ### DAP
 
 If you have both overseer and [nvim-dap](https://github.com/mfussenegger/nvim-dap) installed, overseer will automatically run the `preLaunchTask` and `postDebugTask` when present in a debug configuration.
+
+### Session managers
+
+If you would like to save and restore overseer tasks as part of saving and restoring a session, overseer makes that easy with task bundles. These are exposed to the user with the commands `:OverseerSaveBundle` and `:OverseerLoadBundle`, but you can use the lua API directly for a nicer integration. You essentially just need to get the session name and add some hooks using your plugin's API to handle overseer tasks on session save/restore.
+
+For example, to integrate with [auto-session](https://github.com/rmagatti/auto-session)
+
+```lua
+-- Convert the cwd to a simple file name
+local function get_cwd_as_name()
+  local dir = vim.fn.getcwd(0)
+  return dir:gsub("[^A-Za-z0-9]", "_")
+end
+local overseer = require("overseer")
+require("auto-session").setup({
+  pre_save_cmds = {
+    function()
+      overseer.save_task_bundle(
+        get_cwd_as_name(),
+        overseer.list_tasks({
+          bundleable = true, -- Ignore tasks that shouldn't be bundled
+          -- See other filter options to only save certain tasks
+        }),
+        { on_conflict = "overwrite" } -- Overwrite existing bundle, if any
+      )
+    end,
+  },
+  post_restore_cmds = {
+    function()
+      overseer.load_task_bundle(get_cwd_as_name(), { ignore_missing = true })
+    end,
+  },
+})
+```
 
 ## Architecture
 
