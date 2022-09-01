@@ -13,6 +13,7 @@
 ---@field component_aliases? table<string, overseer.Serialized[]>
 ---@field pre_task_hook? fun(task_defn: overseer.TaskDefinition, util: overseer.TaskUtil)
 ---@field preload_components? string[]
+---@field default_template_prompt "always"|"missing"|"allow"|"never"
 ---@field log table[]
 
 ---@class overseer.ConfigTaskList

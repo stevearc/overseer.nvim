@@ -1,4 +1,5 @@
 local action_util = require("overseer.action_util")
+local config = require("overseer.config")
 local constants = require("overseer.constants")
 local log = require("overseer.log")
 local sidebar = require("overseer.task_list.sidebar")
@@ -93,8 +94,8 @@ end
 ---Options for running a template
 ---Values for prompt:
 ---  always    Show when template has any params
----  missing   Show when template has any params not provided
----  allow     Only show when required param is missing (default)
+---  missing   Show when template has any params not explicitly passed in
+---  allow     Only show when a required param is missing
 ---  never     Never show prompt (error if required param missing)
 ---@class overseer.TemplateRunOpts
 ---@field name? string The name of the template to run
@@ -111,7 +112,7 @@ end
 M.run_template = function(opts, callback)
   opts = vim.tbl_deep_extend("keep", opts or {}, {
     autostart = true,
-    prompt = "allow",
+    prompt = config.default_template_prompt,
   })
   vim.validate({
     name = { opts.name, "s", true },
