@@ -261,9 +261,11 @@ M.close = lazy("window", "close")
 ---@return string[]
 M.list_task_bundles = lazy("task_bundle", "list_task_bundles")
 ---@param name? string
+---@param opts? {ignore_missing?: boolean}
 M.load_task_bundle = lazy("task_bundle", "load_task_bundle")
 ---@param name? string
 ---@param tasks overseer.Task[]
+---@param opts? {on_conflict?: "overwrite"|"append"|"cancel"}
 M.save_task_bundle = lazy("task_bundle", "save_task_bundle")
 ---@param name? string
 M.delete_task_bundle = lazy("task_bundle", "delete_task_bundle")

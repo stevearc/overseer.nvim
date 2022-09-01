@@ -74,12 +74,20 @@ M.list_task_bundles = function()
 end
 
 ---@param name? string
-M.load_task_bundle = function(name)
+---@param opts? {ignore_missing?: boolean}
+M.load_task_bundle = function(name, opts)
+  vim.validate({
+    name = { name, "s", true },
+    opts = { opts, "t", true },
+  })
+  opts = opts or {}
   if name then
     local filepath = files.join(get_bundle_dir(), string.format("%s.bundle.json", name))
     local data = files.load_json_file(filepath)
     if not data then
-      vim.notify(string.format("Could not find task bundle %s", name), vim.log.levels.ERROR)
+      if not opts.ignore_missing then
+        vim.notify(string.format("Could not find task bundle %s", name), vim.log.levels.ERROR)
+      end
       return
     end
     local count = 0
@@ -96,7 +104,9 @@ M.load_task_bundle = function(name)
   else
     local tasks = M.list_task_bundles()
     if #tasks == 0 then
-      vim.notify("No saved task bundles", vim.log.levels.WARN)
+      if not opts.ignore_missing then
+        vim.notify("No saved task bundles", vim.log.levels.WARN)
+      end
       return
     end
     vim.ui.select(tasks, {
@@ -115,7 +125,14 @@ end
 
 ---@param name? string
 ---@param tasks? overseer.Task[]
-M.save_task_bundle = function(name, tasks)
+---@param opts? {on_conflict?: "overwrite"|"append"|"cancel"}
+M.save_task_bundle = function(name, tasks, opts)
+  vim.validate({
+    name = { name, "s", true },
+    tasks = { tasks, "t", true },
+    opts = { opts, "t", true },
+  })
+  opts = opts or {}
   if name then
     local filename = string.format("%s.bundle.json", name)
     local serialized
@@ -127,30 +144,46 @@ M.save_task_bundle = function(name, tasks)
     else
       serialized = task_list.serialize_tasks()
     end
+    if vim.tbl_isempty(serialized) then
+      return
+    end
     local filepath = files.join(get_bundle_dir(), filename)
+
+    local function append_to_file()
+      local data = files.load_json_file(files.join(get_bundle_dir(), filename))
+      for _, new_task in ipairs(serialized) do
+        table.insert(data, new_task)
+      end
+      files.write_json_file(filepath, data)
+    end
+
     if files.exists(filepath) then
-      confirm({
-        message = string.format(
-          "%s exists.\nWould you like to overwrite it or append to it?",
-          filename
-        ),
-        choices = {
-          "&Overwrite",
-          "&Append",
-          "Cancel",
-        },
-        default = 3,
-      }, function(idx)
-        if idx == 1 then
-          files.write_json_file(filepath, serialized)
-        elseif idx == 2 then
-          local data = files.load_json_file(files.join(get_bundle_dir(), filename))
-          for _, new_task in ipairs(serialized) do
-            table.insert(data, new_task)
+      if opts.on_conflict == "overwrite" then
+        files.write_json_file(filepath, serialized)
+      elseif opts.on_conflict == "append" then
+        append_to_file()
+      elseif opts.on_conflict == "cancel" then
+        -- Do nothing
+      else
+        confirm({
+          message = string.format(
+            "%s exists.\nWould you like to overwrite it or append to it?",
+            filename
+          ),
+          choices = {
+            "&Overwrite",
+            "&Append",
+            "Cancel",
+          },
+          default = 3,
+        }, function(idx)
+          if idx == 1 then
+            files.write_json_file(filepath, serialized)
+          elseif idx == 2 then
+            append_to_file()
           end
-          files.write_json_file(filepath, data)
-        end
-      end)
+        end)
+      end
     else
       files.write_json_file(filepath, serialized)
     end
