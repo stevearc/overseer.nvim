@@ -640,6 +640,12 @@ Providers are created the same way templates are (with `overseer.register_templa
   condition = function(search)
     return true
   end,
+  -- You can instead make generator async by returning nil and using the callback
+  generator = function(search, callback)
+    dowork(function()
+      callback({...})
+    end)
+  end,
 }
 ```
 

@@ -11,7 +11,7 @@ local M = {}
 ---@class overseer.TemplateProvider
 ---@field name string
 ---@field condition? overseer.SearchCondition
----@field generator fun(opts: overseer.SearchParams): overseer.TemplateDefinition[]
+---@field generator fun(opts: overseer.SearchParams, cb: fun(tmpls: overseer.TemplateDefinition[])): nil|overseer.TemplateDefinition[]
 
 ---@class overseer.TemplateDefinition
 ---@field name string
@@ -262,8 +262,8 @@ end
 ---@field dir string
 
 ---@param opts? overseer.SearchParams
----@return overseer.TemplateDefinition[]
-M.list = function(opts)
+---@param cb overseer.TemplateDefinition[]
+M.list = function(opts, cb)
   initialize()
   opts = opts or {}
   vim.validate({
@@ -278,31 +278,67 @@ M.list = function(opts)
     end
   end
 
+  local completed = false
+  local pending = {}
+  local function final_callback()
+    if not completed or not vim.tbl_isempty(pending) then
+      return
+    end
+    table.sort(ret, function(a, b)
+      if a.priority == b.priority then
+        return a.name < b.name
+      else
+        return a.priority < b.priority
+      end
+    end)
+
+    cb(ret)
+  end
+
+  local function handle_tmpls(tmpls)
+    for _, tmpl in ipairs(tmpls) do
+      validate_template_definition(tmpl)
+      if condition_matches(tmpl.condition, tmpl.tags, opts, true) then
+        table.insert(ret, tmpl)
+      end
+    end
+
+    final_callback()
+  end
+
+  -- Timeout
+  vim.defer_fn(function()
+    if not vim.tbl_isempty(pending) then
+      log:error("Listing templates timed out. Pending providers: %s", vim.tbl_keys(pending))
+      pending = {}
+      final_callback()
+      -- Make sure that the callback doesn't get called again
+      cb = function() end
+    end
+  end, 1000)
+
   for _, provider in ipairs(providers) do
+    local provider_name = provider.name
     if condition_matches(provider.condition, nil, opts, false) then
-      local ok, tmpls = pcall(provider.generator, opts)
+      local ok, tmpls = pcall(provider.generator, opts, function(...)
+        pending[provider_name] = nil
+        handle_tmpls(...)
+      end)
       if ok then
-        for _, tmpl in ipairs(tmpls) do
-          validate_template_definition(tmpl)
-          if condition_matches(tmpl.condition, tmpl.tags, opts, true) then
-            table.insert(ret, tmpl)
-          end
+        if tmpls then
+          -- generator completed synchronously
+          handle_tmpls(tmpls)
+        else
+          -- generator is async and we expect it to call the callback later
+          pending[provider.name] = true
         end
       else
         log:error("Template provider %s: %s", provider.name, tmpls)
       end
     end
   end
-
-  table.sort(ret, function(a, b)
-    if a.priority == b.priority then
-      return a.name < b.name
-    else
-      return a.priority < b.priority
-    end
-  end)
-
-  return ret
+  completed = true
+  final_callback()
 end
 
 ---@param name string

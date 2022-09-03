@@ -163,29 +163,29 @@ M.run_template = function(opts, callback)
     local tmpl = template.get_by_name(opts.name, tmpl_opts)
     handle_tmpl(tmpl)
   else
-    local templates = template.list(tmpl_opts)
-    if #templates == 0 then
-      log:error("Could not find any matching task templates for opts %s", opts)
-      return
-    elseif #templates == 1 or opts.first then
-      handle_tmpl(templates[1])
-    else
-      vim.ui.select(templates, {
-        prompt = "Task template:",
-        kind = "overseer_template",
-        format_item = function(tmpl)
-          if tmpl.desc then
-            return string.format("%s (%s)", tmpl.name, tmpl.desc)
-          else
-            return tmpl.name
+    template.list(tmpl_opts, function(templates)
+      if #templates == 0 then
+        log:error("Could not find any matching task templates for opts %s", opts)
+      elseif #templates == 1 or opts.first then
+        handle_tmpl(templates[1])
+      else
+        vim.ui.select(templates, {
+          prompt = "Task template:",
+          kind = "overseer_template",
+          format_item = function(tmpl)
+            if tmpl.desc then
+              return string.format("%s (%s)", tmpl.name, tmpl.desc)
+            else
+              return tmpl.name
+            end
+          end,
+        }, function(tmpl)
+          if tmpl then
+            handle_tmpl(tmpl)
           end
-        end,
-      }, function(tmpl)
-        if tmpl then
-          handle_tmpl(tmpl)
-        end
-      end)
-    end
+        end)
+      end
+    end)
   end
 end
 
