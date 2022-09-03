@@ -8,7 +8,9 @@ local function get_last_lines(bufnr, num_lines)
   num_lines = math.min(num_lines, vim.api.nvim_buf_line_count(bufnr))
   local lines = vim.api.nvim_buf_get_lines(bufnr, -1 - num_lines, -1, false)
   local num_empty = 0
-  while not vim.tbl_isempty(lines) and lines[#lines] == "" do
+  while
+    not vim.tbl_isempty(lines) and (lines[#lines] == "" or lines[#lines]:match("^%[Process exited"))
+  do
     table.remove(lines)
     num_empty = num_empty + 1
   end
