@@ -95,7 +95,7 @@ M.decode_json = function(content)
 
     error(data)
     ::continue::
-    ok, data = pcall(vim.json.decode, content)
+    ok, data = pcall(vim.json.decode, content, { luanil = { object = true } })
   end
   return data
 end

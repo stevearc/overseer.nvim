@@ -60,7 +60,7 @@ function ExtractJson:ingest(line, ctx)
   end
   local item = ctx.item
 
-  local ok, result = pcall(vim.json.decode, line)
+  local ok, result = pcall(vim.json.decode, line, { luanil = { object = true } })
   if not ok or (self.test and not self.test(result)) then
     self.done = parser.STATUS.FAILURE
     return parser.STATUS.FAILURE
