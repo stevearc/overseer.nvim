@@ -3,9 +3,17 @@ local files = require("overseer.files")
 return {
   desc = "Restart on any buffer :write",
   params = {
+    path = {
+      name = "path",
+      desc = "Only restart when writing files in this path (dir or file)",
+      optional = true,
+      validate = function(v)
+        return files.exists(v)
+      end,
+    },
     dir = {
       name = "directory",
-      desc = "Only restart when writing files in this directory",
+      desc = "DEPRECATED: use 'path' instead",
       optional = true,
       validate = function(v)
         return files.exists(v)
@@ -28,8 +36,15 @@ return {
   constructor = function(opts)
     vim.validate({
       delay = { opts.delay, "n" },
-      dir = { opts.dir, "s", true },
+      path = { opts.path, "s", true },
     })
+    if opts.dir then
+      vim.notify_once(
+        "Overseer[restart_on_save]: dir param is deprecated. Use 'path'",
+        vim.log.levels.WARN
+      )
+      opts.path = opts.dir
+    end
 
     return {
       id = nil,
@@ -45,7 +60,7 @@ return {
             -- Only care about normal files
             if vim.api.nvim_buf_get_option(params.buf, "buftype") == "" then
               local bufname = vim.api.nvim_buf_get_name(params.buf)
-              if not opts.dir or files.is_subpath(opts.dir, bufname) then
+              if not opts.path or files.is_subpath(opts.path, bufname) then
                 if not task:restart(opts.interrupt) then
                   self.restart_after_complete = true
                 end

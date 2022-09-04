@@ -76,13 +76,13 @@ M = {
     end,
     run = function(task)
       vim.ui.input({
-        prompt = "Directory (watch these files)",
+        prompt = "Path (watch file(s))",
         completion = "file",
         default = vim.fn.getcwd(0),
-      }, function(dir)
+      }, function(path)
         task:set_components({
           -- TODO prompt for "interrupt" too
-          { "restart_on_save", dir = dir },
+          { "restart_on_save", path = path },
         })
         task_list.update(task)
       end)
