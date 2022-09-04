@@ -98,7 +98,7 @@ def update_config_options():
     config_file = os.path.join(ROOT, "lua", "overseer", "config.lua")
     opt_lines = read_section(config_file, r"^local default_config =", r"^}$")
     replace_section(
-        README,
+        os.path.join(DOC, "reference.md"),
         r"^require\(\"overseer\"\).setup\({$",
         r"^}\)$",
         opt_lines,
@@ -307,7 +307,7 @@ def update_commands_md():
     lines.extend(format_md_table(rows, ["Command", "Args", "Description"]))
     lines.append("\n")
     replace_section(
-        README,
+        os.path.join(DOC, "reference.md"),
         r"^## Commands",
         r"^#",
         lines,
@@ -585,7 +585,8 @@ def main() -> None:
     update_components_md()
     update_parsers_md()
     update_commands_md()
-    generate_vimdoc()
+    # TODO FIXME
+    # generate_vimdoc()
 
 
 if __name__ == "__main__":

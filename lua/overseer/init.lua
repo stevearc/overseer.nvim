@@ -283,6 +283,29 @@ M.list_tasks = lazy("task_list", "list_tasks")
 
 ---@param opts overseer.TemplateRunOpts
 ---@param callback? fun(task: overseer.Task|nil, err: string|nil)
+--- Example:
+--- <pre>
+--- -- Run the task named "make all"
+--- -- equivalent to :OverseerRun make all
+--- overseer.run_template({name = "make all"})
+--- -- Run the default "build" task
+--- -- equivalent to :OverseerRun BUILD
+--- overseer.run_template({tags = {overseer.TAG.BUILD}})
+--- -- Run the task named "serve" with some default parameters
+--- overseer.run_template({name = "serve", params = {port = 8080}})
+--- -- Create a task but do not start it
+--- overseer.run_template({name = "make", autostart = false}, function(task)
+---   -- do something with the task
+--- end)
+--- -- Run a task and immediately open the floating window
+--- overseer.run_template({name = "make"}, function(task)
+---   if task then
+---     overseer.run_action(task, 'open float')
+---   end
+--- end)
+--- -- Run a task and always show the parameter prompt
+--- overseer.run_template({name = "npm watch", prompt = "always"})
+--- </pre>
 M.run_template = lazy("commands", "run_template")
 
 ---@param task overseer.Task
