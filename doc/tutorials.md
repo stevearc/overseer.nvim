@@ -4,6 +4,13 @@ Guided introduction to working with overseer.nvim
 
 If you're simply looking for the easiest way to define custom tasks, overseer supports [most of VS Code's `tasks.json`](guides.md#vs-code-tasks) format. There are tons of resources online for that, just search!
 
+<!-- TOC -->
+
+- [Build a C++ file](#build-a-c-file)
+- [Run a file on save](#run-a-file-on-save)
+
+<!-- /TOC -->
+
 ## Build a C++ file
 
 In this tutorial, you will create a custom task that builds a C++ file.

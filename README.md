@@ -8,30 +8,47 @@ Please leave feedback about what's hard, what's confusing, and where the documen
 
 https://user-images.githubusercontent.com/506791/180620617-2b1bb0a8-5f39-4936-97c2-04c92f1e2974.mp4
 
+<!-- TOC -->
+
 - [Features](#features)
 - [Requirements](#requirements)
 - [Installation](#installation)
 - [Quick start](#quick-start)
-- [Tutorials](doc/tutorials.md)
-  - [Build a C++ file](docs/tutorials.md#build-a-c++-file)
-- [Guides](doc/guides.md)
+- [Tutorials](#tutorials)
+  - [Build a C++ file](doc/tutorials.md#build-a-c-file)
+  - [Run a file on save](doc/tutorials.md#run-a-file-on-save)
+- [Guides](#guides)
   - [Custom tasks](doc/guides.md#custom-tasks)
+  - [Template definition](doc/guides.md#template-definition)
+  - [Template providers](doc/guides.md#template-providers)
   - [Actions](doc/guides.md#actions)
   - [Custom components](doc/guides.md#custom-components)
-- [Reference](doc/reference.md)
+  - [Task result](doc/guides.md#task-result)
+  - [Parsing output](doc/guides.md#parsing-output)
+  - [Running tasks sequentially](doc/guides.md#running-tasks-sequentially)
+  - [VS Code tasks](doc/guides.md#vs-code-tasks)
+- [Reference](#reference)
   - [Setup options](doc/reference.md#setup-options)
   - [Commands](doc/reference.md#commands)
-- [Explanation](doc/explanation.md)
+  - [Highlight groups](doc/reference.md#highlight-groups)
+  - [Lua API](doc/reference.md#lua-api)
+  - [Parameters](doc/reference.md#parameters)
+- [Explanation](#explanation)
   - [Architecture](doc/explanation.md#architecture)
-    - [Tasks](doc/explanation.md#tasks)
-    - [Components](doc/explanation.md#components)
-    - [Templates](doc/explanation.md#templates)
+  - [Tasks](doc/explanation.md#tasks)
+  - [Components](doc/explanation.md#components)
+  - [Templates](doc/explanation.md#templates)
   - [Task list](doc/explanation.md#task-list)
+  - [Task editor](doc/explanation.md#task-editor)
+  - [Alternatives](doc/explanation.md#alternatives)
+  - [FAQ](doc/explanation.md#faq)
 - [Third-party integrations](#third-party-integrations)
-  - [Lualine](#lualine)
-  - [Neotest](#neotest)
-  - [DAP](#dap)
-  - [Session managers](#session-managers)
+- [Lualine](#lualine)
+- [Neotest](#neotest)
+- [DAP](#dap)
+- [Session managers](#session-managers)
+
+<!-- /TOC -->
 
 ## Features
 
@@ -134,26 +151,39 @@ If you want to define custom tasks for your project, I'd recommend starting with
 
 ## Tutorials
 
-- [Build a C++ file](docs/tutorials.md#build-a-c++-file)
+- [Build a C++ file](doc/tutorials.md#build-a-c-file)
+- [Run a file on save](doc/tutorials.md#run-a-file-on-save)
 
 ## Guides
 
 - [Custom tasks](doc/guides.md#custom-tasks)
+- [Template definition](doc/guides.md#template-definition)
+- [Template providers](doc/guides.md#template-providers)
 - [Actions](doc/guides.md#actions)
 - [Custom components](doc/guides.md#custom-components)
+- [Task result](doc/guides.md#task-result)
+- [Parsing output](doc/guides.md#parsing-output)
+- [Running tasks sequentially](doc/guides.md#running-tasks-sequentially)
+- [VS Code tasks](doc/guides.md#vs-code-tasks)
 
 ## Reference
 
 - [Setup options](doc/reference.md#setup-options)
 - [Commands](doc/reference.md#commands)
+- [Highlight groups](doc/reference.md#highlight-groups)
+- [Lua API](doc/reference.md#lua-api)
+- [Parameters](doc/reference.md#parameters)
 
 ## Explanation
 
 - [Architecture](doc/explanation.md#architecture)
-  - [Tasks](doc/explanation.md#tasks)
-  - [Components](doc/explanation.md#components)
-  - [Templates](doc/explanation.md#templates)
+- [Tasks](doc/explanation.md#tasks)
+- [Components](doc/explanation.md#components)
+- [Templates](doc/explanation.md#templates)
 - [Task list](doc/explanation.md#task-list)
+- [Task editor](doc/explanation.md#task-editor)
+- [Alternatives](doc/explanation.md#alternatives)
+- [FAQ](doc/explanation.md#faq)
 
 ## Third-party integrations
 

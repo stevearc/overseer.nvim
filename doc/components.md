@@ -78,8 +78,9 @@ If task result contains diagnostics, add them to the quickfix \
 
 Restart on any buffer :write \
 **delay**[number]: How long to wait (in ms) post-result before triggering restart (default `500`) \
-**dir**[string]: Only restart when writing files in this directory \
-**interrupt**[boolean]: Interrupt running tasks (default `true`)
+**dir**[string]: DEPRECATED: use 'path' instead \
+**interrupt**[boolean]: Interrupt running tasks (default `true`) \
+**path**[string]: Only restart when writing files in this path (dir or file)
 
 ## [timeout](../lua/overseer/component/timeout.lua)
 

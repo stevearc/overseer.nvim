@@ -11,7 +11,27 @@ from typing import Any, Dict, Iterable, List, Optional, Tuple
 HERE = os.path.dirname(__file__)
 ROOT = os.path.abspath(os.path.join(HERE, os.path.pardir))
 README = os.path.join(ROOT, "README.md")
-DOC = os.path.join(ROOT, "doc", "overseer.txt")
+DOC = os.path.join(ROOT, "doc")
+VIMDOC = os.path.join(DOC, "overseer.txt")
+
+MD_LINK_PAT = re.compile(r"\[([^\]]+)\]\(([^\)]+)\)")
+MD_BOLD_PAT = re.compile(r"\*\*([^\*]+)\*\*")
+MD_LINE_BREAK_PAT = re.compile(r"\s*\\$")
+MD_TITLE = re.compile(r"^#(#+) (.+)$")
+
+
+def generate_toc(filename: str) -> List[str]:
+    ret = []
+    with open(filename, "r", encoding="utf-8") as ifile:
+        for line in ifile:
+            m = MD_TITLE.match(line)
+            if m:
+                level = len(m[1]) - 2
+                prefix = "  " * level
+                title_link = m[2].lower().replace(" ", "-").replace("+", "")
+                link = f"[{m[2]}](#{title_link})"
+                ret.append(prefix + "- " + link + "\n")
+    return ret
 
 
 def indent(lines: List[str], amount: int) -> List[str]:
@@ -52,7 +72,7 @@ def replace_section(
         inside_section = False
 
     if inside_section or not found_section:
-        raise Exception(f"could not find file section {start_pat}")
+        raise Exception(f"could not find file section {start_pat} in {file}")
 
     all_lines = prefix_lines + lines + postfix_lines
     with open(file, "w", encoding="utf-8") as ofile:
@@ -490,11 +510,6 @@ def convert_md_link(match):
         return text
 
 
-MD_LINK_PAT = re.compile(r"\[([^\]]+)\]\(([^\)]+)\)")
-MD_BOLD_PAT = re.compile(r"\*\*([^\*]+)\*\*")
-MD_LINE_BREAK_PAT = re.compile(r"\s*\\$")
-
-
 def convert_markdown_to_vimdoc(lines: List[str]) -> List[str]:
     while lines[0] == "\n":
         lines.pop(0)
@@ -575,8 +590,81 @@ def generate_vimdoc():
     )
 
     # TODO check for missing tags
-    with open(DOC, "w", encoding="utf-8") as ofile:
+    with open(VIMDOC, "w", encoding="utf-8") as ofile:
         ofile.writelines(doc.render())
+
+
+def update_md_toc(filename: str):
+    toc = ["\n"] + generate_toc(filename) + ["\n"]
+    replace_section(
+        filename,
+        r"^<!-- TOC -->$",
+        r"^<!-- /TOC -->$",
+        toc,
+    )
+
+
+def add_md_link_path(path: str, lines: List[str]) -> List[str]:
+    ret = []
+    for line in lines:
+        ret.append(re.sub(r"(\(#)", "(" + path + "#", line))
+    return ret
+
+
+def update_readme_toc():
+    toc = generate_toc(README)
+
+    def get_toc(filename: str) -> List[str]:
+        subtoc = generate_toc(os.path.join(DOC, filename))
+        return add_md_link_path("doc/" + filename, subtoc)
+
+    tutorials_toc = get_toc("tutorials.md")
+    guides_toc = get_toc("guides.md")
+    reference_toc = get_toc("reference.md")
+    explanation_toc = get_toc("explanation.md")
+
+    def add_subtoc(title: str, lines: List[str]):
+        for i, line in enumerate(toc):
+            if line.strip().startswith(f"- [{title}]"):
+                toc[i + 1 : i + 1] = indent(lines, 2)
+                return
+        raise Exception(f"could not find README section {title} in TOC")
+
+    add_subtoc("Tutorials", tutorials_toc)
+    add_subtoc("Guides", guides_toc)
+    add_subtoc("Reference", reference_toc)
+    add_subtoc("Explanation", explanation_toc)
+
+    replace_section(
+        README,
+        r"^## Tutorials$",
+        r"^#",
+        ["\n"] + tutorials_toc + ["\n"],
+    )
+    replace_section(
+        README,
+        r"^## Guides$",
+        r"^#",
+        ["\n"] + guides_toc + ["\n"],
+    )
+    replace_section(
+        README,
+        r"^## Reference$",
+        r"^#",
+        ["\n"] + reference_toc + ["\n"],
+    )
+    replace_section(
+        README,
+        r"^## Explanation$",
+        r"^#",
+        ["\n"] + explanation_toc + ["\n"],
+    )
+    replace_section(
+        README,
+        r"^<!-- TOC -->$",
+        r"^<!-- /TOC -->$",
+        ["\n"] + toc + ["\n"],
+    )
 
 
 def main() -> None:
@@ -585,6 +673,11 @@ def main() -> None:
     update_components_md()
     update_parsers_md()
     update_commands_md()
+    update_md_toc(os.path.join(DOC, "tutorials.md"))
+    update_md_toc(os.path.join(DOC, "guides.md"))
+    update_md_toc(os.path.join(DOC, "reference.md"))
+    update_md_toc(os.path.join(DOC, "explanation.md"))
+    update_readme_toc()
     # TODO FIXME
     # generate_vimdoc()
 

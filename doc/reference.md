@@ -1,5 +1,15 @@
 # Reference
 
+<!-- TOC -->
+
+- [Setup options](#setup-options)
+- [Commands](#commands)
+- [Highlight groups](#highlight-groups)
+- [Lua API](#lua-api)
+- [Parameters](#parameters)
+
+<!-- /TOC -->
+
 ## Setup options
 
 For speed tweakers: don't worry about lazy loading; overseer lazy-loads itself!

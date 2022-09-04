@@ -1,6 +1,17 @@
 # Explanation
 
-FIXME generate TOC
+<!-- TOC -->
+
+- [Architecture](#architecture)
+- [Tasks](#tasks)
+- [Components](#components)
+- [Templates](#templates)
+- [Task list](#task-list)
+- [Task editor](#task-editor)
+- [Alternatives](#alternatives)
+- [FAQ](#faq)
+
+<!-- /TOC -->
 
 ## Architecture
 

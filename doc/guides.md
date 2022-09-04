@@ -1,5 +1,19 @@
 # Guides
 
+<!-- TOC -->
+
+- [Custom tasks](#custom-tasks)
+- [Template definition](#template-definition)
+- [Template providers](#template-providers)
+- [Actions](#actions)
+- [Custom components](#custom-components)
+- [Task result](#task-result)
+- [Parsing output](#parsing-output)
+- [Running tasks sequentially](#running-tasks-sequentially)
+- [VS Code tasks](#vs-code-tasks)
+
+<!-- /TOC -->
+
 ## Custom tasks
 
 There are two ways to define a task for overseer.
