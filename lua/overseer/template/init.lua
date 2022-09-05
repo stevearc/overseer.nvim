@@ -262,7 +262,7 @@ end
 ---@field dir string
 
 ---@param opts? overseer.SearchParams
----@param cb overseer.TemplateDefinition[]
+---@param cb fun(templates: overseer.TemplateDefinition[])
 M.list = function(opts, cb)
   initialize()
   opts = opts or {}
@@ -343,25 +343,31 @@ end
 
 ---@param name string
 ---@param opts? overseer.SearchParams
----@return overseer.TemplateDefinition?
-M.get_by_name = function(name, opts)
+---@param cb fun(template: overseer.TemplateDefinition)
+M.get_by_name = function(name, opts, cb)
   initialize()
   local ret = registry[name]
   if ret then
-    return ret
+    cb(ret)
+    return
   end
-  for _, tmpl in ipairs(M.list(opts)) do
-    if tmpl.name == name then
-      return tmpl
-    end
-    if tmpl.aliases then
-      for _, alias in ipairs(tmpl.aliases) do
-        if alias == name then
-          return tmpl
+  M.list(opts, function(templates)
+    for _, tmpl in ipairs(templates) do
+      if tmpl.name == name then
+        cb(tmpl)
+        return
+      end
+      if tmpl.aliases then
+        for _, alias in ipairs(tmpl.aliases) do
+          if alias == name then
+            cb(tmpl)
+            return
+          end
         end
       end
     end
-  end
+    cb(nil)
+  end)
 end
 
 return M
