@@ -58,6 +58,7 @@ local builtin_components = {
   "on_result_diagnostics_quickfix",
   "restart_on_save",
   "timeout",
+  "unique",
 }
 
 ---@param name string
