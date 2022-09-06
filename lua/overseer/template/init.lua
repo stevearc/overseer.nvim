@@ -10,11 +10,13 @@ local M = {}
 
 ---@class overseer.TemplateProvider
 ---@field name string
+---@field module? string The name of the module this was loaded from
 ---@field condition? overseer.SearchCondition
 ---@field generator fun(opts: overseer.SearchParams, cb: fun(tmpls: overseer.TemplateDefinition[])): nil|overseer.TemplateDefinition[]
 
 ---@class overseer.TemplateDefinition
 ---@field name string
+---@field module? string The name of the module this was loaded from
 ---@field aliases? string[]
 ---@field desc? string
 ---@field tags? string[]
@@ -37,6 +39,8 @@ local registry = {}
 
 ---@type overseer.TemplateProvider[]
 local providers = {}
+
+local hooks = {}
 
 ---@param condition? overseer.SearchCondition
 ---@param tags? string[]
@@ -111,6 +115,7 @@ M.load_template = function(name)
     if not defn.name then
       defn.name = name
     end
+    defn.module = name
     M.register(defn)
   end
 end
@@ -181,6 +186,12 @@ local function build_task(tmpl, opts, params)
   local task_defn = tmpl.builder(params)
   task_defn.components = component.resolve(task_defn.components or { "default" })
   config.pre_task_hook(task_defn, task_util)
+  if tmpl.module and hooks[tmpl.module] then
+    hooks[tmpl.module](task_defn, task_util)
+  end
+  if hooks[tmpl.name] then
+    hooks[tmpl.name](task_defn, task_util)
+  end
   if opts.cwd then
     task_defn.cwd = opts.cwd
   end
@@ -189,6 +200,12 @@ local function build_task(tmpl, opts, params)
   end
   local task = Task.new(task_defn)
   return task
+end
+
+---@param name string
+---@param hook fun(task_defn: overseer.TaskDefinition, util: overseer.TaskUtil)
+M.hook_template = function(name, hook)
+  hooks[name] = hook
 end
 
 ---@param defn overseer.TemplateDefinition|overseer.TemplateProvider
@@ -298,8 +315,11 @@ M.list = function(opts, cb)
     cb(ret)
   end
 
-  local function handle_tmpls(tmpls)
+  ---@param tmpls overseer.TemplateDefinition[]
+  ---@param module string|nil
+  local function handle_tmpls(tmpls, module)
     for _, tmpl in ipairs(tmpls) do
+      tmpl.module = module
       validate_template_definition(tmpl)
       if condition_matches(tmpl.condition, tmpl.tags, opts, true) then
         table.insert(ret, tmpl)
@@ -323,14 +343,14 @@ M.list = function(opts, cb)
   for _, provider in ipairs(providers) do
     local provider_name = provider.name
     if condition_matches(provider.condition, nil, opts, false) then
-      local ok, tmpls = pcall(provider.generator, opts, function(...)
+      local ok, tmpls = pcall(provider.generator, opts, function(tmpls)
         pending[provider_name] = nil
-        handle_tmpls(...)
+        handle_tmpls(tmpls, provider.module)
       end)
       if ok then
         if tmpls then
           -- generator completed synchronously
-          handle_tmpls(tmpls)
+          handle_tmpls(tmpls, provider.module)
         else
           -- generator is async and we expect it to call the callback later
           pending[provider.name] = true
