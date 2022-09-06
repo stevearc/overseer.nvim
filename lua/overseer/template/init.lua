@@ -143,26 +143,29 @@ end
 
 ---@class overseer.TaskUtil
 local task_util = {}
+---Add one or more components to a TaskDefinition
 ---@param task_defn overseer.TaskDefinition
 ---@param ... overseer.Serialized
 function task_util.add_component(task_defn, ...)
   local names = vim.tbl_map(util.split_config, { ... })
   task_util.remove_component(task_defn, names)
-  vim.list_extend(task_defn.components, { ... })
+  task_defn.components = vim.list_extend({ ... }, task_defn.components or { "default" })
 end
+---Remove one or more components from a TaskDefinition
 ---@param task_defn overseer.TaskDefinition
 ---@param ... string
 function task_util.remove_component(task_defn, ...)
   local to_remove = util.list_to_map({ ... })
   task_defn.components = vim.tbl_filter(function(comp)
     return not to_remove[util.split_config(comp)]
-  end, task_defn.components)
+  end, task_defn.components or { "default" })
 end
+---Check if a component is present on a TaskDefinition
 ---@param task_defn overseer.TaskDefinition
 ---@param name string
 ---@return boolean
 function task_util.has_component(task_defn, name)
-  for _, comp in ipairs(task_defn.components) do
+  for _, comp in ipairs(task_defn.components or { "default" }) do
     if name == util.split_config(comp) then
       return true
     end
