@@ -6,6 +6,22 @@
 - [Commands](#commands)
 - [Highlight groups](#highlight-groups)
 - [Lua API](#lua-api)
+  - [setup(opts)](#setupopts)
+  - [on_setup(callback)](#on_setupcallback)
+  - [new_task(opts)](#new_taskopts)
+  - [toggle(opts)](#toggleopts)
+  - [open(opts)](#openopts)
+  - [close()](#close)
+  - [list_task_bundles()](#list_task_bundles)
+  - [load_task_bundle(name, opts)](#load_task_bundlename-opts)
+  - [save_task_bundle(name, tasks, opts)](#save_task_bundlename-tasks-opts)
+  - [delete_task_bundle(name)](#delete_task_bundlename)
+  - [list_tasks(opts)](#list_tasksopts)
+  - [run_template(opts, callback)](#run_templateopts-callback)
+  - [run_action(task, name)](#run_actiontask-name)
+  - [wrap_template(base, override, default_params)](#wrap_templatebase-override-default_params)
+  - [register_template(defn)](#register_templatedefn)
+  - [load_template(name)](#load_templatename)
 - [Parameters](#parameters)
 
 <!-- /TOC -->
@@ -233,7 +249,232 @@ The official API surface includes:
 - [Commands](#commands)
 - [Parsers](#parsing-output), including names and parameters FIXME fix link
 
-FIXME generate API docs
+<!-- API -->
+
+### setup(opts)
+
+Initialize overseer
+| Param | Type                   | Desc                  |
+| ---- | ---------------------- | --------------------- |
+| opts | `overseer.Config\|nil` | Configuration options |
+
+### on_setup(callback)
+
+Add a callback to run after overseer lazy setup
+| Param    | Type    | Desc |
+| -------- | ------- | - |
+| callback | `fun()` |   |
+
+### new_task(opts)
+
+Create a new Task
+| Param | Type                      | Desc                         |                                                         |
+| ---- | ------------------------- | ---------------------------- | ------------------------------------------------------- |
+| opts | `overseer.TaskDefinition` |                              |                                                         |
+|      | cmd                       | `string\|string[]`           | Command to run                                          |
+|      | args                      | `nil\|string[]`              | Arguments to pass to the command                        |
+|      | name                      | `nil\|string`                | Name of the task. Defaults to the cmd                   |
+|      | cwd                       | `nil\|string`                | Working directory to run in                             |
+|      | env                       | `nil\|table<string, string>` | Additional environment variables                        |
+|      | strategy                  | `nil\|overseer.Serialized`   | Definition for a run Strategy                           |
+|      | metadata                  | `nil\|table`                 | Arbitrary metadata for your own use                     |
+|      | components                | `nil\|overseer.Serialized[]` | List of components to attach. Defaults to `{'default'}` |
+
+**Examples:**
+```lua
+local task = overseer.new_task({
+  cmd = {'./build.sh'},
+  args = {'all'},
+  components = {{'on_output_quickfix', open=true}, 'default'}
+})
+task:start()
+```
+
+### toggle(opts)
+
+Open or close the task list
+| Param | Type                       | Desc                   |                                                |
+| ---- | -------------------------- | ---------------------- | ---------------------------------------------- |
+| opts | `overseer.WindowOpts\|nil` |                        |                                                |
+|      | enter                      | `boolean\|nil`         | If false, stay in current window. Default true |
+|      | direction                  | `nil\|"left"\|"right"` | Which direction to open the task list          |
+
+### open(opts)
+
+Open the task list
+| Param | Type                       | Desc                   |                                                |
+| ---- | -------------------------- | ---------------------- | ---------------------------------------------- |
+| opts | `overseer.WindowOpts\|nil` |                        |                                                |
+|      | enter                      | `boolean\|nil`         | If false, stay in current window. Default true |
+|      | direction                  | `nil\|"left"\|"right"` | Which direction to open the task list          |
+
+### close()
+
+Close the task list
+
+### list_task_bundles()
+
+Get the list of saved task bundles
+
+### load_task_bundle(name, opts)
+
+Load tasks from a saved bundle
+| Param | Type           | Desc           |                                                 |
+| ---- | -------------- | -------------- | ----------------------------------------------- |
+| name | `string\|nil`  |                |                                                 |
+| opts | `table\|nil`   |                |                                                 |
+|      | ignore_missing | `boolean\|nil` | When true, don't notify if bundle doesn't exist |
+
+### save_task_bundle(name, tasks, opts)
+
+Save tasks to a bundle on disk
+| Param | Type                   | Desc                                             |   |
+| ----- | ---------------------- | ------------------------------------------------ | - |
+| name  | `string\|nil`          | Name of bundle. If nil, will prompt user.        |   |
+| tasks | `nil\|overseer.Task[]` | Specific tasks to save. If nil, saves all tasks. |   |
+| opts  | `table\|nil`           |                                                  |   |
+|       | on_conflict            | `nil\|"overwrite"\|"append"\|"cancel"`           |   |
+
+### delete_task_bundle(name)
+
+Delete a saved task bundle
+| Param | Type          | Desc |
+| ---- | ------------- | - |
+| name | `string\|nil` |   |
+
+### list_tasks(opts)
+
+List all tasks
+| Param | Type                         | Desc                                      |                                                     |
+| ---- | ---------------------------- | ----------------------------------------- | --------------------------------------------------- |
+| opts | `overseer.ListTaskOpts\|nil` |                                           |                                                     |
+|      | unique                       | `boolean\|nil`                            | Deduplicates non-running tasks by name              |
+|      | name                         | `nil\|string\|string[]`                   | Only list tasks with this name or names             |
+|      | name_not                     | `nil\|boolean`                            | Invert the name search (tasks *without* that name)  |
+|      | status                       | `nil\|overseer.Status\|overseer.Status[]` | Only list tasks with this status or statuses        |
+|      | status_not                   | `nil\|boolean`                            | Invert the status search                            |
+|      | recent_first                 | `nil\|boolean`                            | The most recent tasks are first in the list         |
+|      | bundleable                   | `nil\|boolean`                            | Only list tasks that should be included in a bundle |
+|      | filter                       | `nil\|fun(task: overseer.Task): boolean`  |                                                     |
+
+### run_template(opts, callback)
+
+Run a task from a template
+| Param    | Type                                                   | Desc                                         |                                                                                                                                     |
+| -------- | ------------------------------------------------------ | -------------------------------------------- | ----------------------------------------------------------------------------------------------------------------------------------- |
+| opts     | `overseer.TemplateRunOpts`                             |                                              |                                                                                                                                     |
+|          | name                                                   | `nil\|string`                                | The name of the template to run                                                                                                     |
+|          | tags                                                   | `nil\|string[]`                              | List of tags used to filter when searching for template                                                                             |
+|          | autostart                                              | `nil\|boolean`                               | When true, start the task after creating it (default true)                                                                          |
+|          | first                                                  | `nil\|boolean`                               | When true, take first result and never show the task picker. Default behavior will auto-set this based on presence of name and tags |
+|          | prompt                                                 | `nil\|"always"\|"missing"\|"allow"\|"never"` | Controls when to prompt user for parameter input                                                                                    |
+|          | params                                                 | `nil\|table`                                 | Parameters to pass to template                                                                                                      |
+|          | cwd                                                    | `nil\|string`                                | Working directory for the task                                                                                                      |
+|          | env                                                    | `nil\|table<string, string>`                 | Additional environment variables for the task                                                                                       |
+| callback | `nil\|fun(task: overseer.Task\|nil, err: string\|nil)` |                                              |                                                                                                                                     |
+
+**Note:**
+<pre>
+The prompt option will control when the user is presented a popup dialog to input template
+parameters. The possible values are:
+   always    Show when template has any params
+   missing   Show when template has any params not explicitly passed in
+   allow     Only show when a required param is missing
+   never     Never show prompt (error if required param missing)
+The default is controlled by the default_template_prompt config option.
+</pre>
+
+**Examples:**
+```lua
+-- Run the task named "make all"
+-- equivalent to :OverseerRun make all
+overseer.run_template({name = "make all"})
+-- Run the default "build" task
+-- equivalent to :OverseerRun BUILD
+overseer.run_template({tags = {overseer.TAG.BUILD}})
+-- Run the task named "serve" with some default parameters
+overseer.run_template({name = "serve", params = {port = 8080}})
+-- Create a task but do not start it
+overseer.run_template({name = "make", autostart = false}, function(task)
+  -- do something with the task
+end)
+-- Run a task and immediately open the floating window
+overseer.run_template({name = "make"}, function(task)
+  if task then
+    overseer.run_action(task, 'open float')
+  end
+end)
+-- Run a task and always show the parameter prompt
+overseer.run_template({name = "npm watch", prompt = "always"})
+```
+
+### run_action(task, name)
+
+Run an action on a task
+| Param | Type            | Desc                                               |
+| ---- | --------------- | -------------------------------------------------- |
+| task | `overseer.Task` |                                                    |
+| name | `string\|nil`   | Name of action. When omitted, prompt user to pick. |
+
+### wrap_template(base, override, default_params)
+
+Create a new template by overriding fields on another
+| Param          | Type                          | Desc                                                  |
+| -------------- | ----------------------------- | ----------------------------------------------------- |
+| base           | `overseer.TemplateDefinition` | The base template definition to wrap                  |
+| override       | `nil\|table<string, any>`     | Override any fields on the base                       |
+| default_params | `nil\|table<string, any>`     | Provide default values for any parameters on the base |
+
+**Note:**
+<pre>
+This is typically used for a TemplateProvider, to define the task a single time and generate
+multiple templates based on the available args.
+</pre>
+
+**Examples:**
+```lua
+local tmpl = {
+  params = {
+    args = { type = 'list', delimiter = ' ' }
+  },
+  builder = function(params)
+  return {
+    cmd = { 'make' },
+    args = params.args,
+  }
+}
+local template_provider = {
+  generator = function(opts)
+    return {
+      overseer.wrap_template(tmpl, nil, { args = { 'all' } }),
+      overseer.wrap_template(tmpl, {name = 'make clean'}, { args = { 'clean' } }),
+    }
+  end
+}
+```
+
+### register_template(defn)
+
+Directly register an overseer template
+| Param | Type                                                     | Desc |
+| ---- | -------------------------------------------------------- | - |
+| defn | `overseer.TemplateDefinition\|overseer.TemplateProvider` |   |
+
+### load_template(name)
+
+Load a template definition from its module location
+| Param | Type     | Desc |
+| ---- | -------- | - |
+| name | `string` |   |
+
+**Examples:**
+```lua
+-- This will load the template in lua/overseer/template/mytask.lua
+overseer.load_template('mytask')
+```
+
+
+<!-- /API -->
 
 ## Parameters
 

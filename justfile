@@ -11,8 +11,8 @@ test *names:
 _private-task:
   echo "Private task"
 
-docs:
-  python .github/update_readme.py
+doc:
+  python .github/main.py
 
 # command argument as environment variable
 greet $name:

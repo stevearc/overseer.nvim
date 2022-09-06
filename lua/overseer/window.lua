@@ -54,6 +54,11 @@ M.is_open = function()
   return M.get_win_id() ~= nil
 end
 
+---@class overseer.WindowOpts
+---@field enter boolean|nil
+---@field direction "left"|"right"|nil
+
+---@param opts? overseer.WindowOpts
 M.open = function(opts)
   opts = vim.tbl_deep_extend("keep", opts or {}, {
     enter = true,
@@ -68,6 +73,7 @@ M.open = function(opts)
   end
 end
 
+---@param opts? overseer.WindowOpts
 M.toggle = function(opts)
   if M.is_open() then
     M.close()
