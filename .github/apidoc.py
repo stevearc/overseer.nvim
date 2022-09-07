@@ -23,7 +23,7 @@ from pyparsing import (
     alphas,
     delimitedList,
 )
-from util import format_md_table, markdown_paragraph
+from util import format_md_table, indent, leftright, markdown_paragraph, wrap
 
 HERE = os.path.dirname(__file__)
 ROOT = os.path.abspath(os.path.join(HERE, os.path.pardir))
@@ -270,11 +270,60 @@ def render_md(funcs: List[LuaFunc]) -> List[str]:
     return lines
 
 
-def writelines(filename: str, lines: List[str]):
-    with open(filename, "w", encoding="utf-8") as ofile:
-        ofile.writelines(lines)
+def format_params(params: List[LuaParam], indent: int) -> List[str]:
+    lines = []
+    max_param = max([len(param.name) for param in params]) + 2
+    for param in params:
+        prefix = (
+            indent * " "
+            + "{"
+            + f"{param.name}"
+            + "}".ljust(max_param - len(param.name))
+        )
+        line = prefix + f"`{param.type}`" + " "
+        desc = wrap(param.desc, indent=len(line), sub_indent=len(prefix))
+        if desc:
+            desc[0] = line + desc[0].lstrip()
+            lines.extend(desc)
+        else:
+            lines.append(line.rstrip() + "\n")
+        if param.subparams:
+            lines.extend(format_params(param.subparams, 10))
+
+    return lines
+
+
+def render_vimdoc(funcs: List[LuaFunc]) -> List[str]:
+    lines = []
+    for func in funcs:
+        if func.private:
+            continue
+        args = ", ".join(["{" + param.name + "}" for param in func.params])
+        lines.append(leftright(f"{func.name}({args})", f"*overseer.{func.name}*"))
+        lines.extend(wrap(func.summary, 4))
+        lines.append("\n")
+        if func.params:
+            lines.append(4 * " " + "Parameters:\n")
+            lines.extend(format_params(func.params, 6))
+
+        if func.note:
+            lines.append("\n")
+            lines.append(4 * " " + "Note:\n")
+            lines.extend(indent(func.note.splitlines(), 6))
+        if func.example:
+            lines.append("\n")
+            lines.append(4 * " " + "Examples: >\n")
+            lines.extend(indent(func.example.splitlines(), 6))
+            lines.append("<\n")
+        lines.append("\n")
+    return lines
 
 
 def gen_api_md() -> List[str]:
     funcs = parse_functions()
     return render_md(funcs)
+
+
+def gen_api_vimdoc() -> List[str]:
+    funcs = parse_functions()
+    return render_vimdoc(funcs)

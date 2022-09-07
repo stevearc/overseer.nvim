@@ -4,8 +4,11 @@ import re
 import subprocess
 from typing import Any, Dict, Iterable, List, Optional, Tuple
 
-from apidoc import gen_api_md
+from apidoc import gen_api_md, gen_api_vimdoc
 from util import (
+    Vimdoc,
+    VimdocSection,
+    VimdocToc,
     dedent,
     format_md_table,
     indent,
@@ -304,76 +307,6 @@ def get_highlights_vimdoc() -> "VimdocSection":
     return section
 
 
-def trim_newlines(lines: List[str]) -> List[str]:
-    while lines and lines[0] == "\n":
-        lines.pop(0)
-    while lines and lines[-1] == "\n":
-        lines.pop()
-    return lines
-
-
-class VimdocSection:
-    def __init__(
-        self,
-        name: str,
-        tag: str,
-        body: Optional[List[str]] = None,
-        sep: str = "-",
-        width: int = 80,
-    ):
-        self.name = name
-        self.tag = tag
-        self.body = body or []
-        self.sep = sep
-        self.width = width
-
-    def get_body(self) -> List[str]:
-        return self.body
-
-    def render(self) -> List[str]:
-        lines = [
-            self.width * self.sep + "\n",
-            leftright(self.name.upper(), f"*{self.tag}*", self.width),
-            "\n",
-        ]
-        lines.extend(trim_newlines(self.get_body()))
-        lines.append("\n")
-        return lines
-
-
-class VimdocToc(VimdocSection):
-    def __init__(self, name: str, tag: str, width: int = 80):
-        super().__init__(name, tag, width=width)
-        self.entries: List[Tuple[str, str]] = []
-        self.padding = 2
-
-    def get_body(self) -> List[str]:
-        lines = []
-        for i, (name, tag) in enumerate(self.entries):
-            left = self.padding * " " + f"{i+1}. {name.capitalize()}"
-            tag_start = self.width - 2 * self.padding - vimlen(tag)
-            lines.append(left.ljust(tag_start, ".") + f"|{tag}|\n")
-        return lines
-
-
-class Vimdoc:
-    def __init__(self, filename: str, tags: List[str], width: int = 80):
-        self.prefix = [f"*{filename}*\n", " ".join(f"*{tag}*" for tag in tags) + "\n"]
-        self.sections: List[VimdocSection] = []
-        self.width = width
-
-    def render(self) -> List[str]:
-        header = self.prefix[:]
-        body = []
-        toc = VimdocToc("CONTENTS", "overseer-contents", width=self.width)
-        for section in self.sections:
-            toc.entries.append((section.name, section.tag))
-            body.extend(section.render())
-        body.append(self.width * "=" + "\n")
-        body.append("vim:tw=80:ts=2:ft=help:norl:syntax=help:\n")
-        return header + toc.render() + body
-
-
 def convert_md_link(match):
     text = match[1]
     dest = match[2]
@@ -418,13 +351,14 @@ def convert_markdown_to_vimdoc(lines: List[str]) -> List[str]:
 
 
 def convert_md_section(
+    filename: str,
     start_pat: str,
     end_pat: str,
     section_name: str,
     section_tag: str,
     inclusive: Tuple[bool, bool] = (False, False),
 ) -> VimdocSection:
-    lines = read_section(README, start_pat, end_pat, inclusive)
+    lines = read_section(filename, start_pat, end_pat, inclusive)
     lines = convert_markdown_to_vimdoc(lines)
     return VimdocSection(section_name, section_tag, lines)
 
@@ -435,30 +369,15 @@ def generate_vimdoc():
         [
             get_commands_vimdoc(),
             get_options_vimdoc(),
-            convert_md_section(
-                "^## Running tasks", "^#", "Running tasks", "overseer-run-tasks"
-            ),
-            convert_md_section("^### Custom tasks", "^#", "Tasks", "overseer-tasks"),
-            convert_md_section(
-                "^#### Template definition", "^#", "Templates", "overseer-templates"
-            ),
-            convert_md_section(
-                "^#### Template providers",
-                "^#",
-                "Template providers",
-                "overseer-template-providers",
-            ),
-            convert_md_section("^### Actions", "^#", "Actions", "overseer-actions"),
-            convert_md_section(
-                "^### Custom components", "^#", "Components", "overseer-components"
-            ),
-            convert_md_section(
-                "^#### Task result", "^#", "Task result", "overseer-task-result"
-            ),
-            convert_md_section(
-                "^### Parameters", "^#", "Parameters", "overseer-params"
-            ),
             get_highlights_vimdoc(),
+            VimdocSection("API", "overseer-api", gen_api_vimdoc()),
+            convert_md_section(
+                os.path.join(DOC, "reference.md"),
+                "^## Parameters",
+                "^#",
+                "Parameters",
+                "overseer-params",
+            ),
         ]
     )
 
@@ -566,5 +485,4 @@ def main() -> None:
     update_md_toc(os.path.join(DOC, "reference.md"))
     update_md_toc(os.path.join(DOC, "explanation.md"))
     update_readme_toc()
-    # TODO FIXME
-    # generate_vimdoc()
+    generate_vimdoc()

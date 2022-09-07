@@ -40,6 +40,8 @@ def format_md_table(rows: List[Dict], column_names: List[str]) -> List[str]:
 def indent(lines: List[str], amount: int) -> List[str]:
     ret = []
     for line in lines:
+        if not line.endswith("\n"):
+            line += "\n"
         if amount >= 0:
             ret.append(" " * amount + line)
         else:
@@ -131,14 +133,90 @@ def leftright(left: str, right: str, width: int = 80) -> str:
 
 
 def wrap(
-    text: str, indent: int = 0, width: int = 80, line_end: str = "\n"
+    text: str,
+    indent: int = 0,
+    width: int = 80,
+    line_end: str = "\n",
+    sub_indent: Optional[int] = None,
 ) -> List[str]:
+    if sub_indent is None:
+        sub_indent = indent
     return [
         line + line_end
         for line in textwrap.wrap(
             text,
             initial_indent=indent * " ",
-            subsequent_indent=indent * " ",
+            subsequent_indent=sub_indent * " ",
             width=width,
         )
     ]
+
+
+def trim_newlines(lines: List[str]) -> List[str]:
+    while lines and lines[0] == "\n":
+        lines.pop(0)
+    while lines and lines[-1] == "\n":
+        lines.pop()
+    return lines
+
+
+class VimdocSection:
+    def __init__(
+        self,
+        name: str,
+        tag: str,
+        body: Optional[List[str]] = None,
+        sep: str = "-",
+        width: int = 80,
+    ):
+        self.name = name
+        self.tag = tag
+        self.body = body or []
+        self.sep = sep
+        self.width = width
+
+    def get_body(self) -> List[str]:
+        return self.body
+
+    def render(self) -> List[str]:
+        lines = [
+            self.width * self.sep + "\n",
+            leftright(self.name.upper(), f"*{self.tag}*", self.width),
+            "\n",
+        ]
+        lines.extend(trim_newlines(self.get_body()))
+        lines.append("\n")
+        return lines
+
+
+class VimdocToc(VimdocSection):
+    def __init__(self, name: str, tag: str, width: int = 80):
+        super().__init__(name, tag, width=width)
+        self.entries: List[Tuple[str, str]] = []
+        self.padding = 2
+
+    def get_body(self) -> List[str]:
+        lines = []
+        for i, (name, tag) in enumerate(self.entries):
+            left = self.padding * " " + f"{i+1}. {name.capitalize()}"
+            tag_start = self.width - 2 * self.padding - vimlen(tag)
+            lines.append(left.ljust(tag_start, ".") + f"|{tag}|\n")
+        return lines
+
+
+class Vimdoc:
+    def __init__(self, filename: str, tags: List[str], width: int = 80):
+        self.prefix = [f"*{filename}*\n", " ".join(f"*{tag}*" for tag in tags) + "\n"]
+        self.sections: List[VimdocSection] = []
+        self.width = width
+
+    def render(self) -> List[str]:
+        header = self.prefix[:]
+        body = []
+        toc = VimdocToc("CONTENTS", "overseer-contents", width=self.width)
+        for section in self.sections:
+            toc.entries.append((section.name, section.tag))
+            body.extend(section.render())
+        body.append(self.width * "=" + "\n")
+        body.append("vim:tw=80:ts=2:ft=help:norl:syntax=help:\n")
+        return header + toc.render() + body
