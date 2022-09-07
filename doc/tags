@@ -27,6 +27,7 @@ overseer-contents	overseer.txt	/*overseer-contents*
 overseer-highlights	overseer.txt	/*overseer-highlights*
 overseer-options	overseer.txt	/*overseer-options*
 overseer-params	overseer.txt	/*overseer-params*
+overseer.add_template_hook	overseer.txt	/*overseer.add_template_hook*
 overseer.close	overseer.txt	/*overseer.close*
 overseer.delete_task_bundle	overseer.txt	/*overseer.delete_task_bundle*
 overseer.list_task_bundles	overseer.txt	/*overseer.list_task_bundles*
@@ -38,6 +39,7 @@ overseer.nvim	overseer.txt	/*overseer.nvim*
 overseer.on_setup	overseer.txt	/*overseer.on_setup*
 overseer.open	overseer.txt	/*overseer.open*
 overseer.register_template	overseer.txt	/*overseer.register_template*
+overseer.remove_template_hook	overseer.txt	/*overseer.remove_template_hook*
 overseer.run_action	overseer.txt	/*overseer.run_action*
 overseer.run_template	overseer.txt	/*overseer.run_template*
 overseer.save_task_bundle	overseer.txt	/*overseer.save_task_bundle*
