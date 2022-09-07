@@ -180,6 +180,8 @@ If you want to define custom tasks for your project, I'd recommend starting with
   - [run_template(opts, callback)](doc/reference.md#run_templateopts-callback)
   - [run_action(task, name)](doc/reference.md#run_actiontask-name)
   - [wrap_template(base, override, default_params)](doc/reference.md#wrap_templatebase-override-default_params)
+  - [add_template_hook(name, hook)](doc/reference.md#add_template_hookname-hook)
+  - [remove_template_hook(name, hook)](doc/reference.md#remove_template_hookname-hook)
   - [register_template(defn)](doc/reference.md#register_templatedefn)
   - [load_template(name)](doc/reference.md#load_templatename)
 - [Parameters](doc/reference.md#parameters)

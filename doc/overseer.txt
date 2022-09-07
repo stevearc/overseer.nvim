@@ -460,6 +460,31 @@ wrap_template({base}, {override}, {default_params})       *overseer.wrap_templat
       }
 <
 
+add_template_hook({name}, {hook})                     *overseer.add_template_hook*
+    Add a hook that runs on a TaskDefinition before the task is created
+
+    Parameters:
+      {name} `string` Name of template or template module to hook
+      {hook} `fun(task_defn: overseer.TaskDefinition, util: overseer.TaskUtil)`
+
+    Examples: >
+      -- Add on_output_quickfix component to all "cargo" templates
+      overseer.add_hook_template("cargo", function(task_defn, util)
+        util.add_component(task_defn, { "on_output_quickfix", open = true })
+      end)
+      -- Remove the on_complete_notify component from "cargo clean" task
+      overseer.add_hook_template("cargo clean", function(task_defn, util)
+        util.remove_component(task_defn, "on_complete_notify")
+      end)
+<
+
+remove_template_hook({name}, {hook})               *overseer.remove_template_hook*
+    Remove a hook that was added with add_hook_template
+
+    Parameters:
+      {name} `string` Name of template or template module
+      {hook} `fun(task_defn: overseer.TaskDefinition, util: overseer.TaskUtil)`
+
 register_template({defn})                             *overseer.register_template*
     Directly register an overseer template
 

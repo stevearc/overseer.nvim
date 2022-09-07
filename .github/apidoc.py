@@ -41,6 +41,7 @@ class LuaFunc:
     example: str = ""
     note: str = ""
     private: bool = False
+    deprecated: bool = False
 
     @classmethod
     def parse_annotation(cls, name: str, lines: List[str]) -> "LuaFunc":
@@ -61,6 +62,7 @@ class LuaFunc:
             name,
             summary=p.get("summary", ""),
             private="private" in p,
+            deprecated="deprecated" in p,
             example=p.get("example", ""),
             note=p.get("note", ""),
             params=params,
@@ -156,6 +158,9 @@ tag_param = (
     + ZeroOrMore(subparam).setResultsName("subparams")
 ).setParseAction(LuaParam.from_parser)
 tag_private = (Keyword("@private") + Suppress(LineEnd())).setResultsName("private")
+tag_deprecated = (Keyword("@deprecated") + Suppress(LineEnd())).setResultsName(
+    "deprecated"
+)
 
 tag_example = (
     (
@@ -193,7 +198,7 @@ tag_return = (
 ).setParseAction(LuaReturn.from_parser)
 summary = Regex(r"^[^@].+").setResultsName("summary") + Suppress(LineEnd())
 
-tag <<= tag_param | tag_private | tag_return | tag_example | tag_note
+tag <<= tag_param | tag_private | tag_return | tag_example | tag_note | tag_deprecated
 
 annotation = Opt(summary) + ZeroOrMore(tag) + Suppress(ZeroOrMore(White()))
 
@@ -220,7 +225,7 @@ def parse_functions() -> List[LuaFunc]:
 def render_md(funcs: List[LuaFunc]) -> List[str]:
     lines = []
     for func in funcs:
-        if func.private:
+        if func.private or func.deprecated:
             continue
         args = ", ".join([param.name for param in func.params])
         lines.append(f"### {func.name}({args})\n")
@@ -296,7 +301,7 @@ def format_params(params: List[LuaParam], indent: int) -> List[str]:
 def render_vimdoc(funcs: List[LuaFunc]) -> List[str]:
     lines = []
     for func in funcs:
-        if func.private:
+        if func.private or func.deprecated:
             continue
         args = ", ".join(["{" + param.name + "}" for param in func.params])
         lines.append(leftright(f"{func.name}({args})", f"*overseer.{func.name}*"))

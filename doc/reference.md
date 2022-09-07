@@ -20,6 +20,8 @@
   - [run_template(opts, callback)](#run_templateopts-callback)
   - [run_action(task, name)](#run_actiontask-name)
   - [wrap_template(base, override, default_params)](#wrap_templatebase-override-default_params)
+  - [add_template_hook(name, hook)](#add_template_hookname-hook)
+  - [remove_template_hook(name, hook)](#remove_template_hookname-hook)
   - [register_template(defn)](#register_templatedefn)
   - [load_template(name)](#load_templatename)
 - [Parameters](#parameters)
@@ -452,6 +454,34 @@ local template_provider = {
   end
 }
 ```
+
+### add_template_hook(name, hook)
+
+Add a hook that runs on a TaskDefinition before the task is created
+| Param | Type                                                               | Desc                                        |
+| ---- | ------------------------------------------------------------------ | ------------------------------------------- |
+| name | `string`                                                           | Name of template or template module to hook |
+| hook | `fun(task_defn: overseer.TaskDefinition, util: overseer.TaskUtil)` |                                             |
+
+**Examples:**
+```lua
+-- Add on_output_quickfix component to all "cargo" templates
+overseer.add_hook_template("cargo", function(task_defn, util)
+  util.add_component(task_defn, { "on_output_quickfix", open = true })
+end)
+-- Remove the on_complete_notify component from "cargo clean" task
+overseer.add_hook_template("cargo clean", function(task_defn, util)
+  util.remove_component(task_defn, "on_complete_notify")
+end)
+```
+
+### remove_template_hook(name, hook)
+
+Remove a hook that was added with add_hook_template
+| Param | Type                                                               | Desc                                |
+| ---- | ------------------------------------------------------------------ | ----------------------------------- |
+| name | `string`                                                           | Name of template or template module |
+| hook | `fun(task_defn: overseer.TaskDefinition, util: overseer.TaskUtil)` |                                     |
 
 ### register_template(defn)
 
