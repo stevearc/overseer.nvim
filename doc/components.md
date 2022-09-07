@@ -87,3 +87,12 @@ Restart on any buffer :write \
 Cancel task if it exceeds a timeout \
 **timeout**[integer]: Time to wait (in seconds) before canceling (default `120`)
 
+## [unique](../lua/overseer/component/unique.lua)
+
+Ensure that this task does not have any duplicates \
+**replace**[boolean]: If a prior task exists, replace it. When false, will restart the existing task and dispose the current task (default `true`) \
+    Note that when this is false a new task that is created will restart the existing one and \
+    _dispose itself_. This can lead to unexpected behavior if you are creating a task and then \
+    trying to use that reference (to run actions on it, use it as a dependency, etc) \
+**restart_interrupts**[boolean]: When replace = false, should restarting the existing task interrupt it (default `true`)
+

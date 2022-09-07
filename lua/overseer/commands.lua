@@ -160,8 +160,7 @@ M.run_template = function(opts, callback)
     tags = opts.tags,
   }
   if opts.name and opts.first then
-    local tmpl = template.get_by_name(opts.name, tmpl_opts)
-    handle_tmpl(tmpl)
+    template.get_by_name(opts.name, tmpl_opts, handle_tmpl)
   else
     template.list(tmpl_opts, function(templates)
       if #templates == 0 then

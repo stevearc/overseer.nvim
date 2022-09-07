@@ -10,11 +10,13 @@ local M = {}
 
 ---@class overseer.TemplateProvider
 ---@field name string
+---@field module? string The name of the module this was loaded from
 ---@field condition? overseer.SearchCondition
 ---@field generator fun(opts: overseer.SearchParams, cb: fun(tmpls: overseer.TemplateDefinition[])): nil|overseer.TemplateDefinition[]
 
 ---@class overseer.TemplateDefinition
 ---@field name string
+---@field module? string The name of the module this was loaded from
 ---@field aliases? string[]
 ---@field desc? string
 ---@field tags? string[]
@@ -37,6 +39,8 @@ local registry = {}
 
 ---@type overseer.TemplateProvider[]
 local providers = {}
+
+local hooks = {}
 
 ---@param condition? overseer.SearchCondition
 ---@param tags? string[]
@@ -111,6 +115,7 @@ M.load_template = function(name)
     if not defn.name then
       defn.name = name
     end
+    defn.module = name
     M.register(defn)
   end
 end
@@ -143,26 +148,29 @@ end
 
 ---@class overseer.TaskUtil
 local task_util = {}
+---Add one or more components to a TaskDefinition
 ---@param task_defn overseer.TaskDefinition
 ---@param ... overseer.Serialized
 function task_util.add_component(task_defn, ...)
   local names = vim.tbl_map(util.split_config, { ... })
   task_util.remove_component(task_defn, names)
-  vim.list_extend(task_defn.components, { ... })
+  task_defn.components = vim.list_extend({ ... }, task_defn.components or { "default" })
 end
+---Remove one or more components from a TaskDefinition
 ---@param task_defn overseer.TaskDefinition
 ---@param ... string
 function task_util.remove_component(task_defn, ...)
   local to_remove = util.list_to_map({ ... })
   task_defn.components = vim.tbl_filter(function(comp)
     return not to_remove[util.split_config(comp)]
-  end, task_defn.components)
+  end, task_defn.components or { "default" })
 end
+---Check if a component is present on a TaskDefinition
 ---@param task_defn overseer.TaskDefinition
 ---@param name string
 ---@return boolean
 function task_util.has_component(task_defn, name)
-  for _, comp in ipairs(task_defn.components) do
+  for _, comp in ipairs(task_defn.components or { "default" }) do
     if name == util.split_config(comp) then
       return true
     end
@@ -178,6 +186,16 @@ local function build_task(tmpl, opts, params)
   local task_defn = tmpl.builder(params)
   task_defn.components = component.resolve(task_defn.components or { "default" })
   config.pre_task_hook(task_defn, task_util)
+  if tmpl.module and hooks[tmpl.module] then
+    for _, hook in ipairs(hooks[tmpl.module]) do
+      hook(task_defn, task_util)
+    end
+  end
+  if hooks[tmpl.name] then
+    for _, hook in ipairs(hooks[tmpl.name]) do
+      hook(task_defn, task_util)
+    end
+  end
   if opts.cwd then
     task_defn.cwd = opts.cwd
   end
@@ -186,6 +204,23 @@ local function build_task(tmpl, opts, params)
   end
   local task = Task.new(task_defn)
   return task
+end
+
+---@param name string
+---@param hook fun(task_defn: overseer.TaskDefinition, util: overseer.TaskUtil)
+M.add_hook_template = function(name, hook)
+  if not hooks[name] then
+    hooks[name] = {}
+  end
+  table.insert(hooks[name], hook)
+end
+
+---@param name string
+---@param hook fun(task_defn: overseer.TaskDefinition, util: overseer.TaskUtil)
+M.remove_hook_template = function(name, hook)
+  if hooks[name] then
+    util.tbl_remove(hooks[name], hook)
+  end
 end
 
 ---@param defn overseer.TemplateDefinition|overseer.TemplateProvider
@@ -262,7 +297,7 @@ end
 ---@field dir string
 
 ---@param opts? overseer.SearchParams
----@param cb overseer.TemplateDefinition[]
+---@param cb fun(templates: overseer.TemplateDefinition[])
 M.list = function(opts, cb)
   initialize()
   opts = opts or {}
@@ -295,8 +330,11 @@ M.list = function(opts, cb)
     cb(ret)
   end
 
-  local function handle_tmpls(tmpls)
+  ---@param tmpls overseer.TemplateDefinition[]
+  ---@param module string|nil
+  local function handle_tmpls(tmpls, module)
     for _, tmpl in ipairs(tmpls) do
+      tmpl.module = module
       validate_template_definition(tmpl)
       if condition_matches(tmpl.condition, tmpl.tags, opts, true) then
         table.insert(ret, tmpl)
@@ -320,14 +358,14 @@ M.list = function(opts, cb)
   for _, provider in ipairs(providers) do
     local provider_name = provider.name
     if condition_matches(provider.condition, nil, opts, false) then
-      local ok, tmpls = pcall(provider.generator, opts, function(...)
+      local ok, tmpls = pcall(provider.generator, opts, function(tmpls)
         pending[provider_name] = nil
-        handle_tmpls(...)
+        handle_tmpls(tmpls, provider.module)
       end)
       if ok then
         if tmpls then
           -- generator completed synchronously
-          handle_tmpls(tmpls)
+          handle_tmpls(tmpls, provider.module)
         else
           -- generator is async and we expect it to call the callback later
           pending[provider.name] = true
@@ -343,25 +381,31 @@ end
 
 ---@param name string
 ---@param opts? overseer.SearchParams
----@return overseer.TemplateDefinition?
-M.get_by_name = function(name, opts)
+---@param cb fun(template: overseer.TemplateDefinition)
+M.get_by_name = function(name, opts, cb)
   initialize()
   local ret = registry[name]
   if ret then
-    return ret
+    cb(ret)
+    return
   end
-  for _, tmpl in ipairs(M.list(opts)) do
-    if tmpl.name == name then
-      return tmpl
-    end
-    if tmpl.aliases then
-      for _, alias in ipairs(tmpl.aliases) do
-        if alias == name then
-          return tmpl
+  M.list(opts, function(templates)
+    for _, tmpl in ipairs(templates) do
+      if tmpl.name == name then
+        cb(tmpl)
+        return
+      end
+      if tmpl.aliases then
+        for _, alias in ipairs(tmpl.aliases) do
+          if alias == name then
+            cb(tmpl)
+            return
+          end
         end
       end
     end
-  end
+    cb(nil)
+  end)
 end
 
 return M
