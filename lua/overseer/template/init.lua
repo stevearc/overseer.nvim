@@ -187,10 +187,14 @@ local function build_task(tmpl, opts, params)
   task_defn.components = component.resolve(task_defn.components or { "default" })
   config.pre_task_hook(task_defn, task_util)
   if tmpl.module and hooks[tmpl.module] then
-    hooks[tmpl.module](task_defn, task_util)
+    for _, hook in ipairs(hooks[tmpl.module]) do
+      hook(task_defn, task_util)
+    end
   end
   if hooks[tmpl.name] then
-    hooks[tmpl.name](task_defn, task_util)
+    for _, hook in ipairs(hooks[tmpl.name]) do
+      hook(task_defn, task_util)
+    end
   end
   if opts.cwd then
     task_defn.cwd = opts.cwd
@@ -204,8 +208,19 @@ end
 
 ---@param name string
 ---@param hook fun(task_defn: overseer.TaskDefinition, util: overseer.TaskUtil)
-M.hook_template = function(name, hook)
-  hooks[name] = hook
+M.add_hook_template = function(name, hook)
+  if not hooks[name] then
+    hooks[name] = {}
+  end
+  table.insert(hooks[name], hook)
+end
+
+---@param name string
+---@param hook fun(task_defn: overseer.TaskDefinition, util: overseer.TaskUtil)
+M.remove_hook_template = function(name, hook)
+  if hooks[name] then
+    util.tbl_remove(hooks[name], hook)
+  end
 end
 
 ---@param defn overseer.TemplateDefinition|overseer.TemplateProvider

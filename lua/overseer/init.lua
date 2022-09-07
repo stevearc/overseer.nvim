@@ -310,14 +310,21 @@ end
 ---@param hook fun(task_defn: overseer.TaskDefinition, util: overseer.TaskUtil)
 ---@example
 --- -- Add on_output_quickfix component to all "cargo" templates
---- overseer.hook_template("cargo", function(task_defn, util)
+--- overseer.add_hook_template("cargo", function(task_defn, util)
 ---   util.add_component(task_defn, { "on_output_quickfix", open = true })
 --- end)
 --- -- Remove the on_complete_notify component from "cargo clean" task
---- overseer.hook_template("cargo clean", function(task_defn, util)
+--- overseer.add_hook_template("cargo clean", function(task_defn, util)
 ---   util.remove_component(task_defn, "on_complete_notify")
 --- end)
-M.hook_template = lazy_pend("template", "hook_template")
+M.add_template_hook = lazy_pend("template", "add_hook_template")
+---Remove a hook that was added with add_hook_template
+---@param name string Name of template or template module
+---@param hook fun(task_defn: overseer.TaskDefinition, util: overseer.TaskUtil)
+M.remove_template_hook = lazy_pend("template", "remove_hook_template")
+
+---@deprecated
+M.hook_template = M.add_template_hook
 
 ---@param defn overseer.TemplateDefinition|overseer.TemplateProvider
 M.register_template = lazy_pend("template", "register")
