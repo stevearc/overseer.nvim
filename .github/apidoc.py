@@ -277,16 +277,19 @@ def render_md(funcs: List[LuaFunc]) -> List[str]:
 
 def format_params(params: List[LuaParam], indent: int) -> List[str]:
     lines = []
-    max_param = max([len(param.name) for param in params]) + 2
+    # Ignore params longer than 16 chars. They are outliers and will ruin the formatting
+    max_param = max([len(param.name) for param in params if len(param.name) <= 16]) + 1
     for param in params:
         prefix = (
             indent * " "
             + "{"
             + f"{param.name}"
             + "}".ljust(max_param - len(param.name))
+            + " "
         )
         line = prefix + f"`{param.type}`" + " "
-        desc = wrap(param.desc, indent=len(line), sub_indent=len(prefix))
+        sub_indent = min(len(prefix), max_param + indent + 2)
+        desc = wrap(param.desc, indent=len(line), sub_indent=sub_indent)
         if desc:
             desc[0] = line + desc[0].lstrip()
             lines.extend(desc)

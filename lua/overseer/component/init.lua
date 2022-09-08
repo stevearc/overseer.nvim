@@ -231,12 +231,20 @@ M.create_params = function(name)
   return params
 end
 
+---@param comp_params overseer.Serialized
 ---@param component overseer.ComponentDefinition
+---@param default_params table default params for components
 ---@return overseer.Component
-local function instantiate(comp_params, component)
+local function instantiate(comp_params, component, default_params)
   local obj
   if type(comp_params) == "string" then
     comp_params = { comp_params }
+  end
+  -- Merge in the default params from the task for any param with default_from_task = true
+  for k, v in pairs(component.params) do
+    if v.default_from_task and comp_params[k] == nil then
+      comp_params[k] = default_params[k]
+    end
   end
   validate_params(comp_params, component.params)
   obj = component.constructor(comp_params)
@@ -267,16 +275,17 @@ M.resolve = function(components, existing)
   return resolve(seen, {}, components)
 end
 
--- @param components is a list of component names or {name, params=}
+---@param components overseer.Serialized[] is a list of component names or {name, params=}
+---@param default_params table default params for components
 ---@return overseer.Component[]
-M.load = function(components)
+M.load = function(components, default_params)
   local resolved = resolve({}, {}, components)
   local ret = {}
   for _, comp_params in ipairs(resolved) do
     local name = getname(comp_params)
     local comp = M.get(name)
     if comp then
-      table.insert(ret, instantiate(comp_params, comp))
+      table.insert(ret, instantiate(comp_params, comp, default_params))
     else
       error(string.format("Unknown component '%s'", name))
     end

@@ -12,6 +12,7 @@ local STATUS = constants.STATUS
 ---@field id number
 ---@field result? table
 ---@field metadata table
+---@field default_component_params table
 ---@field status overseer.Status
 ---@field cmd string|string[]
 ---@field cwd? string
@@ -46,6 +47,7 @@ Task.params = {
 ---@field env? table<string, string>
 ---@field strategy? overseer.Serialized
 ---@field metadata? table
+---@field default_component_params? table<string, any> Default values for component params
 ---@field components? overseer.Serialized[]
 
 ---Create an uninitialized Task with no ID that will not be run
@@ -64,6 +66,7 @@ function Task.new_uninitialized(opts)
     name = { opts.name, "s", true },
     components = { opts.components, "t", true },
     metadata = { opts.metadata, "t", true },
+    default_component_params = { opts.default_component_params, "t", true },
   })
   if opts.env and vim.tbl_isempty(opts.env) then
     -- For some reason termopen() doesn't like an empty env table
@@ -92,6 +95,7 @@ function Task.new_uninitialized(opts)
   local data = {
     result = nil,
     metadata = opts.metadata or {},
+    default_component_params = opts.default_component_params or {},
     _references = 0,
     _include_in_bundle = true,
     _subscribers = {},
@@ -250,7 +254,7 @@ function Task:add_components(components)
     components = { components, "t" },
   })
   local new_comps = component.resolve(components, self.components)
-  for _, v in ipairs(component.load(new_comps)) do
+  for _, v in ipairs(component.load(new_comps, self.default_component_params)) do
     table.insert(self.components, v)
     -- Only call on_init if the task is initialized
     if self.id and v.on_init then
@@ -268,7 +272,7 @@ function Task:set_components(components)
   vim.validate({
     components = { components, "t" },
   })
-  for _, new_comp in ipairs(component.load(components)) do
+  for _, new_comp in ipairs(component.load(components, self.default_component_params)) do
     local found = false
     local replaced = false
     for i, comp in ipairs(self.components) do

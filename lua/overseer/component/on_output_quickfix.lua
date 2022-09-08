@@ -5,6 +5,7 @@ return {
       desc = "See :help errorformat",
       type = "string",
       optional = true,
+      default_from_task = true,
     },
     open = {
       desc = "If true, open the quickfix when any items found",

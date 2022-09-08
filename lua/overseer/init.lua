@@ -270,6 +270,7 @@ end
 ---    env nil|table<string, string> Additional environment variables
 ---    strategy nil|overseer.Serialized Definition for a run Strategy
 ---    metadata nil|table Arbitrary metadata for your own use
+---    default_component_params nil|table Default values for component params
 ---    components nil|overseer.Serialized[] List of components to attach. Defaults to `{'default'}`
 ---@return overseer.Task
 ---@example

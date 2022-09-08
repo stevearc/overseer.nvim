@@ -16,6 +16,15 @@ local tmpl = {
     end
     return {
       cmd = cmd,
+      default_component_params = {
+        errorformat = [[%Eerror: %\%%(aborting %\|could not compile%\)%\@!%m,]]
+          .. [[%Eerror[E%n]: %m,]]
+          .. [[%Inote: %m,]]
+          .. [[%Wwarning: %\%%(%.%# warning%\)%\@!%m,]]
+          .. [[%C %#--> %f:%l:%c,]]
+          .. [[%E  left:%m,%C right:%m %f:%l:%c,%Z,]]
+          .. [[%.%#panicked at \'%m\'\, %f:%l:%c]],
+      },
     }
   end,
 }

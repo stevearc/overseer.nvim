@@ -180,6 +180,8 @@ M = {
         title = task.name,
         context = task.name,
         lines = lines,
+        -- Peep into the default component params to fetch the errorformat
+        efm = task.default_component_params.errorformat,
       })
       vim.cmd("botright copen")
     end,
