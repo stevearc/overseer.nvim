@@ -423,6 +423,7 @@ def update_readme_toc():
     guides_toc = get_toc("guides.md")
     reference_toc = get_toc("reference.md")
     explanation_toc = get_toc("explanation.md")
+    third_party_toc = get_toc("third_party.md")
 
     def add_subtoc(title: str, lines: List[str]):
         for i, line in enumerate(toc):
@@ -439,6 +440,7 @@ def update_readme_toc():
     add_subtoc("Guides", guides_toc)
     add_subtoc("Reference", reference_toc)
     add_subtoc("Explanation", explanation_toc)
+    add_subtoc("Third-party integrations", third_party_toc)
 
     replace_section(
         README,
@@ -466,6 +468,12 @@ def update_readme_toc():
     )
     replace_section(
         README,
+        r"^## Third-party integrations$",
+        r"^#",
+        ["\n"] + third_party_toc + ["\n"],
+    )
+    replace_section(
+        README,
         r"^<!-- TOC -->$",
         r"^<!-- /TOC -->$",
         ["\n"] + toc + ["\n"],
@@ -483,5 +491,6 @@ def main() -> None:
     update_md_toc(os.path.join(DOC, "guides.md"))
     update_md_toc(os.path.join(DOC, "reference.md"))
     update_md_toc(os.path.join(DOC, "explanation.md"))
+    update_md_toc(os.path.join(DOC, "third_party.md"))
     update_readme_toc()
     generate_vimdoc()
