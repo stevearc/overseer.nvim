@@ -413,21 +413,39 @@ M.wrap_template = function(base, override, default_params)
 end
 
 ---Add a hook that runs on a TaskDefinition before the task is created
----@param name string Name of template or template module to hook
+---@param opts nil|overseer.HookOptions When nil, run the hook on all templates
+---    name nil|string Only run if the template name matches this pattern (using string.match)
+---    module nil|string Only run if the template module matches this pattern (using string.match)
+---    filetype nil|string|string[] Only run if the current file is one of these filetypes
+---    dir nil|string|string[] Only run if inside one of these directories
 ---@param hook fun(task_defn: overseer.TaskDefinition, util: overseer.TaskUtil)
 ---@example
 --- -- Add on_output_quickfix component to all "cargo" templates
---- overseer.add_hook_template("cargo", function(task_defn, util)
+--- overseer.add_template_hook({ module = "^cargo$" }, function(task_defn, util)
 ---   util.add_component(task_defn, { "on_output_quickfix", open = true })
 --- end)
 --- -- Remove the on_complete_notify component from "cargo clean" task
---- overseer.add_hook_template("cargo clean", function(task_defn, util)
+--- overseer.add_template_hook({ name = "cargo clean" }, function(task_defn, util)
 ---   util.remove_component(task_defn, "on_complete_notify")
 --- end)
+--- -- Add an environment variable for all go tasks in a specific dir
+--- overseer.add_template_hook({ name = "^go .*", dir = "/path/to/project" }, function(task_defn, util)
+---   task_defn.env = vim.tbl_extend('force', task_defn.env or {}, {
+---     GO111MODULE = "on"
+---   })
+--- end)
 M.add_template_hook = lazy_pend("template", "add_hook_template")
----Remove a hook that was added with add_hook_template
----@param name string Name of template or template module
+---Remove a hook that was added with add_template_hook
+---@param opts nil|overseer.HookOptions Same as for add_template_hook
 ---@param hook fun(task_defn: overseer.TaskDefinition, util: overseer.TaskUtil)
+---@example
+--- local opts = {module = "cargo"}
+--- local hook = function(task_defn, util)
+---   util.add_component(task_defn, { "on_output_quickfix", open = true })
+--- end
+--- overseer.add_template_hook(opts, hook)
+--- -- Remove should pass in the same opts as add
+--- overseer.remove_template_hook(opts, hook)
 M.remove_template_hook = lazy_pend("template", "remove_hook_template")
 
 ---@deprecated

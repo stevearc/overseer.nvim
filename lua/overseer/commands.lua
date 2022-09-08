@@ -129,6 +129,12 @@ M.run_template = function(opts, callback)
   opts.params = opts.params or {}
   local dir = vim.fn.getcwd(0)
   local ft = vim.api.nvim_buf_get_option(0, "filetype")
+  local search_opts = {
+    dir = dir,
+    filetype = ft,
+    tags = opts.tags,
+  }
+  opts.search = search_opts
 
   ---@param tmpl? overseer.TaskDefinition
   local function handle_tmpl(tmpl)
@@ -154,15 +160,10 @@ M.run_template = function(opts, callback)
     end)
   end
 
-  local tmpl_opts = {
-    dir = dir,
-    filetype = ft,
-    tags = opts.tags,
-  }
   if opts.name and opts.first then
-    template.get_by_name(opts.name, tmpl_opts, handle_tmpl)
+    template.get_by_name(opts.name, search_opts, handle_tmpl)
   else
-    template.list(tmpl_opts, function(templates)
+    template.list(search_opts, function(templates)
       if #templates == 0 then
         log:error("Could not find any matching task templates for opts %s", opts)
       elseif #templates == 1 or opts.first then

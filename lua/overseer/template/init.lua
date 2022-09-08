@@ -98,6 +98,31 @@ local function condition_matches(condition, tags, search, match_tags)
   return true
 end
 
+---@param opts? overseer.HookOptions
+---@param search overseer.SearchParams
+---@param name string
+---@param module? string
+---@return boolean
+local function hook_matches(opts, search, name, module)
+  if not opts or vim.tbl_isempty(opts) then
+    return true
+  end
+  if not condition_matches(opts, nil, search, false) then
+    return false
+  end
+  if opts.module then
+    if not module or not module:match(opts.module) then
+      return false
+    end
+  end
+  if opts.name then
+    if not name:match(opts.name) then
+      return false
+    end
+  end
+  return true
+end
+
 ---@param name string
 M.load_template = function(name)
   local ok, defn = pcall(require, string.format("overseer.template.%s", name))
@@ -185,15 +210,10 @@ end
 local function build_task(tmpl, opts, params)
   local task_defn = tmpl.builder(params)
   task_defn.components = component.resolve(task_defn.components or { "default" })
-  config.pre_task_hook(task_defn, task_util)
-  if tmpl.module and hooks[tmpl.module] then
-    for _, hook in ipairs(hooks[tmpl.module]) do
-      hook(task_defn, task_util)
-    end
-  end
-  if hooks[tmpl.name] then
-    for _, hook in ipairs(hooks[tmpl.name]) do
-      hook(task_defn, task_util)
+
+  for _, hook in ipairs(hooks) do
+    if hook_matches(hook.opts, opts.search, tmpl.name, tmpl.module) then
+      hook.hook(task_defn, task_util)
     end
   end
   if opts.cwd then
@@ -206,20 +226,38 @@ local function build_task(tmpl, opts, params)
   return task
 end
 
----@param name string
+---@class overseer.HookOptions : overseer.SearchCondition
+---@field module? string
+---@field name? string
+
+---@param opts nil|overseer.HookOptions
 ---@param hook fun(task_defn: overseer.TaskDefinition, util: overseer.TaskUtil)
-M.add_hook_template = function(name, hook)
-  if not hooks[name] then
-    hooks[name] = {}
+M.add_hook_template = function(opts, hook)
+  if type(opts) == "string" then
+    vim.notify_once(
+      "overseer.add_template_hook has changed its call signature. Please update to the new argument format",
+      vim.log.levels.WARN
+    )
+    opts = { name = opts }
   end
-  table.insert(hooks[name], hook)
+  table.insert(hooks, { hook = hook, opts = opts })
 end
 
----@param name string
+---@param opts nil|overseer.HookOptions
 ---@param hook fun(task_defn: overseer.TaskDefinition, util: overseer.TaskUtil)
-M.remove_hook_template = function(name, hook)
-  if hooks[name] then
-    util.tbl_remove(hooks[name], hook)
+M.remove_hook_template = function(opts, hook)
+  if type(opts) == "string" then
+    vim.notify_once(
+      "overseer.remove_template_hook has changed its call signature. Please update to the new argument format",
+      vim.log.levels.WARN
+    )
+    opts = { name = opts }
+  end
+  for i, v in ipairs(hooks) do
+    if v.hook == hook and vim.deep_equal(v.opts, opts) then
+      table.remove(hooks, i)
+      return
+    end
   end
 end
 
@@ -238,6 +276,7 @@ end
 ---@field params table
 ---@field cwd? string
 ---@field env? table<string, string>
+---@field search overseer.SearchParams
 
 ---@param tmpl overseer.TemplateDefinition
 ---@param opts overseer.TemplateBuildOpts

@@ -141,12 +141,6 @@ local default_config = {
       "on_result_diagnostics_quickfix",
     },
   },
-  -- This is run before creating tasks from a template
-  pre_task_hook = function(task_defn, util)
-    -- util.add_component(task_defn, "on_result_diagnostics", {"timeout", timeout = 20})
-    -- util.remove_component(task_defn, "on_complete_dispose")
-    -- task_defn.env = { MY_VAR = 'value' }
-  end,
   -- A list of components to preload on setup.
   -- Only matters if you want them to show up in the task editor.
   preload_components = {},
@@ -214,6 +208,7 @@ end
 
 ---@param opts? overseer.Config
 M.setup = function(opts)
+  local overseer = require("overseer")
   local component = require("overseer.component")
   local log = require("overseer.log")
   opts = opts or {}
@@ -229,6 +224,15 @@ M.setup = function(opts)
 
   for k, v in pairs(M.component_aliases) do
     component.alias(k, v)
+  end
+
+  -- Deprecated option
+  if newconf.pre_task_hook then
+    vim.notify(
+      "Overseer pre_task_hook is deprecated. Use overseer.add_template_hook",
+      vim.log.levels.WARN
+    )
+    overseer.add_template_hook(nil, newconf.pre_task_hook)
   end
 end
 

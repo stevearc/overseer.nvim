@@ -8,6 +8,7 @@
 - [Actions](#actions)
 - [Custom components](#custom-components)
   - [Task result](#task-result)
+- [Customizing built-in tasks](#customizing-built-in-tasks)
 - [Parsing output](#parsing-output)
 - [Running tasks sequentially](#running-tasks-sequentially)
 - [VS Code tasks](#vs-code-tasks)
@@ -267,6 +268,19 @@ A note on the Task result table: there is technically no schema for it, as the o
 
 **diagnostics**: This key is used for diagnostics. It should be a list of quickfix items (see `:help setqflist`) \
 **error**: This key will be set when there is an internal overseer error when running the task
+
+## Customizing built-in tasks
+
+You may wish to customize the built-in task definitions, or tasks from another plugin. The simplest way to do this is using the [add_template_hook](reference.md#add_template_hookopts-hook) function. This allows you to run a function on the task definition (the arguments passed to [new_task](reference.md#new_taskopts)) and process it however you like. A common use case would be to add a component or modify the environment variables while in a specific project:
+
+```lua
+overseer.add_template_hook({
+  dir = "/path/to/my/project",
+  module = "^cargo$",
+}, function(task_defn, util)
+  util.add_component(task_defn, { "on_output_quickfix", open = true })
+end)
+```
 
 ## Parsing output
 

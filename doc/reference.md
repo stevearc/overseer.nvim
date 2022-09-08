@@ -20,8 +20,8 @@
   - [run_template(opts, callback)](#run_templateopts-callback)
   - [run_action(task, name)](#run_actiontask-name)
   - [wrap_template(base, override, default_params)](#wrap_templatebase-override-default_params)
-  - [add_template_hook(name, hook)](#add_template_hookname-hook)
-  - [remove_template_hook(name, hook)](#remove_template_hookname-hook)
+  - [add_template_hook(opts, hook)](#add_template_hookopts-hook)
+  - [remove_template_hook(opts, hook)](#remove_template_hookopts-hook)
   - [register_template(defn)](#register_templatedefn)
   - [load_template(name)](#load_templatename)
 - [Parameters](#parameters)
@@ -175,12 +175,6 @@ require("overseer").setup({
       "on_result_diagnostics_quickfix",
     },
   },
-  -- This is run before creating tasks from a template
-  pre_task_hook = function(task_defn, util)
-    -- util.add_component(task_defn, "on_result_diagnostics", {"timeout", timeout = 20})
-    -- util.remove_component(task_defn, "on_complete_dispose")
-    -- task_defn.env = { MY_VAR = 'value' }
-  end,
   -- A list of components to preload on setup.
   -- Only matters if you want them to show up in the task editor.
   preload_components = {},
@@ -456,33 +450,54 @@ local template_provider = {
 }
 ```
 
-### add_template_hook(name, hook)
+### add_template_hook(opts, hook)
 
 Add a hook that runs on a TaskDefinition before the task is created
-| Param | Type                                                               | Desc                                        |
-| ---- | ------------------------------------------------------------------ | ------------------------------------------- |
-| name | `string`                                                           | Name of template or template module to hook |
-| hook | `fun(task_defn: overseer.TaskDefinition, util: overseer.TaskUtil)` |                                             |
+| Param | Type                                                               | Desc                                    |                                                                           |
+| ---- | ------------------------------------------------------------------ | --------------------------------------- | ------------------------------------------------------------------------- |
+| opts | `nil\|overseer.HookOptions`                                        | When nil, run the hook on all templates |                                                                           |
+|      | name                                                               | `nil\|string`                           | Only run if the template name matches this pattern (using string.match)   |
+|      | module                                                             | `nil\|string`                           | Only run if the template module matches this pattern (using string.match) |
+|      | filetype                                                           | `nil\|string\|string[]`                 | Only run if the current file is one of these filetypes                    |
+|      | dir                                                                | `nil\|string\|string[]`                 | Only run if inside one of these directories                               |
+| hook | `fun(task_defn: overseer.TaskDefinition, util: overseer.TaskUtil)` |                                         |                                                                           |
 
 **Examples:**
 ```lua
 -- Add on_output_quickfix component to all "cargo" templates
-overseer.add_hook_template("cargo", function(task_defn, util)
+overseer.add_template_hook({ module = "^cargo$" }, function(task_defn, util)
   util.add_component(task_defn, { "on_output_quickfix", open = true })
 end)
 -- Remove the on_complete_notify component from "cargo clean" task
-overseer.add_hook_template("cargo clean", function(task_defn, util)
+overseer.add_template_hook({ name = "cargo clean" }, function(task_defn, util)
   util.remove_component(task_defn, "on_complete_notify")
+end)
+-- Add an environment variable for all go tasks in a specific dir
+overseer.add_template_hook({ name = "^go .*", dir = "/path/to/project" }, function(task_defn, util)
+  task_defn.env = vim.tbl_extend('force', task_defn.env or {}, {
+    GO111MODULE = "on"
+  })
 end)
 ```
 
-### remove_template_hook(name, hook)
+### remove_template_hook(opts, hook)
 
-Remove a hook that was added with add_hook_template
-| Param | Type                                                               | Desc                                |
-| ---- | ------------------------------------------------------------------ | ----------------------------------- |
-| name | `string`                                                           | Name of template or template module |
-| hook | `fun(task_defn: overseer.TaskDefinition, util: overseer.TaskUtil)` |                                     |
+Remove a hook that was added with add_template_hook
+| Param | Type                                                               | Desc                          |
+| ---- | ------------------------------------------------------------------ | ----------------------------- |
+| opts | `nil\|overseer.HookOptions`                                        | Same as for add_template_hook |
+| hook | `fun(task_defn: overseer.TaskDefinition, util: overseer.TaskUtil)` |                               |
+
+**Examples:**
+```lua
+local opts = {module = "cargo"}
+local hook = function(task_defn, util)
+  util.add_component(task_defn, { "on_output_quickfix", open = true })
+end
+overseer.add_template_hook(opts, hook)
+-- Remove should pass in the same opts as add
+overseer.remove_template_hook(opts, hook)
+```
 
 ### register_template(defn)
 
