@@ -247,9 +247,9 @@ The official API surface includes:
 
 - All functions exposed in [overseer/init.lua](../lua/overseer/init.lua)
 - Config options passed to `setup()`
-- [Components](#components), including names and parameters FIXME fix link
+- [Components](explanation.md#components), including names and parameters
 - [Commands](#commands)
-- [Parsers](#parsing-output), including names and parameters FIXME fix link
+- [Parsers](guides.md#parsing-output), including names and parameters
 
 <!-- API -->
 
@@ -508,7 +508,7 @@ overseer.load_template('mytask')
 
 ## Parameters
 
-Parameters are a schema-defined set of options. They are used by both [components](#components) and [templates](#templates) to expose customization options.
+Parameters are a schema-defined set of options. They are used by both [components](explanation.md#components) and [templates](explanation.md#templates) to expose customization options.
 
 ```lua
 local params = {

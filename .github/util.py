@@ -4,6 +4,15 @@ import textwrap
 from collections import defaultdict
 from typing import Dict, List, Optional, Tuple
 
+MD_LINK_PAT = re.compile(r"\[([^\]]+)\]\(([^\)]+)\)")
+MD_TITLE_PAT = re.compile(r"^#(#+) (.+)$", re.MULTILINE)
+
+
+def md_create_anchor(title: str) -> str:
+    title = re.sub(r"[\+\(\),]", "", title.lower().replace(" ", "-"))
+    title = re.sub(r"\s", "-", title)
+    return title
+
 
 def markdown_paragraph(block: str) -> List[str]:
     return [" \\\n".join(block.rstrip().split("\n")) + "\n"]

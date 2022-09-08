@@ -505,8 +505,8 @@ load_template({name})                                     *overseer.load_templat
 --------------------------------------------------------------------------------
 PARAMETERS                                                       *overseer-params*
 
-Parameters are a schema-defined set of options. They are used by both
-|components| and |templates| to expose customization options.
+Parameters are a schema-defined set of options. They are used by both components
+and templates to expose customization options.
 
 >
     local params = {

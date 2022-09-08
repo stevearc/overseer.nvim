@@ -134,7 +134,7 @@ Providers are created the same way templates are (with `overseer.register_templa
 
 Actions can be performed on tasks by using the `RunAction` keybinding in the task list, or by the `OverseerQuickAction` and `OverseerTaskAction` commands. They are simply a custom function that will do something to or with a task.
 
-Browse the set of built-in actions at [lua/overseer/task_list/actions.lua](lua/overseer/task_list/actions.lua)
+Browse the set of built-in actions at [lua/overseer/task_list/actions.lua](../lua/overseer/task_list/actions.lua)
 
 You can define your own or disable any of the built-in actions in the call to setup():
 
@@ -285,13 +285,13 @@ The primary way of parsing output with overseer is the `on_output_parse` compone
 }}
 ```
 
-This is a simple example, but the parser library is flexible enough to parse nearly any output format. See more detailed documentation in [the parsers doc](doc/parsers.md).
+This is a simple example, but the parser library is flexible enough to parse nearly any output format. See more detailed documentation in [the parsers doc](parsers.md).
 
-You can of course create your own components to parse output leveraging the `on_output` or `on_output_lines` methods. The integration should be straightforward; see [on_output_parse.lua](lua/overseer/component/on_output_parse.lua) to see how the built-in component leverages these methods.
+You can of course create your own components to parse output leveraging the `on_output` or `on_output_lines` methods. The integration should be straightforward; see [on_output_parse.lua](../lua/overseer/component/on_output_parse.lua) to see how the built-in component leverages these methods.
 
 ## Running tasks sequentially
 
-There are currently two ways to get tasks to run sequentially. The first is by using the [dependencies](doc/components.md#dependencies) component. For example, if you wanted to create a `npm serve` task that runs `npm build` first, you could create it like so:
+There are currently two ways to get tasks to run sequentially. The first is by using the [dependencies](components.md#dependencies) component. For example, if you wanted to create a `npm serve` task that runs `npm build` first, you could create it like so:
 
 ```lua
 overseer.run_template({name = 'npm serve', autostart = false}, function(task)
@@ -306,7 +306,7 @@ overseer.run_template({name = 'npm serve', autostart = false}, function(task)
 end)
 ```
 
-Another approach to running tasks in a specific order is to use the [orchestrator](lua/overseer/strategy/orchestrator.lua) strategy. This creates a single "orchestration" task that is responsible for running the other tasks in the correct order. You can create it like so:
+Another approach to running tasks in a specific order is to use the [orchestrator](../lua/overseer/strategy/orchestrator.lua) strategy. This creates a single "orchestration" task that is responsible for running the other tasks in the correct order. You can create it like so:
 
 ```lua
 local task = overseer.new_task({
@@ -345,7 +345,7 @@ Supported features:
 - [Background tasks](https://code.visualstudio.com/docs/editor/tasks#_background-watching-tasks)
 - `group` (sets template tag; supports `BUILD`, `TEST`, and `CLEAN`) and `isDefault` (sets priority)
 - [Operating system specific properties](https://code.visualstudio.com/docs/editor/tasks#_operating-system-specific-properties)
-- Integration with [launch.json](https://code.visualstudio.com/docs/editor/debugging#_launchjson-attributes) (see [DAP](#dap))
+- Integration with [launch.json](https://code.visualstudio.com/docs/editor/debugging#_launchjson-attributes) (see [DAP](../README.md#dap))
 
 Unsupported features:
 

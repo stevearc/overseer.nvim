@@ -12,7 +12,7 @@ _private-task:
   echo "Private task"
 
 doc:
-  python .github/main.py
+  python .github/main.py generate
 
 # command argument as environment variable
 greet $name:

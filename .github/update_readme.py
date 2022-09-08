@@ -2,20 +2,21 @@ import json
 import os
 import re
 import subprocess
-from typing import Any, Dict, Iterable, List, Optional, Tuple
+from typing import Any, Dict, Iterable, List, Tuple
 
 from apidoc import gen_api_md, gen_api_vimdoc
 from util import (
+    MD_LINK_PAT,
+    MD_TITLE_PAT,
     Vimdoc,
     VimdocSection,
-    VimdocToc,
     dedent,
     format_md_table,
     indent,
     leftright,
+    md_create_anchor,
     read_section,
     replace_section,
-    vimlen,
     wrap,
 )
 
@@ -25,21 +26,19 @@ README = os.path.join(ROOT, "README.md")
 DOC = os.path.join(ROOT, "doc")
 VIMDOC = os.path.join(DOC, "overseer.txt")
 
-MD_LINK_PAT = re.compile(r"\[([^\]]+)\]\(([^\)]+)\)")
 MD_BOLD_PAT = re.compile(r"\*\*([^\*]+)\*\*")
 MD_LINE_BREAK_PAT = re.compile(r"\s*\\$")
-MD_TITLE = re.compile(r"^#(#+) (.+)$")
 
 
 def generate_toc(filename: str) -> List[str]:
     ret = []
     with open(filename, "r", encoding="utf-8") as ifile:
         for line in ifile:
-            m = MD_TITLE.match(line)
+            m = MD_TITLE_PAT.match(line)
             if m:
                 level = len(m[1]) - 1
                 prefix = "  " * level
-                title_link = re.sub(r"[\+\(\),]", "", m[2].lower().replace(" ", "-"))
+                title_link = md_create_anchor(m[2])
                 link = f"[{m[2]}](#{title_link})"
                 ret.append(prefix + "- " + link + "\n")
     return ret

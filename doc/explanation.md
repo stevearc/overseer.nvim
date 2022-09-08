@@ -27,7 +27,7 @@ Tasks are built using an [entity component system](https://en.wikipedia.org/wiki
 
 Components are designed to be easy to remove, customize, or replace. If you want to customize some aspect or behavior of a task, it's likely that it will be done through components.
 
-See [custom components](#custom-components) for how to customize them or define your own, and [components](doc/components.md) for a list of built-in components.
+See [custom components](guides.md#custom-components) for how to customize them or define your own, and [components](components.md) for a list of built-in components.
 
 **Note**: both tasks and components are designed to be serializable. They avoid putting things like functions in their constructors, and as a result can easily be serialized and saved to disk.
 
@@ -35,7 +35,7 @@ See [custom components](#custom-components) for how to customize them or define 
 
 Templates provide a way to construct a task, along with other metadata that aid in selecting and starting that task. They are the primary way to define tasks for overseer, and they are what appears when you use the command `:OverseerRun`.
 
-When you want to add custom tasks that you can run, templates are the way to go. See [custom tasks](#custom-tasks) for more.
+When you want to add custom tasks that you can run, templates are the way to go. See [custom tasks](guides.md#custom-tasks) for more.
 
 ## Task list
 
@@ -49,7 +49,7 @@ less detail for a single task with `<C-l>` and `<C-h>` (by default), or for all 
 `H`.
 
 `?` will show you a list of all the keybindings, and `<CR>` will open up a menu of all
-[actions](#actions) that you can perform on the selected task.
+[actions](guides.md#actions) that you can perform on the selected task.
 
 When a task is disposed, it will be removed from the task list. By default, tasks will be disposed 5
 minutes after they finish running (controlled by the `on_complete_dispose` component).
@@ -60,7 +60,7 @@ minutes after they finish running (controlled by the `on_complete_dispose` compo
 
 The task editor allows you to change the components on a task by hand. You shouldn't need to do this
 often (if you find yourself frequently making the same edits, consider turning that into an
-[action](#actions)), but it can be useful for experimentation and tweaking values on the fly.
+[action](guides.md#actions)), but it can be useful for experimentation and tweaking values on the fly.
 
 There are two ways to get to the task editor: `:OverseerBuild` will open it on a new task, and for
 existing tasks (that are not running) you can use the `edit` action.
