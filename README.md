@@ -35,6 +35,7 @@ A task runner and job management plugin for Neovim
   - [Neotest](#neotest)
   - [DAP](#dap)
   - [Session managers](#session-managers)
+- [Screenshots](#screenshots)
 
 <!-- /TOC -->
 
