@@ -2,12 +2,6 @@
 
 A task runner and job management plugin for Neovim
 
-**BETA** - [APIs](doc/reference.md#lua-api) are not guaranteed to be stable, but a best-effort will be made to retain backwards-compatibility
-
-Please leave feedback about what's hard, what's confusing, and where the documentation is lacking. I have a lot of plans for overseer, but I prioritize what's next based on requests.
-
-https://user-images.githubusercontent.com/506791/180620617-2b1bb0a8-5f39-4936-97c2-04c92f1e2974.mp4
-
 <!-- TOC -->
 
 - [Features](#features)
@@ -137,7 +131,7 @@ require('overseer').setup()
 
 To get started, all you need to know is `:OverseerRun` to select and start a task, and `:OverseerToggle` to open the task list.
 
-FIXME video of running a task, opening it, inspecting output.
+https://user-images.githubusercontent.com/506791/189036898-05edcd62-42e7-4bbb-ace2-746b7c8c567b.mp4
 
 If you don't see any tasks from `:OverseerRun`, it might mean that your task runner is not yet supported. There is currently support for VS Code tasks, make, npm, cargo, and some others. If yours is not supported, ([request support here](https://github.com/stevearc/overseer.nvim/issues/new/choose)).
 
@@ -318,3 +312,7 @@ require("auto-session").setup({
   },
 })
 ```
+
+## Screenshots
+
+https://user-images.githubusercontent.com/506791/180620617-2b1bb0a8-5f39-4936-97c2-04c92f1e2974.mp4
