@@ -14,6 +14,10 @@ _private-task:
 doc:
   python .github/main.py generate
 
+lint:
+  python .github/main.py lint
+  stylua --check .
+
 # command argument as environment variable
 greet $name:
   echo "Hello $name"
