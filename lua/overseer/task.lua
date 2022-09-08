@@ -252,7 +252,8 @@ function Task:add_components(components)
   local new_comps = component.resolve(components, self.components)
   for _, v in ipairs(component.load(new_comps)) do
     table.insert(self.components, v)
-    if v.on_init then
+    -- Only call on_init if the task is initialized
+    if self.id and v.on_init then
       v:on_init(self)
     end
   end
