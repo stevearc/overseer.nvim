@@ -25,7 +25,9 @@ jobs:
           git config user.email "actions@github"
           git config user.name "Github Actions"
           git remote set-url origin https://x-access-token:${GITHUB_TOKEN}@github.com/${GITHUB_REPOSITORY}.git
-          python .github/update_readme.py
+          python -m pip install pyparsing
+          python .github/main.py generate
+          python .github/main.py lint
           nvim --headless -c 'set runtimepath+=.' -c 'helptags ALL' -c 'qall'
           git add README.md doc
           # Only commit and push if we have changes

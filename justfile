@@ -11,8 +11,12 @@ test *names:
 _private-task:
   echo "Private task"
 
-docs:
-  python .github/update_readme.py
+doc:
+  python .github/main.py generate
+
+lint:
+  python .github/main.py lint
+  stylua --check .
 
 # command argument as environment variable
 greet $name:

@@ -2,9 +2,6 @@
 local M = {}
 
 local setup_callbacks = {}
-M.on_setup = function(callback)
-  table.insert(setup_callbacks, callback)
-end
 
 local initialized = false
 local pending_opts
@@ -246,7 +243,8 @@ local function patch_dap(enabled)
   })
 end
 
----@param opts overseer.Config
+---Initialize overseer
+---@param opts overseer.Config|nil Configuration options
 M.setup = function(opts)
   opts = opts or {}
   create_commands()
@@ -257,43 +255,151 @@ M.setup = function(opts)
   end
 end
 
+---Add a callback to run after overseer lazy setup
+---@param callback fun()
+M.on_setup = function(callback)
+  table.insert(setup_callbacks, callback)
+end
+
+---Create a new Task
 ---@param opts overseer.TaskDefinition
+---    cmd string|string[] Command to run
+---    args nil|string[] Arguments to pass to the command
+---    name nil|string Name of the task. Defaults to the cmd
+---    cwd nil|string Working directory to run in
+---    env nil|table<string, string> Additional environment variables
+---    strategy nil|overseer.Serialized Definition for a run Strategy
+---    metadata nil|table Arbitrary metadata for your own use
+---    components nil|overseer.Serialized[] List of components to attach. Defaults to `{'default'}`
 ---@return overseer.Task
+---@example
+--- local task = overseer.new_task({
+---   cmd = {'./build.sh'},
+---   args = {'all'},
+---   components = {{'on_output_quickfix', open=true}, 'default'}
+--- })
+--- task:start()
 M.new_task = lazy("task", "new")
 
+---Open or close the task list
+---@param opts overseer.WindowOpts|nil
+---    enter boolean|nil If false, stay in current window. Default true
+---    direction nil|"left"|"right" Which direction to open the task list
 M.toggle = lazy("window", "toggle")
+---Open the task list
+---@param opts overseer.WindowOpts|nil
+---    enter boolean|nil If false, stay in current window. Default true
+---    direction nil|"left"|"right" Which direction to open the task list
 M.open = lazy("window", "open")
+
+---Close the task list
 M.close = lazy("window", "close")
 
----@return string[]
+---Get the list of saved task bundles
+---@return string[] Names of task bundles
 M.list_task_bundles = lazy("task_bundle", "list_task_bundles")
----@param name? string
----@param opts? {ignore_missing?: boolean}
+---Load tasks from a saved bundle
+---@param name string|nil
+---@param opts table|nil
+---    ignore_missing boolean|nil When true, don't notify if bundle doesn't exist
 M.load_task_bundle = lazy("task_bundle", "load_task_bundle")
----@param name? string
----@param tasks overseer.Task[]
----@param opts? {on_conflict?: "overwrite"|"append"|"cancel"}
+---Save tasks to a bundle on disk
+---@param name string|nil Name of bundle. If nil, will prompt user.
+---@param tasks nil|overseer.Task[] Specific tasks to save. If nil, saves all tasks.
+---@param opts table|nil
+---    on_conflict nil|"overwrite"|"append"|"cancel"
 M.save_task_bundle = lazy("task_bundle", "save_task_bundle")
----@param name? string
+---Delete a saved task bundle
+---@param name string|nil
 M.delete_task_bundle = lazy("task_bundle", "delete_task_bundle")
 
----@param opts? overseer.ListTaskOpts
+---List all tasks
+---@param opts overseer.ListTaskOpts|nil
+---    unique boolean|nil Deduplicates non-running tasks by name
+---    name nil|string|string[] Only list tasks with this name or names
+---    name_not nil|boolean Invert the name search (tasks *without* that name)
+---    status nil|overseer.Status|overseer.Status[] Only list tasks with this status or statuses
+---    status_not nil|boolean Invert the status search
+---    recent_first nil|boolean The most recent tasks are first in the list
+---    bundleable nil|boolean Only list tasks that should be included in a bundle
+---    filter nil|fun(task: overseer.Task): boolean
 ---@return overseer.Task[]
 M.list_tasks = lazy("task_list", "list_tasks")
 
+---Run a task from a template
 ---@param opts overseer.TemplateRunOpts
----@param callback? fun(task: overseer.Task|nil, err: string|nil)
+---    name nil|string The name of the template to run
+---    tags nil|string[] List of tags used to filter when searching for template
+---    autostart nil|boolean When true, start the task after creating it (default true)
+---    first nil|boolean When true, take first result and never show the task picker. Default behavior will auto-set this based on presence of name and tags
+---    prompt nil|"always"|"missing"|"allow"|"never" Controls when to prompt user for parameter input
+---    params nil|table Parameters to pass to template
+---    cwd nil|string Working directory for the task
+---    env nil|table<string, string> Additional environment variables for the task
+---@param callback nil|fun(task: overseer.Task|nil, err: string|nil)
+---@note
+--- The prompt option will control when the user is presented a popup dialog to input template
+--- parameters. The possible values are:
+---    always    Show when template has any params
+---    missing   Show when template has any params not explicitly passed in
+---    allow     Only show when a required param is missing
+---    never     Never show prompt (error if required param missing)
+--- The default is controlled by the default_template_prompt config option.
+---@example
+--- -- Run the task named "make all"
+--- -- equivalent to :OverseerRun make all
+--- overseer.run_template({name = "make all"})
+--- -- Run the default "build" task
+--- -- equivalent to :OverseerRun BUILD
+--- overseer.run_template({tags = {overseer.TAG.BUILD}})
+--- -- Run the task named "serve" with some default parameters
+--- overseer.run_template({name = "serve", params = {port = 8080}})
+--- -- Create a task but do not start it
+--- overseer.run_template({name = "make", autostart = false}, function(task)
+---   -- do something with the task
+--- end)
+--- -- Run a task and immediately open the floating window
+--- overseer.run_template({name = "make"}, function(task)
+---   if task then
+---     overseer.run_action(task, 'open float')
+---   end
+--- end)
+--- -- Run a task and always show the parameter prompt
+--- overseer.run_template({name = "npm watch", prompt = "always"})
 M.run_template = lazy("commands", "run_template")
 
+---Run an action on a task
 ---@param task overseer.Task
----@param name? string Name of action. When omitted, prompt user to pick.
+---@param name string|nil Name of action. When omitted, prompt user to pick.
 M.run_action = lazy("action_util", "run_task_action")
 
 ---Create a new template by overriding fields on another
 ---@param base overseer.TemplateDefinition The base template definition to wrap
----@param override? table<string, any> Override any fields on the base
----@param default_params? table<string, any> Provide default values for any parameters on the base
+---@param override nil|table<string, any> Override any fields on the base
+---@param default_params nil|table<string, any> Provide default values for any parameters on the base
 ---@return overseer.TemplateDefinition
+---@note
+--- This is typically used for a TemplateProvider, to define the task a single time and generate
+--- multiple templates based on the available args.
+---@example
+--- local tmpl = {
+---   params = {
+---     args = { type = 'list', delimiter = ' ' }
+---   },
+---   builder = function(params)
+---   return {
+---     cmd = { 'make' },
+---     args = params.args,
+---   }
+--- }
+--- local template_provider = {
+---   generator = function(opts)
+---     return {
+---       overseer.wrap_template(tmpl, nil, { args = { 'all' } }),
+---       overseer.wrap_template(tmpl, {name = 'make clean'}, { args = { 'clean' } }),
+---     }
+---   end
+--- }
 M.wrap_template = function(base, override, default_params)
   override = override or {}
   if default_params then
@@ -326,9 +432,14 @@ M.remove_template_hook = lazy_pend("template", "remove_hook_template")
 ---@deprecated
 M.hook_template = M.add_template_hook
 
+---Directly register an overseer template
 ---@param defn overseer.TemplateDefinition|overseer.TemplateProvider
 M.register_template = lazy_pend("template", "register")
+---Load a template definition from its module location
 ---@param name string
+---@example
+--- -- This will load the template in lua/overseer/template/mytask.lua
+--- overseer.load_template('mytask')
 M.load_template = lazy_pend("template", "load_template")
 
 -- Used for vim-session integration.

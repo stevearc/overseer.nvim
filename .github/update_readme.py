@@ -1,85 +1,47 @@
-#!/usr/bin/env python
 import json
 import os
-import os.path
 import re
 import subprocess
-import textwrap
-from collections import defaultdict
-from typing import Any, Dict, Iterable, List, Optional, Tuple
+from typing import Any, Dict, Iterable, List, Tuple
+
+from apidoc import gen_api_md, gen_api_vimdoc
+from util import (
+    MD_LINK_PAT,
+    MD_TITLE_PAT,
+    Vimdoc,
+    VimdocSection,
+    dedent,
+    format_md_table,
+    indent,
+    leftright,
+    md_create_anchor,
+    read_section,
+    replace_section,
+    wrap,
+)
 
 HERE = os.path.dirname(__file__)
 ROOT = os.path.abspath(os.path.join(HERE, os.path.pardir))
 README = os.path.join(ROOT, "README.md")
-DOC = os.path.join(ROOT, "doc", "overseer.txt")
+DOC = os.path.join(ROOT, "doc")
+VIMDOC = os.path.join(DOC, "overseer.txt")
+
+MD_BOLD_PAT = re.compile(r"\*\*([^\*]+)\*\*")
+MD_LINE_BREAK_PAT = re.compile(r"\s*\\$")
 
 
-def indent(lines: List[str], amount: int) -> List[str]:
+def generate_toc(filename: str) -> List[str]:
     ret = []
-    for line in lines:
-        if amount >= 0:
-            ret.append(" " * amount + line)
-        else:
-            space = re.match(r"[ \t]+", line)
-            if space:
-                ret.append(line[min(abs(amount), space.span()[1]) :])
-            else:
-                ret.append(line)
-    return ret
-
-
-def replace_section(
-    file: str, start_pat: str, end_pat: Optional[str], lines: List[str]
-) -> None:
-    prefix_lines: List[str] = []
-    postfix_lines: List[str] = []
-    file_lines = prefix_lines
-    found_section = False
-    with open(file, "r", encoding="utf-8") as ifile:
-        inside_section = False
-        for line in ifile:
-            if inside_section:
-                if end_pat is not None and re.match(end_pat, line):
-                    inside_section = False
-                    file_lines = postfix_lines
-                    file_lines.append(line)
-            else:
-                if re.match(start_pat, line):
-                    inside_section = True
-                    found_section = True
-                file_lines.append(line)
-    if end_pat is None:
-        inside_section = False
-
-    if inside_section or not found_section:
-        raise Exception(f"could not find file section {start_pat}")
-
-    all_lines = prefix_lines + lines + postfix_lines
-    with open(file, "w", encoding="utf-8") as ofile:
-        ofile.write("".join(all_lines))
-
-
-def read_section(
-    filename: str,
-    start_pat: str,
-    end_pat: str,
-    inclusive: Tuple[bool, bool] = (False, False),
-) -> List[str]:
-    lines = []
     with open(filename, "r", encoding="utf-8") as ifile:
-        inside_section = False
         for line in ifile:
-            if inside_section:
-                if re.match(end_pat, line):
-                    if inclusive[1]:
-                        lines.append(line)
-                    break
-                lines.append(line)
-            elif re.match(start_pat, line):
-                inside_section = True
-                if inclusive[0]:
-                    lines.append(line)
-    return lines
+            m = MD_TITLE_PAT.match(line)
+            if m:
+                level = len(m[1]) - 1
+                prefix = "  " * level
+                title_link = md_create_anchor(m[2])
+                link = f"[{m[2]}](#{title_link})"
+                ret.append(prefix + "- " + link + "\n")
+    return ret
 
 
 def read_nvim_json(lua: str) -> Any:
@@ -98,7 +60,7 @@ def update_config_options():
     config_file = os.path.join(ROOT, "lua", "overseer", "config.lua")
     opt_lines = read_section(config_file, r"^local default_config =", r"^}$")
     replace_section(
-        README,
+        os.path.join(DOC, "reference.md"),
         r"^require\(\"overseer\"\).setup\({$",
         r"^}\)$",
         opt_lines,
@@ -122,34 +84,6 @@ def format_param(name: str, param: Dict) -> List[str]:
     lines = [line]
     if param.get("long_desc"):
         lines.extend(wrap(param["long_desc"], 4, 100, ""))
-    return lines
-
-
-def format_md_table_row(
-    data: Dict, column_names: List[str], max_widths: Dict[str, int]
-) -> str:
-    cols = []
-    for col in column_names:
-        cols.append(data[col].ljust(max_widths[col]))
-    return "| " + " | ".join(cols) + " |\n"
-
-
-def format_md_table(rows: List[Dict], column_names: List[str]) -> List[str]:
-    max_widths: Dict[str, int] = defaultdict(lambda: 1)
-    for row in rows:
-        for col in column_names:
-            max_widths[col] = max(max_widths[col], len(row[col]))
-    lines = []
-    titles = []
-    for col in column_names:
-        titles.append(col.ljust(max_widths[col]))
-    lines.append("| " + " | ".join(titles) + " |\n")
-    seps = []
-    for col in column_names:
-        seps.append(max_widths[col] * "-")
-    lines.append("| " + " | ".join(seps) + " |\n")
-    for row in rows:
-        lines.append(format_md_table_row(row, column_names, max_widths))
     return lines
 
 
@@ -225,17 +159,6 @@ def format_parser_args(name: str, args: List[Dict]) -> Iterable[str]:
         yield from format_parser_arg(arg)
 
 
-def dedent(lines: List[str], amount: Optional[int] = None) -> List[str]:
-    if amount is None:
-        amount = len(lines[0])
-        for line in lines:
-            m = re.match(r"^\s+", line)
-            if not m:
-                return lines
-            amount = min(amount, len(m[0]))
-    return [line[amount:] for line in lines]
-
-
 def format_example_code(code: str) -> Iterable[str]:
     lines = code.split("\n")
     while re.match(r"^\s*$", lines[0]):
@@ -307,7 +230,7 @@ def update_commands_md():
     lines.extend(format_md_table(rows, ["Command", "Args", "Description"]))
     lines.append("\n")
     replace_section(
-        README,
+        os.path.join(DOC, "reference.md"),
         r"^## Commands",
         r"^#",
         lines,
@@ -341,34 +264,6 @@ def update_highlights_md():
         r"^#",
         lines,
     )
-
-
-def count_special(base: str, char: str) -> int:
-    c = base.count(char)
-    return 2 * (c // 2)
-
-
-def vimlen(string: str) -> int:
-    return len(string) - sum([count_special(string, c) for c in "`|*"])
-
-
-def leftright(left: str, right: str, width: int = 80) -> str:
-    spaces = max(1, width - vimlen(left) - vimlen(right))
-    return left + spaces * " " + right + "\n"
-
-
-def wrap(
-    text: str, indent: int = 0, width: int = 80, line_end: str = "\n"
-) -> List[str]:
-    return [
-        line + line_end
-        for line in textwrap.wrap(
-            text,
-            initial_indent=indent * " ",
-            subsequent_indent=indent * " ",
-            width=width,
-        )
-    ]
 
 
 def get_commands_vimdoc() -> "VimdocSection":
@@ -411,76 +306,6 @@ def get_highlights_vimdoc() -> "VimdocSection":
     return section
 
 
-def trim_newlines(lines: List[str]) -> List[str]:
-    while lines and lines[0] == "\n":
-        lines.pop(0)
-    while lines and lines[-1] == "\n":
-        lines.pop()
-    return lines
-
-
-class VimdocSection:
-    def __init__(
-        self,
-        name: str,
-        tag: str,
-        body: Optional[List[str]] = None,
-        sep: str = "-",
-        width: int = 80,
-    ):
-        self.name = name
-        self.tag = tag
-        self.body = body or []
-        self.sep = sep
-        self.width = width
-
-    def get_body(self) -> List[str]:
-        return self.body
-
-    def render(self) -> List[str]:
-        lines = [
-            self.width * self.sep + "\n",
-            leftright(self.name.upper(), f"*{self.tag}*", self.width),
-            "\n",
-        ]
-        lines.extend(trim_newlines(self.get_body()))
-        lines.append("\n")
-        return lines
-
-
-class VimdocToc(VimdocSection):
-    def __init__(self, name: str, tag: str, width: int = 80):
-        super().__init__(name, tag, width=width)
-        self.entries: List[Tuple[str, str]] = []
-        self.padding = 2
-
-    def get_body(self) -> List[str]:
-        lines = []
-        for i, (name, tag) in enumerate(self.entries):
-            left = self.padding * " " + f"{i+1}. {name.capitalize()}"
-            tag_start = self.width - 2 * self.padding - vimlen(tag)
-            lines.append(left.ljust(tag_start, ".") + f"|{tag}|\n")
-        return lines
-
-
-class Vimdoc:
-    def __init__(self, filename: str, tags: List[str], width: int = 80):
-        self.prefix = [f"*{filename}*\n", " ".join(f"*{tag}*" for tag in tags) + "\n"]
-        self.sections: List[VimdocSection] = []
-        self.width = width
-
-    def render(self) -> List[str]:
-        header = self.prefix[:]
-        body = []
-        toc = VimdocToc("CONTENTS", "overseer-contents", width=self.width)
-        for section in self.sections:
-            toc.entries.append((section.name, section.tag))
-            body.extend(section.render())
-        body.append(self.width * "=" + "\n")
-        body.append("vim:tw=80:ts=2:ft=help:norl:syntax=help:\n")
-        return header + toc.render() + body
-
-
 def convert_md_link(match):
     text = match[1]
     dest = match[2]
@@ -488,11 +313,6 @@ def convert_md_link(match):
         return f"|{dest[1:]}|"
     else:
         return text
-
-
-MD_LINK_PAT = re.compile(r"\[([^\]]+)\]\(([^\)]+)\)")
-MD_BOLD_PAT = re.compile(r"\*\*([^\*]+)\*\*")
-MD_LINE_BREAK_PAT = re.compile(r"\s*\\$")
 
 
 def convert_markdown_to_vimdoc(lines: List[str]) -> List[str]:
@@ -530,13 +350,14 @@ def convert_markdown_to_vimdoc(lines: List[str]) -> List[str]:
 
 
 def convert_md_section(
+    filename: str,
     start_pat: str,
     end_pat: str,
     section_name: str,
     section_tag: str,
     inclusive: Tuple[bool, bool] = (False, False),
 ) -> VimdocSection:
-    lines = read_section(README, start_pat, end_pat, inclusive)
+    lines = read_section(filename, start_pat, end_pat, inclusive)
     lines = convert_markdown_to_vimdoc(lines)
     return VimdocSection(section_name, section_tag, lines)
 
@@ -547,36 +368,124 @@ def generate_vimdoc():
         [
             get_commands_vimdoc(),
             get_options_vimdoc(),
-            convert_md_section(
-                "^## Running tasks", "^#", "Running tasks", "overseer-run-tasks"
-            ),
-            convert_md_section("^### Custom tasks", "^#", "Tasks", "overseer-tasks"),
-            convert_md_section(
-                "^#### Template definition", "^#", "Templates", "overseer-templates"
-            ),
-            convert_md_section(
-                "^#### Template providers",
-                "^#",
-                "Template providers",
-                "overseer-template-providers",
-            ),
-            convert_md_section("^### Actions", "^#", "Actions", "overseer-actions"),
-            convert_md_section(
-                "^### Custom components", "^#", "Components", "overseer-components"
-            ),
-            convert_md_section(
-                "^#### Task result", "^#", "Task result", "overseer-task-result"
-            ),
-            convert_md_section(
-                "^### Parameters", "^#", "Parameters", "overseer-params"
-            ),
             get_highlights_vimdoc(),
+            VimdocSection("API", "overseer-api", gen_api_vimdoc()),
+            convert_md_section(
+                os.path.join(DOC, "reference.md"),
+                "^## Parameters",
+                "^#",
+                "Parameters",
+                "overseer-params",
+            ),
         ]
     )
 
     # TODO check for missing tags
-    with open(DOC, "w", encoding="utf-8") as ofile:
+    with open(VIMDOC, "w", encoding="utf-8") as ofile:
         ofile.writelines(doc.render())
+
+
+def update_md_api():
+    lines = ["\n"] + gen_api_md() + ["\n"]
+    replace_section(
+        os.path.join(DOC, "reference.md"),
+        r"^<!-- API -->$",
+        r"^<!-- /API -->$",
+        lines,
+    )
+
+
+def update_md_toc(filename: str):
+    toc = ["\n"] + generate_toc(filename) + ["\n"]
+    replace_section(
+        filename,
+        r"^<!-- TOC -->$",
+        r"^<!-- /TOC -->$",
+        toc,
+    )
+
+
+def add_md_link_path(path: str, lines: List[str]) -> List[str]:
+    ret = []
+    for line in lines:
+        ret.append(re.sub(r"(\(#)", "(" + path + "#", line))
+    return ret
+
+
+def update_readme_toc():
+    toc = generate_toc(README)
+
+    def get_toc(filename: str) -> List[str]:
+        subtoc = generate_toc(os.path.join(DOC, filename))
+        return add_md_link_path("doc/" + filename, subtoc)
+
+    tutorials_toc = get_toc("tutorials.md")
+    guides_toc = get_toc("guides.md")
+    reference_toc = get_toc("reference.md")
+    explanation_toc = get_toc("explanation.md")
+    third_party_toc = get_toc("third_party.md")
+    recipes_toc = get_toc("recipes.md")
+
+    def add_subtoc(title: str, lines: List[str]):
+        for i, line in enumerate(toc):
+            if line.strip().startswith(f"- [{title}]"):
+                toc[i + 1 : i + 1] = indent(
+                    # Only add subtoc one level deep
+                    [line for line in lines if not line.startswith(" ")],
+                    2,
+                )
+                return
+        raise Exception(f"could not find README section {title} in TOC")
+
+    add_subtoc("Tutorials", tutorials_toc)
+    add_subtoc("Guides", guides_toc)
+    add_subtoc("Explanation", explanation_toc)
+    add_subtoc("Third-party integrations", third_party_toc)
+    add_subtoc("Recipes", recipes_toc)
+    add_subtoc("Reference", reference_toc)
+
+    replace_section(
+        README,
+        r"^## Tutorials$",
+        r"^#",
+        ["\n"] + tutorials_toc + ["\n"],
+    )
+    replace_section(
+        README,
+        r"^## Guides$",
+        r"^#",
+        ["\n"] + guides_toc + ["\n"],
+    )
+    replace_section(
+        README,
+        r"^## Reference$",
+        r"^#",
+        ["\n"] + reference_toc + ["\n"],
+    )
+    replace_section(
+        README,
+        r"^## Explanation$",
+        r"^#",
+        ["\n"] + explanation_toc + ["\n"],
+    )
+    replace_section(
+        README,
+        r"^## Third-party integrations$",
+        r"^#",
+        ["\n"] + third_party_toc + ["\n"],
+    )
+    replace_section(
+        README,
+        r"^## Recipes$",
+        r"^#",
+        ["\n"] + recipes_toc + ["\n"],
+    )
+    replace_section(
+        README,
+        r"^<!-- TOC -->$",
+        r"^<!-- /TOC -->$",
+        ["\n"] + toc + ["\n"],
+    )
 
 
 def main() -> None:
@@ -585,8 +494,12 @@ def main() -> None:
     update_components_md()
     update_parsers_md()
     update_commands_md()
+    update_md_api()
+    update_md_toc(os.path.join(DOC, "tutorials.md"))
+    update_md_toc(os.path.join(DOC, "guides.md"))
+    update_md_toc(os.path.join(DOC, "reference.md"))
+    update_md_toc(os.path.join(DOC, "explanation.md"))
+    update_md_toc(os.path.join(DOC, "third_party.md"))
+    update_md_toc(os.path.join(DOC, "recipes.md"))
+    update_readme_toc()
     generate_vimdoc()
-
-
-if __name__ == "__main__":
-    main()
