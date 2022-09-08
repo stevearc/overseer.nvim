@@ -18,12 +18,6 @@ A task runner and job management plugin for Neovim
   - [Parsing output](doc/guides.md#parsing-output)
   - [Running tasks sequentially](doc/guides.md#running-tasks-sequentially)
   - [VS Code tasks](doc/guides.md#vs-code-tasks)
-- [Reference](#reference)
-  - [Setup options](doc/reference.md#setup-options)
-  - [Commands](doc/reference.md#commands)
-  - [Highlight groups](doc/reference.md#highlight-groups)
-  - [Lua API](doc/reference.md#lua-api)
-  - [Parameters](doc/reference.md#parameters)
 - [Explanation](#explanation)
   - [Architecture](doc/explanation.md#architecture)
   - [Task list](doc/explanation.md#task-list)
@@ -35,6 +29,14 @@ A task runner and job management plugin for Neovim
   - [Neotest](doc/third_party.md#neotest)
   - [DAP](doc/third_party.md#dap)
   - [Session managers](doc/third_party.md#session-managers)
+- [Recipes](#recipes)
+  - [Restart last task](doc/recipes.md#restart-last-task)
+- [Reference](#reference)
+  - [Setup options](doc/reference.md#setup-options)
+  - [Commands](doc/reference.md#commands)
+  - [Highlight groups](doc/reference.md#highlight-groups)
+  - [Lua API](doc/reference.md#lua-api)
+  - [Parameters](doc/reference.md#parameters)
 - [Screenshots](#screenshots)
 
 <!-- /TOC -->
@@ -155,6 +157,28 @@ If you want to define custom tasks for your project, I'd recommend starting with
 - [Running tasks sequentially](doc/guides.md#running-tasks-sequentially)
 - [VS Code tasks](doc/guides.md#vs-code-tasks)
 
+## Explanation
+
+- [Architecture](doc/explanation.md#architecture)
+  - [Tasks](doc/explanation.md#tasks)
+  - [Components](doc/explanation.md#components)
+  - [Templates](doc/explanation.md#templates)
+- [Task list](doc/explanation.md#task-list)
+- [Task editor](doc/explanation.md#task-editor)
+- [Alternatives](doc/explanation.md#alternatives)
+- [FAQ](doc/explanation.md#faq)
+
+## Third-party integrations
+
+- [Lualine](doc/third_party.md#lualine)
+- [Neotest](doc/third_party.md#neotest)
+- [DAP](doc/third_party.md#dap)
+- [Session managers](doc/third_party.md#session-managers)
+
+## Recipes
+
+- [Restart last task](doc/recipes.md#restart-last-task)
+
 ## Reference
 
 - [Setup options](doc/reference.md#setup-options)
@@ -180,24 +204,6 @@ If you want to define custom tasks for your project, I'd recommend starting with
   - [register_template(defn)](doc/reference.md#register_templatedefn)
   - [load_template(name)](doc/reference.md#load_templatename)
 - [Parameters](doc/reference.md#parameters)
-
-## Explanation
-
-- [Architecture](doc/explanation.md#architecture)
-  - [Tasks](doc/explanation.md#tasks)
-  - [Components](doc/explanation.md#components)
-  - [Templates](doc/explanation.md#templates)
-- [Task list](doc/explanation.md#task-list)
-- [Task editor](doc/explanation.md#task-editor)
-- [Alternatives](doc/explanation.md#alternatives)
-- [FAQ](doc/explanation.md#faq)
-
-## Third-party integrations
-
-- [Lualine](doc/third_party.md#lualine)
-- [Neotest](doc/third_party.md#neotest)
-- [DAP](doc/third_party.md#dap)
-- [Session managers](doc/third_party.md#session-managers)
 
 ## Screenshots
 
