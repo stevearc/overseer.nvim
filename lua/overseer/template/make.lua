@@ -32,6 +32,31 @@ local tmpl = {
   end,
 }
 
+local function ts_parse_make_targets(parser, content, cwd)
+  local ret = {}
+  local query = vim.treesitter.parse_query("make", make_targets)
+  local root = parser:parse()[1]:root()
+  pcall(vim.tbl_add_reverse_lookup, query.captures)
+  local targets = {}
+  local default_target
+  for _, match in query:iter_matches(root, content) do
+    local name = vim.treesitter.get_node_text(match[query.captures.name], content)
+    targets[name] = true
+    if not default_target and not match[query.captures.phony] then
+      default_target = name
+    end
+  end
+
+  for k in pairs(targets) do
+    local override = { name = string.format("make %s", k) }
+    if k == default_target then
+      override.priority = 55
+    end
+    table.insert(ret, overseer.wrap_template(tmpl, override, { args = { k }, cwd = cwd }))
+  end
+  return ret
+end
+
 return {
   condition = {
     callback = function(opts)
@@ -42,29 +67,15 @@ return {
     local makefile = vim.fn.findfile("Makefile", opts.dir .. ";")
     local cwd = vim.fn.fnamemodify(makefile, ":h")
     local content = files.read_file(makefile)
-    local ret = { tmpl }
 
-    local parser = vim.treesitter.get_string_parser(content, "make", {})
-    local query = vim.treesitter.parse_query("make", make_targets)
-    local root = parser:parse()[1]:root()
-    pcall(vim.tbl_add_reverse_lookup, query.captures)
-    local targets = {}
-    local default_target
-    for _, match in query:iter_matches(root, content) do
-      local name = vim.treesitter.get_node_text(match[query.captures.name], content)
-      targets[name] = true
-      if not default_target and not match[query.captures.phony] then
-        default_target = name
-      end
+    local ret
+    local ok, parser = pcall(vim.treesitter.get_string_parser, content, "make", {})
+    if ok then
+      ret = ts_parse_make_targets(parser, content, cwd)
+    else
+      ret = {}
     end
-
-    for k in pairs(targets) do
-      local override = { name = string.format("make %s", k) }
-      if k == default_target then
-        override.priority = 55
-      end
-      table.insert(ret, overseer.wrap_template(tmpl, override, { args = { k }, cwd = cwd }))
-    end
+    table.insert(ret, overseer.wrap_template(tmpl, nil, { cwd = cwd }))
     return ret
   end,
 }
