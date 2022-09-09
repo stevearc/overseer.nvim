@@ -1,5 +1,6 @@
 local constants = require("overseer.constants")
 local files = require("overseer.files")
+local log = require("overseer.log")
 local overseer = require("overseer")
 local TAG = constants.TAG
 
@@ -21,19 +22,15 @@ local tmpl = {
     cwd = { optional = true },
   },
   builder = function(params)
-    local cmd = { "make" }
-    if params.args then
-      cmd = vim.list_extend(cmd, params.args)
-    end
     return {
-      cmd = cmd,
+      cmd = { "make" },
+      args = params.args,
       cwd = params.cwd,
     }
   end,
 }
 
-local function ts_parse_make_targets(parser, content, cwd)
-  local ret = {}
+local function ts_parse_make_targets(parser, content, cwd, ret)
   local query = vim.treesitter.parse_query("make", make_targets)
   local root = parser:parse()[1]:root()
   pcall(vim.tbl_add_reverse_lookup, query.captures)
@@ -57,25 +54,62 @@ local function ts_parse_make_targets(parser, content, cwd)
   return ret
 end
 
+local function parse_make_output(cwd, ret, cb)
+  local jid = vim.fn.jobstart({ "make", "-rRpq" }, {
+    cwd = cwd,
+    stdout_buffered = true,
+    on_stdout = vim.schedule_wrap(function(j, output)
+      local parsing = false
+      local prev_line = ""
+      for _, line in ipairs(output) do
+        if line:find("# Files") == 1 then
+          parsing = true
+        elseif line:find("# Finished Make") == 1 then
+          break
+        elseif parsing then
+          if line:match("^[^%.#%s]") and prev_line:find("# Not a target") ~= 1 then
+            local idx = line:find(":")
+            local target = line:sub(1, idx - 1)
+            local override = { name = string.format("make %s", target) }
+            table.insert(
+              ret,
+              overseer.wrap_template(tmpl, override, { args = { target }, cwd = cwd })
+            )
+          end
+        end
+        prev_line = line
+      end
+
+      cb(ret)
+    end),
+  })
+  if jid == 0 then
+    log:error("Passed invalid arguments to 'make'")
+    cb(ret)
+  elseif jid == -1 then
+    log:error("'make' is not executable")
+    cb(ret)
+  end
+end
+
 return {
   condition = {
     callback = function(opts)
       return vim.fn.findfile("Makefile", opts.dir .. ";") ~= "" and vim.fn.executable("make") == 1
     end,
   },
-  generator = function(opts)
+  generator = function(opts, cb)
     local makefile = vim.fn.findfile("Makefile", opts.dir .. ";")
     local cwd = vim.fn.fnamemodify(makefile, ":h")
     local content = files.read_file(makefile)
 
-    local ret
+    local ret = { overseer.wrap_template(tmpl, nil, { cwd = cwd }) }
     local ok, parser = pcall(vim.treesitter.get_string_parser, content, "make", {})
     if ok then
-      ret = ts_parse_make_targets(parser, content, cwd)
+      ts_parse_make_targets(parser, content, cwd, ret)
+      return ret
     else
-      ret = {}
+      parse_make_output(cwd, ret, cb)
     end
-    table.insert(ret, overseer.wrap_template(tmpl, nil, { cwd = cwd }))
-    return ret
   end,
 }
