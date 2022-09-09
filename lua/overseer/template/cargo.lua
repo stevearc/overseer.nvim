@@ -1,5 +1,4 @@
 local constants = require("overseer.constants")
-local files = require("overseer.files")
 local overseer = require("overseer")
 local TAG = constants.TAG
 
@@ -32,7 +31,8 @@ local tmpl = {
 return {
   condition = {
     callback = function(opts)
-      return files.exists(vim.fn.findfile("Cargo.toml", opts.dir .. ";"))
+      return vim.fn.findfile("Cargo.toml", opts.dir .. ";") ~= ""
+        and vim.fn.executable("cargo") == 1
     end,
   },
   generator = function(opts)

@@ -1,11 +1,9 @@
-local files = require("overseer.files")
 local log = require("overseer.log")
 
 return {
   condition = {
     callback = function(opts)
-      return files.exists(vim.fn.findfile("justfile", opts.dir .. ";"))
-        and vim.fn.executable("just") == 1
+      return vim.fn.findfile("justfile", opts.dir .. ";") ~= "" and vim.fn.executable("just") == 1
     end,
   },
   generator = function(opts, cb)

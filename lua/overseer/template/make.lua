@@ -18,6 +18,7 @@ local tmpl = {
   tags = { TAG.BUILD },
   params = {
     args = { optional = true, type = "list", delimiter = " " },
+    cwd = { optional = true },
   },
   builder = function(params)
     local cmd = { "make" }
@@ -26,6 +27,7 @@ local tmpl = {
     end
     return {
       cmd = cmd,
+      cwd = params.cwd,
     }
   end,
 }
@@ -33,11 +35,13 @@ local tmpl = {
 return {
   condition = {
     callback = function(opts)
-      return files.exists(files.join(opts.dir, "Makefile"))
+      return vim.fn.findfile("Makefile", opts.dir .. ";") ~= "" and vim.fn.executable("make") == 1
     end,
   },
   generator = function(opts)
-    local content = files.read_file(files.join(opts.dir, "Makefile"))
+    local makefile = vim.fn.findfile("Makefile", opts.dir .. ";")
+    local cwd = vim.fn.fnamemodify(makefile, ":h")
+    local content = files.read_file(makefile)
     local ret = { tmpl }
 
     local parser = vim.treesitter.get_string_parser(content, "make", {})
@@ -59,7 +63,7 @@ return {
       if k == default_target then
         override.priority = 55
       end
-      table.insert(ret, overseer.wrap_template(tmpl, override, { args = { k } }))
+      table.insert(ret, overseer.wrap_template(tmpl, override, { args = { k }, cwd = cwd }))
     end
     return ret
   end,
