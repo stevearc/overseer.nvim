@@ -12,23 +12,19 @@ local Sidebar = {}
 local ref
 
 M.get_or_create = function()
-  local created = not ref
-  if not ref then
+  local sb = M.get()
+  local created = not sb
+  if not sb then
     ref = Sidebar.new()
-    vim.api.nvim_create_autocmd("BufUnload", {
-      desc = "Clean up overseer sidebar reference on buffer unload",
-      buffer = ref.bufnr,
-      callback = function()
-        ref = nil
-      end,
-      once = true,
-    })
+    sb = ref
   end
-  return ref, created
+  return sb, created
 end
 
 M.get = function()
-  return ref
+  if ref and vim.api.nvim_buf_is_loaded(ref.bufnr) and vim.api.nvim_buf_is_valid(ref.bufnr) then
+    return ref
+  end
 end
 
 local MIN_DETAIL = 1

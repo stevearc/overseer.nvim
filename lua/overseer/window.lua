@@ -5,22 +5,27 @@ local util = require("overseer.util")
 local M = {}
 
 ---@param direction "left"|"right"
-local function create_overseer_window(direction)
+---@param existing_win integer
+local function create_overseer_window(direction, existing_win)
   local bufnr = task_list.get_or_create_bufnr()
 
   local my_winid = vim.api.nvim_get_current_win()
-  local modifier = direction == "left" and "topleft" or "botright"
-  local winids = util.get_fixed_wins(bufnr)
-  local split_target
-  if direction == "left" then
-    split_target = winids[1]
+  if existing_win then
+    util.go_win_no_au(existing_win)
   else
-    split_target = winids[#winids]
+    local modifier = direction == "left" and "topleft" or "botright"
+    local winids = util.get_fixed_wins(bufnr)
+    local split_target
+    if direction == "left" then
+      split_target = winids[1]
+    else
+      split_target = winids[#winids]
+    end
+    if my_winid ~= split_target then
+      util.go_win_no_au(split_target)
+    end
+    vim.cmd(string.format("noau vertical %s split", modifier))
   end
-  if my_winid ~= split_target then
-    util.go_win_no_au(split_target)
-  end
-  vim.cmd(string.format("noau vertical %s split", modifier))
 
   util.go_buf_no_au(bufnr)
   vim.api.nvim_win_set_option(0, "listchars", "tab:> ")
@@ -55,8 +60,9 @@ M.is_open = function()
 end
 
 ---@class overseer.WindowOpts
----@field enter boolean|nil
----@field direction "left"|"right"|nil
+---@field enter nil|boolean
+---@field direction nil|"left"|"right"
+---@field winid nil|integer Use this existing window instead of opening a new window
 
 ---@param opts? overseer.WindowOpts
 M.open = function(opts)
@@ -67,7 +73,7 @@ M.open = function(opts)
   if M.is_open() then
     return
   end
-  local winid = create_overseer_window(opts.direction)
+  local winid = create_overseer_window(opts.direction, opts.winid)
   if opts.enter then
     vim.api.nvim_set_current_win(winid)
   end
