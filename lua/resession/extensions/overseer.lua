@@ -4,10 +4,10 @@ local sidebar = require("overseer.task_list.sidebar")
 local window = require("overseer.window")
 local M = {}
 
-local config = {}
+local conf = {}
 
 M.config = function(data)
-  config = vim.tbl_deep_extend("keep", config, {
+  conf = vim.tbl_deep_extend("keep", data, {
     bundleable = true,
   })
 end
@@ -15,7 +15,7 @@ end
 M.on_save = function()
   return vim.tbl_map(function(task)
     return task:serialize()
-  end, task_list.list_tasks(config))
+  end, task_list.list_tasks(conf))
 end
 
 M.on_load = function(data)
@@ -36,11 +36,11 @@ M.save_win = function(winid)
   }
 end
 
-M.load_win = function(winid, config)
+M.load_win = function(winid, data)
   window.open({ winid = winid })
   local sb = sidebar.get_or_create()
-  if config.default_detail then
-    sb:change_default_detail(config.default_detail - sb.default_detail)
+  if data.default_detail then
+    sb:change_default_detail(data.default_detail - sb.default_detail)
   end
 end
 
