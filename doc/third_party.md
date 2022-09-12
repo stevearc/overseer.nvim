@@ -97,7 +97,25 @@ If you have both overseer and [nvim-dap](https://github.com/mfussenegger/nvim-da
 
 ## Session managers
 
-If you would like to save and restore overseer tasks as part of saving and restoring a session, overseer makes that easy with task bundles. These are exposed to the user with the commands `:OverseerSaveBundle` and `:OverseerLoadBundle`, but you can use the lua API directly for a nicer integration. You essentially just need to get the session name and add some hooks using your plugin's API to handle overseer tasks on session save/restore.
+### resession.nvim
+
+Overseer has built-in support for [resession.nvim](https://github.com/stevearc/resession.nvim).
+
+```lua
+require('resession').setup({
+  extensions = {
+    overseer = {
+      -- customize here
+    }
+  }
+})
+```
+
+The configuration options will be passed to [list_tasks](reference.md#list_tasksopts), and determine which tasks will be saved when saving a session.
+
+### Other session managers
+
+For other session managers, task bundles should make it convenient to load/save tasks. These are exposed to the user with the commands `:OverseerSaveBundle` and `:OverseerLoadBundle`, but you can use the lua API directly for a nicer integration. You essentially just need to get the session name and add some hooks using your plugin's API to handle overseer tasks on session save/restore.
 
 For example, to integrate with [auto-session](https://github.com/rmagatti/auto-session)
 
