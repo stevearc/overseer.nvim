@@ -39,8 +39,10 @@ return {
     return {
       lines = {},
       defer_update_lines = util.debounce(function(self, task, bufnr, num_lines)
-        self.lines = get_last_lines(bufnr, num_lines)
-        task_list.update(task)
+        if vim.api.nvim_buf_is_valid(bufnr) then
+          self.lines = get_last_lines(bufnr, num_lines)
+          task_list.update(task)
+        end
       end, {
         delay = 10,
         reset_timer_on_call = true,
