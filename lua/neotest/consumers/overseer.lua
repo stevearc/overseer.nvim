@@ -1,7 +1,6 @@
 local async = require("neotest.async")
 local config = require("neotest.config")
 local lib = require("neotest.lib")
-local strategy = require("neotest.client.strategies.overseer")
 
 local neotest = {}
 neotest.overseer = {}
@@ -38,6 +37,7 @@ end
 
 ---@private
 function neotest.overseer.rerun_task_group(group_id)
+  local strategy = require("neotest.client.strategies.overseer")
   strategy.recycle_group(group_id)
   strategy.set_group_id(group_id)
   local group = task_groups[group_id]

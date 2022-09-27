@@ -80,11 +80,11 @@ local function get_or_create_task(spec, output_path)
   return task
 end
 
-if not overseer.component.get_alias("default_neotest") then
-  overseer.component.alias("default_neotest", { "default" })
-end
-
 local function get_strategy(spec)
+  if not overseer.component.get_alias("default_neotest") then
+    overseer.component.alias("default_neotest", { "default" })
+  end
+
   local finish_cond = async.control.Condvar.new()
   local attach_win
   local output_path = async.fn.tempname()
