@@ -226,10 +226,18 @@ end
 ---Add support for preLaunchTask/postDebugTask to nvim-dap
 ---@param enabled boolean
 local function patch_dap(enabled)
-  local ok, dap = pcall(require, "dap")
-  if not ok then
+  if not package.loaded.dap then
+    package.loaded.dap = setmetatable({}, {
+      __index = function(_, k)
+        package.loaded.dap = nil
+        require("dap")
+        patch_dap(enabled)
+        return require("dap")[k]
+      end,
+    })
     return
   end
+  local dap = require("dap")
   if type(dap.run) == "table" then
     if not enabled then
       dap.run = dap.run.original
