@@ -249,6 +249,7 @@ The official API surface includes:
 
 ### setup(opts)
 
+`setup(opts)` \
 Initialize overseer
 | Param | Type                   | Desc                  |
 | ---- | ---------------------- | --------------------- |
@@ -256,6 +257,7 @@ Initialize overseer
 
 ### on_setup(callback)
 
+`on_setup(callback)` \
 Add a callback to run after overseer lazy setup
 | Param    | Type    | Desc |
 | -------- | ------- | - |
@@ -263,6 +265,7 @@ Add a callback to run after overseer lazy setup
 
 ### new_task(opts)
 
+`new_task(opts): overseer.Task` \
 Create a new Task
 | Param | Type                      | Desc                         |                                                         |
 | ---- | ------------------------- | ---------------------------- | ------------------------------------------------------- |
@@ -289,6 +292,7 @@ task:start()
 
 ### toggle(opts)
 
+`toggle(opts)` \
 Open or close the task list
 | Param | Type                       | Desc                   |                                                |
 | ---- | -------------------------- | ---------------------- | ---------------------------------------------- |
@@ -298,6 +302,7 @@ Open or close the task list
 
 ### open(opts)
 
+`open(opts)` \
 Open the task list
 | Param | Type                       | Desc                   |                                                |
 | ---- | -------------------------- | ---------------------- | ---------------------------------------------- |
@@ -307,14 +312,22 @@ Open the task list
 
 ### close()
 
+`close()` \
 Close the task list
 
 ### list_task_bundles()
 
+`list_task_bundles(): string[]` \
 Get the list of saved task bundles
+
+Returns:
+| Type     | Desc                  |
+| -------- | --------------------- |
+| string[] | Names of task bundles |
 
 ### load_task_bundle(name, opts)
 
+`load_task_bundle(name, opts)` \
 Load tasks from a saved bundle
 | Param | Type           | Desc           |                                                 |
 | ---- | -------------- | -------------- | ----------------------------------------------- |
@@ -324,6 +337,7 @@ Load tasks from a saved bundle
 
 ### save_task_bundle(name, tasks, opts)
 
+`save_task_bundle(name, tasks, opts)` \
 Save tasks to a bundle on disk
 | Param | Type                   | Desc                                             |   |
 | ----- | ---------------------- | ------------------------------------------------ | - |
@@ -334,6 +348,7 @@ Save tasks to a bundle on disk
 
 ### delete_task_bundle(name)
 
+`delete_task_bundle(name)` \
 Delete a saved task bundle
 | Param | Type          | Desc |
 | ---- | ------------- | - |
@@ -341,6 +356,7 @@ Delete a saved task bundle
 
 ### list_tasks(opts)
 
+`list_tasks(opts): overseer.Task[]` \
 List all tasks
 | Param | Type                         | Desc                                      |                                                     |
 | ---- | ---------------------------- | ----------------------------------------- | --------------------------------------------------- |
@@ -356,6 +372,7 @@ List all tasks
 
 ### run_template(opts, callback)
 
+`run_template(opts, callback)` \
 Run a task from a template
 | Param    | Type                                                   | Desc                                         |                                                                                                                                     |
 | -------- | ------------------------------------------------------ | -------------------------------------------- | ----------------------------------------------------------------------------------------------------------------------------------- |
@@ -407,6 +424,7 @@ overseer.run_template({name = "npm watch", prompt = "always"})
 
 ### run_action(task, name)
 
+`run_action(task, name)` \
 Run an action on a task
 | Param | Type            | Desc                                               |
 | ---- | --------------- | -------------------------------------------------- |
@@ -415,6 +433,7 @@ Run an action on a task
 
 ### wrap_template(base, override, default_params)
 
+`wrap_template(base, override, default_params): overseer.TemplateDefinition` \
 Create a new template by overriding fields on another
 | Param          | Type                          | Desc                                                  |
 | -------------- | ----------------------------- | ----------------------------------------------------- |
@@ -452,6 +471,7 @@ local template_provider = {
 
 ### add_template_hook(opts, hook)
 
+`add_template_hook(opts, hook)` \
 Add a hook that runs on a TaskDefinition before the task is created
 | Param | Type                                                               | Desc                                    |                                                                           |
 | ---- | ------------------------------------------------------------------ | --------------------------------------- | ------------------------------------------------------------------------- |
@@ -482,6 +502,7 @@ end)
 
 ### remove_template_hook(opts, hook)
 
+`remove_template_hook(opts, hook)` \
 Remove a hook that was added with add_template_hook
 | Param | Type                                                               | Desc                          |
 | ---- | ------------------------------------------------------------------ | ----------------------------- |
@@ -501,6 +522,7 @@ overseer.remove_template_hook(opts, hook)
 
 ### register_template(defn)
 
+`register_template(defn)` \
 Directly register an overseer template
 | Param | Type                                                     | Desc |
 | ---- | -------------------------------------------------------- | - |
@@ -508,6 +530,7 @@ Directly register an overseer template
 
 ### load_template(name)
 
+`load_template(name)` \
 Load a template definition from its module location
 | Param | Type     | Desc |
 | ---- | -------- | - |

@@ -6,7 +6,7 @@
 - [Neotest](#neotest)
 - [DAP](#dap)
 - [Session managers](#session-managers)
-  - [resession.nvim](#resession.nvim)
+  - [resession.nvim](#resessionnvim)
   - [Other session managers](#other-session-managers)
 
 <!-- /TOC -->

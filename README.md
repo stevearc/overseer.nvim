@@ -176,7 +176,7 @@ If you want to define custom tasks for your project, I'd recommend starting with
 - [Neotest](doc/third_party.md#neotest)
 - [DAP](doc/third_party.md#dap)
 - [Session managers](doc/third_party.md#session-managers)
-  - [resession.nvim](doc/third_party.md#resession.nvim)
+  - [resession.nvim](doc/third_party.md#resessionnvim)
   - [Other session managers](doc/third_party.md#other-session-managers)
 
 ## Recipes

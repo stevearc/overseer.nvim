@@ -264,7 +264,7 @@ on_setup({callback})                                           *overseer.on_setu
     Parameters:
       {callback} `fun()`
 
-new_task({opts})                                               *overseer.new_task*
+new_task({opts}): overseer.Task                                *overseer.new_task*
     Create a new Task
 
     Parameters:
@@ -313,9 +313,11 @@ close()                                                           *overseer.clos
     Close the task list
 
 
-list_task_bundles()                                   *overseer.list_task_bundles*
+list_task_bundles(): string[]                         *overseer.list_task_bundles*
     Get the list of saved task bundles
 
+    Returns:
+      `string[]` Names of task bundles
 
 load_task_bundle({name}, {opts})                       *overseer.load_task_bundle*
     Load tasks from a saved bundle
@@ -342,7 +344,7 @@ delete_task_bundle({name})                           *overseer.delete_task_bundl
     Parameters:
       {name} `string|nil`
 
-list_tasks({opts})                                           *overseer.list_tasks*
+list_tasks({opts}): overseer.Task[]                          *overseer.list_tasks*
     List all tasks
 
     Parameters:
@@ -421,7 +423,7 @@ run_action({task}, {name})                                   *overseer.run_actio
       {task} `overseer.Task`
       {name} `string|nil` Name of action. When omitted, prompt user to pick.
 
-wrap_template({base}, {override}, {default_params})       *overseer.wrap_template*
+wrap_template({base}, {override}, {default_params}): overseer.TemplateDefinition *overseer.wrap_template*
     Create a new template by overriding fields on another
 
     Parameters:
