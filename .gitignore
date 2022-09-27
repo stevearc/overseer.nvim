@@ -39,3 +39,5 @@ luac.out
 *.x86_64
 *.hex
 
+__pycache__
+.direnv

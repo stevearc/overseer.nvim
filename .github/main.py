@@ -16,9 +16,9 @@ def main() -> None:
     parser.add_argument("command", choices=["generate", "lint"])
     args = parser.parse_args()
     if args.command == "generate":
-        import update_readme
+        import generate
 
-        update_readme.main()
+        generate.main()
     elif args.command == "lint":
         from nvim_doc_tools import lint_md_links
 

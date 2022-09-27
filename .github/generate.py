@@ -4,21 +4,21 @@ import re
 import subprocess
 from typing import Any, Dict, Iterable, List, Tuple
 
-from apidoc import gen_api_md, gen_api_vimdoc
-from util import (
+from nvim_doc_tools.apidoc import parse_functions, render_api_md, render_api_vimdoc
+from nvim_doc_tools.util import (
     MD_LINK_PAT,
-    MD_TITLE_PAT,
     Vimdoc,
     VimdocSection,
     dedent,
     format_md_table,
+    generate_md_toc,
     indent,
     leftright,
-    md_create_anchor,
     read_section,
     replace_section,
     wrap,
 )
+
 
 HERE = os.path.dirname(__file__)
 ROOT = os.path.abspath(os.path.join(HERE, os.path.pardir))
@@ -28,20 +28,6 @@ VIMDOC = os.path.join(DOC, "overseer.txt")
 
 MD_BOLD_PAT = re.compile(r"\*\*([^\*]+)\*\*")
 MD_LINE_BREAK_PAT = re.compile(r"\s*\\$")
-
-
-def generate_toc(filename: str) -> List[str]:
-    ret = []
-    with open(filename, "r", encoding="utf-8") as ifile:
-        for line in ifile:
-            m = MD_TITLE_PAT.match(line)
-            if m:
-                level = len(m[1]) - 1
-                prefix = "  " * level
-                title_link = md_create_anchor(m[2])
-                link = f"[{m[2]}](#{title_link})"
-                ret.append(prefix + "- " + link + "\n")
-    return ret
 
 
 def read_nvim_json(lua: str) -> Any:
@@ -363,13 +349,14 @@ def convert_md_section(
 
 
 def generate_vimdoc():
-    doc = Vimdoc("overseer.txt", ["Overseer", "overseer", "overseer.nvim"])
+    doc = Vimdoc("overseer.txt", "overseer")
+    funcs = parse_functions(os.path.join(ROOT, "lua", "overseer", "init.lua"))
     doc.sections.extend(
         [
             get_commands_vimdoc(),
             get_options_vimdoc(),
             get_highlights_vimdoc(),
-            VimdocSection("API", "overseer-api", gen_api_vimdoc()),
+            VimdocSection("API", "overseer-api", render_api_vimdoc('overseer', funcs)),
             convert_md_section(
                 os.path.join(DOC, "reference.md"),
                 "^## Parameters",
@@ -386,7 +373,8 @@ def generate_vimdoc():
 
 
 def update_md_api():
-    lines = ["\n"] + gen_api_md() + ["\n"]
+    funcs = parse_functions(os.path.join(ROOT, "lua", "overseer", "init.lua"))
+    lines = ["\n"] + render_api_md(funcs) + ["\n"]
     replace_section(
         os.path.join(DOC, "reference.md"),
         r"^<!-- API -->$",
@@ -396,7 +384,7 @@ def update_md_api():
 
 
 def update_md_toc(filename: str):
-    toc = ["\n"] + generate_toc(filename) + ["\n"]
+    toc = ["\n"] + generate_md_toc(filename) + ["\n"]
     replace_section(
         filename,
         r"^<!-- TOC -->$",
@@ -413,10 +401,10 @@ def add_md_link_path(path: str, lines: List[str]) -> List[str]:
 
 
 def update_readme_toc():
-    toc = generate_toc(README)
+    toc = generate_md_toc(README)
 
     def get_toc(filename: str) -> List[str]:
-        subtoc = generate_toc(os.path.join(DOC, filename))
+        subtoc = generate_md_toc(os.path.join(DOC, filename))
         return add_md_link_path("doc/" + filename, subtoc)
 
     tutorials_toc = get_toc("tutorials.md")
