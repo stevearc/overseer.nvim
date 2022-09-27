@@ -4,6 +4,9 @@ import os
 import sys
 
 HERE = os.path.dirname(__file__)
+ROOT = os.path.abspath(os.path.join(HERE, os.path.pardir))
+DOC = os.path.join(ROOT, "doc")
+
 
 
 def main() -> None:
@@ -17,9 +20,13 @@ def main() -> None:
 
         update_readme.main()
     elif args.command == "lint":
-        import lint_md_links
+        from nvim_doc_tools import lint_md_links
 
-        lint_md_links.main()
+        files = [os.path.join(ROOT, 'README.md')] + [
+            os.path.join(DOC, file) for file in os.listdir(DOC) if file.endswith(".md")
+        ]
+        lint_md_links.main(ROOT, files)
+
 
 
 if __name__ == "__main__":
