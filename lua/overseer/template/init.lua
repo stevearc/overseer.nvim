@@ -392,7 +392,7 @@ M.list = function(opts, cb)
       -- Make sure that the callback doesn't get called again
       cb = function() end
     end
-  end, 1000)
+  end, config.template_timeout)
 
   for _, provider in ipairs(providers) do
     local provider_name = provider.name
