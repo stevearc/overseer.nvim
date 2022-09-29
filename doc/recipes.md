@@ -5,6 +5,7 @@ Have a cool recipe to share? Open a pull request and add it to this doc!
 <!-- TOC -->
 
 - [Restart last task](#restart-last-task)
+- [Run shell scripts in the current directory](#run-shell-scripts-in-the-current-directory)
 
 <!-- /TOC -->
 

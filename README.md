@@ -32,6 +32,7 @@ A task runner and job management plugin for Neovim
   - [Session managers](doc/third_party.md#session-managers)
 - [Recipes](#recipes)
   - [Restart last task](doc/recipes.md#restart-last-task)
+  - [Run shell scripts in the current directory](doc/recipes.md#run-shell-scripts-in-the-current-directory)
 - [Reference](#reference)
   - [Setup options](doc/reference.md#setup-options)
   - [Commands](doc/reference.md#commands)
@@ -182,6 +183,7 @@ If you want to define custom tasks for your project, I'd recommend starting with
 ## Recipes
 
 - [Restart last task](doc/recipes.md#restart-last-task)
+- [Run shell scripts in the current directory](doc/recipes.md#run-shell-scripts-in-the-current-directory)
 
 ## Reference
 
