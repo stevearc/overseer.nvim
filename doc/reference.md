@@ -184,6 +184,8 @@ require("overseer").setup({
   --   allow     Only show when a required param is missing
   --   never     Never show prompt (error if required param missing)
   default_template_prompt = "allow",
+  -- For async template generators, how long to wait (in ms) before timing out
+  template_timeout = 1000,
   -- Configure where the logs go and what level to use
   -- Types are "echo", "notify", and "file"
   log = {
