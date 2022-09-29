@@ -20,6 +20,7 @@ function neotest.overseer.run(args)
   else
     args.strategy = "overseer"
   end
+  local strategy = require("neotest.client.strategies.overseer")
   async.run(function()
     local tree = neotest.run.get_tree_from_args(args, true)
     if not tree then

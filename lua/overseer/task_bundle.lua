@@ -55,9 +55,9 @@ M.list_task_bundles = function()
   if not files.exists(bundle_dir) then
     return {}
   end
-  local files = files.list_files(bundle_dir)
+  local filenames = files.list_files(bundle_dir)
   local ret = {}
-  for _, filename in ipairs(files) do
+  for _, filename in ipairs(filenames) do
     local name = filename:match("^(.+)%.bundle%.json$")
     if name then
       table.insert(ret, name)
