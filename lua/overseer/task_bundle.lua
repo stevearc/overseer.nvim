@@ -55,21 +55,14 @@ M.list_task_bundles = function()
   if not files.exists(bundle_dir) then
     return {}
   end
-  local fd = vim.loop.fs_opendir(bundle_dir, nil, 32)
-  local entries = vim.loop.fs_readdir(fd)
+  local files = files.list_files(bundle_dir)
   local ret = {}
-  while entries do
-    for _, entry in ipairs(entries) do
-      if entry.type == "file" then
-        local name = entry.name:match("^(.+)%.bundle%.json$")
-        if name then
-          table.insert(ret, name)
-        end
-      end
+  for _, filename in ipairs(files) do
+    local name = filename:match("^(.+)%.bundle%.json$")
+    if name then
+      table.insert(ret, name)
     end
-    entries = vim.loop.fs_readdir(fd)
   end
-  vim.loop.fs_closedir(fd)
   return ret
 end
 

@@ -87,6 +87,24 @@ M.load_json_file = function(filepath)
   end
 end
 
+---@param dir string
+---@return string[]
+M.list_files = function(dir)
+  local fd = vim.loop.fs_opendir(dir, nil, 32)
+  local entries = vim.loop.fs_readdir(fd)
+  local ret = {}
+  while entries do
+    for _, entry in ipairs(entries) do
+      if entry.type == "file" then
+        table.insert(ret, entry.name)
+      end
+    end
+    entries = vim.loop.fs_readdir(fd)
+  end
+  vim.loop.fs_closedir(fd)
+  return ret
+end
+
 ---@param dirname string
 ---@param perms? number
 M.mkdir = function(dirname, perms)
