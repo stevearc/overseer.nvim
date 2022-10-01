@@ -89,6 +89,12 @@ M._task_action = function(params)
   M.task_action()
 end
 
+M._clear_cache = function(_params)
+  M.clear_cache({
+    dir = vim.fn.getcwd(),
+  })
+end
+
 ---@param opts table
 ---    dir string
 ---    ft nil|string
