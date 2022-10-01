@@ -12,7 +12,7 @@ local M = {}
 ---@field name string
 ---@field module? string The name of the module this was loaded from
 ---@field condition? overseer.SearchCondition
----@field generator fun(opts: overseer.SearchParams, cb: fun(tmpls: overseer.TemplateDefinition[])): nil|overseer.TemplateDefinition[]
+---@field generator fun(opts: overseer.SearchParams, cb: fun(tmpls: overseer.TemplateDefinition[]))
 
 ---@class overseer.TemplateDefinition
 ---@field name string
@@ -346,18 +346,21 @@ M.list = function(opts, cb)
     filetype = { opts.filetype, "s", true },
   })
   local ret = {}
+  -- First add all of the simple templates that match the condition
   for _, tmpl in pairs(registry) do
     if condition_matches(tmpl.condition, tmpl.tags, opts, true) then
       table.insert(ret, tmpl)
     end
   end
 
-  local completed = false
+  local finished_iterating = false
   local pending = {}
   local function final_callback()
-    if not completed or not vim.tbl_isempty(pending) then
+    -- Don't finish until we've finished iterating and the last pending async generator is completed
+    if not finished_iterating or not vim.tbl_isempty(pending) then
       return
     end
+    -- Make sure results are sorted by priority, and then name
     table.sort(ret, function(a, b)
       if a.priority == b.priority then
         return a.name < b.name
@@ -369,14 +372,20 @@ M.list = function(opts, cb)
     cb(ret)
   end
 
+  ---This is the async callback that is passed to generators
   ---@param tmpls overseer.TemplateDefinition[]
   ---@param module string|nil
   local function handle_tmpls(tmpls, module)
     for _, tmpl in ipairs(tmpls) do
+      -- Set the module on the template so it can be used to match hooks
       tmpl.module = module
-      validate_template_definition(tmpl)
-      if condition_matches(tmpl.condition, tmpl.tags, opts, true) then
-        table.insert(ret, tmpl)
+      local ok, err = pcall(validate_template_definition, tmpl)
+      if ok then
+        if condition_matches(tmpl.condition, tmpl.tags, opts, true) then
+          table.insert(ret, tmpl)
+        end
+      else
+        log:error("Template %s from %s: %s", tmpl.name, module, err)
       end
     end
 
@@ -384,37 +393,39 @@ M.list = function(opts, cb)
   end
 
   -- Timeout
-  vim.defer_fn(function()
-    if not vim.tbl_isempty(pending) then
-      log:error("Listing templates timed out. Pending providers: %s", vim.tbl_keys(pending))
-      pending = {}
-      final_callback()
-      -- Make sure that the callback doesn't get called again
-      cb = function() end
-    end
-  end, config.template_timeout)
+  if config.template_timeout > 0 then
+    vim.defer_fn(function()
+      if not vim.tbl_isempty(pending) then
+        log:error("Listing templates timed out. Pending providers: %s", vim.tbl_keys(pending))
+        pending = {}
+        final_callback()
+        -- Make sure that the callback doesn't get called again
+        cb = function() end
+      end
+    end, config.template_timeout)
+  end
 
   for _, provider in ipairs(providers) do
     local provider_name = provider.name
     if condition_matches(provider.condition, nil, opts, false) then
+      pending[provider.name] = true
       local ok, tmpls = pcall(provider.generator, opts, function(tmpls)
         pending[provider_name] = nil
         handle_tmpls(tmpls, provider.module)
       end)
       if ok then
         if tmpls then
-          -- generator completed synchronously
+          -- if there was a return value, the generator completed synchronously
           handle_tmpls(tmpls, provider.module)
-        else
-          -- generator is async and we expect it to call the callback later
-          pending[provider.name] = true
+          pending[provider_name] = nil
+          -- TODO deprecate this flow
         end
       else
         log:error("Template provider %s: %s", provider.name, tmpls)
       end
     end
   end
-  completed = true
+  finished_iterating = true
   final_callback()
 end
 

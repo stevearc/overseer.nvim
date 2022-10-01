@@ -221,7 +221,7 @@ return {
       return files.exists(files.join(opts.dir, ".vscode", "tasks.json"))
     end,
   },
-  generator = function(opts)
+  generator = function(opts, cb)
     local content = files.load_json_file(files.join(opts.dir, ".vscode", "tasks.json"))
     local global_defaults = {}
     for k, v in pairs(content) do
@@ -249,7 +249,7 @@ return {
         table.insert(ret, tmpl)
       end
     end
-    return ret
+    cb(ret)
   end,
   -- expose these for unit tests
   get_provider = get_provider,

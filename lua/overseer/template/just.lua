@@ -59,10 +59,10 @@ return {
     })
     if jid == 0 then
       log:error("Passed invalid arguments to 'just'")
-      return ret
+      cb(ret)
     elseif jid == -1 then
       log:error("'just' is not executable")
-      return ret
+      cb(ret)
     end
   end,
 }

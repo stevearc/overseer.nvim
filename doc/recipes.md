@@ -53,7 +53,7 @@ return {
       })
     end
 
-    return ret
+    cb(ret)
   end,
 }
 ```

@@ -25,7 +25,7 @@ return {
       return files.exists(files.join(opts.dir, "tox.ini"))
     end,
   },
-  generator = function(opts)
+  generator = function(opts, cb)
     local content = files.read_file(files.join(opts.dir, "tox.ini"))
     local targets = {}
     for line in vim.gsplit(content, "\n") do
@@ -55,6 +55,6 @@ return {
         )
       )
     end
-    return ret
+    cb(ret)
   end,
 }

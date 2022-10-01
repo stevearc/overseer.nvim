@@ -113,20 +113,14 @@ Providers are created the same way templates are (with `overseer.register_templa
 
 ```lua
 {
-  generator = function(search)
-    -- Return a list of templates
+  generator = function(search, cb)
+    -- Pass a list of templates to the callback
     -- See the built-in providers for make or npm for an example
-    return {...}
+    cb({...})
   end,
   -- Optional. Same as template.condition
   condition = function(search)
     return true
-  end,
-  -- You can instead make generator async by returning nil and using the callback
-  generator = function(search, callback)
-    dowork(function()
-      callback({...})
-    end)
   end,
 }
 ```

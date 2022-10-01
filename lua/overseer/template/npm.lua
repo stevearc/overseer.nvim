@@ -26,7 +26,7 @@ return {
       return files.exists(files.join(opts.dir, "package.json"))
     end,
   },
-  generator = function(opts)
+  generator = function(opts, cb)
     local package = files.join(opts.dir, "package.json")
     local use_yarn = files.exists(files.join(opts.dir, "yarn.lock"))
     local bin = use_yarn and "yarn" or "npm"
@@ -45,6 +45,6 @@ return {
       end
     end
     table.insert(ret, overseer.wrap_template(tmpl, { name = bin }, { use_yarn = use_yarn }))
-    return ret
+    cb(ret)
   end,
 }

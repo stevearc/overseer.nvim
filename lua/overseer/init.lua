@@ -394,11 +394,11 @@ M.run_action = lazy("action_util", "run_task_action")
 ---   }
 --- }
 --- local template_provider = {
----   generator = function(opts)
----     return {
+---   generator = function(opts, cb)
+---     cb({
 ---       overseer.wrap_template(tmpl, nil, { args = { 'all' } }),
 ---       overseer.wrap_template(tmpl, {name = 'make clean'}, { args = { 'clean' } }),
----     }
+---     })
 ---   end
 --- }
 M.wrap_template = function(base, override, default_params)

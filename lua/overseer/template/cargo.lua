@@ -35,7 +35,7 @@ return {
         and vim.fn.executable("cargo") == 1
     end,
   },
-  generator = function(opts)
+  generator = function(opts, cb)
     local commands = {
       { args = { "build" }, tags = { TAG.BUILD } },
       { args = { "test" }, tags = { TAG.TEST } },
@@ -59,6 +59,6 @@ return {
       )
     end
     table.insert(ret, overseer.wrap_template(tmpl, { name = "cargo" }))
-    return ret
+    cb(ret)
   end,
 }

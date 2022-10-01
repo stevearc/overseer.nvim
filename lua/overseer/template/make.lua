@@ -30,7 +30,7 @@ local tmpl = {
   end,
 }
 
-local function ts_parse_make_targets(parser, content, cwd, ret)
+local function ts_parse_make_targets(parser, content, cwd)
   local query = vim.treesitter.parse_query("make", make_targets)
   local root = parser:parse()[1]:root()
   pcall(vim.tbl_add_reverse_lookup, query.captures)
@@ -44,6 +44,7 @@ local function ts_parse_make_targets(parser, content, cwd, ret)
     end
   end
 
+  local ret = {}
   for k in pairs(targets) do
     local override = { name = string.format("make %s", k) }
     if k == default_target then
@@ -106,8 +107,8 @@ return {
     local ret = { overseer.wrap_template(tmpl, nil, { cwd = cwd }) }
     local ok, parser = pcall(vim.treesitter.get_string_parser, content, "make", {})
     if ok then
-      ts_parse_make_targets(parser, content, cwd, ret)
-      return ret
+      vim.list_extend(ret, ts_parse_make_targets(parser, content, cwd))
+      cb(ret)
     else
       parse_make_output(cwd, ret, cb)
     end
