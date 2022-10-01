@@ -152,7 +152,7 @@ local default_config = {
   default_template_prompt = "allow",
   -- For template providers, how long to wait (in ms) before timing out.
   -- Set to 0 to disable timeouts.
-  template_timeout = 1000,
+  template_timeout = 3000,
   -- Cache template provider results if the provider takes longer than this to run.
   -- Time is in ms. Set to 0 to disable caching.
   template_cache_threshold = 100,

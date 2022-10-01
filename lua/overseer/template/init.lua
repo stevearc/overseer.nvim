@@ -43,6 +43,9 @@ local providers = {}
 ---@type table<string, overseer.TemplateDefinition[]>
 local cached_provider_results = {}
 
+---@type nil|integer
+local clear_cache_autocmd
+
 local hooks = {}
 
 ---@param condition? overseer.SearchCondition
@@ -374,6 +377,17 @@ M.list = function(opts, cb)
     dir = { opts.dir, "s" },
     filetype = { opts.filetype, "s", true },
   })
+
+  if not clear_cache_autocmd then
+    clear_cache_autocmd = vim.api.nvim_create_autocmd("BufWritePost", {
+      desc = "Clear overseer template provider cache when file changed",
+      callback = function(params)
+        local filename = vim.api.nvim_buf_get_name(params.buf)
+        cached_provider_results[filename] = nil
+      end,
+    })
+  end
+
   local ret = {}
   -- First add all of the simple templates that match the condition
   for _, tmpl in pairs(registry) do
