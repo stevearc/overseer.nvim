@@ -473,20 +473,20 @@ M.list = function(opts, cb)
     local provider_name = provider.name
     if condition_matches(provider.condition, nil, opts, false) then
       local cache_key = provider.cache_key(opts)
-      local cb = function(tmpls)
+      local provider_cb = function(tmpls)
         handle_tmpls(tmpls, provider_name, provider.module, cache_key)
       end
       start_times[provider.name] = vim.loop.hrtime()
       pending[provider.name] = true
       if cache_key and cached_provider_results[cache_key] then
-        cb(cached_provider_results[cache_key])
+        provider_cb(cached_provider_results[cache_key])
       else
-        local ok, tmpls = pcall(provider.generator, opts, cb)
+        local ok, tmpls = pcall(provider.generator, opts, provider_cb)
         if ok then
           if tmpls then
             -- if there was a return value, the generator completed synchronously
             -- TODO deprecate this flow
-            cb(tmpls)
+            provider_cb(tmpls)
           end
         else
           log:error("Template provider %s: %s", provider.name, tmpls)

@@ -1,3 +1,4 @@
+local config = require("overseer.config")
 local confirm = require("overseer.confirm")
 local files = require("overseer.files")
 local log = require("overseer.log")

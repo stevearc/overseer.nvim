@@ -71,7 +71,7 @@ return function(opts, callback)
 
   -- Calculate the width of the choices if they are on a single line
   local choices_width = 0
-  for i, choice in ipairs(clean_choices) do
+  for _, choice in ipairs(clean_choices) do
     choices_width = choices_width + vim.api.nvim_strwidth(choice)
   end
   -- Make sure to account for spacing
