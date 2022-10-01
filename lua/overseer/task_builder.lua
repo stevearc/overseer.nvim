@@ -9,8 +9,8 @@ local bindings = {
   {
     desc = "Show default key bindings",
     plug = "<Plug>OverseerTaskEditor:ShowHelp",
-    rhs = function()
-      -- FIXME this leaves the editor window, which closes it
+    rhs = function(builder)
+      builder.disable_close_on_leave = true
       binding_util.show_bindings("OverseerTaskEditor:")
     end,
   },
@@ -113,9 +113,21 @@ function Builder.new(title, schema, params, callback)
       return max_len, #keys + 1
     end,
   })
+  table.insert(
+    autocmds,
+    vim.api.nvim_create_autocmd("BufEnter", {
+      desc = "Reset disable_close_on_leave",
+      buffer = bufnr,
+      nested = true,
+      callback = function()
+        builder.disable_close_on_leave = false
+      end,
+    })
+  )
   vim.api.nvim_buf_set_option(bufnr, "filetype", "OverseerForm")
 
   builder = setmetatable({
+    disable_close_on_leave = false,
     cur_line = nil,
     title = title,
     schema_keys = keys,
@@ -183,10 +195,11 @@ function Builder:init_autocmds()
     vim.api.nvim_create_autocmd("BufLeave", {
       desc = "Close float on BufLeave",
       buffer = self.bufnr,
-      once = true,
       nested = true,
       callback = function()
-        self:cancel()
+        if not self.disable_close_on_leave then
+          self:cancel()
+        end
       end,
     })
   )

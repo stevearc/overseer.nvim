@@ -11,7 +11,7 @@ local bindings = {
     desc = "Show default key bindings",
     plug = "<Plug>OverseerLauncher:ShowHelp",
     rhs = function(editor)
-      -- FIXME this leaves the editor window, which closes it
+      editor.disable_close_on_leave = true
       binding_util.show_bindings("OverseerLauncher:")
     end,
   },
@@ -144,7 +144,7 @@ function Editor.new(task, task_cb)
     task_name = task.name,
     task_data = task_data,
     line_to_comp = {},
-    is_adding_component = false,
+    disable_close_on_leave = false,
     layout = layout,
     cleanup = cleanup,
     autocmds = autocmds,
@@ -169,9 +169,20 @@ function Editor.new(task, task_cb)
       buffer = bufnr,
       nested = true,
       callback = function()
-        if not editor.is_adding_component then
+        if not editor.disable_close_on_leave then
           editor:cancel()
         end
+      end,
+    })
+  )
+  table.insert(
+    editor.autocmds,
+    vim.api.nvim_create_autocmd("BufEnter", {
+      desc = "Reset disable_close_on_leave",
+      buffer = bufnr,
+      nested = true,
+      callback = function()
+        editor.disable_close_on_leave = false
       end,
     })
   )
@@ -325,7 +336,7 @@ function Editor:render()
 end
 
 function Editor:add_new_component(insert_position)
-  self.is_adding_component = true
+  self.disable_close_on_leave = true
   self.cur_line = nil
   -- Telescope doesn't work if we open it in insert mode, so we have to <esc>
   if vim.api.nvim_get_mode().mode == "i" then
@@ -366,7 +377,7 @@ function Editor:add_new_component(insert_position)
     end,
     telescope = get_telescope_new_component(options),
   }, function(result)
-    self.is_adding_component = false
+    self.disable_close_on_leave = false
     if result then
       local alias = component.get_alias(result)
       if alias then
