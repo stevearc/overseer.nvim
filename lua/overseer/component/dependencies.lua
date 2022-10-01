@@ -41,6 +41,9 @@ return {
               end
               self.task_lookup[name] = new_task.id
               new_task:add_component({ "on_success_complete_dependency", task_id = task.id })
+              -- Don't include child tasks when saving to bundle. We will re-create them when this
+              -- task runs again
+              new_task:set_include_in_bundle(false)
               new_task:start()
             end)
             started_any = true
