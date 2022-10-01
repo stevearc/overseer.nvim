@@ -208,14 +208,6 @@ local commands = {
       desc = "Select a task to run an action on",
     },
   },
-  {
-    cmd = "OverseerPreloadTasks",
-    func = "_preload_cache",
-    def = {
-      desc = "Preload and cache the tasks in the cwd. [!] clears existing cache.",
-      bang = true,
-    },
-  },
 }
 
 local function create_commands()
