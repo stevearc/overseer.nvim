@@ -19,7 +19,7 @@ return function(opts, callback)
   if not opts.type then
     opts.type = "G"
   else
-    opts.type = string.sub(opts.type, 1, 2)
+    opts.type = string.sub(opts.type, 1, 1)
   end
 
   local bufnr = vim.api.nvim_create_buf(false, true)
@@ -64,24 +64,20 @@ return function(opts, callback)
   end
   vim.keymap.set("n", "<C-c>", cancel, { buffer = bufnr })
   vim.keymap.set("n", "<Esc>", cancel, { buffer = bufnr })
-  -- TODO also allow <CR> to select an option
 
   local lines = vim.split(opts.message, "\n")
   local highlights = {}
   table.insert(lines, "")
 
-  -- TODO maybe detect if this can fit on a single line
+  -- Calculate the width of the choices if they are on a single line
+  local choices_width = 0
   for i, choice in ipairs(clean_choices) do
-    table.insert(lines, choice)
-    table.insert(highlights, { "Keyword", #lines, choice_shortcut_idx[i] })
+    choices_width = choices_width + vim.api.nvim_strwidth(choice)
   end
-  vim.api.nvim_buf_set_lines(bufnr, 0, -1, true, lines)
-  local ns = vim.api.nvim_create_namespace("confirm")
-  for _, hl in ipairs(highlights) do
-    vim.api.nvim_buf_add_highlight(bufnr, ns, hl[1], hl[2] - 1, hl[3] - 1, hl[3])
-  end
+  -- Make sure to account for spacing
+  choices_width = choices_width + #clean_choices - 1
 
-  local desired_width = 1
+  local desired_width = choices_width
   for _, line in ipairs(lines) do
     local len = string.len(line)
     if len > desired_width then
@@ -90,6 +86,42 @@ return function(opts, callback)
   end
 
   local width = layout.calculate_width(desired_width, config.confirm)
+
+  if width < choices_width then
+    -- Render one choice per line
+    for i, choice in ipairs(clean_choices) do
+      table.insert(lines, choice)
+      table.insert(highlights, { "Keyword", #lines, choice_shortcut_idx[i] - 1 })
+    end
+  else
+    -- Render all choices on a single line
+    local extra_spacing = width - choices_width
+    local line = ""
+    local num_dividers = #clean_choices - 1
+    for i, choice in ipairs(clean_choices) do
+      if i > 1 then
+        line = line .. " " .. string.rep(" ", math.floor(extra_spacing / num_dividers))
+        if extra_spacing % num_dividers >= i then
+          line = line .. " "
+        end
+      end
+      local col_start = line:len() - 1
+      line = line .. choice
+      table.insert(highlights, { "Keyword", #lines + 1, col_start + choice_shortcut_idx[i] })
+    end
+    table.insert(lines, line)
+  end
+
+  vim.api.nvim_buf_set_lines(bufnr, 0, -1, true, lines)
+  local ns = vim.api.nvim_create_namespace("confirm")
+  for _, hl in ipairs(highlights) do
+    local group, lnum, col_start, col_end = unpack(hl)
+    if not col_end then
+      col_end = col_start + 1
+    end
+    vim.api.nvim_buf_add_highlight(bufnr, ns, group, lnum - 1, col_start, col_end)
+  end
+
   local height = layout.calculate_height(#lines, config.confirm)
   winid = vim.api.nvim_open_win(bufnr, true, {
     relative = "editor",
