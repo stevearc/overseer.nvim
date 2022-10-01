@@ -72,6 +72,15 @@ return {
           end
         end
       end,
+      on_dispose = function(self, task)
+        for _, task_id in pairs(self.task_lookup) do
+          local dep_task = task_list.get(task_id)
+          if dep_task then
+            dep_task:stop()
+            dep_task:dispose()
+          end
+        end
+      end,
       on_dependency_complete = function(self, task)
         task:start()
       end,
