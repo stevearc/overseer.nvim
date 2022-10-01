@@ -3,7 +3,6 @@
 :OverseerDeleteBundle	overseer.txt	/*:OverseerDeleteBundle*
 :OverseerLoadBundle	overseer.txt	/*:OverseerLoadBundle*
 :OverseerOpen	overseer.txt	/*:OverseerOpen*
-:OverseerPreloadTasks	overseer.txt	/*:OverseerPreloadTasks*
 :OverseerQuickAction	overseer.txt	/*:OverseerQuickAction*
 :OverseerRun	overseer.txt	/*:OverseerRun*
 :OverseerRunCmd	overseer.txt	/*:OverseerRunCmd*

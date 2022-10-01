@@ -222,20 +222,19 @@ require("overseer").setup({
 
 ## Commands
 
-| Command                   | Args          | Description                                                         |
-| ------------------------- | ------------- | ------------------------------------------------------------------- |
-| `OverseerOpen[!]`         | `left/right`  | Open the overseer window. With `!` cursor stays in current window   |
-| `OverseerClose`           |               | Close the overseer window                                           |
-| `OverseerToggle[!]`       | `left/right`  | Toggle the overseer window. With `!` cursor stays in current window |
-| `OverseerSaveBundle`      | `[name]`      | Serialize and save the current tasks to disk                        |
-| `OverseerLoadBundle`      | `[name]`      | Load tasks that were saved to disk                                  |
-| `OverseerDeleteBundle`    | `[name]`      | Delete a saved task bundle                                          |
-| `OverseerRunCmd`          | `[command]`   | Run a raw shell command                                             |
-| `OverseerRun`             | `[name/tags]` | Run a task from a template                                          |
-| `OverseerBuild`           |               | Open the task builder                                               |
-| `OverseerQuickAction`     | `[action]`    | Run an action on the most recent task, or the task under the cursor |
-| `OverseerTaskAction`      |               | Select a task to run an action on                                   |
-| `OverseerPreloadTasks[!]` |               | Preload and cache the tasks in the cwd. [!] clears existing cache.  |
+| Command                | Args          | Description                                                         |
+| ---------------------- | ------------- | ------------------------------------------------------------------- |
+| `OverseerOpen[!]`      | `left/right`  | Open the overseer window. With `!` cursor stays in current window   |
+| `OverseerClose`        |               | Close the overseer window                                           |
+| `OverseerToggle[!]`    | `left/right`  | Toggle the overseer window. With `!` cursor stays in current window |
+| `OverseerSaveBundle`   | `[name]`      | Serialize and save the current tasks to disk                        |
+| `OverseerLoadBundle`   | `[name]`      | Load tasks that were saved to disk                                  |
+| `OverseerDeleteBundle` | `[name]`      | Delete a saved task bundle                                          |
+| `OverseerRunCmd`       | `[command]`   | Run a raw shell command                                             |
+| `OverseerRun`          | `[name/tags]` | Run a task from a template                                          |
+| `OverseerBuild`        |               | Open the task builder                                               |
+| `OverseerQuickAction`  | `[action]`    | Run an action on the most recent task, or the task under the cursor |
+| `OverseerTaskAction`   |               | Select a task to run an action on                                   |
 
 ## Highlight groups
 
