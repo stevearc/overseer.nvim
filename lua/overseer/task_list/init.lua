@@ -49,12 +49,6 @@ M.touch_task = function(task)
   rerender()
 end
 
-M.serialize_tasks = function()
-  return vim.tbl_map(function(task)
-    return task:serialize()
-  end, M.list_tasks({ bundleable = true }))
-end
-
 M.remove = function(task)
   lookup[task.id] = nil
   for i, t in ipairs(tasks) do

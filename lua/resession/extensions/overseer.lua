@@ -3,16 +3,16 @@ local M = {}
 local conf = {}
 
 M.config = function(data)
-  conf = vim.tbl_deep_extend("keep", data, {
-    bundleable = true,
-  })
+  conf = data
 end
 
 M.on_save = function()
+  local config = require("overseer.config")
   local task_list = require("overseer.task_list")
+  local opts = vim.tbl_deep_extend("keep", conf or {}, config.bundles.save_task_opts)
   return vim.tbl_map(function(task)
     return task:serialize()
-  end, task_list.list_tasks(conf))
+  end, task_list.list_tasks(opts))
 end
 
 M.on_load = function(data)

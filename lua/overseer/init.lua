@@ -36,7 +36,9 @@ local function do_setup()
     callback = function()
       local task_list = require("overseer.task_list")
       local cmds = vim.g.session_save_commands
-      local tasks = task_list.serialize_tasks()
+      local tasks = vim.tbl_map(function(task)
+        return task:serialize()
+      end, task_list.list_tasks({ bundleable = true }))
       if vim.tbl_isempty(tasks) then
         return
       end
@@ -314,7 +316,7 @@ M.list_task_bundles = lazy("task_bundle", "list_task_bundles")
 M.load_task_bundle = lazy("task_bundle", "load_task_bundle")
 ---Save tasks to a bundle on disk
 ---@param name string|nil Name of bundle. If nil, will prompt user.
----@param tasks nil|overseer.Task[] Specific tasks to save. If nil, saves all tasks.
+---@param tasks nil|overseer.Task[] Specific tasks to save. If nil, uses config.bundles.save_task_opts
 ---@param opts table|nil
 ---    on_conflict nil|"overwrite"|"append"|"cancel"
 M.save_task_bundle = lazy("task_bundle", "save_task_bundle")

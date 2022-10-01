@@ -133,10 +133,9 @@ require("auto-session").setup({
     function()
       overseer.save_task_bundle(
         get_cwd_as_name(),
-        overseer.list_tasks({
-          bundleable = true, -- Ignore tasks that shouldn't be bundled
-          -- See other filter options to only save certain tasks
-        }),
+        -- Passing nil will use config.opts.save_task_opts. You can call list_tasks() explicitly and
+        -- pass in the results if you want to save specific tasks.
+        nil,
         { on_conflict = "overwrite" } -- Overwrite existing bundle, if any
       )
     end,

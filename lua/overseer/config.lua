@@ -146,6 +146,13 @@ local default_config = {
       "on_result_diagnostics_quickfix",
     },
   },
+  bundles = {
+    -- When saving a bundle with OverseerSaveBundle or save_task_bundle(), filter the tasks with
+    -- these options (passed to list_tasks())
+    save_task_opts = {
+      bundleable = true,
+    },
+  },
   -- A list of components to preload on setup.
   -- Only matters if you want them to show up in the task editor.
   preload_components = {},

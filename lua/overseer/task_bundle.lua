@@ -135,7 +135,9 @@ M.save_task_bundle = function(name, tasks, opts)
         table.insert(serialized, task:serialize())
       end
     else
-      serialized = task_list.serialize_tasks()
+      serialized = vim.tbl_map(function(task)
+        return task:serialize()
+      end, task_list.list_tasks(config.bundles.save_task_opts))
     end
     if vim.tbl_isempty(serialized) then
       return
