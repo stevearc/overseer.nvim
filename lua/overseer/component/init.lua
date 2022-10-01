@@ -1,5 +1,5 @@
 local config = require("overseer.config")
-local form = require("overseer.form")
+local form_utils = require("overseer.form.utils")
 local log = require("overseer.log")
 local util = require("overseer.util")
 local M = {}
@@ -85,7 +85,7 @@ local function validate_component(name, opts)
   end
   opts._type = "OverseerComponent"
   if opts.params then
-    form.validate_params(opts.params)
+    form_utils.validate_params(opts.params)
     for _, param in pairs(opts.params) do
       -- Default editable = false if any types are opaque
       if param.type == "opaque" and opts.editable == nil then
@@ -209,7 +209,7 @@ local function validate_params(params, schema, ignore_errors)
           error(string.format("Component '%s' requires param '%s'", getname(params), name))
         end
       end
-    elseif not form.validate_field(opts, value) then
+    elseif not form_utils.validate_field(opts, value) then
       if not ignore_errors then
         error(string.format("Component '%s' param '%s' is invalid", getname(params), name))
       end

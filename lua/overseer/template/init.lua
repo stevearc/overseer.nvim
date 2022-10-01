@@ -1,10 +1,10 @@
 local component = require("overseer.component")
 local config = require("overseer.config")
 local files = require("overseer.files")
-local form = require("overseer.form")
+local form_utils = require("overseer.form.utils")
 local log = require("overseer.log")
 local Task = require("overseer.task")
-local task_builder = require("overseer.task_builder")
+local form = require("overseer.form")
 local util = require("overseer.util")
 local M = {}
 
@@ -188,7 +188,7 @@ local function validate_template_definition(defn)
     priority = { defn.priority, "n" },
     builder = { defn.builder, "f" },
   })
-  form.validate_params(defn.params)
+  form_utils.validate_params(defn.params)
 end
 
 ---@class overseer.TaskUtil
@@ -342,7 +342,7 @@ M.build = function(tmpl, opts, callback)
   for k, v in pairs(tmpl.params) do
     schema[k] = v
   end
-  task_builder.open(tmpl.name, schema, opts.params, function(final_params)
+  form.open(tmpl.name, schema, opts.params, function(final_params)
     if final_params then
       callback(build_task(tmpl, opts, final_params))
     else

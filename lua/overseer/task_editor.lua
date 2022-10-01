@@ -1,7 +1,7 @@
 local binding_util = require("overseer.binding_util")
 local component = require("overseer.component")
 local config = require("overseer.config")
-local form = require("overseer.form")
+local form_utils = require("overseer.form.utils")
 local Task = require("overseer.task")
 local util = require("overseer.util")
 local M = {}
@@ -128,7 +128,7 @@ function Editor.new(task, task_cb)
   end
 
   local autocmds = {}
-  local cleanup, layout = form.open_form_win(bufnr, {
+  local cleanup, layout = form_utils.open_form_win(bufnr, {
     autocmds = autocmds,
     get_preferred_dim = function()
       -- TODO this is causing a lot of jumping
@@ -243,7 +243,7 @@ function Editor:on_cursor_move()
   if cur[1] > 1 and cur[1] <= #Task.ordered_params + 1 then
     local param_name = Task.ordered_params[cur[1] - 1]
     local schema = Task.params[param_name]
-    local label = form.render_field(schema, "", param_name, "")
+    local label = form_utils.render_field(schema, "", param_name, "")
     if cur[2] < string.len(label) then
       cur[2] = string.len(label)
       vim.api.nvim_win_set_cursor(0, cur)
@@ -258,7 +258,7 @@ function Editor:on_cursor_move()
 
   if param_name then
     local schema = comp.params[param_name]
-    local label = form.render_field(schema, "  ", param_name, "")
+    local label = form_utils.render_field(schema, "  ", param_name, "")
     if cur[2] < string.len(label) then
       cur[2] = string.len(label)
     end
@@ -288,8 +288,8 @@ function Editor:render()
   for _, k in ipairs(Task.ordered_params) do
     local schema = Task.params[k]
     local value = self.task_data[k]
-    table.insert(lines, form.render_field(schema, "", k, value))
-    if form.validate_field(schema, value) then
+    table.insert(lines, form_utils.render_field(schema, "", k, value))
+    if form_utils.validate_field(schema, value) then
       table.insert(highlights, { "OverseerField", #lines, 0, string.len(k) })
     else
       table.insert(highlights, { "DiagnosticError", #lines, 0, string.len(k) })
@@ -311,8 +311,8 @@ function Editor:render()
     local schema = comp.params
     for k, param_schema in pairs(schema) do
       local value = params[k]
-      table.insert(lines, form.render_field(param_schema, "  ", k, value))
-      if form.validate_field(param_schema, value) then
+      table.insert(lines, form_utils.render_field(param_schema, "  ", k, value))
+      if form_utils.validate_field(param_schema, value) then
         table.insert(highlights, { "OverseerField", #lines, 0, 2 + string.len(k) })
       else
         table.insert(highlights, { "DiagnosticError", #lines, 0, 2 + string.len(k) })
@@ -426,7 +426,7 @@ function Editor:parse()
     if name and comp and prefix == "  " then
       local param_schema = comp.params[name]
       if param_schema then
-        local parsed, value = form.parse_value(param_schema, text)
+        local parsed, value = form_utils.parse_value(param_schema, text)
         if parsed then
           comp_map[comp.name][name] = value
         end
@@ -434,7 +434,7 @@ function Editor:parse()
     elseif name and prefix == "" then
       local param_schema = Task.params[name]
       if param_schema then
-        local parsed, value = form.parse_value(param_schema, text)
+        local parsed, value = form_utils.parse_value(param_schema, text)
         if parsed then
           self.task_data[name] = value
         end
@@ -485,7 +485,7 @@ function Editor:submit()
     local schema = comp.params
     for k, param_schema in pairs(schema) do
       local value = params[k]
-      if not form.validate_field(param_schema, value) then
+      if not form_utils.validate_field(param_schema, value) then
         return
       end
     end

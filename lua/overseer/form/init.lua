@@ -1,6 +1,6 @@
 local binding_util = require("overseer.binding_util")
 local config = require("overseer.config")
-local form = require("overseer.form")
+local form_utils = require("overseer.form.utils")
 local util = require("overseer.util")
 
 local M = {}
@@ -94,7 +94,7 @@ function Builder.new(title, schema, params, callback)
   vim.api.nvim_buf_set_name(bufnr, "Overseer task builder")
   local autocmds = {}
   local builder
-  local cleanup, layout = form.open_form_win(bufnr, {
+  local cleanup, layout = form_utils.open_form_win(bufnr, {
     autocmds = autocmds,
     on_resize = function()
       builder:render()
@@ -102,7 +102,7 @@ function Builder.new(title, schema, params, callback)
     get_preferred_dim = function()
       local max_len = 1
       for k, v in pairs(schema) do
-        local len = string.len(form.render_field(v, " ", k, params[k]))
+        local len = string.len(form_utils.render_field(v, " ", k, params[k]))
         if v.desc then
           len = len + string.len(v.desc)
         end
@@ -237,7 +237,7 @@ function Builder:render()
   local highlights = { { "OverseerTask", 1, 0, -1 } }
   for _, name in ipairs(self.schema_keys) do
     local prefix = self.schema[name].optional and "" or "*"
-    table.insert(lines, form.render_field(self.schema[name], prefix, name, self.params[name]))
+    table.insert(lines, form_utils.render_field(self.schema[name], prefix, name, self.params[name]))
   end
   if self.cur_line and vim.api.nvim_get_mode().mode == "i" then
     local lnum, line = unpack(self.cur_line)
@@ -299,7 +299,7 @@ function Builder:on_cursor_move()
       local group = "OverseerField"
       if
         (self.fields_ever_focused[name] or self.ever_submitted)
-        and not form.validate_field(self.schema[name], self.params[name])
+        and not form_utils.validate_field(self.schema[name], self.params[name])
       then
         group = "DiagnosticError"
       end
@@ -317,7 +317,7 @@ function Builder:parse()
   for _, line in ipairs(buflines) do
     local name, text = parse_line(line)
     if name and self.schema[name] then
-      local parsed, value = form.parse_value(self.schema[name], text)
+      local parsed, value = form_utils.parse_value(self.schema[name], text)
       if parsed then
         self.params[name] = value
       end
@@ -335,7 +335,7 @@ end
 function Builder:submit()
   self.ever_submitted = true
   for i, name in pairs(self.schema_keys) do
-    if not form.validate_field(self.schema[name], self.params[name]) then
+    if not form_utils.validate_field(self.schema[name], self.params[name]) then
       local lnum = i + 1
       if vim.api.nvim_win_get_cursor(0)[1] ~= lnum then
         vim.api.nvim_win_set_cursor(0, { lnum, line_len(self.bufnr, lnum) })
@@ -375,7 +375,7 @@ function Builder:confirm()
 end
 
 M.open = function(title, schema, params, callback)
-  form.validate_params(schema)
+  form_utils.validate_params(schema)
   if vim.tbl_isempty(schema) then
     callback(params)
     return

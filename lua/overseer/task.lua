@@ -1,6 +1,6 @@
 local component = require("overseer.component")
 local constants = require("overseer.constants")
-local form = require("overseer.form")
+local form_utils = require("overseer.form.utils")
 local log = require("overseer.log")
 local strategy = require("overseer.strategy")
 local task_list = require("overseer.task_list")
@@ -171,7 +171,7 @@ function Task:render(lines, highlights, detail)
       local comp_def = component.get(comp.name)
       for k, v in pairs(comp.params) do
         if k ~= 1 then
-          table.insert(lines, form.render_field(comp_def.params[k], "  ", k, v))
+          table.insert(lines, form_utils.render_field(comp_def.params[k], "  ", k, v))
         end
       end
 
