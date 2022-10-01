@@ -235,6 +235,7 @@ require("overseer").setup({
 | `OverseerBuild`        |               | Open the task builder                                               |
 | `OverseerQuickAction`  | `[action]`    | Run an action on the most recent task, or the task under the cursor |
 | `OverseerTaskAction`   |               | Select a task to run an action on                                   |
+| `OverseerClearCache`   |               | Clear the task cache                                                |
 
 ## Highlight groups
 

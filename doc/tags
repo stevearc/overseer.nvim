@@ -1,4 +1,5 @@
 :OverseerBuild	overseer.txt	/*:OverseerBuild*
+:OverseerClearCache	overseer.txt	/*:OverseerClearCache*
 :OverseerClose	overseer.txt	/*:OverseerClose*
 :OverseerDeleteBundle	overseer.txt	/*:OverseerDeleteBundle*
 :OverseerLoadBundle	overseer.txt	/*:OverseerLoadBundle*
