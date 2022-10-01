@@ -57,3 +57,26 @@ return {
   end,
 }
 ```
+
+## Directory-local tasks with nvim-config-local
+
+If you have [nvim-config-local](https://github.com/klen/nvim-config-local) installed, you can add directory-local tasks like so:
+
+```lua
+-- /path/to/dir/.vimrc.lua
+
+require("overseer").register_template({
+  name = "My project task",
+  params = {},
+  condition = {
+    -- This makes the template only available in the current directory
+    dir = vim.fn.getcwd(),
+  },
+  builder = function()
+    return {
+      cmd = {"echo"},
+      args = {"Hello", "world"},
+    }
+  end,
+})
+```
