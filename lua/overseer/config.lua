@@ -71,10 +71,12 @@ local default_config = {
     bindings = {
       i = {
         ["<C-s>"] = "Submit",
+        ["<C-c>"] = "Cancel",
       },
       n = {
         ["<CR>"] = "Submit",
         ["<C-s>"] = "Submit",
+        ["q"] = "Cancel",
         ["?"] = "ShowHelp",
       },
     },
@@ -88,12 +90,14 @@ local default_config = {
         ["<C-s>"] = "Submit",
         ["<Tab>"] = "Next",
         ["<S-Tab>"] = "Prev",
+        ["<C-c>"] = "Cancel",
       },
       n = {
         ["<CR>"] = "NextOrSubmit",
         ["<C-s>"] = "Submit",
         ["<Tab>"] = "Next",
         ["<S-Tab>"] = "Prev",
+        ["q"] = "Cancel",
         ["?"] = "ShowHelp",
       },
     },

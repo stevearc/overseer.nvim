@@ -29,6 +29,13 @@ local bindings = {
     end,
   },
   {
+    desc = "Cancel the task",
+    plug = "<Plug>OverseerTaskEditor:Cancel",
+    rhs = function(builder)
+      builder:cancel()
+    end,
+  },
+  {
     desc = "Move to the next field",
     plug = "<Plug>OverseerTaskEditor:Next",
     rhs = function(builder)

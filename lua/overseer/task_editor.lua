@@ -22,6 +22,13 @@ local bindings = {
       editor:submit()
     end,
   },
+  {
+    desc = "Cancel editing the task",
+    plug = "<Plug>OverseerLauncher:Cancel",
+    rhs = function(editor)
+      editor:cancel()
+    end,
+  },
 }
 
 -- Telescope-specific settings for picking a new component
