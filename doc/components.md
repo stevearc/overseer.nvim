@@ -8,6 +8,11 @@ Set dependencies for task \
     This can be a list of strings (template names) or tables (name with params, e.g. {"shell", cmd = \
     "sleep 10"})
 
+## [display_duration](../lua/overseer/component/display_duration.lua)
+
+Display the run duration \
+**detail_level**[integer]: Show the duration at this detail level (default `1`)
+
 ## [on_complete_dispose](../lua/overseer/component/on_complete_dispose.lua)
 
 After task is completed, dispose it after a timeout \

@@ -45,6 +45,9 @@ OverseerQuickAction `[action]`                                *:OverseerQuickAct
 OverseerTaskAction                                           *:OverseerTaskAction*
     Select a task to run an action on
 
+OverseerPreloadTasks[!]                                    *:OverseerPreloadTasks*
+    Preload and cache the tasks in the cwd. [!] clears existing cache.
+
 --------------------------------------------------------------------------------
 OPTIONS                                                         *overseer-options*
 
@@ -121,10 +124,12 @@ OPTIONS                                                         *overseer-option
         bindings = {
           i = {
             ["<C-s>"] = "Submit",
+            ["<C-c>"] = "Cancel",
           },
           n = {
             ["<CR>"] = "Submit",
             ["<C-s>"] = "Submit",
+            ["q"] = "Cancel",
             ["?"] = "ShowHelp",
           },
         },
@@ -138,12 +143,14 @@ OPTIONS                                                         *overseer-option
             ["<C-s>"] = "Submit",
             ["<Tab>"] = "Next",
             ["<S-Tab>"] = "Prev",
+            ["<C-c>"] = "Cancel",
           },
           n = {
             ["<CR>"] = "NextOrSubmit",
             ["<C-s>"] = "Submit",
             ["<Tab>"] = "Next",
             ["<S-Tab>"] = "Prev",
+            ["q"] = "Cancel",
             ["?"] = "ShowHelp",
           },
         },
@@ -154,10 +161,10 @@ OPTIONS                                                         *overseer-option
         zindex = 40,
         -- Dimensions can be integers or a float between 0 and 1 (e.g. 0.4 for 40%)
         -- min_X and max_X can be a single value or a list of mixed integer/float types.
-        min_width = 80,
+        min_width = 20,
         max_width = 0.5,
         width = nil,
-        min_height = 10,
+        min_height = 6,
         max_height = 0.9,
         height = nil,
         -- Set any window options here (e.g. winhighlight)
@@ -179,6 +186,7 @@ OPTIONS                                                         *overseer-option
       component_aliases = {
         -- Most tasks are initialized with the default components
         default = {
+          { "display_duration", detail_level = 2 },
           "on_output_summarize",
           "on_exit_set_status",
           "on_complete_notify",
@@ -191,6 +199,13 @@ OPTIONS                                                         *overseer-option
           "on_result_diagnostics_quickfix",
         },
       },
+      bundles = {
+        -- When saving a bundle with OverseerSaveBundle or save_task_bundle(), filter the tasks with
+        -- these options (passed to list_tasks())
+        save_task_opts = {
+          bundleable = true,
+        },
+      },
       -- A list of components to preload on setup.
       -- Only matters if you want them to show up in the task editor.
       preload_components = {},
@@ -200,8 +215,12 @@ OPTIONS                                                         *overseer-option
       --   allow     Only show when a required param is missing
       --   never     Never show prompt (error if required param missing)
       default_template_prompt = "allow",
-      -- For async template generators, how long to wait (in ms) before timing out
-      template_timeout = 1000,
+      -- For template providers, how long to wait (in ms) before timing out.
+      -- Set to 0 to disable timeouts.
+      template_timeout = 3000,
+      -- Cache template provider results if the provider takes longer than this to run.
+      -- Time is in ms. Set to 0 to disable caching.
+      template_cache_threshold = 100,
       -- Configure where the logs go and what level to use
       -- Types are "echo", "notify", and "file"
       log = {
@@ -335,8 +354,8 @@ save_task_bundle({name}, {tasks}, {opts})              *overseer.save_task_bundl
 
     Parameters:
       {name}  `string|nil` Name of bundle. If nil, will prompt user.
-      {tasks} `nil|overseer.Task[]` Specific tasks to save. If nil, saves all
-              tasks.
+      {tasks} `nil|overseer.Task[]` Specific tasks to save. If nil, uses
+              config.bundles.save_task_opts
       {opts}  `table|nil`
           {on_conflict} `nil|"overwrite"|"append"|"cancel"`
 
@@ -418,6 +437,35 @@ run_template({opts}, {callback})                           *overseer.run_templat
       overseer.run_template({name = "npm watch", prompt = "always"})
 <
 
+preload_task_cache({opts}, {cb})                     *overseer.preload_task_cache*
+    Preload templates for run_template
+
+    Parameters:
+      {opts} `table`
+          {dir} `string`
+          {ft}  `nil|string`
+      {cb}   `nil` |fun Called when preloading is complete
+
+    Note:
+      Typically this would be done to prevent a long wait time for :OverseerRun when using a slow
+      template provider.
+
+    Examples: >
+      -- Automatically preload templates for the current directory
+      vim.api.nvim_create_autocmd({"VimEnter", "DirChanged"}, {
+        local cwd = vim.v.cwd or vim.fn.getcwd()
+        require("overseer").preload_task_cache({ dir = cwd })
+      })
+<
+
+clear_task_cache({opts})                               *overseer.clear_task_cache*
+    Clear cached templates for run_template
+
+    Parameters:
+      {opts} `table`
+          {dir} `string`
+          {ft}  `nil|string`
+
 run_action({task}, {name})                                   *overseer.run_action*
     Run an action on a task
 
@@ -451,11 +499,11 @@ wrap_template({base}, {override}, {default_params}): overseer.TemplateDefinition
         }
       }
       local template_provider = {
-        generator = function(opts)
-          return {
+        generator = function(opts, cb)
+          cb({
             overseer.wrap_template(tmpl, nil, { args = { 'all' } }),
             overseer.wrap_template(tmpl, {name = 'make clean'}, { args = { 'clean' } }),
-          }
+          })
         end
       }
 <
