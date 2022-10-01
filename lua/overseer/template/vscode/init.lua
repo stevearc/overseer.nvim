@@ -215,14 +215,25 @@ local function convert_vscode_task(defn)
   return tmpl
 end
 
+local function get_tasks_file(opts)
+  local filename = vim.fn.findfile(files.join(".vscode", "tasks.json"), opts.dir .. ";")
+  if filename ~= "" then
+    filename = vim.fn.fnamemodify(filename, ":p")
+  end
+  return filename
+end
+
 return {
+  cache_key = function(opts)
+    return get_tasks_file(opts)
+  end,
   condition = {
     callback = function(opts)
-      return files.exists(files.join(opts.dir, ".vscode", "tasks.json"))
+      return get_tasks_file(opts) ~= ""
     end,
   },
   generator = function(opts, cb)
-    local content = files.load_json_file(files.join(opts.dir, ".vscode", "tasks.json"))
+    local content = files.load_json_file(get_tasks_file(opts))
     local global_defaults = {}
     for k, v in pairs(content) do
       if k ~= "version" and k ~= "tasks" then

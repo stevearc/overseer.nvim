@@ -20,14 +20,25 @@ local tmpl = {
   end,
 }
 
+local function get_package_file(opts)
+  local filename = vim.fn.findfile("package.json", opts.dir .. ";")
+  if filename ~= "" then
+    filename = vim.fn.fnamemodify(filename, ":p")
+  end
+  return filename
+end
+
 return {
+  cache_key = function(opts)
+    return get_package_file(opts)
+  end,
   condition = {
     callback = function(opts)
-      return files.exists(files.join(opts.dir, "package.json"))
+      return get_package_file(opts) ~= ""
     end,
   },
   generator = function(opts, cb)
-    local package = files.join(opts.dir, "package.json")
+    local package = get_package_file(opts)
     local use_yarn = files.exists(files.join(opts.dir, "yarn.lock"))
     local bin = use_yarn and "yarn" or "npm"
     local data = files.load_json_file(package)

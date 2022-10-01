@@ -40,6 +40,9 @@ local registry = {}
 ---@type overseer.TemplateProvider[]
 local providers = {}
 
+---@type table<string, overseer.TemplateDefinition[]>
+local cached_provider_results = {}
+
 local hooks = {}
 
 ---@param condition? overseer.SearchCondition
@@ -156,6 +159,20 @@ local function initialize()
   initialized = true
 end
 
+---@param defn overseer.TemplateProvider
+local function validate_template_provider(defn)
+  vim.validate({
+    name = { defn.name, "s" },
+    generator = { defn.generator, "f" },
+    cache_key = { defn.cache_key, "f", true },
+  })
+  if not defn.cache_key then
+    defn.cache_key = function(opts)
+      return opts.dir
+    end
+  end
+end
+
 ---@param defn overseer.TemplateDefinition
 local function validate_template_definition(defn)
   defn.priority = defn.priority or DEFAULT_PRIORITY
@@ -264,6 +281,7 @@ end
 ---@param defn overseer.TemplateDefinition|overseer.TemplateProvider
 M.register = function(defn)
   if defn.generator then
+    validate_template_provider(defn)
     table.insert(providers, defn)
   else
     validate_template_definition(defn)
@@ -336,6 +354,17 @@ end
 ---@field dir string
 
 ---@param opts? overseer.SearchParams
+M.clear_cache = function(opts)
+  opts = opts or opts
+  for _, provider in ipairs(providers) do
+    local cache_key = provider.cache_key(opts)
+    if cache_key then
+      cached_provider_results[cache_key] = nil
+    end
+  end
+end
+
+---@param opts? overseer.SearchParams
 ---@param cb fun(templates: overseer.TemplateDefinition[])
 M.list = function(opts, cb)
   initialize()
@@ -372,10 +401,30 @@ M.list = function(opts, cb)
     cb(ret)
   end
 
+  local start_times = {}
+  local timed_out = false
   ---This is the async callback that is passed to generators
   ---@param tmpls overseer.TemplateDefinition[]
-  ---@param module string|nil
-  local function handle_tmpls(tmpls, module)
+  ---@param provider_name string
+  ---@param module nil|string
+  ---@param cache_key nil|string
+  local function handle_tmpls(tmpls, provider_name, module, cache_key)
+    local elapsed_ms = (vim.loop.hrtime() - start_times[provider_name]) / 1e6
+    if
+      cache_key
+      and config.template_cache_threshold > 0
+      and elapsed_ms >= config.template_cache_threshold
+    then
+      log:debug("Caching %s: [%s] = %d", provider_name, cache_key, #tmpls)
+      cached_provider_results[cache_key] = tmpls
+    end
+    if not pending[provider_name] then
+      if not timed_out then
+        log:warn("Template %s double-called callback", provider_name)
+      end
+      return
+    end
+    pending[provider_name] = nil
     for _, tmpl in ipairs(tmpls) do
       -- Set the module on the template so it can be used to match hooks
       tmpl.module = module
@@ -385,7 +434,7 @@ M.list = function(opts, cb)
           table.insert(ret, tmpl)
         end
       else
-        log:error("Template %s from %s: %s", tmpl.name, module, err)
+        log:error("Template %s from %s: %s", tmpl.name, provider_name, err)
       end
     end
 
@@ -396,6 +445,7 @@ M.list = function(opts, cb)
   if config.template_timeout > 0 then
     vim.defer_fn(function()
       if not vim.tbl_isempty(pending) then
+        timed_out = true
         log:error("Listing templates timed out. Pending providers: %s", vim.tbl_keys(pending))
         pending = {}
         final_callback()
@@ -408,20 +458,25 @@ M.list = function(opts, cb)
   for _, provider in ipairs(providers) do
     local provider_name = provider.name
     if condition_matches(provider.condition, nil, opts, false) then
+      local cache_key = provider.cache_key(opts)
+      local cb = function(tmpls)
+        handle_tmpls(tmpls, provider_name, provider.module, cache_key)
+      end
+      start_times[provider.name] = vim.loop.hrtime()
       pending[provider.name] = true
-      local ok, tmpls = pcall(provider.generator, opts, function(tmpls)
-        pending[provider_name] = nil
-        handle_tmpls(tmpls, provider.module)
-      end)
-      if ok then
-        if tmpls then
-          -- if there was a return value, the generator completed synchronously
-          handle_tmpls(tmpls, provider.module)
-          pending[provider_name] = nil
-          -- TODO deprecate this flow
-        end
+      if cache_key and cached_provider_results[cache_key] then
+        cb(cached_provider_results[cache_key])
       else
-        log:error("Template provider %s: %s", provider.name, tmpls)
+        local ok, tmpls = pcall(provider.generator, opts, cb)
+        if ok then
+          if tmpls then
+            -- if there was a return value, the generator completed synchronously
+            -- TODO deprecate this flow
+            cb(tmpls)
+          end
+        else
+          log:error("Template provider %s: %s", provider.name, tmpls)
+        end
       end
     end
   end

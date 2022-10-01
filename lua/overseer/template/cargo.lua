@@ -29,6 +29,9 @@ local tmpl = {
 }
 
 return {
+  cache_key = function(opts)
+    return vim.fn.fnamemodify(vim.fn.findfile("Cargo.toml", opts.dir .. ";"), ":p")
+  end,
   condition = {
     callback = function(opts)
       return vim.fn.findfile("Cargo.toml", opts.dir .. ";") ~= ""

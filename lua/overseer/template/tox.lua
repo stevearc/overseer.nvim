@@ -20,6 +20,9 @@ local tmpl = {
 }
 
 return {
+  cache_key = function(opts)
+    return files.join(opts.dir, "tox.ini")
+  end,
   condition = {
     callback = function(opts)
       return files.exists(files.join(opts.dir, "tox.ini"))

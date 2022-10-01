@@ -89,6 +89,33 @@ M._task_action = function(params)
   M.task_action()
 end
 
+M._preload_cache = function(params)
+  local opts = {
+    dir = vim.fn.getcwd(),
+  }
+  if params.bang then
+    M.clear_cache(opts)
+  end
+  M.preload_cache(opts)
+end
+
+M._clear_cache = function(_params)
+  M.clear_cache()
+end
+
+---@param opts table
+---    dir string
+---    ft nil|string
+---@param cb nil|fun Called when preloading is complete
+M.preload_cache = function(opts, cb)
+  template.list(opts, cb or function() end)
+end
+
+---@param opts table
+---    dir string
+---    ft nil|string
+M.clear_cache = template.clear_cache
+
 -- TEMPLATE LOADING/RUNNING
 
 ---Options for running a template

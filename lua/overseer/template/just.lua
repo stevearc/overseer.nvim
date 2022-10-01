@@ -1,6 +1,9 @@
 local log = require("overseer.log")
 
 return {
+  cache_key = function(opts)
+    return vim.fn.fnamemodify(vim.fn.findfile("justfile", opts.dir .. ";"), ":p")
+  end,
   condition = {
     callback = function(opts)
       return vim.fn.findfile("justfile", opts.dir .. ";") ~= "" and vim.fn.executable("just") == 1

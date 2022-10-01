@@ -122,6 +122,10 @@ Providers are created the same way templates are (with `overseer.register_templa
   condition = function(search)
     return true
   end,
+  -- Optional. Overrides the default cache key of `opts.dir`
+  cache_key = function(opts)
+    return vim.fn.findfile("Makefile", opts.dir .. ";")
+  end,
 }
 ```
 

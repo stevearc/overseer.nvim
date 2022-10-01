@@ -94,6 +94,9 @@ local function parse_make_output(cwd, ret, cb)
 end
 
 return {
+  cache_key = function(opts)
+    return vim.fn.fnamemodify(vim.fn.findfile("Makefile", opts.dir .. ";"), ":p")
+  end,
   condition = {
     callback = function(opts)
       return vim.fn.findfile("Makefile", opts.dir .. ";") ~= "" and vim.fn.executable("make") == 1

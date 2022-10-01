@@ -206,6 +206,14 @@ local commands = {
       desc = "Select a task to run an action on",
     },
   },
+  {
+    cmd = "OverseerPreloadTasks",
+    func = "_preload_cache",
+    def = {
+      desc = "Preload and cache the tasks in the cwd. [!] clears existing cache.",
+      bang = true,
+    },
+  },
 }
 
 local function create_commands()
@@ -369,6 +377,27 @@ M.list_tasks = lazy("task_list", "list_tasks")
 --- overseer.run_template({name = "npm watch", prompt = "always"})
 M.run_template = lazy("commands", "run_template")
 
+---Preload templates for run_template
+---@param opts table
+---    dir string
+---    ft nil|string
+---@param cb nil|fun Called when preloading is complete
+---@note
+--- Typically this would be done to prevent a long wait time for :OverseerRun when using a slow
+--- template provider.
+---@example
+--- -- Automatically preload templates for the current directory
+--- vim.api.nvim_create_autocmd({"VimEnter", "DirChanged"}, {
+---   local cwd = vim.v.cwd or vim.fn.getcwd()
+---   require("overseer").preload_task_cache({ dir = cwd })
+--- })
+M.preload_task_cache = lazy("commands", "preload_cache")
+---Clear cached templates for run_template
+---@param opts table
+---    dir string
+---    ft nil|string
+M.clear_task_cache = lazy("commands", "clear_cache")
+
 ---Run an action on a task
 ---@param task overseer.Task
 ---@param name string|nil Name of action. When omitted, prompt user to pick.
@@ -505,6 +534,7 @@ setmetatable(M, {
 M.get_all_commands = function()
   local cmds = vim.deepcopy(commands)
   for _, v in ipairs(cmds) do
+    -- Remove all function values from the command definition so we can serialize it
     for k, param in pairs(v.def) do
       if type(param) == "function" then
         v.def[k] = nil

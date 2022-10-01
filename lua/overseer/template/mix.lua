@@ -20,6 +20,9 @@ local tmpl = {
 }
 
 return {
+  cache_key = function(opts)
+    return vim.fn.fnamemodify(vim.fn.findfile("mix.exs", opts.dir .. ";"), ":p")
+  end,
   condition = {
     callback = function(opts)
       return files.exists(files.join(opts.dir, "mix.exs"))

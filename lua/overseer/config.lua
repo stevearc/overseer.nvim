@@ -150,8 +150,12 @@ local default_config = {
   --   allow     Only show when a required param is missing
   --   never     Never show prompt (error if required param missing)
   default_template_prompt = "allow",
-  -- For async template generators, how long to wait (in ms) before timing out
+  -- For template providers, how long to wait (in ms) before timing out.
+  -- Set to 0 to disable timeouts.
   template_timeout = 1000,
+  -- Cache template provider results if the provider takes longer than this to run.
+  -- Time is in ms. Set to 0 to disable caching.
+  template_cache_threshold = 100,
   -- Configure where the logs go and what level to use
   -- Types are "echo", "notify", and "file"
   log = {
