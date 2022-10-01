@@ -1,4 +1,6 @@
+local component = require("overseer.component")
 local constants = require("overseer.constants")
+local form = require("overseer.form")
 local layout = require("overseer.layout")
 local task_bundle = require("overseer.task_bundle")
 local task_list = require("overseer.task_list")
@@ -75,15 +77,15 @@ M = {
       return not task:has_component("restart_on_save")
     end,
     run = function(task)
-      vim.ui.input({
-        prompt = "Path (watch file(s))",
-        completion = "file",
-        default = vim.fn.getcwd(0),
-      }, function(path)
-        task:set_components({
-          -- TODO prompt for "interrupt" too
-          { "restart_on_save", path = path },
-        })
+      local comp = component.get("restart_on_save")
+      local schema = vim.deepcopy(comp.params)
+      -- This is a deprecated param
+      schema.dir = nil
+      form.open("Restart task when files are written", schema, {
+        path = { vim.fn.getcwd() },
+      }, function(params)
+        params[1] = "restart_on_save"
+        task:set_component(params)
         task_list.update(task)
       end)
     end,
