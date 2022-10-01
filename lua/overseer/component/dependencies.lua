@@ -51,12 +51,26 @@ return {
               return false
             end
           else
-            if dep_task.status ~= STATUS.SUCCESS then
+            if dep_task.status == STATUS.PENDING then
+              dep_task:start()
+              started_any = true
+              if params.sequential then
+                return false
+              end
+            elseif dep_task.status ~= STATUS.SUCCESS then
               return false
             end
           end
         end
         return not started_any
+      end,
+      on_reset = function(self, task, soft)
+        for _, task_id in pairs(self.task_lookup) do
+          local dep_task = task_list.get(task_id)
+          if dep_task then
+            dep_task:reset(soft)
+          end
+        end
       end,
       on_dependency_complete = function(self, task)
         task:start()
