@@ -108,7 +108,8 @@ function Editor.new(task, task_cb)
   local bufnr = vim.api.nvim_create_buf(false, true)
   vim.api.nvim_buf_set_option(bufnr, "swapfile", false)
   vim.api.nvim_buf_set_option(bufnr, "bufhidden", "wipe")
-  vim.api.nvim_buf_set_option(bufnr, "buftype", "nofile")
+  vim.api.nvim_buf_set_option(bufnr, "buftype", "acwrite")
+  vim.api.nvim_buf_set_name(bufnr, "Overseer task editor")
 
   local components = {}
   for _, comp in ipairs(task.components) do
@@ -146,6 +147,13 @@ function Editor.new(task, task_cb)
   for mode, user_bindings in pairs(config.task_launcher.bindings) do
     binding_util.create_bindings_to_plug(bufnr, mode, user_bindings, "OverseerLauncher:")
   end
+  vim.api.nvim_create_autocmd("BufWriteCmd", {
+    desc = "Submit on buffer write",
+    buffer = bufnr,
+    callback = function()
+      editor:submit()
+    end,
+  })
 
   table.insert(
     editor.autocmds,

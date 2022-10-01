@@ -83,7 +83,8 @@ function Builder.new(title, schema, params, callback)
   local bufnr = vim.api.nvim_create_buf(false, true)
   vim.api.nvim_buf_set_option(bufnr, "swapfile", false)
   vim.api.nvim_buf_set_option(bufnr, "bufhidden", "wipe")
-  vim.api.nvim_buf_set_option(bufnr, "buftype", "nofile")
+  vim.api.nvim_buf_set_option(bufnr, "buftype", "acwrite")
+  vim.api.nvim_buf_set_name(bufnr, "Overseer task builder")
   local autocmds = {}
   local builder
   local cleanup, layout = form.open_form_win(bufnr, {
@@ -124,6 +125,13 @@ function Builder.new(title, schema, params, callback)
   }, { __index = Builder })
   builder:init_autocmds()
   builder:init_keymaps()
+  vim.api.nvim_create_autocmd("BufWriteCmd", {
+    desc = "Submit on buffer write",
+    buffer = bufnr,
+    callback = function()
+      builder:submit()
+    end,
+  })
   return builder
 end
 

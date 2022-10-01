@@ -68,7 +68,8 @@ existing tasks (that are not running) you can use the `edit` action.
 For the most part you can edit the values like a normal buffer, but there is a lot of magic involved
 to produce a "form-like" experience. For enum fields, you can autocomplete the possible values with
 omnicomplete (`<C-x><C-o>`). To delete a component, just delete its name (`dd` works fine). To add a
-new component, create a blank line (I typically use `o`)
+new component, create a blank line (I typically use `o`). When you are done, use `:w` to confirm and
+submit your changes.
 
 ## Alternatives
 
