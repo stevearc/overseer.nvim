@@ -542,4 +542,26 @@ M.debounce = function(func, opts)
   end
 end
 
+local minute_s = 60
+local hour_s = 60 * minute_s
+local day_s = 24 * hour_s
+---Format a duration as a human-readable string
+---@param duration integer Duration in seconds
+---@return string
+M.format_duration = function(duration)
+  local secs = duration % 60
+  local days = math.floor(duration / day_s)
+  local hours = math.floor((duration % day_s) / hour_s)
+  local mins = math.floor((duration % hour_s) / minute_s)
+  local time = ""
+  if days > 0 then
+    time = string.format("%d day%s ", days, days > 1 and "s" or "")
+  end
+  if hours > 0 then
+    time = string.format("%s%d:", time, hours)
+  end
+  time = string.format("%s%02d:%02d", time, mins, secs)
+  return time
+end
+
 return M

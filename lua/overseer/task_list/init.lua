@@ -20,6 +20,8 @@ local function rerender()
   end
 end
 
+M.rerender = rerender
+
 M.update = function(task)
   if not task then
     rerender()

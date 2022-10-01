@@ -46,6 +46,7 @@ local aliases = {}
 
 local builtin_components = {
   "dependencies",
+  "display_duration",
   "on_complete_dispose",
   "on_complete_notify",
   "on_complete_restart",
