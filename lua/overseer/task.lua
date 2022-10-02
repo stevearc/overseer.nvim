@@ -91,6 +91,7 @@ function Task.new_uninitialized(opts)
   if not name then
     name = type(opts.cmd) == "table" and table.concat(opts.cmd, " ") or opts.cmd
   end
+  name = name:gsub("\n", " ")
   -- Build the instance data for the task
   local data = {
     result = nil,
