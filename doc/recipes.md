@@ -81,3 +81,25 @@ require("overseer").register_template({
   end,
 })
 ```
+
+## :Make similar to vim-dispatch
+
+The venerable vim-dispatch provides several commands, but the main `:Make` command can be mimicked fairly easily:
+
+```lua
+vim.api.nvim_create_user_command("Make", function(params)
+  local task = require("overseer").new_task({
+    cmd = vim.split(vim.o.makeprg, "%s+"),
+    args = params.fargs,
+    components = {
+      { "on_output_quickfix", open = not params.bang, open_height = 8 },
+      "default",
+    },
+  })
+  task:start()
+end, {
+  desc = "",
+  nargs = "*",
+  bang = true,
+})
+```

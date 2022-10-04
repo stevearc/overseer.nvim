@@ -76,7 +76,6 @@ submit your changes.
 There are several other job/task plugins in the neovim ecosystem. To me, the main differentiating features that overseer offers are **unparalleled extensibility** and the **most complete support for VS Code's `tasks.json`** format. If you're still shopping around, these are the others that I'm aware of:
 
 - [asynctasks.vim](https://github.com/skywind3000/asynctasks.vim) - Modern Task System for Project Building, Testing and Deploying
-- [async.vim](https://github.com/prabirshrestha/async.vim) - normalize async job control api for vim and neovim
 - [vim-dispatch](https://github.com/tpope/vim-dispatch) - Asynchronous build and test dispatcher
 - [yabs.nvim](https://github.com/pianocomposer321/yabs.nvim) - Yet Another Build System/Code Runner for Neovim
 - [toggletasks.nvim](https://github.com/jedrzejboczar/toggletasks.nvim) - Neovim task runner: JSON/YAML + toggleterm.nvim + telescope.nvim
