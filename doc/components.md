@@ -47,11 +47,16 @@ Parses task output and sets task result \
 ## [on_output_quickfix](../lua/overseer/component/on_output_quickfix.lua)
 
 Set all task output into the quickfix (on complete) \
-**close**[boolean]: If true, close the quickfix when no items found (default `false`) \
+**close**[boolean]: Close the quickfix on completion if no errorformat matches (default `false`) \
 **errorformat**[string]: See :help errorformat \
-**items_only**[boolean]: If true, only show valid matches in the quickfix (default `false`) \
-**open**[boolean]: If true, open the quickfix when any items found (default `false`) \
-**set_diagnostics**[boolean]: If true, add the found items to diagnostics (default `false`)
+**items_only**[boolean]: Only show lines that match the errorformat (default `false`) \
+**open**[boolean]: Open the quickfix on output (default `false`) \
+**open_height**[integer]: The height of the quickfix when opened \
+**open_on_match**[boolean]: Open the quickfix when the errorformat finds a match (default `false`) \
+**set_diagnostics**[boolean]: Add the matching items to vim.diagnostics (default `false`) \
+**tail**[boolean]: Update the quickfix with task output as it happens, instead of waiting until completion (default `true`) \
+    This may cause unexpected results for commands that produce "fancy" output using terminal escape \
+    codes (e.g. animated progress indicators)
 
 ## [on_output_summarize](../lua/overseer/component/on_output_summarize.lua)
 
