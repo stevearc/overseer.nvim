@@ -85,6 +85,7 @@ M.decode_json = function(content)
     end
 
     char = data:match("Expected object key string but found [^%s]+ at character (%d+)$")
+    char = char or data:match("Expected value but found T_ARR_END at character (%d+)")
     if char then
       local comma_idx = str_rfind(content, char, ",")
       if comma_idx then
