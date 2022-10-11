@@ -80,6 +80,7 @@ There are several other job/task plugins in the neovim ecosystem. To me, the mai
 - [yabs.nvim](https://github.com/pianocomposer321/yabs.nvim) - Yet Another Build System/Code Runner for Neovim
 - [toggletasks.nvim](https://github.com/jedrzejboczar/toggletasks.nvim) - Neovim task runner: JSON/YAML + toggleterm.nvim + telescope.nvim
 - [vs-tasks.nvim](https://github.com/EthanJWright/vs-tasks.nvim) - A telescope plugin that runs tasks similar to VS Code's task implementation
+- [neovim-tasks](https://github.com/Shatur/neovim-tasks) - A stateful task manager focused on integration with build systems
 - [tasks.nvim](https://github.com/GustavoKatel/tasks.nvim) - Yet another task runner/manager for Neovim
 - [tasks.nvim](https://github.com/mg979/tasks.vim) - Async jobs and tasks
 
