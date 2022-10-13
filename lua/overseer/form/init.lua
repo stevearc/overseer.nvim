@@ -104,7 +104,7 @@ function Builder.new(title, schema, params, callback)
       for k, v in pairs(schema) do
         local len = string.len(form_utils.render_field(v, " ", k, params[k]))
         if v.desc then
-          len = len + string.len(v.desc)
+          len = len + 1 + string.len(v.desc)
         end
         if len > max_len then
           max_len = len
