@@ -78,9 +78,9 @@ function Task.new_uninitialized(opts)
   end
   if opts.args then
     if type(opts.cmd) == "string" then
-      local escaped = vim.tbl_map(opts.args, function(arg)
+      local escaped = vim.tbl_map(function(arg)
         return vim.fn.shellescape(arg)
-      end)
+      end, opts.args)
       opts.cmd = string.format("%s %s", opts.cmd, table.concat(escaped, " "))
     else
       opts.cmd = vim.deepcopy(opts.cmd)
