@@ -7,8 +7,9 @@ CONTENTS                                                       *overseer-content
   2. Options................................................|overseer-options|
   3. Highlights..........................................|overseer-highlights|
   4. Api........................................................|overseer-api|
-  5. Parameters..............................................|overseer-params|
-  6. Actions................................................|overseer-actions|
+  5. Components..........................................|overseer-components|
+  6. Parameters..............................................|overseer-params|
+  7. Actions................................................|overseer-actions|
 
 --------------------------------------------------------------------------------
 COMMANDS                                                       *overseer-commands*
@@ -574,6 +575,158 @@ load_template({name})                                     *overseer.load_templat
       -- This will load the template in lua/overseer/template/mytask.lua
       overseer.load_template('mytask')
 <
+
+--------------------------------------------------------------------------------
+COMPONENTS                                                   *overseer-components*
+
+dependencies                                                        *dependencies*
+    Set dependencies for task
+
+    Parameters:
+      {*task_names} `list[string]` Names of dependency task templates This can
+                    be a list of strings (template names) or tables (name with
+                    params, e.g. {"shell", cmd = "sleep 10"})
+      {sequential}  `boolean` (default `false`)
+
+display_duration                                                *display_duration*
+    Display the run duration
+
+    Parameters:
+      {detail_level} `integer` Show the duration at this detail level (default
+                     `1`)
+
+on_complete_dispose                                          *on_complete_dispose*
+    After task is completed, dispose it after a timeout
+
+    Parameters:
+      {statuses} `list[enum]` Tasks with one of these statuses will be disposed
+                 (default `["SUCCESS", "FAILURE", "CANCELED"]`)
+      {timeout}  `number` Time to wait (in seconds) before disposing (default
+                 `300`)
+
+on_complete_notify                                            *on_complete_notify*
+    vim.notify when task is completed
+
+    Parameters:
+      {on_change} `boolean` Only notify when task status changes from previous
+                  value (default `false`) This is mostly used when a task is
+                  going to be restarted, and you want notifications only when it
+                  goes from SUCCESS to FAILURE, or vice-versa
+      {statuses}  `list[enum]` List of statuses to notify on (default
+                  `["FAILURE", "SUCCESS"]`)
+      {system}    `enum` When to send a system notification (default `"never"`)
+
+on_complete_restart                                          *on_complete_restart*
+    Restart task when it completes
+
+    Parameters:
+      {delay}    `number` How long to wait (in ms) post-result before triggering
+                 restart (default `500`)
+      {statuses} `list[enum]` What statuses will trigger a restart (default
+                 `["FAILURE"]`)
+
+on_exit_set_status                                            *on_exit_set_status*
+    Sets final task status based on exit code
+
+    Parameters:
+      {success_codes} `list[integer]` Additional exit codes to consider as
+                      success
+
+on_output_parse                                                  *on_output_parse*
+    Parses task output and sets task result
+
+    Parameters:
+      {*parser} `opaque` Parser definition to extract values from output
+
+on_output_quickfix                                            *on_output_quickfix*
+    Set all task output into the quickfix (on complete)
+
+    Parameters:
+      {close}           `boolean` Close the quickfix on completion if no
+                        errorformat matches (default `false`)
+      {errorformat}     `string` See :help errorformat
+      {items_only}      `boolean` Only show lines that match the errorformat
+                        (default `false`)
+      {open}            `boolean` Open the quickfix on output (default `false`)
+      {open_height}     `integer` The height of the quickfix when opened
+      {open_on_match}   `boolean` Open the quickfix when the errorformat finds a
+                        match (default `false`)
+      {set_diagnostics} `boolean` Add the matching items to vim.diagnostics
+                        (default `false`)
+      {tail}            `boolean` Update the quickfix with task output as it
+                        happens, instead of waiting until completion (default
+                        `true`) This may cause unexpected results for commands
+                        that produce "fancy" output using terminal escape codes
+                        (e.g. animated progress indicators)
+
+on_output_summarize                                          *on_output_summarize*
+    Summarize task output in the task list
+
+    Parameters:
+      {max_lines} `integer` Number of lines of output to show when detail > 1
+                  (default `4`)
+
+on_output_write_file                                        *on_output_write_file*
+    Write task output to a file
+
+    Parameters:
+      {*filename} `string` Name of file to write output to
+
+on_result_diagnostics                                      *on_result_diagnostics*
+    If task result contains diagnostics, display them
+
+    Parameters:
+      {remove_on_restart} `boolean` Remove diagnostics when task restarts
+      {signs}        `boolean` Override the default diagnostics.signs setting
+      {underline}    `boolean` Override the default diagnostics.underline
+                     setting
+      {virtual_text} `boolean` Override the default diagnostics.virtual_text
+                     setting
+
+on_result_diagnostics_quickfix                    *on_result_diagnostics_quickfix*
+    If task result contains diagnostics, add them to the quickfix
+
+    Parameters:
+      {close}       `boolean` If true, close the quickfix when there are no
+                    diagnostics (default `false`)
+      {open}        `boolean` If true, open the quickfix when there are
+                    diagnostics (default `false`)
+      {set_empty_results} `boolean` If true, overwrite the current quickfix even
+                    if there are no diagnostics (default `false`)
+      {use_loclist} `boolean` If true, use the loclist instead of quickfix
+                    (default `false`)
+
+restart_on_save                                                  *restart_on_save*
+    Restart on any buffer :write
+
+    Parameters:
+      {delay}     `number` How long to wait (in ms) post-result before
+                  triggering restart (default `500`)
+      {dir}       `string` DEPRECATED: use 'path' instead
+      {interrupt} `boolean` Interrupt running tasks (default `true`)
+      {path}      `string` Only restart when writing files in this path (dir or
+                  file)
+
+timeout                                                                  *timeout*
+    Cancel task if it exceeds a timeout
+
+    Parameters:
+      {timeout} `integer` Time to wait (in seconds) before canceling (default
+                `120`)
+
+unique                                                                    *unique*
+    Ensure that this task does not have any duplicates
+
+    Parameters:
+      {replace} `boolean` If a prior task exists, replace it. When false, will
+                restart the existing task and dispose the current task (default
+                `true`) Note that when this is false a new task that is created
+                will restart the existing one and _dispose itself_. This can
+                lead to unexpected behavior if you are creating a task and then
+                trying to use that reference (to run actions on it, use it as a
+                dependency, etc)
+      {restart_interrupts} `boolean` When replace = false, should restarting the
+                existing task interrupt it (default `true`)
 
 --------------------------------------------------------------------------------
 PARAMETERS                                                       *overseer-params*

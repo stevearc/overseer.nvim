@@ -4,7 +4,13 @@ import re
 import subprocess
 from typing import Any, Dict, Iterable, List, Tuple
 
-from nvim_doc_tools.apidoc import parse_functions, render_api_md, render_api_vimdoc
+from nvim_doc_tools.apidoc import (
+    LuaParam,
+    format_params,
+    parse_functions,
+    render_api_md,
+    render_api_vimdoc,
+)
 from nvim_doc_tools.util import (
     MD_LINK_PAT,
     Vimdoc,
@@ -18,7 +24,6 @@ from nvim_doc_tools.util import (
     replace_section,
     wrap,
 )
-
 
 HERE = os.path.dirname(__file__)
 ROOT = os.path.abspath(os.path.join(HERE, os.path.pardir))
@@ -53,47 +58,64 @@ def update_config_options():
     )
 
 
-def format_param(name: str, param: Dict) -> List[str]:
-    typestr = param["type"]
-    if "subtype" in param:
-        typestr += "[" + str(param["subtype"]["type"]) + "]"
-    pieces = [f"**{name}**[{typestr}]:"]
-    required = not param.get("optional")
-    if param.get("desc"):
-        pieces.append(param["desc"])
-    if param.get("default") is not None:
-        pieces.append("(default `%s`)" % json.dumps(param["default"]))
-        required = False
-    line = " ".join(pieces)
-    if required:
-        line = "\\*" + line
-    lines = [line]
-    if param.get("long_desc"):
-        lines.extend(wrap(param["long_desc"], 4, 100, ""))
-    return lines
+def params_sort_key(item):
+    name, param = item
+    is_optional = param.get("optional", "default" in param)
+    return (is_optional, name)
 
 
 def update_components_md():
     components = read_nvim_json('require("overseer.component").get_all_descriptions()')
     doc = os.path.join(ROOT, "doc", "components.md")
-    lines = ["# Built-in components\n", "\n"]
+    lines = ["# Built-in components\n", "\n", "<!-- TOC -->\n", "<!-- /TOC -->\n", "\n"]
     for comp in components:
-        title = f"## [{comp['name']}](../lua/overseer/component/{comp['name']}.lua)\n\n"
-        lines.append(title)
-        content_lines = []
+        lines.append(f"## {comp['name']}\n\n")
+        lines.append(
+            f"[{comp['name']}.lua](../lua/overseer/component/{comp['name']}.lua)\n"
+        )
+        lines.append("\n")
         if comp.get("desc"):
-            content_lines.append(comp["desc"])
+            lines.append(comp["desc"] + "\n")
         if comp.get("long_desc"):
-            content_lines.extend(wrap(comp["long_desc"], width=100, line_end=""))
+            lines.append("\n")
+            lines.extend(wrap(comp["long_desc"], width=100))
+        long_desc_params = []
         if comp.get("params"):
-            for k, v in sorted(comp["params"].items()):
-                content_lines.extend(format_param(k, v))
-        for i, line in enumerate(content_lines):
-            if i < len(content_lines) - 1:
-                content_lines[i] = line + " \\\n"
-            else:
-                content_lines[i] = line + "\n"
-        lines.extend(content_lines)
+            lines.append("\n")
+            rows = []
+            has_default = False
+            for k, param in sorted(comp["params"].items(), key=params_sort_key):
+                typestr = param["type"]
+                if "subtype" in param:
+                    typestr += "[" + str(param["subtype"]["type"]) + "]"
+                required = not param.get("optional")
+                name = k
+                row = {
+                    "Type": f"`{typestr}`",
+                    "Desc": param.get("desc", ""),
+                }
+                if param.get("default") is not None:
+                    row["Default"] = "`" + json.dumps(param["default"]) + "`"
+                    required = False
+                    has_default = True
+                if required:
+                    name = "*" + name
+                row["Param"] = name
+                rows.append(row)
+                if "long_desc" in param:
+                    long_desc_params.append(
+                        {"name": k, "long_desc": param["long_desc"]}
+                    )
+            cols = ["Param", "Type", "Desc"]
+            if has_default:
+                cols.insert(2, "Default")
+            lines.extend(format_md_table(rows, cols))
+        if long_desc_params:
+            lines.append("\n")
+            for param in long_desc_params:
+                lines.extend(
+                    "- **" + param["name"] + ":** " + param["long_desc"] + "\n"
+                )
         lines.append("\n")
     with open(doc, "w", encoding="utf-8") as ofile:
         ofile.writelines(lines)
@@ -227,12 +249,12 @@ def update_highlights_md():
     highlights = read_nvim_json('require("overseer").get_all_highlights()')
     lines = [
         "\n",
-        "Overseer defines the following highlights override them to customize the colors.\n",
+        "Overseer defines the following highlights. Override them to customize the colors.\n",
         "\n",
     ]
     rows = []
     for hl in highlights:
-        name = hl["cmd"]
+        name = hl["name"]
         desc = hl.get("desc")
         if desc is None:
             continue
@@ -242,11 +264,11 @@ def update_highlights_md():
                 "Description": desc,
             }
         )
-    lines.extend(format_md_table(rows, ["Command", "Description"]))
+    lines.extend(format_md_table(rows, ["Group", "Description"]))
     lines.append("\n")
     replace_section(
-        README,
-        r"^## Highlights",
+        os.path.join(DOC, "reference.md"),
+        r"^## Highlight groups",
         r"^#",
         lines,
     )
@@ -288,6 +310,39 @@ def get_highlights_vimdoc() -> "VimdocSection":
             continue
         section.body.append(leftright(name, f"*hl-{name}*"))
         section.body.extend(wrap(desc, 4))
+        section.body.append("\n")
+    return section
+
+
+def get_components_vimdoc() -> "VimdocSection":
+    section = VimdocSection("Components", "overseer-components", ["\n"])
+    components = read_nvim_json('require("overseer.component").get_all_descriptions()')
+    for comp in components:
+        section.body.append(leftright(comp["name"], f"*{comp['name']}*"))
+        if "desc" in comp:
+            section.body.append(4 * " " + comp["desc"] + "\n")
+        if "long_desc" in comp:
+            section.body.extend(wrap(comp["long_desc"], 4))
+        if comp.get("params"):
+            section.body.append("\n")
+            section.body.append(4 * " " + "Parameters:\n")
+            lua_params = []
+            for k, param in sorted(comp["params"].items(), key=params_sort_key):
+                typestr = param["type"]
+                if "subtype" in param:
+                    typestr += "[" + str(param["subtype"]["type"]) + "]"
+                required = not param.get("optional")
+                name = k
+                desc = param.get("desc", "")
+                if param.get("default") is not None:
+                    desc = desc + " (default `" + json.dumps(param["default"]) + "`)"
+                    required = False
+                if "long_desc" in param:
+                    desc = desc + " " + param["long_desc"]
+                if required:
+                    name = "*" + name
+                lua_params.append(LuaParam(name, typestr, desc))
+            section.body.extend(format_params(lua_params, 6))
         section.body.append("\n")
     return section
 
@@ -356,7 +411,8 @@ def generate_vimdoc():
             get_commands_vimdoc(),
             get_options_vimdoc(),
             get_highlights_vimdoc(),
-            VimdocSection("API", "overseer-api", render_api_vimdoc('overseer', funcs)),
+            VimdocSection("API", "overseer-api", render_api_vimdoc("overseer", funcs)),
+            get_components_vimdoc(),
             convert_md_section(
                 os.path.join(DOC, "reference.md"),
                 "^## Parameters",
@@ -483,16 +539,40 @@ def update_readme_toc():
     )
 
 
+def update_reference_md():
+    update_commands_md()
+    update_md_api()
+    update_highlights_md()
+    components_toc = add_md_link_path(
+        "components.md", generate_md_toc(os.path.join(DOC, "components.md"))
+    )
+    reference_doc = os.path.join(DOC, "reference.md")
+    toc = ["\n"] + generate_md_toc(reference_doc) + ["\n"]
+    idx = toc.index("- [Components](#components)\n")
+    toc[idx+1:idx+1] = ["  " + line for line in components_toc]
+    replace_section(
+        reference_doc,
+        r"^<!-- TOC -->$",
+        r"^<!-- /TOC -->$",
+        toc,
+    )
+    replace_section(
+        reference_doc,
+        r"^<!-- TOC.components -->$",
+        r"^<!-- /TOC.components -->$",
+        ["\n"] + components_toc + ["\n"],
+    )
+
+
 def main() -> None:
     """Update the README"""
     update_config_options()
     update_components_md()
     update_parsers_md()
-    update_commands_md()
-    update_md_api()
+    update_md_toc(os.path.join(DOC, "components.md"))
+    update_reference_md()
     update_md_toc(os.path.join(DOC, "tutorials.md"))
     update_md_toc(os.path.join(DOC, "guides.md"))
-    update_md_toc(os.path.join(DOC, "reference.md"))
     update_md_toc(os.path.join(DOC, "explanation.md"))
     update_md_toc(os.path.join(DOC, "third_party.md"))
     update_md_toc(os.path.join(DOC, "recipes.md"))

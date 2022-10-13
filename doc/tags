@@ -22,6 +22,7 @@ hl-OverseerSUCCESS	overseer.txt	/*hl-OverseerSUCCESS*
 hl-OverseerTask	overseer.txt	/*hl-OverseerTask*
 hl-OverseerTaskBorder	overseer.txt	/*hl-OverseerTaskBorder*
 overseer	overseer.txt	/*overseer*
+overseer-actions	overseer.txt	/*overseer-actions*
 overseer-api	overseer.txt	/*overseer-api*
 overseer-commands	overseer.txt	/*overseer-commands*
 overseer-contents	overseer.txt	/*overseer-contents*

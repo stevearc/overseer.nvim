@@ -26,6 +26,22 @@
   - [remove_template_hook(opts, hook)](#remove_template_hookopts-hook)
   - [register_template(defn)](#register_templatedefn)
   - [load_template(name)](#load_templatename)
+- [Components](#components)
+  - [dependencies](components.md#dependencies)
+  - [display_duration](components.md#display_duration)
+  - [on_complete_dispose](components.md#on_complete_dispose)
+  - [on_complete_notify](components.md#on_complete_notify)
+  - [on_complete_restart](components.md#on_complete_restart)
+  - [on_exit_set_status](components.md#on_exit_set_status)
+  - [on_output_parse](components.md#on_output_parse)
+  - [on_output_quickfix](components.md#on_output_quickfix)
+  - [on_output_summarize](components.md#on_output_summarize)
+  - [on_output_write_file](components.md#on_output_write_file)
+  - [on_result_diagnostics](components.md#on_result_diagnostics)
+  - [on_result_diagnostics_quickfix](components.md#on_result_diagnostics_quickfix)
+  - [restart_on_save](components.md#restart_on_save)
+  - [timeout](components.md#timeout)
+  - [unique](components.md#unique)
 - [Parameters](#parameters)
 
 <!-- /TOC -->
@@ -239,9 +255,9 @@ require("overseer").setup({
 
 ## Highlight groups
 
-Overseer defines the following highlights override them to customize the colors.
+Overseer defines the following highlights. Override them to customize the colors.
 
-| Group                | description                                             |
+| Group                | Description                                             |
 | -------------------- | ------------------------------------------------------- |
 | `OverseerPENDING`    | Pending tasks                                           |
 | `OverseerRUNNING`    | Running tasks                                           |
@@ -621,6 +637,28 @@ overseer.load_template('mytask')
 
 
 <!-- /API -->
+
+## Components
+
+<!-- TOC.components -->
+
+- [dependencies](components.md#dependencies)
+- [display_duration](components.md#display_duration)
+- [on_complete_dispose](components.md#on_complete_dispose)
+- [on_complete_notify](components.md#on_complete_notify)
+- [on_complete_restart](components.md#on_complete_restart)
+- [on_exit_set_status](components.md#on_exit_set_status)
+- [on_output_parse](components.md#on_output_parse)
+- [on_output_quickfix](components.md#on_output_quickfix)
+- [on_output_summarize](components.md#on_output_summarize)
+- [on_output_write_file](components.md#on_output_write_file)
+- [on_result_diagnostics](components.md#on_result_diagnostics)
+- [on_result_diagnostics_quickfix](components.md#on_result_diagnostics_quickfix)
+- [restart_on_save](components.md#restart_on_save)
+- [timeout](components.md#timeout)
+- [unique](components.md#unique)
+
+<!-- /TOC.components -->
 
 ## Parameters
 
