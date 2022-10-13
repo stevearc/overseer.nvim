@@ -45,7 +45,7 @@ local default_config = {
       ["}"] = "NextTask",
     },
   },
-  -- See :help overseer.actions
+  -- See :help overseer-actions
   actions = {},
   -- Configure the floating window used for task templates that require input
   -- and the floating window used for editing tasks

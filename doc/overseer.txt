@@ -8,6 +8,7 @@ CONTENTS                                                       *overseer-content
   3. Highlights..........................................|overseer-highlights|
   4. Api........................................................|overseer-api|
   5. Parameters..............................................|overseer-params|
+  6. Actions................................................|overseer-actions|
 
 --------------------------------------------------------------------------------
 COMMANDS                                                       *overseer-commands*
@@ -98,7 +99,7 @@ OPTIONS                                                         *overseer-option
           ["}"] = "NextTask",
         },
       },
-      -- See :help overseer.actions
+      -- See :help overseer-actions
       actions = {},
       -- Configure the floating window used for task templates that require input
       -- and the floating window used for editing tasks
@@ -631,6 +632,50 @@ The following types are available:
       -- and not templates (which usually prompt the user for their parameters)
       type = "opaque"
     }
+<
+
+--------------------------------------------------------------------------------
+ACTIONS                                                         *overseer-actions*
+
+Actions can be performed on tasks by using the `RunAction` keybinding in the
+task list, or by the `OverseerQuickAction` and `OverseerTaskAction` commands.
+They are simply a custom function that will do something to or with a task.
+
+Browse the set of built-in actions at lua/overseer/task_list/actions.lua
+
+You can define your own or disable any of the built-in actions in the call to
+setup():
+
+>
+    overseer.setup({
+      actions = {
+        ["My custom action"] = {
+          desc = "This is an optional description. It may be omitted.",
+          -- Optional function that will determine when this action is available
+          condition = function(task)
+            if task.name == "foobar" then
+              return true
+            else
+              return false
+            end
+          end,
+          run = function(task)
+            -- Your custom logic here
+          end,
+        },
+    
+        -- Disable built-in actions by setting them to 'false'
+        watch = false,
+      },
+      -- You can optionally add keymaps to run your action in the task list
+      -- It will always be available in the "RunAction" menu, but it may be
+      -- worth mapping it directly if you use it often.
+      task_list = {
+        bindings = {
+          ['P'] = '<CMD>OverseerQuickAction My custom action<CR>',
+        }
+      }
+    })
 <
 
 ================================================================================

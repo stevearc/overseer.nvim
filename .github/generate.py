@@ -364,6 +364,13 @@ def generate_vimdoc():
                 "Parameters",
                 "overseer-params",
             ),
+            convert_md_section(
+                os.path.join(DOC, "guides.md"),
+                "^## Actions",
+                "^#",
+                "Actions",
+                "overseer-actions",
+            ),
         ]
     )
 
