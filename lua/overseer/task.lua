@@ -649,7 +649,7 @@ function Task:start()
   if bufnr and self.prev_bufnr then
     local prev_bufnr = self.prev_bufnr
     for _, win in ipairs(vim.api.nvim_list_wins()) do
-      if vim.api.nvim_win_get_buf(win) == prev_bufnr then
+      if vim.api.nvim_win_is_valid(win) and vim.api.nvim_win_get_buf(win) == prev_bufnr then
         -- If stickybuf is installed, make sure it doesn't interfere
         pcall(vim.api.nvim_win_del_var, win, "sticky_original_bufnr")
         pcall(vim.api.nvim_win_del_var, win, "sticky_bufnr")
