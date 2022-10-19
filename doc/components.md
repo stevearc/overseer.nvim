@@ -170,12 +170,13 @@ If task result contains diagnostics, add them to the quickfix
 
 Restart on any buffer :write
 
-| Param     | Type      | Default | Desc                                                           |
-| --------- | --------- | ------- | -------------------------------------------------------------- |
-| delay     | `number`  | `500`   | How long to wait (in ms) post-result before triggering restart |
-| dir       | `string`  |         | DEPRECATED: use 'path' instead                                 |
-| interrupt | `boolean` | `true`  | Interrupt running tasks                                        |
-| path      | `string`  |         | Only restart when writing files in this path (dir or file)     |
+| Param     | Type           | Default | Desc                                                                      |
+| --------- | -------------- | ------- | ------------------------------------------------------------------------- |
+| delay     | `number`       | `500`   | How long to wait (in ms) post-result before triggering restart            |
+| dir       | `string`       |         | DEPRECATED: use 'path' instead                                            |
+| interrupt | `boolean`      | `true`  | Interrupt running tasks                                                   |
+| path      | `string`       |         | DEPRECATED: use 'paths' instead                                           |
+| paths     | `list[string]` |         | Only restart when writing files in these paths (can be directory or file) |
 
 ## timeout
 

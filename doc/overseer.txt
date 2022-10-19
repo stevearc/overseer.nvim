@@ -704,8 +704,9 @@ restart_on_save                                                  *restart_on_sav
                   triggering restart (default `500`)
       {dir}       `string` DEPRECATED: use 'path' instead
       {interrupt} `boolean` Interrupt running tasks (default `true`)
-      {path}      `string` Only restart when writing files in this path (dir or
-                  file)
+      {path}      `string` DEPRECATED: use 'paths' instead
+      {paths}     `list[string]` Only restart when writing files in these paths
+                  (can be directory or file)
 
 timeout                                                                  *timeout*
     Cancel task if it exceeds a timeout
