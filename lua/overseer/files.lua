@@ -33,11 +33,31 @@ M.join = function(...)
   return table.concat({ ... }, M.sep)
 end
 
----@param dir string
----@param path string
+M.is_absolute = function(path)
+  if M.is_windows then
+    return path:lower():match("^%w:")
+  else
+    return vim.startswith(path, "/")
+  end
+end
+
+M.abspath = function(path)
+  if not M.is_absolute(path) then
+    path = vim.fn.fnamemodify(path, ":p")
+  end
+  return path
+end
+
+---@param root string
+---@param candidate string
 ---@return boolean
-M.is_subpath = function(dir, path)
-  return string.sub(path, 0, string.len(dir)) == dir
+M.is_subpath = function(root, candidate)
+  if candidate == "" then
+    return false
+  end
+  root = M.abspath(root)
+  candidate = M.abspath(candidate)
+  return candidate:sub(1, root:len()) == root
 end
 
 M.get_stdpath_filename = function(stdpath, ...)

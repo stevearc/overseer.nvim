@@ -4,12 +4,21 @@ return {
   desc = "Restart on any buffer :write",
   params = {
     path = {
-      name = "path",
-      desc = "Only restart when writing files in this path (dir or file)",
+      desc = "DEPRECATED: use 'paths' instead",
       optional = true,
       validate = function(v)
         return files.exists(v)
       end,
+    },
+    paths = {
+      desc = "Only restart when writing files in these paths (can be directory or file)",
+      type = "list",
+      optional = true,
+      subtype = {
+        validate = function(v)
+          return files.exists(v)
+        end,
+      },
     },
     dir = {
       name = "directory",
@@ -43,7 +52,26 @@ return {
         "Overseer[restart_on_save]: dir param is deprecated. Use 'path'",
         vim.log.levels.WARN
       )
-      opts.path = opts.dir
+      opts.paths = { opts.dir }
+    end
+    if opts.path then
+      vim.notify_once(
+        "Overseer[restart_on_save]: path param is deprecated. Use 'paths'",
+        vim.log.levels.WARN
+      )
+      opts.paths = { opts.path }
+    end
+
+    local function is_watching_file(path)
+      if not opts.paths then
+        return true
+      end
+      for _, watch_path in ipairs(opts.paths) do
+        if files.is_subpath(watch_path, path) then
+          return true
+        end
+      end
+      return false
     end
 
     return {
@@ -60,7 +88,7 @@ return {
             -- Only care about normal files
             if vim.api.nvim_buf_get_option(params.buf, "buftype") == "" then
               local bufname = vim.api.nvim_buf_get_name(params.buf)
-              if not opts.path or files.is_subpath(opts.path, bufname) then
+              if is_watching_file(bufname) then
                 if not task:restart(opts.interrupt) then
                   self.restart_after_complete = true
                 end
