@@ -68,17 +68,9 @@ function M:init(options)
     self.options.colored = true
   end
   if self.options.colored then
-    self:update_colors()
     overseer.on_setup(function()
       self:update_colors()
     end)
-    vim.api.nvim_create_autocmd("ColorScheme", {
-      desc = "Update lualine overseer component colors",
-      pattern = "*",
-      callback = function()
-        self:update_colors()
-      end,
-    })
   end
   self.symbols = vim.tbl_extend(
     "keep",

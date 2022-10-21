@@ -267,7 +267,11 @@ end
 ---Add a callback to run after overseer lazy setup
 ---@param callback fun()
 M.on_setup = function(callback)
-  table.insert(setup_callbacks, callback)
+  if initialized then
+    callback()
+  else
+    table.insert(setup_callbacks, callback)
+  end
 end
 
 ---Create a new Task
