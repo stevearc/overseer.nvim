@@ -565,4 +565,19 @@ M.format_duration = function(duration)
   return time
 end
 
+M.run_template_or_task = function(name_or_config, cb)
+  if type(name_or_config) == "table" and name_or_config[1] == nil then
+    -- This is a raw task params table
+    cb(require("overseer").new_task(name_or_config))
+  else
+    local name, dep_params = M.split_config(name_or_config)
+    -- If no task ID found, start the dependency
+    require("overseer.commands").run_template({
+      name = name,
+      params = dep_params,
+      autostart = false,
+    }, cb)
+  end
+end
+
 return M
