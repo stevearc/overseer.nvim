@@ -15,6 +15,7 @@
 - [on_result_diagnostics](#on_result_diagnostics)
 - [on_result_diagnostics_quickfix](#on_result_diagnostics_quickfix)
 - [restart_on_save](#restart_on_save)
+- [run_after](#run_after)
 - [timeout](#timeout)
 - [unique](#unique)
 
@@ -31,7 +32,7 @@ Set dependencies for task
 | *task_names | `list[string]` |         | Names of dependency task templates |
 | sequential  | `boolean`      | `false` |                                    |
 
-- **task_names:** This can be a list of strings (template names) or tables (name with params, e.g. {"shell", cmd = "sleep 10"})
+- **task_names:** This can be a list of strings (template names, e.g. {"cargo build"}), tables (name with params, e.g. {"shell", cmd = "sleep 10"}), or tables (raw task params, e.g. {cmd = "sleep 10"})
 
 ## display_duration
 
@@ -180,6 +181,21 @@ Restart on any buffer :write
 | paths     | `list[string]` |             | Only restart when writing files in these paths (can be directory or file) |
 
 - **mode:** 'autocmd' will set autocmds on BufWritePost. 'uv' will use a libuv file watcher (recursive watching may not be supported on all platforms).
+
+## run_after
+
+[run_after.lua](../lua/overseer/component/run_after.lua)
+
+Run other tasks after this task completes
+
+| Param       | Type           | Default       | Desc                                                          |
+| ----------- | -------------- | ------------- | ------------------------------------------------------------- |
+| *task_names | `list[string]` |               | Names of dependency task templates                            |
+| detach      | `boolean`      | `false`       | Tasks created will not be linked to the parent task           |
+| statuses    | `list[enum]`   | `["SUCCESS"]` | Only run successive tasks if the final status is in this list |
+
+- **task_names:** This can be a list of strings (template names, e.g. {"cargo build"}), tables (name with params, e.g. {"shell", cmd = "sleep 10"}), or tables (raw task params, e.g. {cmd = "sleep 10"})
+- **detach:** This means they will not restart when the parent restarts, and will not be disposed when the parent is disposed
 
 ## timeout
 

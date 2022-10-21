@@ -584,8 +584,9 @@ dependencies                                                        *dependencie
 
     Parameters:
       {*task_names} `list[string]` Names of dependency task templates This can
-                    be a list of strings (template names) or tables (name with
-                    params, e.g. {"shell", cmd = "sleep 10"})
+                    be a list of strings (template names, e.g. {"cargo build"}),
+                    tables (name with params, e.g. {"shell", cmd = "sleep 10"}),
+                    or tables (raw task params, e.g. {cmd = "sleep 10"})
       {sequential}  `boolean` (default `false`)
 
 display_duration                                                *display_duration*
@@ -711,6 +712,21 @@ restart_on_save                                                  *restart_on_sav
       {path}      `string` DEPRECATED: use 'paths' instead
       {paths}     `list[string]` Only restart when writing files in these paths
                   (can be directory or file)
+
+run_after                                                              *run_after*
+    Run other tasks after this task completes
+
+    Parameters:
+      {*task_names} `list[string]` Names of dependency task templates This can
+                    be a list of strings (template names, e.g. {"cargo build"}),
+                    tables (name with params, e.g. {"shell", cmd = "sleep 10"}),
+                    or tables (raw task params, e.g. {cmd = "sleep 10"})
+      {detach}      `boolean` Tasks created will not be linked to the parent
+                    task (default `false`) This means they will not restart when
+                    the parent restarts, and will not be disposed when the
+                    parent is disposed
+      {statuses}    `list[enum]` Only run successive tasks if the final status
+                    is in this list (default `["SUCCESS"]`)
 
 timeout                                                                  *timeout*
     Cancel task if it exceeds a timeout

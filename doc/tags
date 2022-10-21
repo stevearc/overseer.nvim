@@ -65,6 +65,7 @@ overseer.toggle	overseer.txt	/*overseer.toggle*
 overseer.txt	overseer.txt	/*overseer.txt*
 overseer.wrap_template	overseer.txt	/*overseer.wrap_template*
 restart_on_save	overseer.txt	/*restart_on_save*
+run_after	overseer.txt	/*run_after*
 timeout	overseer.txt	/*timeout*
 unique	overseer.txt	/*unique*
 without	overseer.txt	/*without*
