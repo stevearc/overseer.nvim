@@ -82,12 +82,21 @@ M = {
       -- This is a deprecated param
       schema.dir = nil
       form.open("Restart task when files are written", schema, {
-        path = { vim.fn.getcwd() },
+        paths = { vim.fn.getcwd() },
       }, function(params)
         params[1] = "restart_on_save"
         task:set_component(params)
         task_list.update(task)
       end)
+    end,
+  },
+  unwatch = {
+    desc = "Remove the file watcher",
+    condition = function(task)
+      return task:has_component("restart_on_save")
+    end,
+    run = function(task)
+      task:remove_component("restart_on_save")
     end,
   },
   ["open float"] = {
