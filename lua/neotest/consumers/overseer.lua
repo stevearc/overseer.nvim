@@ -64,12 +64,6 @@ function neotest.overseer.run_last(args)
   neotest.overseer.rerun_task_group(last_group_id)
 end
 
-setmetatable(neotest.overseer, {
-  __index = function(_, key)
-    return neotest.run[key]
-  end,
-})
-
 neotest.overseer = setmetatable(neotest.overseer, {
   __call = function(_, client_)
     client = client_
@@ -78,6 +72,9 @@ neotest.overseer = setmetatable(neotest.overseer, {
       require("neotest").run = neotest.overseer
     end
     return neotest.overseer
+  end,
+  __index = function(_, key)
+    return neotest.run[key]
   end,
 })
 
