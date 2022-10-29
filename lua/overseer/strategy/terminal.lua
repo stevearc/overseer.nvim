@@ -3,8 +3,38 @@ local util = require("overseer.util")
 
 local TerminalStrategy = {}
 
+local cleanup_autocmd
+local all_channels = {}
+
 ---@return overseer.Strategy
 function TerminalStrategy.new()
+  if not cleanup_autocmd then
+    -- Neovim will send a SIGHUP to PTY processes on exit. Unfortunately, some programs handle
+    -- SIGHUP (for a legitimate purpose) and do not terminate, which leaves orphaned processes after
+    -- Neovim exits. To avoid this, we need to explicitly call jobstop(), which will send a SIGHUP,
+    -- wait (controlled by KILL_TIMEOUT_MS in process.c, 2000ms at the time of writing), then send a
+    -- SIGTERM (possibly also a SIGKILL if that is insufficient).
+    cleanup_autocmd = vim.api.nvim_create_autocmd("VimLeavePre", {
+      desc = "Clean up running overseer tasks on exit",
+      callback = function()
+        local job_ids = vim.tbl_keys(all_channels)
+        log:debug("VimLeavePre clean up terminal tasks %s", job_ids)
+        for _, chan_id in ipairs(job_ids) do
+          vim.fn.jobstop(chan_id)
+        end
+        local start_wait = vim.loop.hrtime()
+        -- This makes sure Neovim doesn't exit until it has successfully killed all child processes.
+        vim.fn.jobwait(job_ids)
+        local elapsed = (vim.loop.hrtime() - start_wait) / 1e6
+        if elapsed > 1000 then
+          log:warn(
+            "Killing running tasks took %dms. One or more processes likely did not terminate on SIGHUP. See https://github.com/stevearc/overseer.nvim/issues/46",
+            elapsed
+          )
+        end
+      end,
+    })
+  end
   return setmetatable({
     bufnr = nil,
     chan_id = nil,
@@ -48,6 +78,7 @@ function TerminalStrategy:start(task)
         on_stdout(d)
       end,
       on_exit = function(j, c)
+        all_channels[j] = nil
         if self.chan_id ~= j then
           return
         end
@@ -55,7 +86,12 @@ function TerminalStrategy:start(task)
         -- Feed one last line end to flush the output
         on_stdout({ "" })
         self.chan_id = nil
-        task:on_exit(c)
+        -- If we're exiting vim, don't call the on_exit handler
+        -- We manually kill processes during VimLeavePre cleanup, and we don't want to trigger user
+        -- code because of that
+        if vim.v.exiting ~= vim.NIL then
+          task:on_exit(c)
+        end
       end,
     })
   end)
@@ -75,10 +111,11 @@ function TerminalStrategy:start(task)
   end, 10)
 
   if chan_id == 0 then
-    error("Invalid arguments for task '%s'", task.name)
+    error(string.format("Invalid arguments for task '%s'", task.name))
   elseif chan_id == -1 then
     error(string.format("Command '%s' not executable", vim.inspect(task.cmd)))
   else
+    all_channels[chan_id] = true
     self.chan_id = chan_id
   end
 end
