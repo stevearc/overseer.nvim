@@ -89,7 +89,7 @@ function TerminalStrategy:start(task)
         -- If we're exiting vim, don't call the on_exit handler
         -- We manually kill processes during VimLeavePre cleanup, and we don't want to trigger user
         -- code because of that
-        if vim.v.exiting ~= vim.NIL then
+        if vim.v.exiting == vim.NIL then
           task:on_exit(c)
         end
       end,
