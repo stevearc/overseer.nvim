@@ -2,6 +2,7 @@
 :OverseerClearCache	overseer.txt	/*:OverseerClearCache*
 :OverseerClose	overseer.txt	/*:OverseerClose*
 :OverseerDeleteBundle	overseer.txt	/*:OverseerDeleteBundle*
+:OverseerInfo	overseer.txt	/*:OverseerInfo*
 :OverseerLoadBundle	overseer.txt	/*:OverseerLoadBundle*
 :OverseerOpen	overseer.txt	/*:OverseerOpen*
 :OverseerQuickAction	overseer.txt	/*:OverseerQuickAction*

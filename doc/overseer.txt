@@ -38,6 +38,9 @@ OverseerRunCmd `[command]`                                         *:OverseerRun
 OverseerRun `[name/tags]`                                             *:OverseerRun*
     Run a task from a template
 
+OverseerInfo                                                       *:OverseerInfo*
+    Display diagnostic information about overseer
+
 OverseerBuild                                                     *:OverseerBuild*
     Open the task builder
 
