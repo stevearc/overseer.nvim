@@ -34,8 +34,13 @@ return {
   end,
   condition = {
     callback = function(opts)
-      return vim.fn.findfile("Cargo.toml", opts.dir .. ";") ~= ""
-        and vim.fn.executable("cargo") == 1
+      if vim.fn.executable("cargo") == 0 then
+        return false, 'Command "cargo" not found'
+      end
+      if vim.fn.findfile("Cargo.toml", opts.dir .. ";") == "" then
+        return false, "No Cargo.toml file found"
+      end
+      return true
     end,
   },
   generator = function(opts, cb)

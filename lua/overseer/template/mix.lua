@@ -25,7 +25,10 @@ return {
   end,
   condition = {
     callback = function(opts)
-      return files.exists(files.join(opts.dir, "mix.exs"))
+      if not files.exists(files.join(opts.dir, "mix.exs")) then
+        return false, "No mix.exs file found"
+      end
+      return true
     end,
   },
   generator = function(opts, cb)

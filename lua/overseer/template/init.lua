@@ -28,7 +28,7 @@ local M = {}
 ---@class overseer.SearchCondition
 ---@field filetype? string|string[]
 ---@field dir? string|string[]
----@field callback? fun(search: overseer.SearchParams): boolean
+---@field callback? fun(search: overseer.SearchParams): boolean, nil|string
 
 ---@alias overseer.Params table<string, overseer.Param>
 
@@ -52,6 +52,8 @@ local hooks = {}
 ---@param tags? string[]
 ---@param search overseer.SearchParams
 ---@param match_tags boolean
+---@return boolean
+---@return nil|string
 local function condition_matches(condition, tags, search, match_tags)
   if not condition then
     return true
@@ -66,39 +68,40 @@ local function condition_matches(condition, tags, search, match_tags)
       end
     end
     if not any_ft_match then
-      return false
+      return false, string.format("Does not match filetype %s", vim.inspect(condition.filetype))
     end
   end
 
   if condition.dir then
     if type(condition.dir) == "string" then
       if not files.is_subpath(condition.dir, search.dir) then
-        return false
+        return false, string.format("Not in dir %s", condition.dir)
       end
     elseif
       not util.list_any(condition.dir, function(d)
         return files.is_subpath(d, search.dir)
       end)
     then
-      return false
+      return false, string.format("Not in dirs %s", table.concat(condition.dir, ", "))
     end
   end
 
   if match_tags and search.tags and not vim.tbl_isempty(search.tags) then
     if not tags then
-      return false
+      return false, string.format("Doesn't have tags %s", vim.inspect(search.tags))
     end
     local tag_map = util.list_to_map(tags)
     for _, v in ipairs(search.tags) do
       if not tag_map[v] then
-        return false
+        return false, string.format("Doesn't have tags %s", vim.inspect(search.tags))
       end
     end
   end
 
   if condition.callback then
-    if not condition.callback(search) then
-      return false
+    local passed, message = condition.callback(search)
+    if not passed then
+      return false, message
     end
   end
   return true
@@ -389,11 +392,20 @@ M.list = function(opts, cb)
   end
 
   local ret = {}
+  local report = {
+    templates = {},
+    providers = {},
+  }
   -- First add all of the simple templates that match the condition
   for _, tmpl in pairs(registry) do
-    if condition_matches(tmpl.condition, tmpl.tags, opts, true) then
+    local is_match, message = condition_matches(tmpl.condition, tmpl.tags, opts, true)
+    if is_match then
       table.insert(ret, tmpl)
     end
+    report.templates[tmpl.name] = {
+      is_present = is_match,
+      message = message,
+    }
   end
 
   local finished_iterating = false
@@ -412,7 +424,7 @@ M.list = function(opts, cb)
       end
     end)
 
-    cb(ret)
+    cb(ret, report)
   end
 
   local start_times = {}
@@ -422,7 +434,8 @@ M.list = function(opts, cb)
   ---@param provider_name string
   ---@param module nil|string
   ---@param cache_key nil|string
-  local function handle_tmpls(tmpls, provider_name, module, cache_key)
+  ---@param from_cache nil|boolean
+  local function handle_tmpls(tmpls, provider_name, module, cache_key, from_cache)
     local elapsed_ms = (vim.loop.hrtime() - start_times[provider_name]) / 1e6
     if
       cache_key
@@ -439,18 +452,27 @@ M.list = function(opts, cb)
       return
     end
     pending[provider_name] = nil
+    local num_available = 0
     for _, tmpl in ipairs(tmpls) do
       -- Set the module on the template so it can be used to match hooks
       tmpl.module = module
       local ok, err = pcall(validate_template_definition, tmpl)
       if ok then
         if condition_matches(tmpl.condition, tmpl.tags, opts, true) then
+          num_available = num_available + 1
           table.insert(ret, tmpl)
         end
       else
         log:error("Template %s from %s: %s", tmpl.name, provider_name, err)
       end
     end
+    report.providers[provider_name] = {
+      is_present = true,
+      message = nil,
+      from_cache = from_cache,
+      total_tasks = #tmpls,
+      available_tasks = num_available,
+    }
 
     final_callback()
   end
@@ -471,7 +493,8 @@ M.list = function(opts, cb)
 
   for _, provider in ipairs(providers) do
     local provider_name = provider.name
-    if condition_matches(provider.condition, nil, opts, false) then
+    local is_match, message = condition_matches(provider.condition, nil, opts, false)
+    if is_match then
       local cache_key = provider.cache_key(opts)
       local provider_cb = function(tmpls)
         handle_tmpls(tmpls, provider_name, provider.module, cache_key)
@@ -479,7 +502,13 @@ M.list = function(opts, cb)
       start_times[provider.name] = vim.loop.hrtime()
       pending[provider.name] = true
       if cache_key and cached_provider_results[cache_key] then
-        provider_cb(cached_provider_results[cache_key])
+        handle_tmpls(
+          cached_provider_results[cache_key],
+          provider_name,
+          provider.module,
+          cache_key,
+          true
+        )
       else
         local ok, tmpls = pcall(provider.generator, opts, provider_cb)
         if ok then
@@ -492,6 +521,13 @@ M.list = function(opts, cb)
           log:error("Template provider %s: %s", provider.name, tmpls)
         end
       end
+    else
+      report.providers[provider_name] = {
+        is_present = is_match,
+        message = message,
+        total_tasks = 0,
+        available_tasks = 0,
+      }
     end
   end
   finished_iterating = true

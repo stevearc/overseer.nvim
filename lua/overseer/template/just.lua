@@ -6,7 +6,13 @@ return {
   end,
   condition = {
     callback = function(opts)
-      return vim.fn.findfile("justfile", opts.dir .. ";") ~= "" and vim.fn.executable("just") == 1
+      if vim.fn.executable("just") == 0 then
+        return false, 'Command "just" not found'
+      end
+      if vim.fn.findfile("justfile", opts.dir .. ";") == "" then
+        return false, "No justfile found"
+      end
+      return true
     end,
   },
   generator = function(opts, cb)

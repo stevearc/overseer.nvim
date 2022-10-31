@@ -34,7 +34,13 @@ return {
   end,
   condition = {
     callback = function(opts)
-      return get_package_file(opts) ~= ""
+      if vim.fn.executable("npm") == 0 and vim.fn.executable("yarn") == 0 then
+        return false, 'Commands "npm" and "yarn" not found'
+      end
+      if get_package_file(opts) == "" then
+        return false, "No package.json file found"
+      end
+      return true
     end,
   },
   generator = function(opts, cb)

@@ -25,7 +25,10 @@ return {
   end,
   condition = {
     callback = function(opts)
-      return files.exists(files.join(opts.dir, "tox.ini"))
+      if not files.exists(files.join(opts.dir, "tox.ini")) then
+        return false, "No tox.ini file found"
+      end
+      return true
     end,
   },
   generator = function(opts, cb)

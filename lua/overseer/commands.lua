@@ -1,6 +1,8 @@
 local action_util = require("overseer.action_util")
 local config = require("overseer.config")
 local constants = require("overseer.constants")
+local files = require("overseer.files")
+local layout = require("overseer.layout")
 local log = require("overseer.log")
 local sidebar = require("overseer.task_list.sidebar")
 local task_bundle = require("overseer.task_bundle")
@@ -8,6 +10,7 @@ local task_list = require("overseer.task_list")
 local template = require("overseer.template")
 local Task = require("overseer.task")
 local task_editor = require("overseer.task_editor")
+local util = require("overseer.util")
 local window = require("overseer.window")
 
 local M = {}
@@ -38,6 +41,85 @@ end
 
 M._delete_bundle = function(params)
   task_bundle.delete_task_bundle(args_or_nil(params.args))
+end
+
+M._info = function(params)
+  M.info(function(info)
+    local lines = {}
+    local highlights = {}
+    if info.log.file then
+      table.insert(lines, string.format("Log file: %s", info.log.file))
+    end
+    if info.log.level then
+      table.insert(lines, string.format("Log level: %s", info.log.level))
+    end
+    if not vim.tbl_isempty(info.templates.templates) then
+      table.insert(lines, "===Individual templates===")
+    end
+    for name, tmpl_report in pairs(info.templates.templates) do
+      if tmpl_report.is_present then
+        table.insert(lines, string.format("%s: available", name))
+      else
+        table.insert(lines, string.format("%s: %s", name, tmpl_report.message))
+      end
+      table.insert(
+        highlights,
+        { tmpl_report.is_present and "OverseerSUCCESS" or "OverseerFAILURE", #lines, 0, name:len() }
+      )
+    end
+    if not vim.tbl_isempty(info.templates.providers) then
+      table.insert(lines, "===Template providers===")
+    end
+    for name, provider_report in pairs(info.templates.providers) do
+      if provider_report.is_present then
+        if provider_report.from_cache then
+          name = name .. " (cached)"
+        end
+        table.insert(
+          lines,
+          string.format(
+            "%s: %d/%d tasks available",
+            name,
+            provider_report.available_tasks,
+            provider_report.total_tasks
+          )
+        )
+      else
+        table.insert(lines, string.format("%s: %s", name, provider_report.message))
+      end
+      table.insert(highlights, {
+        provider_report.is_present and provider_report.available_tasks > 0 and "OverseerSUCCESS"
+          or "OverseerFAILURE",
+        #lines,
+        0,
+        name:len(),
+      })
+    end
+
+    local max_width = 0
+    for _, line in ipairs(lines) do
+      max_width = math.max(max_width, vim.api.nvim_strwidth(line))
+    end
+
+    local width = layout.calculate_width(max_width, { min_width = 80, max_width = 0.9 })
+    local height = layout.calculate_height(#lines, { min_height = 10, max_height = 0.9 })
+    local bufnr = vim.api.nvim_create_buf(false, true)
+    vim.api.nvim_open_win(bufnr, true, {
+      relative = "editor",
+      border = config.form.border,
+      zindex = config.form.zindex,
+      width = width,
+      height = height,
+      col = math.floor((layout.get_editor_width() - width) / 2),
+      row = math.floor((layout.get_editor_height() - height) / 2),
+      style = "minimal",
+    })
+    vim.api.nvim_buf_set_lines(bufnr, 0, -1, true, lines)
+    vim.api.nvim_buf_set_option(bufnr, "modifiable", false)
+    vim.api.nvim_buf_set_option(bufnr, "modified", false)
+    local ns = vim.api.nvim_create_namespace("overseer")
+    util.add_highlights(bufnr, ns, highlights)
+  end)
 end
 
 M._run_command = function(params)
@@ -260,6 +342,44 @@ M.task_action = function()
     if task then
       action_util.run_task_action(task)
     end
+  end)
+end
+
+M.info = function(callback)
+  local dir = vim.fn.getcwd(0)
+  local ft = vim.api.nvim_buf_get_option(0, "filetype")
+  local search_opts = {
+    dir = dir,
+    filetype = ft,
+  }
+  local info = {
+    log = {
+      file = nil,
+      level = nil,
+    },
+    templates = {
+      templates = {},
+      providers = {},
+    },
+  }
+  local log_levels = vim.deepcopy(vim.log.levels)
+  vim.tbl_add_reverse_lookup(log_levels)
+  for _, log_conf in ipairs(config.log) do
+    if log_conf.type == "file" then
+      local ok, stdpath = pcall(vim.fn.stdpath, "log")
+      if not ok then
+        stdpath = vim.fn.stdpath("cache")
+      end
+      info.log = {
+        file = files.join(stdpath, log_conf.filename),
+        level = log_levels[log_conf.level],
+      }
+      break
+    end
+  end
+  template.list(search_opts, function(_, report)
+    info.templates = report
+    callback(info)
   end)
 end
 

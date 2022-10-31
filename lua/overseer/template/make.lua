@@ -99,7 +99,13 @@ return {
   end,
   condition = {
     callback = function(opts)
-      return vim.fn.findfile("Makefile", opts.dir .. ";") ~= "" and vim.fn.executable("make") == 1
+      if vim.fn.executable("make") == 0 then
+        return false, 'Command "make" not found'
+      end
+      if vim.fn.findfile("Makefile", opts.dir .. ";") == "" then
+        return false, "No Makefile found"
+      end
+      return true
     end,
   },
   generator = function(opts, cb)

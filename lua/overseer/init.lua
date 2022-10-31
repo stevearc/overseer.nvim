@@ -186,6 +186,13 @@ local commands = {
     },
   },
   {
+    cmd = "OverseerInfo",
+    func = "_info",
+    def = {
+      desc = "Display diagnostic information about overseer",
+    },
+  },
+  {
     cmd = "OverseerBuild",
     func = "_build_task",
     def = {

@@ -229,7 +229,10 @@ return {
   end,
   condition = {
     callback = function(opts)
-      return get_tasks_file(opts) ~= ""
+      if get_tasks_file(opts) == "" then
+        return false, "No .vscode/tasks.json file found"
+      end
+      return true
     end,
   },
   generator = function(opts, cb)
