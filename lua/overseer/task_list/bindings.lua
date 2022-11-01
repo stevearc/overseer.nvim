@@ -51,6 +51,13 @@ M = {
     end,
   },
   {
+    desc = "Open task output in a quickfix window",
+    plug = "<Plug>OverseerTask:OpenQuickFix",
+    rhs = function(sidebar)
+      sidebar:run_action("open output in quickfix")
+    end,
+  },
+  {
     desc = "Toggle task terminal in a preview window",
     plug = "<Plug>OverseerTask:TogglePreview",
     rhs = function(sidebar)
