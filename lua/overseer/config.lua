@@ -160,6 +160,7 @@ local default_config = {
   --   always    Show when template has any params
   --   missing   Show when template has any params not explicitly passed in
   --   allow     Only show when a required param is missing
+  --   avoid     Only show when a required param with no default value is missing
   --   never     Never show prompt (error if required param missing)
   default_template_prompt = "allow",
   -- For template providers, how long to wait (in ms) before timing out.

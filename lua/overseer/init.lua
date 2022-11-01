@@ -353,7 +353,7 @@ M.list_tasks = lazy("task_list", "list_tasks")
 ---    tags nil|string[] List of tags used to filter when searching for template
 ---    autostart nil|boolean When true, start the task after creating it (default true)
 ---    first nil|boolean When true, take first result and never show the task picker. Default behavior will auto-set this based on presence of name and tags
----    prompt nil|"always"|"missing"|"allow"|"never" Controls when to prompt user for parameter input
+---    prompt nil|"always"|"missing"|"allow"|"avoid"|"never" Controls when to prompt user for parameter input
 ---    params nil|table Parameters to pass to template
 ---    cwd nil|string Working directory for the task
 ---    env nil|table<string, string> Additional environment variables for the task
@@ -364,6 +364,7 @@ M.list_tasks = lazy("task_list", "list_tasks")
 ---    always    Show when template has any params
 ---    missing   Show when template has any params not explicitly passed in
 ---    allow     Only show when a required param is missing
+---    avoid     Only show when a required param with no default value is missing
 ---    never     Never show prompt (error if required param missing)
 --- The default is controlled by the default_template_prompt config option.
 ---@example

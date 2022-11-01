@@ -36,7 +36,7 @@ return {
           for _, param in ipairs(recipe.parameters) do
             params_defn[param.name] = {
               default = param.default,
-              required = param.kind ~= "star",
+              optional = param.kind == "star",
               type = param.kind == "singular" and "string" or "list",
               delimiter = " ",
             }

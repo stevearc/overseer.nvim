@@ -7,7 +7,12 @@ local tmpl = {
     cwd = { type = "string", optional = true },
     name = { type = "string", optional = true },
     metadata = { type = "opaque", optional = true },
-    expand_cmd = { type = "boolean", default = true, optional = true },
+    expand_cmd = {
+      desc = "Run expandcmd() on command before execution",
+      type = "boolean",
+      default = true,
+      optional = true,
+    },
   },
   builder = function(params)
     local cmd = params.expand_cmd and vim.fn.expandcmd(params.cmd) or params.cmd

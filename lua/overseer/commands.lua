@@ -197,13 +197,14 @@ M.clear_cache = template.clear_cache
 ---  always    Show when template has any params
 ---  missing   Show when template has any params not explicitly passed in
 ---  allow     Only show when a required param is missing
+---  avoid     Only show when a required param with no default value is missing
 ---  never     Never show prompt (error if required param missing)
 ---@class overseer.TemplateRunOpts
 ---@field name? string The name of the template to run
 ---@field tags? string[] List of tags used to filter when searching for template
 ---@field autostart? boolean When true, start the task after creating it (default true)
 ---@field first? boolean When true, take first result and never show the task picker. Default behavior will auto-set this based on presence of name and tags
----@field prompt? "always"|"missing"|"allow"|"never" Controls when to prompt user for parameter input
+---@field prompt? "always"|"missing"|"allow"|"avoid"|"never" Controls when to prompt user for parameter input
 ---@field params? table Parameters to pass to template
 ---@field cwd? string
 ---@field env? table<string, string>

@@ -295,8 +295,50 @@ M.register = function(defn)
   end
 end
 
+---Check if template should prompt user for input. Exposed for testing
+---@private
+---@param prompt "always"|"never"|"allow"|"missing"|"avoid"
+---@param param_schema table
+---@param params table
+---@return nil|boolean
+---@return nil|string Error message if error is present
+M._should_prompt = function(prompt, param_schema, params)
+  if vim.tbl_isempty(param_schema) then
+    return false
+  end
+  local show_prompt = prompt == "always"
+  for k, schema in pairs(param_schema) do
+    -- This parameter has no value passed in via the API
+    if params[k] == nil then
+      if prompt == "missing" then
+        show_prompt = true
+      end
+      local has_default = schema.default ~= nil
+      if has_default then
+        -- Set the default value into the params, if any
+        params[k] = vim.deepcopy(schema.default)
+      end
+
+      -- If the param is not optional, process possible prompt values to show the prompt or error
+      if not schema.optional then
+        if prompt == "allow" then
+          show_prompt = true
+        end
+        if not has_default then
+          if prompt == "avoid" then
+            show_prompt = true
+          elseif prompt == "never" then
+            return nil, string.format("Missing param %s", k)
+          end
+        end
+      end
+    end
+  end
+  return show_prompt
+end
+
 ---@class overseer.TemplateBuildOpts
----@field prompt "always"|"never"|"allow"|"missing"
+---@field prompt "always"|"never"|"allow"|"missing"|"avoid"
 ---@field params table
 ---@field cwd? string
 ---@field env? table<string, string>
@@ -312,31 +354,11 @@ M.build = function(tmpl, opts, callback)
     cwd = { opts.cwd, "s", true },
     env = { opts.env, "t", true },
   })
-  local any_missing = false
-  local required_missing = false
-  for k, schema in pairs(tmpl.params) do
-    if opts.params[k] == nil then
-      if schema.default ~= nil then
-        opts.params[k] = schema.default
-      else
-        if opts.prompt == "never" then
-          return callback(nil, string.format("Missing param %s", k))
-        end
-        any_missing = true
-        if not schema.optional then
-          required_missing = true
-          break
-        end
-      end
-    end
+  local show_prompt, err = M._should_prompt(opts.prompt, tmpl.params, opts.params)
+  if err then
+    return callback(nil, err)
   end
-
-  if
-    opts.prompt == "never"
-    or (opts.prompt == "allow" and not required_missing)
-    or (opts.prompt == "missing" and not any_missing)
-    or vim.tbl_isempty(tmpl.params)
-  then
+  if not show_prompt then
     callback(build_task(tmpl, opts, opts.params))
     return
   end

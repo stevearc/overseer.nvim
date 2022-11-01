@@ -168,7 +168,7 @@ M.parse_value = function(schema, value)
   if schema.type == "opaque" then
     return false
   elseif value == "" then
-    return true, nil
+    return true, schema.default
   elseif schema.type == "list" then
     local values = vim.split(value, "%s*" .. schema.delimiter .. "%s*")
     local ret = {}
