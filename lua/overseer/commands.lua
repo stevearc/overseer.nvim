@@ -54,7 +54,8 @@ M._info = function(params)
       table.insert(lines, string.format("Log level: %s", info.log.level))
     end
     if not vim.tbl_isempty(info.templates.templates) then
-      table.insert(lines, "===Individual templates===")
+      table.insert(lines, "Individual templates")
+      table.insert(highlights, { "Title", #lines, 0, -1 })
     end
     for name, tmpl_report in pairs(info.templates.templates) do
       if tmpl_report.is_present then
@@ -68,7 +69,8 @@ M._info = function(params)
       )
     end
     if not vim.tbl_isempty(info.templates.providers) then
-      table.insert(lines, "===Template providers===")
+      table.insert(lines, "Template providers")
+      table.insert(highlights, { "Title", #lines, 0, -1 })
     end
     for name, provider_report in pairs(info.templates.providers) do
       if provider_report.is_present then
@@ -104,7 +106,7 @@ M._info = function(params)
     local width = layout.calculate_width(max_width, { min_width = 80, max_width = 0.9 })
     local height = layout.calculate_height(#lines, { min_height = 10, max_height = 0.9 })
     local bufnr = vim.api.nvim_create_buf(false, true)
-    vim.api.nvim_open_win(bufnr, true, {
+    local winid = vim.api.nvim_open_win(bufnr, true, {
       relative = "editor",
       border = config.form.border,
       zindex = config.form.zindex,
@@ -117,6 +119,20 @@ M._info = function(params)
     vim.api.nvim_buf_set_lines(bufnr, 0, -1, true, lines)
     vim.api.nvim_buf_set_option(bufnr, "modifiable", false)
     vim.api.nvim_buf_set_option(bufnr, "modified", false)
+    vim.api.nvim_buf_set_option(bufnr, "bufhidden", "wipe")
+    vim.keymap.set("n", "q", "<cmd>close<cr>", { buffer = bufnr })
+    vim.keymap.set("n", "<C-c>", "<cmd>close<cr>", { buffer = bufnr })
+    vim.api.nvim_create_autocmd("BufLeave", {
+      desc = "Close info window when leaving buffer",
+      buffer = bufnr,
+      once = true,
+      nested = true,
+      callback = function()
+        if vim.api.nvim_win_is_valid(winid) then
+          vim.api.nvim_win_close(winid, true)
+        end
+      end,
+    })
     local ns = vim.api.nvim_create_namespace("overseer")
     util.add_highlights(bufnr, ns, highlights)
   end)
