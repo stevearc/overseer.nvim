@@ -91,6 +91,7 @@ OPTIONS                                                         *overseer-option
           ["o"] = "Open",
           ["<C-v>"] = "OpenVsplit",
           ["<C-s>"] = "OpenSplit",
+          ["<C-q>"] = "OpenQuickFix",
           ["<C-f>"] = "OpenFloat",
           ["p"] = "TogglePreview",
           ["<C-l>"] = "IncreaseDetail",

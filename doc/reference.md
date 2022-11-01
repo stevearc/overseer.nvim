@@ -87,6 +87,7 @@ require("overseer").setup({
       ["<C-v>"] = "OpenVsplit",
       ["<C-s>"] = "OpenSplit",
       ["<C-f>"] = "OpenFloat",
+      ["<C-q>"] = "OpenQuickFix",
       ["p"] = "TogglePreview",
       ["<C-l>"] = "IncreaseDetail",
       ["<C-h>"] = "DecreaseDetail",
