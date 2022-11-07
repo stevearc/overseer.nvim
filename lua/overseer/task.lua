@@ -15,7 +15,7 @@ local STATUS = constants.STATUS
 ---@field default_component_params table
 ---@field status overseer.Status
 ---@field cmd string|string[]
----@field cwd? string
+---@field cwd string
 ---@field env? table<string, string>
 ---@field strategy_defn nil|string|table
 ---@field strategy? overseer.Strategy
@@ -102,7 +102,7 @@ function Task.new_uninitialized(opts)
     _subscribers = {},
     status = STATUS.PENDING,
     cmd = opts.cmd,
-    cwd = opts.cwd,
+    cwd = opts.cwd or vim.fn.getcwd(),
     env = opts.env,
     strategy_defn = opts.strategy,
     strategy = strategy.load(opts.strategy),

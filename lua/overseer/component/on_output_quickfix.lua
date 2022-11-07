@@ -1,3 +1,5 @@
+local util = require("overseer.util")
+
 ---@param winid integer
 ---@return boolean
 local function is_cursor_at_bottom(winid)
@@ -16,7 +18,7 @@ end
 local function copen(self, height)
   -- Only open the quickfix once. If the user closes it, we don't want to re-open.
   if self.qf_opened then
-    return
+    return false
   end
   local cur_qf = vim.fn.getqflist({ winid = 0, id = self.qf_id })
   local open_cmd = "botright copen"
@@ -96,10 +98,14 @@ return {
         if prev_context == task.id or self.qf_id ~= 0 then
           action = "r"
         end
-        local items = vim.fn.getqflist({
-          lines = lines,
-          efm = params.errorformat,
-        }).items
+        local items
+        -- Run this in the context of the task cwd so that relative filenames are parsed correctly
+        util.run_in_cwd(task.cwd, function()
+          items = vim.fn.getqflist({
+            lines = lines,
+            efm = params.errorformat,
+          }).items
+        end)
         local valid_items = vim.tbl_filter(function(item)
           return item.valid == 1
         end, items)

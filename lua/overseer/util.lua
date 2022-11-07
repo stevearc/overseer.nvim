@@ -580,4 +580,24 @@ M.run_template_or_task = function(name_or_config, cb)
   end
 end
 
+---Run a function in the context of a current directory
+---@param cwd string
+---@param callback fun()
+M.run_in_cwd = function(cwd, callback)
+  local bufnr = vim.api.nvim_create_buf(false, true)
+  local winid = vim.api.nvim_open_win(bufnr, true, {
+    relative = "editor",
+    width = 1,
+    height = 1,
+    row = 1,
+    col = 1,
+    style = "minimal",
+    noautocmd = true,
+  })
+  vim.api.nvim_buf_set_option(bufnr, "bufhidden", "wipe")
+  vim.cmd.lcd({ args = { cwd }, mods = { noautocmd = true } })
+  callback()
+  vim.api.nvim_win_close(winid, true)
+end
+
 return M
