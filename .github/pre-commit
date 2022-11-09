@@ -1,4 +1,4 @@
 #!/bin/bash
 set -e
-luacheck .
+luacheck lua tests
 stylua --check .

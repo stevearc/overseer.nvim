@@ -5,9 +5,9 @@ on: [push, pull_request]
 jobs:
   luacheck:
     name: Luacheck
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-22.04
     steps:
-      - uses: actions/checkout@v1
+      - uses: actions/checkout@v2
 
       - name: Prepare
         run: |
@@ -21,7 +21,7 @@ jobs:
 
   stylua:
     name: StyLua
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-22.04
     steps:
       - uses: actions/checkout@v2
       - name: Stylua
@@ -34,11 +34,10 @@ jobs:
   run_tests:
     strategy:
       matrix:
-        include:
-          - nvim_tag: v0.7.0
+        nvim_tag: [v0.7.0, v0.7.2, v0.8.0]
 
     name: Run tests
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-22.04
     env:
       NVIM_TAG: ${{ matrix.nvim_tag }}
     steps:
