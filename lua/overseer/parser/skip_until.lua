@@ -20,7 +20,7 @@ local SkipUntil = {
     {
       name = "pattern",
       vararg = true,
-      type = "string",
+      type = "string|string[]|fun(line: string): string",
       desc = "The lua pattern to use for matching. The node succeeds if any of these patterns match.",
     },
   },
@@ -62,7 +62,13 @@ function SkipUntil:ingest(line)
     return parser.STATUS.SUCCESS
   end
   for _, pattern in ipairs(self.patterns) do
-    if line:match(pattern) then
+    local match
+    if type(pattern) == "string" then
+      match = line:match(pattern)
+    else
+      match = pattern(line)
+    end
+    if match then
       self.done = true
       if self.skip_matching_line then
         return parser.STATUS.RUNNING

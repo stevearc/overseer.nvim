@@ -1,4 +1,4 @@
-local parser = require("overseer.parser")
+local parser_lib = require("overseer.parser.lib")
 local log = require("overseer.log")
 local M = {}
 
@@ -378,9 +378,9 @@ local function convert_pattern(pattern, opts)
       end
     end,
   }
-  local extract = parser.extract(extract_opts, "\\v" .. pattern.regexp, unpack(args))
+  local extract = { "extract", extract_opts, "\\v" .. pattern.regexp, unpack(args) }
   if pattern.loop then
-    return parser.set_defaults(parser.loop(extract))
+    return { "set_defaults", { "loop", extract } }
   end
   return extract
 end
@@ -419,23 +419,58 @@ M.resolve_problem_matcher = function(problem_matcher)
   return problem_matcher
 end
 
+local function pattern_to_test(pattern)
+  if not pattern then
+    return nil
+  elseif type(pattern) == "string" then
+    local pat = "\\v" .. pattern
+    return function(line)
+      return vim.fn.match(line, pat) ~= -1
+    end
+  else
+    return pattern_to_test(pattern.regexp)
+  end
+end
+
+local function add_background(background, child)
+  if not background then
+    return child
+  end
+  return parser_lib.watcher_output(
+    pattern_to_test(background.beginsPattern),
+    pattern_to_test(background.endsPattern),
+    child,
+    {
+      active_on_start = background.activeOnStart,
+    }
+  )
+end
+
 M.get_parser_from_problem_matcher = function(problem_matcher)
   if not problem_matcher then
     return nil
   end
   if vim.tbl_islist(problem_matcher) then
+    local background
     local children = {}
     for _, v in ipairs(problem_matcher) do
       vim.list_extend(children, M.get_parser_from_problem_matcher(v))
+      if v.background then
+        background = v.background
+      end
     end
-    return { parser.parallel({ break_on_first_failure = false }, unpack(children)) }
+    local ret = { "parallel", { break_on_first_failure = false }, unpack(children) }
+    return add_background(background, ret)
   end
+
   -- NOTE: we ignore matcher.owner
   -- TODO: support matcher.fileLocation
   local qf_type = severity_to_type[problem_matcher.severity]
   local pattern = problem_matcher.pattern
+  local background = problem_matcher.background
+  local ret
   if vim.tbl_islist(pattern) then
-    local ret = {}
+    ret = { "sequence" }
     for i, v in ipairs(pattern) do
       local append = i == #pattern
       local parse_node = convert_pattern(v, { append = append, qf_type = qf_type })
@@ -444,15 +479,15 @@ M.get_parser_from_problem_matcher = function(problem_matcher)
       end
       table.insert(ret, parse_node)
     end
-    return ret
   else
     local parse_node = convert_pattern(pattern, { qf_type = qf_type })
     if parse_node then
-      return { parse_node }
+      ret = parse_node
     else
       return nil
     end
   end
+  return add_background(background, ret)
 end
 
 return M

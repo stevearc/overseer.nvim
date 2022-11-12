@@ -21,7 +21,6 @@ M.watcher_output = function(start_pat, end_pat, extraction, opts)
         "loop", -- Extract errors until exit
         {
           "parallel",
-          { reset_children = true },
           {
             "invert", -- Exit the loop when we detect the end of the output
             { "test", end_pat },
@@ -31,7 +30,7 @@ M.watcher_output = function(start_pat, end_pat, extraction, opts)
             extraction,
           },
           -- Prevent spin-looping when extraction fails
-          { "skip_lines", 1 },
+          { "skip_until", end_pat },
         },
       },
     },

@@ -19,8 +19,8 @@ local Test = {
     },
     {
       name = "pattern",
-      type = "string",
-      desc = "The lua pattern to use for matching",
+      type = "string|fun(line: string): string",
+      desc = "The lua pattern to use for matching, or test function",
     },
   },
   examples = {
