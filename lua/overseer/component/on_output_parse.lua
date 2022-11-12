@@ -16,12 +16,12 @@ return {
           -- TODO reconsider this API for dispatching partial results
           -- task:dispatch("on_stream_result", key, result)
         end
-        self.parser:subscribe(cb)
+        self.parser:subscribe("new_item", cb)
         self.parser_sub = cb
       end,
       on_dispose = function(self)
         if self.parser_sub then
-          self.parser:unsubscribe(self.parser_sub)
+          self.parser:unsubscribe("new_item", self.parser_sub)
           self.parser_sub = nil
         end
       end,

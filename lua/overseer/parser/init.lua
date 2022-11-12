@@ -18,10 +18,13 @@ end
 ---@class overseer.Parser
 ---@field reset fun(self: overseer.Parser)
 ---@field ingest fun(self: overseer.Parser, lines: string[])
----@field subscribe fun(self: overseer.Parser, callback: fun(key: string, value: any))
----@field unsubscribe fun(self: overseer.Parser, callback: fun(key: string, value: any))
+---@field subscribe fun(self: overseer.Parser, event: string, callback: fun(key: string, value: any))
+---@field unsubscribe fun(self: overseer.Parser, event: string, callback: fun(key: string, value: any))
 ---@field get_result fun(self: overseer.Parser): table
 ---@field get_remainder fun(self: overseer.Parser): table
+---@note
+--- Built-in events that can be subscribed to:
+---   new_item    Dispatched when an item is appended to the result
 
 ---@class overseer.ParserNode
 ---@field ingest fun(self: overseer.ParserNode, line: string, ctx: table): overseer.ParserStatus
@@ -69,9 +72,36 @@ M.STATUS = Enum.new({
   "FAILURE",
 })
 
+---@param subs table<string, fun(key: string, value: any)[]>
+---@param event string
+---@param callback fun()
+local function subscribe(subs, event, callback)
+  if not subs[event] then
+    subs[event] = {}
+  end
+  table.insert(subs[event], callback)
+end
+
+---@param subs table<string, fun(key: string, value: any)[]>
+---@param event string
+---@param callback fun()
+local function unsubscribe(subs, event, callback)
+  if subs[event] then
+    util.tbl_remove(subs[event], callback)
+  end
+end
+
+local function dispatch(subs, event, ...)
+  if subs[event] then
+    for _, cb in ipairs(subs[event]) do
+      cb(...)
+    end
+  end
+end
+
 ---@class overseer.ListParser : overseer.Parser
 ---@field tree overseer.ParserNode
----@field subs fun(key: string, value: any)[]
+---@field subs table<string, fun(key: string, value: any)[]>
 local ListParser = {}
 
 function ListParser.new(children)
@@ -101,18 +131,16 @@ function ListParser:ingest(lines)
   end
   for i = num_results + 1, #self.results do
     local result = self.results[i]
-    for _, cb in ipairs(self.subs) do
-      cb("", result)
-    end
+    dispatch(self.subs, "new_item", "", result)
   end
 end
 
-function ListParser:subscribe(callback)
-  table.insert(self.subs, callback)
+function ListParser:subscribe(event, callback)
+  subscribe(self.subs, event, callback)
 end
 
-function ListParser:unsubscribe(callback)
-  util.tbl_remove(self.subs, callback)
+function ListParser:unsubscribe(event, callback)
+  unsubscribe(self.subs, event, callback)
 end
 
 function ListParser:get_result()
@@ -129,7 +157,7 @@ end
 ---@field children table<string, overseer.ParserNode>
 ---@field results table<string, table>
 ---@field items table<string, table>
----@field subs fun(key: string, value: any)[]
+---@field subs table<string, fun(key: string, value: any)[]>
 local MapParser = {}
 
 function MapParser.new(children)
@@ -173,20 +201,18 @@ function MapParser:ingest(lines)
       v:ingest(line, ctx)
       for i = num_results + 1, #ctx.results do
         local result = ctx.results[i]
-        for _, cb in ipairs(self.subs) do
-          cb(k, result)
-        end
+        dispatch(self.subs, "new_item", k, result)
       end
     end
   end
 end
 
-function MapParser:subscribe(callback)
-  table.insert(self.subs, callback)
+function MapParser:subscribe(event, callback)
+  subscribe(self.subs, event, callback)
 end
 
-function MapParser:unsubscribe(callback)
-  util.tbl_remove(self.subs, callback)
+function MapParser:unsubscribe(event, callback)
+  unsubscribe(self.subs, event, callback)
 end
 
 function MapParser:get_result()
