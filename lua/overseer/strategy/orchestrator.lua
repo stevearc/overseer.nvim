@@ -224,6 +224,7 @@ function OrchestratorStrategy:dispose()
   for_each_task(self.tasks, function(task)
     task:dispose()
   end)
+  util.soft_delete_buf(self.bufnr)
 end
 
 return OrchestratorStrategy

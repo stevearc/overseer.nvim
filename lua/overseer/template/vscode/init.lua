@@ -3,6 +3,7 @@ local files = require("overseer.files")
 local log = require("overseer.log")
 local problem_matcher = require("overseer.template.vscode.problem_matcher")
 local variables = require("overseer.template.vscode.variables")
+local vs_util = require("overseer.template.vscode.vs_util")
 
 ---@param params table
 ---@param str string
@@ -220,28 +221,20 @@ local function convert_vscode_task(defn)
   return tmpl
 end
 
-local function get_tasks_file(opts)
-  local filename = vim.fn.findfile(files.join(".vscode", "tasks.json"), opts.dir .. ";")
-  if filename ~= "" then
-    filename = vim.fn.fnamemodify(filename, ":p")
-  end
-  return filename
-end
-
 return {
   cache_key = function(opts)
-    return get_tasks_file(opts)
+    return vs_util.get_tasks_file(opts.dir)
   end,
   condition = {
     callback = function(opts)
-      if get_tasks_file(opts) == "" then
+      if vs_util.get_tasks_file(opts.dir) == "" then
         return false, "No .vscode/tasks.json file found"
       end
       return true
     end,
   },
   generator = function(opts, cb)
-    local content = files.load_json_file(get_tasks_file(opts))
+    local content = vs_util.load_tasks_file(opts.dir)
     local global_defaults = {}
     for k, v in pairs(content) do
       if k ~= "version" and k ~= "tasks" then

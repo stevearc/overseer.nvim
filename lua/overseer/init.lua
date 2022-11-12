@@ -7,7 +7,12 @@ local initialized = false
 local pending_opts
 local function do_setup()
   if not pending_opts then
-    return
+    if initialized then
+      return
+    else
+      -- If user hasn't called setup(), assume an empty options table
+      pending_opts = {}
+    end
   end
   local config = require("overseer.config")
   config.setup(pending_opts)

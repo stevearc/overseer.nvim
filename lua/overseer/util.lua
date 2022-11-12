@@ -614,4 +614,16 @@ M.status_to_log_level = function(status)
   end
 end
 
+---Delete buffer. If buffer is visible, set bufhidden=wipe instead
+---@param bufnr integer
+M.soft_delete_buf = function(bufnr)
+  if bufnr and vim.api.nvim_buf_is_valid(bufnr) then
+    if M.is_bufnr_visible(bufnr) then
+      vim.api.nvim_buf_set_option(bufnr, "bufhidden", "wipe")
+    else
+      vim.api.nvim_buf_delete(bufnr, { force = true })
+    end
+  end
+end
+
 return M

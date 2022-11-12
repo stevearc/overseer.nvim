@@ -1,3 +1,5 @@
+require("plenary.async").tests.add_to_env()
+local overseer = require("overseer")
 local constants = require("overseer.constants")
 local parser = require("overseer.parser")
 local vscode = require("overseer.template.vscode")
@@ -275,5 +277,101 @@ describe("vscode", function()
         },
       }, results)
     end)
+  end)
+end)
+
+describe("vscode integration tests", function()
+  local vs_util = require("overseer.template.vscode.vs_util")
+  local _orig_load_tasks_file = vs_util.load_tasks_file
+  local task_file
+  local test_hook = function(task_defn, util)
+    task_defn.strategy = "test"
+  end
+  before_each(function()
+    vs_util.load_tasks_file = function()
+      return task_file
+    end
+    overseer.add_template_hook({ module = "vscode" }, test_hook)
+  end)
+  after_each(function()
+    vs_util.load_tasks_file = _orig_load_tasks_file
+    overseer.remove_template_hook({ module = "vscode" }, test_hook)
+  end)
+
+  a.it("parses tsc --watch diagnostics", function()
+    task_file = {
+      version = "2.0.0",
+      tasks = {
+        {
+          type = "process",
+          label = "tsc watch",
+          command = "yarn tsc --watch",
+          problemMatcher = "$tsc-watch",
+        },
+      },
+    }
+
+    local task, err = a.wrap(overseer.run_template, 2)({ name = "tsc watch" })
+    assert.is_nil(err)
+    task.strategy:send_output([[
+yarn run v1.22.10
+[7:48:49 AM] Starting compilation in watch mode...
+
+src/index.ts:3:1 - error TS1435: Unknown keyword or identifier. Did you mean 'import'?
+
+3 mport './entry';
+  ~~~~~
+
+]])
+    -- No results have been set yet
+    assert.is_nil(task.result)
+
+    -- After end pattern is seen, results should be set
+    task.strategy:send_output([[[7:48:54 AM] Found 1 error. Watching for file changes.
+]])
+    assert.are.same({
+      diagnostics = {
+        {
+          filename = "src/index.ts",
+          lnum = 3,
+          col = 1,
+          type = "E",
+          code = 1435,
+          text = "Unknown keyword or identifier. Did you mean 'import'?",
+        },
+      },
+    }, task.result)
+
+    -- Send the start pattern, it should reset the results
+    task.strategy:send_output({
+      "[7:48:57 AM] File change detected. Starting incremental compilation...",
+      "",
+    })
+    assert.are.same({
+      diagnostics = {},
+    }, task.result)
+
+    -- We should be able to parse new results after the reset
+    task.strategy:send_output([[
+src/index.ts:3:1 - error TS1435: Unknown keyword or identifier. Did you mean 'import'?
+
+3 mport './entry';
+  ~~~~~
+
+[7:48:54 AM] Found 1 error. Watching for file changes.
+]])
+    assert.are.same({
+      diagnostics = {
+        {
+          filename = "src/index.ts",
+          lnum = 3,
+          col = 1,
+          type = "E",
+          code = 1435,
+          text = "Unknown keyword or identifier. Did you mean 'import'?",
+        },
+      },
+    }, task.result)
+    task:dispose(true)
   end)
 end)
