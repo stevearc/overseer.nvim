@@ -112,12 +112,12 @@ function ListParser.new(children)
     results = {},
     item = {},
     subs = {},
-    num_prev_results = 0,
   }, { __index = ListParser })
   parser:subscribe("clear_results", function(all_results)
     parser.results = {}
     if parser.ctx then
       parser.ctx.results = parser.results
+      parser.ctx.__num_results = 0
     end
   end)
   return parser
@@ -127,12 +127,11 @@ function ListParser:reset()
   self.tree:reset()
   self.results = {}
   self.item = {}
-  self.num_prev_results = 0
 end
 
 function ListParser:ingest(lines)
-  self.num_prev_results = #self.results
   self.ctx = {
+    __num_results = #self.results,
     item = self.item,
     results = self.results,
     default_values = {},
@@ -148,7 +147,7 @@ function ListParser:ingest(lines)
     self.tree:ingest(line, self.ctx)
   end
   self.ctx = nil
-  for i = self.num_prev_results + 1, #self.results do
+  for i = self.ctx.__num_results + 1, #self.results do
     local result = self.results[i]
     dispatch(self.subs, "new_item", "", result)
   end
@@ -193,14 +192,15 @@ function MapParser.new(children)
     results = results,
     items = items,
     subs = {},
-    num_prev_results = {},
   }, { __index = MapParser })
   parser:subscribe("clear_results", function(current_key_only)
     if not current_key_only then
-      parser.results = {}
+      for k in pairs(parser.children) do
+        parser.results[k] = {}
+      end
       if parser.ctx then
-        parser.results[parser.ctx.__key] = {}
         parser.ctx.results = parser.results[parser.ctx.__key]
+        parser.ctx.__num_results = 0
       end
     elseif parser.ctx then
       -- We want to clear just the items for the current key in results, so we need to modify the
@@ -208,6 +208,7 @@ function MapParser.new(children)
       while not vim.tbl_isempty(parser.ctx.results) do
         table.remove(parser.ctx.results)
       end
+      parser.ctx.__num_results = 0
     end
   end)
   return parser
@@ -217,7 +218,6 @@ function MapParser:reset()
   for k, v in pairs(self.children) do
     self.results[k] = {}
     self.items[k] = {}
-    self.num_prev_results[k] = 0
     v:reset()
   end
 end
@@ -230,6 +230,7 @@ function MapParser:ingest(lines)
     for k, v in pairs(self.children) do
       self.ctx = {
         __key = k,
+        __num_results = #self.results[k],
         item = self.items[k],
         results = self.results[k],
         default_values = {},
@@ -238,9 +239,8 @@ function MapParser:ingest(lines)
           dispatch(self.subs, ...)
         end,
       }
-      self.num_prev_results[k] = #self.ctx.results
       v:ingest(line, self.ctx)
-      for i = self.num_prev_results[k] + 1, #self.ctx.results do
+      for i = self.ctx.__num_results + 1, #self.ctx.results do
         local result = self.ctx.results[i]
         dispatch(self.subs, "new_item", k, result)
       end
