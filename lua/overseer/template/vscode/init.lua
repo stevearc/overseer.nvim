@@ -116,21 +116,16 @@ local function get_task_builder(defn)
     local opts = vim.tbl_deep_extend("force", defn.options or {}, task_opts)
     local components = { "default_vscode" }
     local pmatcher = defn.problemMatcher
-    if task_provider.problem_matcher then
+    if not pmatcher and task_provider.problem_matcher then
       pmatcher = task_provider.problem_matcher
     end
-    local parser_defn
     if pmatcher then
-      local pm = problem_matcher.resolve_problem_matcher(pmatcher)
-      parser_defn = problem_matcher.get_parser_from_problem_matcher(pm)
-      if parser_defn then
-        table.insert(components, 1, {
-          "on_output_parse",
-          parser = { diagnostics = parser_defn },
-        })
-      end
+      table.insert(components, 1, {
+        "on_output_parse",
+        problem_matcher = pmatcher,
+      })
     end
-    if parser_defn then
+    if pmatcher then
       table.insert(components, "on_result_diagnostics")
     end
     if defn.isBackground then

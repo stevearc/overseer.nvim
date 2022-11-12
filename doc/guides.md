@@ -304,6 +304,30 @@ This is a simple example, but the parser library is flexible enough to parse nea
 
 You can of course create your own components to parse output leveraging the `on_output` or `on_output_lines` methods. The integration should be straightforward; see [on_output_parse.lua](../lua/overseer/component/on_output_parse.lua) to see how the built-in component leverages these methods.
 
+Since Overseer supports VS Code's task format, it also has support for parsing output using a [VS Code problem matcher](https://code.visualstudio.com/Docs/editor/tasks#_defining-a-problem-matcher). You can pass these in to the same `on_output_parse` component.
+
+```lua
+{"on_output_parse", problem_matcher = {
+  owner = 'typescript',
+  fileLocation = { "relative", "${cwd}" },
+  pattern = {
+    regexp = "^([^[:space:]].*)[\\(:](\\d+)[,:](\\d+)(\\):\\s+|\\s+-\\s+)(error|warning|info)\\s+TS(\\d+)\\s*:\\s*(.*)$",
+    file = 1,
+    line = 2,
+    column = 3,
+    severity = 5,
+    code = 6,
+    message = 7,
+  },
+}}
+```
+
+For convenience, you can also use the built-in definitions
+
+```lua
+{"on_output_parse", problem_matcher = "$tsc-watch"}
+```
+
 ## Running tasks sequentially
 
 There are currently two ways to get tasks to run sequentially. The first is by using the [dependencies](components.md#dependencies) component. For example, if you wanted to create a `npm serve` task that runs `npm build` first, you could create it like so:
