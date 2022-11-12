@@ -278,6 +278,76 @@ describe("extract_json", function()
   end)
 end)
 
+describe("extract_efm", function()
+  it("extracts values using built-in errorformat", function()
+    local node = parser.extract_efm()
+    local ctx = { item = {}, results = {} }
+    vim.o.errorformat = "%f:%l: %m"
+    assert.equals(STATUS.RUNNING, node:ingest("foo.txt:15: Text", ctx))
+    assert.are.same(
+      { { filename = vim.fn.fnamemodify("foo.txt", ":p"), lnum = 15, text = "Text" } },
+      ctx.results
+    )
+    assert.equals(STATUS.SUCCESS, node:ingest("next", ctx))
+  end)
+
+  it("extracts values using passed-in errorformat", function()
+    local node = parser.extract_efm({ efm = "%f:%m" })
+    local ctx = { item = {}, results = {} }
+    assert.equals(STATUS.RUNNING, node:ingest("foo.txt:15: Text", ctx))
+    assert.are.same(
+      { { filename = vim.fn.fnamemodify("foo.txt", ":p"), text = "15: Text" } },
+      ctx.results
+    )
+    assert.equals(STATUS.SUCCESS, node:ingest("next", ctx))
+  end)
+
+  it("modifies item in-place if append = false", function()
+    local node = parser.extract_efm({ efm = "%m", append = false })
+    local ctx = { item = {}, results = {} }
+    assert.equals(STATUS.RUNNING, node:ingest("hello", ctx))
+    assert.are.same({ text = "hello" }, ctx.item)
+  end)
+
+  it("can use a function to append", function()
+    local node = parser.extract_efm({
+      efm = "%m",
+      append = function(results, item)
+        results.single = item
+      end,
+    })
+    local ctx = { item = {}, results = {} }
+    assert.equals(STATUS.RUNNING, node:ingest("hello", ctx))
+    assert.are.same({ single = { text = "hello" } }, ctx.results)
+  end)
+
+  it("can test the values before appending", function()
+    local node = parser.extract_efm({
+      efm = "%m",
+      test = function(values)
+        return values.text == "pass"
+      end,
+    })
+    local ctx = { item = {}, results = {} }
+    assert.equals(STATUS.RUNNING, node:ingest("pass", ctx))
+    node:reset()
+    assert.equals(STATUS.FAILURE, node:ingest("fail", ctx))
+    assert.are.same({ { text = "pass" } }, ctx.results)
+  end)
+
+  it("can postprocess item", function()
+    local node = parser.extract_efm({
+      efm = "%m",
+      postprocess = function(item)
+        item.extra = true
+      end,
+    })
+    local ctx = { item = {}, results = {} }
+    assert.equals(STATUS.RUNNING, node:ingest("hello", ctx))
+    assert.are.same({ { text = "hello", extra = true } }, ctx.results)
+  end)
+end)
+
 describe("test", function()
   it("returns FAILURE when no match", function()
     local node = parser.test("hello (.+)")
