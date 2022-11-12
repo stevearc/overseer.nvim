@@ -130,7 +130,7 @@ Parse a line into an object and append it to the results \
 **opts**[`object`]: Configuration options \
 &nbsp;&nbsp;&nbsp;&nbsp;**consume**[`boolean`]: Consumes the line of input, blocking execution until the next line is fed in (default `true`) \
 &nbsp;&nbsp;&nbsp;&nbsp;**append**[`boolean`]: After parsing, append the item to the results list. When false, the pending item will stick around. (default `true`) \
-&nbsp;&nbsp;&nbsp;&nbsp;**regex**[`boolean`]: Use vim regex instead of lua pattern (see :help pattern) (default `true`) \
+&nbsp;&nbsp;&nbsp;&nbsp;**regex**[`boolean`]: Use vim regex instead of lua pattern (see :help pattern) (default `false`) \
 &nbsp;&nbsp;&nbsp;&nbsp;**postprocess**[`function`]: Call this function to do post-extraction processing on the values \
 **pattern**[`string|function`]: The lua pattern to use for matching. Must have the same number of capture groups as there are field arguments. \
     Can also be a list of strings/functions and it will try matching against all of them \
