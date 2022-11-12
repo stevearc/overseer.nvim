@@ -306,18 +306,7 @@ local function convert_match_name(name)
   elseif name == "endColumn" then
     return "end_col"
   elseif name == "severity" then
-    return {
-      "type",
-      function(value)
-        if value:lower():match("^w") then
-          return "W"
-        elseif value:lower():match("^i") then
-          return "I"
-        else
-          return "E"
-        end
-      end,
-    }
+    return "type"
   elseif name == "code" then
     -- TODO we don't have a use for the code at the moment
     return "code"

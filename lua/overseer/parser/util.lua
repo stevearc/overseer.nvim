@@ -105,11 +105,14 @@ M.patterns_to_test = function(patterns, regex)
   end
 end
 
-local function default_postprocess_field(value, _)
+local function default_postprocess_field(value, opts)
   if value:match("^%d+$") then
     return tonumber(value)
+  elseif opts.field == "type" then
+    return value:upper():match("^%w")
+  else
+    return value
   end
-  return value
 end
 
 ---@param pattern string|fun()
