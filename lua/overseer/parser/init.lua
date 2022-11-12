@@ -108,7 +108,7 @@ local ListParser = {}
 
 function ListParser.new(children)
   local parser = setmetatable({
-    tree = M.loop({ ignore_failure = true }, M.sequence(unpack(children))),
+    tree = M.loop({ ignore_failure = true }, M.sequence(children)),
     results = {},
     item = {},
     subs = {},
@@ -146,11 +146,11 @@ function ListParser:ingest(lines)
     end
     self.tree:ingest(line, self.ctx)
   end
-  self.ctx = nil
   for i = self.ctx.__num_results + 1, #self.results do
     local result = self.results[i]
     dispatch(self.subs, "new_item", "", result)
   end
+  self.ctx = nil
 end
 
 function ListParser:subscribe(event, callback)
@@ -185,7 +185,7 @@ function MapParser.new(children)
   for k, v in pairs(children) do
     results[k] = {}
     items[k] = {}
-    wrapped_children[k] = M.loop({ ignore_failure = true }, M.sequence(unpack(v)))
+    wrapped_children[k] = M.loop({ ignore_failure = true }, M.sequence(v))
   end
   local parser = setmetatable({
     children = wrapped_children,
