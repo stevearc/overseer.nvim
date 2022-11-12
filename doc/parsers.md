@@ -39,6 +39,71 @@ If you focus the example output window, the debug window will display the state 
 
 https://user-images.githubusercontent.com/506791/180116685-eaee5876-8692-4834-9916-647c2a1ae98d.mp4
 
+# Problem matchers
+
+Since Overseer supports VS Code's task format, it also has support for parsing output using a [VS Code problem matcher](https://code.visualstudio.com/Docs/editor/tasks#_defining-a-problem-matcher). You can pass these in to the same `on_output_parse` component.
+
+```lua
+{"on_output_parse", problem_matcher = {
+  owner = 'typescript',
+  fileLocation = { "relative", "${cwd}" },
+  pattern = {
+    regexp = "^([^\\s].*)[\\(:](\\d+)[,:](\\d+)(?:\\):\\s+|\\s+-\\s+)(error|warning|info)\\s+TS(\\d+)\\s*:\\s*(.*)$",
+    -- Optionally specify a vim-compatible regex for matching:
+    vim_regexp = "\\v^([^[:space:]].*)[\\(:](\\d+)[,:](\\d+)(\\):\\s+|\\s+-\\s+)(error|warning|info)\\s+TS(\\d+)\\s*:\\s*(.*)$",
+    -- Optionally specify a lua pattern for matching:
+    lua_pat = "^([^%s].*)[\\(:](%d+)[,:](%d+)[^%a]*(%a+)%s+TS(%d+)%s*:%s*(.*)$",
+    file = 1,
+    line = 2,
+    column = 3,
+    severity = 5,
+    code = 6,
+    message = 7,
+  },
+}}
+```
+
+Note that the structure of the problem matcher is the same as the VS Code definition, with the exception that it supports a `vim_regexp` key and/or a `lua_pat` key. Because JS regexes are slightly different from vim regexes (e.g. vim regex doesn't support non-capturing groups `(?:text)`), sometimes the regex from the VS Code definition will not work. The fix for this is to rewrite it as a vim-compatible regex or as a lua pattern. When either of these two keys are present, overseer will use them to perform the matching. If not, it will attempt to convert the `regexp` into a vim-compatible regex and use that.
+
+For convenience, you can also use the built-in problem matcher definitions in `on_output_parse`:
+
+```lua
+{"on_output_parse", problem_matcher = "$tsc-watch"}
+```
+
+## Built-in problem matchers
+
+Patterns:
+
+<!-- problem_matcher_patterns -->
+
+- `$cpp`
+- `$csc`
+- `$eslint-compact`
+- `$eslint-stylish`
+- `$go`
+- `$gulp-tsc`
+- `$jshint`
+- `$jshint-stylish`
+- `$lessCompile`
+- `$msCompile`
+- `$nvcc-location`
+- `$tsc`
+- `$vb`
+<!-- /problem_matcher_patterns -->
+
+Problem matchers:
+
+<!-- problem_matchers -->
+
+- `$gcc`
+- `$lessc`
+- `$node-sass`
+- `$nvcc`
+- `$tsc`
+- `$tsc-watch`
+<!-- /problem_matchers -->
+
 # Parser nodes
 
 This is a list of the parser nodes that are built-in to overseer. They can be found in [lua/overseer/parser](../lua/overseer/parser)

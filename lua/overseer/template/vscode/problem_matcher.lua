@@ -253,6 +253,7 @@ local default_matchers = {
 ---@param defn table
 M.register_pattern = function(name, defn)
   if name:find("$", nil, true) ~= 1 then
+    log:warn("Pattern '%s' should start with '$'", name)
     name = "$" .. name
   end
   default_patterns[name] = defn
@@ -262,6 +263,7 @@ end
 ---@param defn table
 M.register_problem_matcher = function(name, defn)
   if name:find("$", nil, true) ~= 1 then
+    log:warn("Problem matcher '%s' should start with '$'", name)
     name = "$" .. name
   end
   default_matchers[name] = defn
@@ -490,6 +492,22 @@ M.get_parser_from_problem_matcher = function(problem_matcher)
     end
   end
   return add_background(background, ret)
+end
+
+---This is used for generating documentation
+---@private
+M.list_patterns = function()
+  local patterns = vim.tbl_keys(default_patterns)
+  table.sort(patterns)
+  return patterns
+end
+
+---This is used for generating documentation
+---@private
+M.list_problem_matchers = function()
+  local matchers = vim.tbl_keys(default_matchers)
+  table.sort(matchers)
+  return matchers
 end
 
 return M

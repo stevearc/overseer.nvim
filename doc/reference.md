@@ -46,6 +46,7 @@
   - [timeout](components.md#timeout)
   - [unique](components.md#unique)
 - [Parsers](#parsers)
+  - [Built-in problem matchers](parsers.md#built-in-problem-matchers)
   - [always](parsers.md#always)
   - [append](parsers.md#append)
   - [dispatch](parsers.md#dispatch)
@@ -697,6 +698,7 @@ Open a tab with windows laid out for debugging a parser
 
 <!-- TOC.parsers -->
 
+- [Built-in problem matchers](parsers.md#built-in-problem-matchers)
 - [always](parsers.md#always)
 - [append](parsers.md#append)
 - [dispatch](parsers.md#dispatch)

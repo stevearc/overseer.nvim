@@ -197,8 +197,27 @@ def format_example_code(code: str) -> Iterable[str]:
         yield line + "\n"
 
 
+def updated_problem_matcher_list(doc: str):
+    patterns = read_nvim_json('require("overseer.template.vscode.problem_matcher").list_patterns()')
+    lines = [f"- `{pat}`\n" for pat in patterns]
+    replace_section(
+        doc,
+        r"^<!-- problem_matcher_patterns -->$",
+        r"^<!-- /problem_matcher_patterns -->$",
+        ['\n'] + lines,
+    )
+    matchers = read_nvim_json('require("overseer.template.vscode.problem_matcher").list_problem_matchers()')
+    lines = [f"- `{matcher}`\n" for matcher in matchers]
+    replace_section(
+        doc,
+        r"^<!-- problem_matchers -->$",
+        r"^<!-- /problem_matchers -->$",
+        ['\n'] + lines,
+    )
+
 def update_parsers_md():
     doc = os.path.join(ROOT, "doc", "parsers.md")
+    updated_problem_matcher_list(doc)
     prefix = [
         "\n",
         "This is a list of the parser nodes that are built-in to overseer. They can be found in [lua/overseer/parser](../lua/overseer/parser)\n",

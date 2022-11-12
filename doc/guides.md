@@ -304,34 +304,6 @@ This is a simple example, but the parser library is flexible enough to parse nea
 
 You can of course create your own components to parse output leveraging the `on_output` or `on_output_lines` methods. The integration should be straightforward; see [on_output_parse.lua](../lua/overseer/component/on_output_parse.lua) to see how the built-in component leverages these methods.
 
-Since Overseer supports VS Code's task format, it also has support for parsing output using a [VS Code problem matcher](https://code.visualstudio.com/Docs/editor/tasks#_defining-a-problem-matcher). You can pass these in to the same `on_output_parse` component.
-
-```lua
-{"on_output_parse", problem_matcher = {
-  owner = 'typescript',
-  fileLocation = { "relative", "${cwd}" },
-  pattern = {
-    regexp = "^([^\\s].*)[\\(:](\\d+)[,:](\\d+)(?:\\):\\s+|\\s+-\\s+)(error|warning|info)\\s+TS(\\d+)\\s*:\\s*(.*)$",
-    -- This is a special key. Because vim regex is different from JS, sometimes a VS Code regexp will not work. You can convert it to a vim regex by hand and add it like so:
-    vim_regexp = "\\v^([^[:space:]].*)[\\(:](\\d+)[,:](\\d+)(\\):\\s+|\\s+-\\s+)(error|warning|info)\\s+TS(\\d+)\\s*:\\s*(.*)$",
-    -- You can do the same thing with lua patterns if you would prefer
-    lua_pat = "^([^%s].*)[\\(:](%d+)[,:](%d+)[^%a]*(%a+)%s+TS(%d+)%s*:%s*(.*)$",
-    file = 1,
-    line = 2,
-    column = 3,
-    severity = 5,
-    code = 6,
-    message = 7,
-  },
-}}
-```
-
-For convenience, you can also use the built-in definitions
-
-```lua
-{"on_output_parse", problem_matcher = "$tsc-watch"}
-```
-
 ## Running tasks sequentially
 
 There are currently two ways to get tasks to run sequentially. The first is by using the [dependencies](components.md#dependencies) component. For example, if you wanted to create a `npm serve` task that runs `npm build` first, you could create it like so:
@@ -383,7 +355,7 @@ Supported features:
 - [Standard variables](https://code.visualstudio.com/docs/editor/tasks#_variable-substitution)
 - [Input variables](https://code.visualstudio.com/docs/editor/variables-reference#_input-variables) (e.g. `${input:variableID}`)
 - [Problem matchers](https://code.visualstudio.com/docs/editor/tasks#_processing-task-output-with-problem-matchers)
-- Built-in library of problem matchers and patterns (e.g. `$tsc` and `$jshint-stylish`)
+- [Built-in library](parsers.md#built-in-problem-matchers) of problem matchers and patterns (e.g. `$tsc` and `$jshint-stylish`)
 - [Compound tasks](https://code.visualstudio.com/docs/editor/tasks#_compound-tasks) (including `dependsOrder = sequence`)
 - [Background tasks](https://code.visualstudio.com/docs/editor/tasks#_background-watching-tasks)
 - `group` (sets template tag; supports `BUILD`, `TEST`, and `CLEAN`) and `isDefault` (sets priority)
@@ -400,6 +372,6 @@ Unsupported features:
 - `${config:*}` variables
 - `${command:*}` variables
 - The `${defaultBuildTask}` variable
-- Custom problem matcher patterns may fail due to differences between JS and vim regex (notably vim regex doesn't support non-capturing groups `(?:.*)` or character classes inside of brackets `[\d\s]`)
+- Custom problem matcher patterns may fail due to differences between JS and vim regex (notably vim regex doesn't support non-capturing groups `(?:.*)` or character classes inside of brackets `[\d\s]`). Most built-in matchers have already been translated.
 - [Output behavior](https://code.visualstudio.com/docs/editor/tasks#_output-behavior) (probably not going to support this)
 - [Run behavior](https://code.visualstudio.com/docs/editor/tasks#_run-behavior) (probably not going to support this)
