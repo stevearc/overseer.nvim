@@ -26,7 +26,7 @@ local Extract = {
           name = "regex",
           type = "boolean",
           desc = "Use vim regex instead of lua pattern (see :help pattern)",
-          default = true,
+          default = false,
         },
         {
           name = "postprocess",
