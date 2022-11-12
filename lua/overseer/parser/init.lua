@@ -113,7 +113,7 @@ function ListParser.new(children)
     item = {},
     subs = {},
   }, { __index = ListParser })
-  parser:subscribe("clear_results", function(all_results)
+  parser:subscribe("clear_results", function()
     parser.results = {}
     if parser.ctx then
       parser.ctx.results = parser.results
