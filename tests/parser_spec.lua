@@ -654,6 +654,104 @@ describe("parser", function()
       lnums = { { lnum = 23 }, { lnum = 128 } },
     }, result)
   end)
+
+  describe("events", function()
+    it("list parser dispatches new_item events", function()
+      local p = parser.new({
+        parser.extract("^(.+):(%d+)", "filename", "lnum"),
+      })
+      local results = {}
+      p:subscribe("new_item", function(_, item)
+        table.insert(results, item)
+      end)
+      p:ingest({
+        "foo",
+        "/file.lua:23",
+        "/other.cpp:128",
+        "bar",
+      })
+      assert.are.same({
+        { filename = "/file.lua", lnum = 23 },
+        { filename = "/other.cpp", lnum = 128 },
+      }, results)
+    end)
+
+    it("map parser dispatches new_item events", function()
+      local p = parser.new({
+        filenames = { parser.extract("([/%a%.]+)", "filename") },
+      })
+      local results = {}
+      p:subscribe("new_item", function(k, item)
+        table.insert(results, { k, item })
+      end)
+      p:ingest({
+        "/file.lua:23",
+        "/other.cpp:128",
+      })
+      assert.are.same({
+        { "filenames", { filename = "/file.lua" } },
+        { "filenames", { filename = "/other.cpp" } },
+      }, results)
+    end)
+
+    it("dispatch node can dispatch events", function()
+      local p = parser.new({
+        parser.extract("^(.+):(%d+)", "filename", "lnum"),
+        parser.dispatch("foo", "hi"),
+      })
+      local calls = 0
+      p:subscribe("foo", function(arg)
+        assert.equals("hi", arg)
+        calls = calls + 1
+      end)
+      p:ingest({
+        "foo",
+        "/file.lua:23",
+        "", -- To flush the RUNNING state
+      })
+      assert.equals(1, calls)
+    end)
+
+    it("can unsubscribe from events", function()
+      local p = parser.new({
+        parser.extract("^(.+):(%d+)", "filename", "lnum"),
+      })
+      local results = {}
+      local cb = function(_, item)
+        table.insert(results, item)
+      end
+      p:subscribe("new_item", cb)
+      p:ingest({
+        "/file.lua:23",
+      })
+      p:unsubscribe("new_item", cb)
+      p:ingest({
+        "/other.cpp:128",
+      })
+      assert.are.same({
+        { filename = "/file.lua", lnum = 23 },
+      }, results)
+    end)
+
+    it("dispatch node can generate dynamic arguments for event", function()
+      local p = parser.new({
+        parser.extract("^(.+):(%d+)", "filename", "lnum"),
+        parser.dispatch("foo", function(line, ctx)
+          return line
+        end),
+      })
+      local called = {}
+      p:subscribe("foo", function(line)
+        table.insert(called, line)
+      end)
+      p:ingest({
+        "foo",
+        "/file.lua:23",
+        "flush", -- To flush the RUNNING state
+      })
+      assert.are.same({ "flush" }, called)
+    end)
+  end)
 end)
 
 describe("deserialize", function()

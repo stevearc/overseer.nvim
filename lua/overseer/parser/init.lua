@@ -110,6 +110,7 @@ function ListParser.new(children)
     results = {},
     item = {},
     subs = {},
+    num_prev_results = 0,
   }, { __index = ListParser })
 end
 
@@ -117,11 +118,19 @@ function ListParser:reset()
   self.tree:reset()
   self.results = {}
   self.item = {}
+  self.num_prev_results = 0
 end
 
 function ListParser:ingest(lines)
-  local num_results = #self.results
-  local ctx = { item = self.item, results = self.results, default_values = {} }
+  self.num_prev_results = #self.results
+  local ctx = {
+    item = self.item,
+    results = self.results,
+    default_values = {},
+    dispatch = function(...)
+      dispatch(self.subs, ...)
+    end,
+  }
   for _, line in ipairs(lines) do
     ctx.line = line
     if debug then
@@ -129,7 +138,7 @@ function ListParser:ingest(lines)
     end
     self.tree:ingest(line, ctx)
   end
-  for i = num_results + 1, #self.results do
+  for i = self.num_prev_results + 1, #self.results do
     local result = self.results[i]
     dispatch(self.subs, "new_item", "", result)
   end
@@ -174,6 +183,7 @@ function MapParser.new(children)
     results = results,
     items = items,
     subs = {},
+    num_prev_results = {},
   }, { __index = MapParser })
 end
 
@@ -181,6 +191,7 @@ function MapParser:reset()
   for k, v in pairs(self.children) do
     self.results[k] = {}
     self.items[k] = {}
+    self.num_prev_results[k] = 0
     v:reset()
   end
 end
@@ -196,10 +207,13 @@ function MapParser:ingest(lines)
         results = self.results[k],
         default_values = {},
         line = line,
+        dispatch = function(...)
+          dispatch(self.subs, ...)
+        end,
       }
-      local num_results = #ctx.results
+      self.num_prev_results[k] = #ctx.results
       v:ingest(line, ctx)
-      for i = num_results + 1, #ctx.results do
+      for i = self.num_prev_results[k] + 1, #ctx.results do
         local result = ctx.results[i]
         dispatch(self.subs, "new_item", k, result)
       end
