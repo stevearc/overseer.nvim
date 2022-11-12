@@ -24,7 +24,7 @@ local Dispatch = {
 
 function Dispatch.new(name, ...)
   return setmetatable({
-    name = name,
+    event_name = name,
     args = { ... },
   }, { __index = Dispatch })
 end
@@ -40,7 +40,7 @@ function Dispatch:ingest(line, ctx)
       table.insert(params, v)
     end
   end
-  ctx.dispatch(self.name, unpack(params))
+  ctx.dispatch(self.event_name, unpack(params))
   return parser.STATUS.SUCCESS
 end
 
