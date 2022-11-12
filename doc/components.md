@@ -97,9 +97,10 @@ Sets final task status based on exit code
 
 Parses task output and sets task result
 
-| Param   | Type     | Desc                                            |
-| ------- | -------- | ----------------------------------------------- |
-| *parser | `opaque` | Parser definition to extract values from output |
+| Param           | Type     | Desc                                            |
+| --------------- | -------- | ----------------------------------------------- |
+| parser          | `opaque` | Parser definition to extract values from output |
+| problem_matcher | `opaque` | VS Code-style problem matcher                   |
 
 ## on_output_quickfix
 

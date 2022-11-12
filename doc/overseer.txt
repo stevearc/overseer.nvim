@@ -646,7 +646,8 @@ on_output_parse                                                  *on_output_pars
     Parses task output and sets task result
 
     Parameters:
-      {*parser} `opaque` Parser definition to extract values from output
+      {parser}          `opaque` Parser definition to extract values from output
+      {problem_matcher} `opaque` VS Code-style problem matcher
 
 on_output_quickfix                                            *on_output_quickfix*
     Set all task output into the quickfix (on complete)

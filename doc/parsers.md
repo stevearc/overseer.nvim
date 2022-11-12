@@ -452,11 +452,12 @@ Skip over lines until one matches
 {"skip_until", opts, pattern...}
 ```
 
-| Param   | Type               | Desc                                                                                   |                                                                                         |
-| ------- | ------------------ | -------------------------------------------------------------------------------------- | --------------------------------------------------------------------------------------- |
-| opts    | `object`           | Configuration options                                                                  |                                                                                         |
-|         | skip_matching_line | `boolean`                                                                              | Consumes the line that matches. Later nodes will only see the next line. (default true) |
-| pattern | `string`           | The lua pattern to use for matching. The node succeeds if any of these patterns match. |                                                                                         |
+| Param   | Type                                          | Desc                                                                                   |                                                                                         |
+| ------- | --------------------------------------------- | -------------------------------------------------------------------------------------- | --------------------------------------------------------------------------------------- |
+| opts    | `object`                                      | Configuration options                                                                  |                                                                                         |
+|         | skip_matching_line                            | `boolean`                                                                              | Consumes the line that matches. Later nodes will only see the next line. (default true) |
+|         | regex                                         | `boolean`                                                                              | Use vim regex instead of lua pattern (see :help pattern) (default true)                 |
+| pattern | `string\|string[]\|fun(line: string): string` | The lua pattern to use for matching. The node succeeds if any of these patterns match. |                                                                                         |
 
 ### Examples
 
@@ -477,11 +478,11 @@ Returns SUCCESS when the line matches the pattern
 {"test", opts, pattern}
 ```
 
-| Param   | Type     | Desc                                |                                                                         |
-| ------- | -------- | ----------------------------------- | ----------------------------------------------------------------------- |
-| opts    | `object` | Configuration options               |                                                                         |
-|         | regex    | `boolean`                           | Use vim regex instead of lua pattern (see :help pattern) (default true) |
-| pattern | `string` | The lua pattern to use for matching |                                                                         |
+| Param   | Type                                | Desc                                                  |                                                                         |
+| ------- | ----------------------------------- | ----------------------------------------------------- | ----------------------------------------------------------------------- |
+| opts    | `object`                            | Configuration options                                 |                                                                         |
+|         | regex                               | `boolean`                                             | Use vim regex instead of lua pattern (see :help pattern) (default true) |
+| pattern | `string\|fun(line: string): string` | The lua pattern to use for matching, or test function |                                                                         |
 
 ### Examples
 
