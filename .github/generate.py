@@ -4,15 +4,11 @@ import re
 import subprocess
 from typing import Any, Dict, Iterable, List, Tuple
 
-from nvim_doc_tools.apidoc import (
+from nvim_doc_tools import (
     LuaParam,
-    format_params,
     parse_functions,
-    render_api_md,
-    render_api_vimdoc,
-)
-from nvim_doc_tools.util import (
-    MD_LINK_PAT,
+    render_md_api,
+    render_vimdoc_api,
     Vimdoc,
     VimdocSection,
     dedent,
@@ -24,6 +20,8 @@ from nvim_doc_tools.util import (
     replace_section,
     wrap,
 )
+from nvim_doc_tools.vimdoc import format_vimdoc_params
+from nvim_doc_tools.markdown import MD_LINK_PAT
 
 HERE = os.path.dirname(__file__)
 ROOT = os.path.abspath(os.path.join(HERE, os.path.pardir))
@@ -358,7 +356,7 @@ def get_components_vimdoc() -> "VimdocSection":
                 if required:
                     name = "*" + name
                 lua_params.append(LuaParam(name, typestr, desc))
-            section.body.extend(format_params(lua_params, 6))
+            section.body.extend(format_vimdoc_params(lua_params, 6))
         section.body.append("\n")
     return section
 
@@ -427,7 +425,7 @@ def generate_vimdoc():
             get_commands_vimdoc(),
             get_options_vimdoc(),
             get_highlights_vimdoc(),
-            VimdocSection("API", "overseer-api", render_api_vimdoc("overseer", funcs)),
+            VimdocSection("API", "overseer-api", render_vimdoc_api("overseer", funcs)),
             get_components_vimdoc(),
             convert_md_section(
                 os.path.join(DOC, "reference.md"),
@@ -453,7 +451,7 @@ def generate_vimdoc():
 
 def update_md_api():
     funcs = parse_functions(os.path.join(ROOT, "lua", "overseer", "init.lua"))
-    lines = ["\n"] + render_api_md(funcs) + ["\n"]
+    lines = ["\n"] + render_md_api(funcs) + ["\n"]
     replace_section(
         os.path.join(DOC, "reference.md"),
         r"^<!-- API -->$",
