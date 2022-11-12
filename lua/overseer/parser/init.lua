@@ -275,10 +275,8 @@ M.new = function(config)
   vim.validate({
     config = { config, "t" },
   })
-  if vim.tbl_islist(config) then
+  if vim.tbl_islist(config) or M.util.is_parser(config) then
     return ListParser.new(config)
-  elseif config.ingest then
-    return config
   else
     return MapParser.new(config)
   end

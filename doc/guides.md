@@ -311,7 +311,11 @@ Since Overseer supports VS Code's task format, it also has support for parsing o
   owner = 'typescript',
   fileLocation = { "relative", "${cwd}" },
   pattern = {
-    regexp = "^([^[:space:]].*)[\\(:](\\d+)[,:](\\d+)(\\):\\s+|\\s+-\\s+)(error|warning|info)\\s+TS(\\d+)\\s*:\\s*(.*)$",
+    regexp = "^([^\\s].*)[\\(:](\\d+)[,:](\\d+)(?:\\):\\s+|\\s+-\\s+)(error|warning|info)\\s+TS(\\d+)\\s*:\\s*(.*)$",
+    -- This is a special key. Because vim regex is different from JS, sometimes a VS Code regexp will not work. You can convert it to a vim regex by hand and add it like so:
+    vim_regexp = "\\v^([^[:space:]].*)[\\(:](\\d+)[,:](\\d+)(\\):\\s+|\\s+-\\s+)(error|warning|info)\\s+TS(\\d+)\\s*:\\s*(.*)$",
+    -- You can do the same thing with lua patterns if you would prefer
+    lua_pat = "^([^%s].*)[\\(:](%d+)[,:](%d+)[^%a]*(%a+)%s+TS(%d+)%s*:%s*(.*)$",
     file = 1,
     line = 2,
     column = 3,
