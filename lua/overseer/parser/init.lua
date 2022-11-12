@@ -24,7 +24,9 @@ end
 ---@field get_remainder fun(self: overseer.Parser): table
 ---@note
 --- Built-in events that can be subscribed to:
----   new_item    Dispatched when an item is appended to the result
+---   new_item        Dispatched when an item is appended to the result
+---   clear_results   Clear results items from the parser
+---   set_results     Canonically used to force the on_output_parse component to set task results
 
 ---@class overseer.ParserNode
 ---@field ingest fun(self: overseer.ParserNode, line: string, ctx: table): overseer.ParserStatus
@@ -105,13 +107,20 @@ end
 local ListParser = {}
 
 function ListParser.new(children)
-  return setmetatable({
+  local parser = setmetatable({
     tree = M.loop({ ignore_failure = true }, M.sequence(unpack(children))),
     results = {},
     item = {},
     subs = {},
     num_prev_results = 0,
   }, { __index = ListParser })
+  parser:subscribe("clear_results", function(all_results)
+    parser.results = {}
+    if parser.ctx then
+      parser.ctx.results = parser.results
+    end
+  end)
+  return parser
 end
 
 function ListParser:reset()
@@ -123,7 +132,7 @@ end
 
 function ListParser:ingest(lines)
   self.num_prev_results = #self.results
-  local ctx = {
+  self.ctx = {
     item = self.item,
     results = self.results,
     default_values = {},
@@ -132,12 +141,13 @@ function ListParser:ingest(lines)
     end,
   }
   for _, line in ipairs(lines) do
-    ctx.line = line
+    self.ctx.line = line
     if debug then
       trace = {}
     end
-    self.tree:ingest(line, ctx)
+    self.tree:ingest(line, self.ctx)
   end
+  self.ctx = nil
   for i = self.num_prev_results + 1, #self.results do
     local result = self.results[i]
     dispatch(self.subs, "new_item", "", result)
@@ -178,13 +188,29 @@ function MapParser.new(children)
     items[k] = {}
     wrapped_children[k] = M.loop({ ignore_failure = true }, M.sequence(unpack(v)))
   end
-  return setmetatable({
+  local parser = setmetatable({
     children = wrapped_children,
     results = results,
     items = items,
     subs = {},
     num_prev_results = {},
   }, { __index = MapParser })
+  parser:subscribe("clear_results", function(current_key_only)
+    if not current_key_only then
+      parser.results = {}
+      if parser.ctx then
+        parser.results[parser.ctx.__key] = {}
+        parser.ctx.results = parser.results[parser.ctx.__key]
+      end
+    elseif parser.ctx then
+      -- We want to clear just the items for the current key in results, so we need to modify the
+      -- ctx results in-place
+      while not vim.tbl_isempty(parser.ctx.results) do
+        table.remove(parser.ctx.results)
+      end
+    end
+  end)
+  return parser
 end
 
 function MapParser:reset()
@@ -202,7 +228,8 @@ function MapParser:ingest(lines)
       trace = {}
     end
     for k, v in pairs(self.children) do
-      local ctx = {
+      self.ctx = {
+        __key = k,
         item = self.items[k],
         results = self.results[k],
         default_values = {},
@@ -211,12 +238,13 @@ function MapParser:ingest(lines)
           dispatch(self.subs, ...)
         end,
       }
-      self.num_prev_results[k] = #ctx.results
-      v:ingest(line, ctx)
-      for i = self.num_prev_results[k] + 1, #ctx.results do
-        local result = ctx.results[i]
+      self.num_prev_results[k] = #self.ctx.results
+      v:ingest(line, self.ctx)
+      for i = self.num_prev_results[k] + 1, #self.ctx.results do
+        local result = self.ctx.results[i]
         dispatch(self.subs, "new_item", k, result)
       end
+      self.ctx = nil
     end
   end
 end

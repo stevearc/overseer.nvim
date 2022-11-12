@@ -37,7 +37,7 @@ local Extract = {
     },
     {
       name = "pattern",
-      type = "string|function",
+      type = "string|function|string[]",
       desc = "The lua pattern to use for matching. Must have the same number of capture groups as there are field arguments.",
       long_desc = "Can also be a list of strings/functions and it will try matching against all of them",
     },

@@ -12,17 +12,24 @@ return {
     return {
       on_init = function(self, task)
         self.parser = parser.new(params.parser)
-        local cb = function(key, result)
+        self.parser_sub = function(key, result)
           -- TODO reconsider this API for dispatching partial results
           -- task:dispatch("on_stream_result", key, result)
         end
-        self.parser:subscribe("new_item", cb)
-        self.parser_sub = cb
+        self.parser:subscribe("new_item", self.parser_sub)
+        self.set_results_sub = function()
+          task:set_result(self.parser:get_result())
+        end
+        self.parser:subscribe("set_results", self.set_results_sub)
       end,
       on_dispose = function(self)
         if self.parser_sub then
           self.parser:unsubscribe("new_item", self.parser_sub)
           self.parser_sub = nil
+        end
+        if self.set_results_sub then
+          self.parser:unsubscribe("set_results", self.set_results_sub)
+          self.set_results_sub = nil
         end
       end,
       on_reset = function(self)
