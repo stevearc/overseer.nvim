@@ -294,18 +294,22 @@ end
 
 ---Used for documentation generation
 ---@private
-M.get_parser_docs = function(name)
-  local mod = require(string.format("overseer.parser.%s", name))
-  if mod.doc_args then
-    return {
-      name = name,
-      desc = mod.desc,
-      doc_args = mod.doc_args,
-      examples = mod.examples,
-    }
-  else
-    return {}
+M.get_parser_docs = function(...)
+  local ret = {}
+  for _, name in ipairs({ ... }) do
+    local mod = require(string.format("overseer.parser.%s", name))
+    if mod.doc_args then
+      table.insert(ret, {
+        name = name,
+        desc = mod.desc,
+        doc_args = mod.doc_args,
+        examples = mod.examples,
+      })
+    else
+      table.insert(ret, {})
+    end
   end
+  return ret
 end
 
 return M

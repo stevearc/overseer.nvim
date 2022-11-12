@@ -2,13 +2,12 @@ import json
 import os
 import re
 import subprocess
+from collections import OrderedDict
+from functools import lru_cache
 from typing import Any, Dict, Iterable, List, Tuple
 
 from nvim_doc_tools import (
     LuaParam,
-    parse_functions,
-    render_md_api,
-    render_vimdoc_api,
     Vimdoc,
     VimdocSection,
     dedent,
@@ -16,12 +15,15 @@ from nvim_doc_tools import (
     generate_md_toc,
     indent,
     leftright,
+    parse_functions,
     read_section,
+    render_md_api,
+    render_vimdoc_api,
     replace_section,
     wrap,
 )
-from nvim_doc_tools.vimdoc import format_vimdoc_params
 from nvim_doc_tools.markdown import MD_LINK_PAT
+from nvim_doc_tools.vimdoc import format_vimdoc_params
 
 HERE = os.path.dirname(__file__)
 ROOT = os.path.abspath(os.path.join(HERE, os.path.pardir))
@@ -33,6 +35,7 @@ MD_BOLD_PAT = re.compile(r"\*\*([^\*]+)\*\*")
 MD_LINE_BREAK_PAT = re.compile(r"\s*\\$")
 
 
+@lru_cache(maxsize=100)
 def read_nvim_json(lua: str) -> Any:
     cmd = f"nvim --headless --noplugin -u /dev/null -c 'set runtimepath+=.' -c 'lua print(vim.json.encode({lua}))' +qall"
     print(cmd)
@@ -119,25 +122,31 @@ def update_components_md():
         ofile.writelines(lines)
 
 
-def iter_parser_nodes() -> Iterable[Dict]:
+def get_parser_nodes() -> Dict[str, Any]:
+    names = []
     for filename in sorted(os.listdir(os.path.join(ROOT, "lua", "overseer", "parser"))):
         basename = os.path.splitext(filename)[0]
-        if basename == "init":
-            continue
-        parser = read_nvim_json(
-            f'require("overseer.parser").get_parser_docs("{basename}")'
-        )
-        if parser:
-            yield parser
+        if basename != "init":
+            names.append(basename)
+    escaped_names = ", ".join([f'"{name}"' for name in names])
+    parsers_data = read_nvim_json(
+        f'require("overseer.parser").get_parser_docs({escaped_names})'
+    )
+    ret = OrderedDict()
+    for name, data in zip(names, parsers_data):
+        if data:
+            ret[name] = data
+    return ret
+
+
+def get_desc(arg: Dict) -> str:
+    desc = arg["desc"]
+    if "default" in arg:
+        desc += " (default %s)" % json.dumps(arg["default"])
+    return desc
 
 
 def format_parser_arg_table(args: List[Dict]) -> Iterable[str]:
-    def get_desc(arg: Dict) -> str:
-        desc = arg["desc"]
-        if "default" in arg:
-            desc += " (default %s)" % json.dumps(arg["default"])
-        return desc
-
     rows = []
     any_subparams = False
     for arg in args:
@@ -187,33 +196,38 @@ def format_parser_args(name: str, args: List[Dict]) -> Iterable[str]:
     yield from format_parser_arg_table(args)
 
 
-def format_example_code(code: str) -> Iterable[str]:
+def format_example_code(code: str, indentation: int = 0) -> Iterable[str]:
     lines = code.split("\n")
     while re.match(r"^\s*$", lines[0]):
         lines.pop(0)
     while re.match(r"^\s*$", lines[-1]):
         lines.pop()
     for line in dedent(lines):
-        yield line + "\n"
+        yield " " * indentation + line + "\n"
 
 
 def updated_problem_matcher_list(doc: str):
-    patterns = read_nvim_json('require("overseer.template.vscode.problem_matcher").list_patterns()')
+    patterns = read_nvim_json(
+        'require("overseer.template.vscode.problem_matcher").list_patterns()'
+    )
     lines = [f"- `{pat}`\n" for pat in patterns]
     replace_section(
         doc,
         r"^<!-- problem_matcher_patterns -->$",
         r"^<!-- /problem_matcher_patterns -->$",
-        ['\n'] + lines,
+        ["\n"] + lines,
     )
-    matchers = read_nvim_json('require("overseer.template.vscode.problem_matcher").list_problem_matchers()')
+    matchers = read_nvim_json(
+        'require("overseer.template.vscode.problem_matcher").list_problem_matchers()'
+    )
     lines = [f"- `{matcher}`\n" for matcher in matchers]
     replace_section(
         doc,
         r"^<!-- problem_matchers -->$",
         r"^<!-- /problem_matchers -->$",
-        ['\n'] + lines,
+        ["\n"] + lines,
     )
+
 
 def update_parsers_md():
     doc = os.path.join(ROOT, "doc", "parsers.md")
@@ -225,12 +239,10 @@ def update_parsers_md():
     ]
     toc = []
     lines = []
-    for parser in iter_parser_nodes():
-        toc.append(f"- [{parser['name']}](#{parser['name']})\n")
-        lines.append(f"## {parser['name']}\n\n")
-        lines.append(
-            f"[{parser['name']}.lua](../lua/overseer/parser/{parser['name']}.lua)\n\n"
-        )
+    for name, parser in get_parser_nodes().items():
+        toc.append(f"- [{name}](#{name})\n")
+        lines.append(f"## {name}\n\n")
+        lines.append(f"[{name}.lua](../lua/overseer/parser/{name}.lua)\n\n")
         lines.append(parser["desc"])
         if parser.get("long_desc"):
             lines[-1] += " \\\n"
@@ -391,6 +403,37 @@ def get_components_vimdoc() -> "VimdocSection":
     return section
 
 
+def get_parsers_vimdoc() -> "VimdocSection":
+    section = VimdocSection("Parsers", "overseer-parsers", ["\n"])
+    for name, parser in get_parser_nodes().items():
+        section.body.append(leftright(name, f"*parser.{name}*"))
+        section.body.append(4 * " " + parser["desc"] + "\n")
+        if "long_desc" in parser:
+            section.body.extend(wrap(parser["long_desc"], 4))
+        params = []
+        for arg in parser["doc_args"]:
+            subparams = []
+            for subp in arg.get("fields", []):
+                subparams.append(LuaParam(subp["name"], subp["type"], get_desc(subp)))
+            params.append(LuaParam(arg["name"], arg["type"], get_desc(arg), subparams))
+        if params:
+            section.body.extend(["\n", "    Parameters:\n"])
+            section.body.extend(format_vimdoc_params(params, 6))
+        if "examples" in parser:
+            for example in parser["examples"]:
+                section.body.extend(["\n", "    Examples:\n"])
+                section.body.extend(wrap(example["desc"], 4))
+                section.body.extend(
+                    [
+                        ">\n",
+                    ]
+                )
+                section.body.extend(format_example_code(example["code"], 4))
+                section.body.extend(["<\n"])
+        section.body.append("\n")
+    return section
+
+
 def convert_md_link(match):
     text = match[1]
     dest = match[2]
@@ -457,6 +500,7 @@ def generate_vimdoc():
             get_highlights_vimdoc(),
             VimdocSection("API", "overseer-api", render_vimdoc_api("overseer", funcs)),
             get_components_vimdoc(),
+            get_parsers_vimdoc(),
             convert_md_section(
                 os.path.join(DOC, "reference.md"),
                 "^## Parameters",
