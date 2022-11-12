@@ -47,6 +47,7 @@ overseer-params	overseer.txt	/*overseer-params*
 overseer.add_template_hook	overseer.txt	/*overseer.add_template_hook*
 overseer.clear_task_cache	overseer.txt	/*overseer.clear_task_cache*
 overseer.close	overseer.txt	/*overseer.close*
+overseer.debug_parser	overseer.txt	/*overseer.debug_parser*
 overseer.delete_task_bundle	overseer.txt	/*overseer.delete_task_bundle*
 overseer.list_task_bundles	overseer.txt	/*overseer.list_task_bundles*
 overseer.list_tasks	overseer.txt	/*overseer.list_tasks*
