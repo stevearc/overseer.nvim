@@ -19,11 +19,9 @@ return {
     return {
       duration = nil,
       start_time = nil,
-      on_reset = function(self, task, soft)
+      on_reset = function(self, task)
         self.duration = nil
-        if not soft then
-          self.start_time = nil
-        end
+        self.start_time = nil
       end,
       on_start = function(self)
         if not timer then

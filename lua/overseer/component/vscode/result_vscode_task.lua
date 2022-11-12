@@ -46,10 +46,8 @@ return {
     return {
       parser = p,
       active = active_on_start,
-      on_reset = function(self, task, soft)
-        if not soft then
-          self.active = active_on_start
-        end
+      on_reset = function(self, task)
+        self.active = active_on_start
         if self.parser then
           self.parser:reset()
         end

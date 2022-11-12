@@ -207,8 +207,7 @@ return {
       on_start = function(self, task)
         -- Called when the task is started
       end,
-      ---@param soft boolean When true, the components are being reset but the *task* is not. This is used to support commands that are watching the filesystem and rerunning themselves on file change.
-      on_reset = function(self, task, soft)
+      on_reset = function(self, task)
         -- Called when the task is reset to run again
       end,
       ---@return table

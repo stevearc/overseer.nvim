@@ -23,7 +23,7 @@ local M = {}
 ---@field on_init? fun(self: overseer.Component, task: overseer.Task)
 ---@field on_pre_start? fun(self: overseer.Component, task: overseer.Task): nil|boolean
 ---@field on_start? fun(self: overseer.Component, task: overseer.Task)
----@field on_reset? fun(self: overseer.Component, task: overseer.Task, soft: boolean)
+---@field on_reset? fun(self: overseer.Component, task: overseer.Task)
 ---@field on_pre_result? fun(self: overseer.Component, task: overseer.Task): nil|table
 ---@field on_result? fun(self: overseer.Component, task: overseer.Task, result: table)
 ---@field on_complete? fun(self: overseer.Component, task: overseer.Task, status: overseer.Status, result: table)

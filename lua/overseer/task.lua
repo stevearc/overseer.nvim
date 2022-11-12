@@ -405,36 +405,31 @@ function Task:get_bufnr()
   return self.strategy:get_bufnr()
 end
 
----@param soft boolean
-function Task:reset(soft)
+function Task:reset()
   if self:is_disposed() then
     error(string.format("Cannot reset %s task", self.status))
     return
-  elseif not soft and self:is_running() then
+  elseif self:is_running() then
     error(string.format("Cannot reset %s task", self.status))
     return
   end
   self.result = nil
   self.exit_code = nil
-  -- Soft reset allows components & state to be reset without affecting the
-  -- underlying process & buffer
-  if not soft or not self:is_running() then
-    self.status = STATUS.PENDING
-    self:dispatch("on_status", self.status)
-    local bufnr = self:get_bufnr()
-    vim.defer_fn(function()
-      if bufnr and vim.api.nvim_buf_is_valid(bufnr) then
-        if util.is_bufnr_visible(bufnr) then
-          vim.api.nvim_buf_set_option(bufnr, "bufhidden", "wipe")
-        else
-          vim.api.nvim_buf_delete(bufnr, { force = true })
-        end
+  self.status = STATUS.PENDING
+  self:dispatch("on_status", self.status)
+  local bufnr = self:get_bufnr()
+  vim.defer_fn(function()
+    if bufnr and vim.api.nvim_buf_is_valid(bufnr) then
+      if util.is_bufnr_visible(bufnr) then
+        vim.api.nvim_buf_set_option(bufnr, "bufhidden", "wipe")
+      else
+        vim.api.nvim_buf_delete(bufnr, { force = true })
       end
-    end, 1000)
-    self.strategy:reset()
-  end
+    end
+  end, 1000)
+  self.strategy:reset()
   task_list.touch_task(self)
-  self:dispatch("on_reset", soft)
+  self:dispatch("on_reset")
 end
 
 ---Dispatch an event to all other tasks
