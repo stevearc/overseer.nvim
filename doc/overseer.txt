@@ -703,6 +703,21 @@ on_result_diagnostics_quickfix                    *on_result_diagnostics_quickfi
       {use_loclist} `boolean` If true, use the loclist instead of quickfix
                     (default `false`)
 
+on_result_notify                                                *on_result_notify*
+    vim.notify when task receives results
+    Normally you will want to use on_complete_notify. If you have a long-running
+    watch task (e.g. `tsc --watch`) that produces new results periodically, then
+    this is the component you want.
+
+    Parameters:
+      {infer_status_from_diagnostics} `boolean` Notification level will be
+                  error/info depending on if diagnostics are present (default
+                  `true`)
+      {on_change} `boolean` Only notify when status changes from previous value
+                  (default `true`) This only works when
+                  infer_status_from_diagnostics = true
+      {system}    `enum` When to send a system notification (default `"never"`)
+
 restart_on_save                                                  *restart_on_save*
     Restart on any buffer :write
 

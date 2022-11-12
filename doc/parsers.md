@@ -47,6 +47,7 @@ This is a list of the parser nodes that are built-in to overseer. They can be fo
 - [append](#append)
 - [ensure](#ensure)
 - [extract](#extract)
+- [extract_efm](#extract_efm)
 - [extract_json](#extract_json)
 - [extract_multiline](#extract_multiline)
 - [extract_nested](#extract_nested)
@@ -149,6 +150,22 @@ The same logic, but using a vim regex
 {"extract", {regex = true}, "\\v^([^:space:].+):(\\d+): (.+)$", "filename", "lnum", "text" }
 ```
 
+
+## [extract_efm](../lua/overseer/parser/extract_efm.lua)
+
+Parse a line using vim's errorformat and append it to the results \
+
+```lua
+{"extract_efm"}
+{"extract_efm", opts}
+```
+
+**opts**[`object`]: Configuration options \
+&nbsp;&nbsp;&nbsp;&nbsp;**efm**[`string`]: The errorformat string to use. Defaults to current option value. \
+&nbsp;&nbsp;&nbsp;&nbsp;**consume**[`boolean`]: Consumes the line of input, blocking execution until the next line is fed in (default `true`) \
+&nbsp;&nbsp;&nbsp;&nbsp;**append**[`boolean`]: After parsing, append the item to the results list. When false, the pending item will stick around. (default `true`) \
+&nbsp;&nbsp;&nbsp;&nbsp;**test**[`function`]: A function that operates on the parsed value and returns true/false for SUCCESS/FAILURE \
+&nbsp;&nbsp;&nbsp;&nbsp;**postprocess**[`function`]: Call this function to do post-extraction processing on the values \
 
 ## [extract_json](../lua/overseer/parser/extract_json.lua)
 
