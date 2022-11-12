@@ -503,6 +503,9 @@ M.register_template = lazy_pend("template", "register")
 --- overseer.load_template('mytask')
 M.load_template = lazy_pend("template", "load_template")
 
+---Open a tab with windows laid out for debugging a parser
+M.debug_parser = lazy("parser.debug", "start_debug_session")
+
 -- Used for vim-session integration.
 local timer_active = false
 ---@private
