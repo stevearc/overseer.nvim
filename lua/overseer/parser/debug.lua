@@ -118,7 +118,14 @@ local function create_source_bufnr()
   vim.api.nvim_create_autocmd("BufWritePost", {
     desc = "update parser debug view on write",
     callback = function()
-      render_parser()
+      local lnum
+      for _, winid in ipairs(vim.api.nvim_tabpage_list_wins(0)) do
+        if vim.api.nvim_win_is_valid(winid) and vim.api.nvim_win_get_buf(winid) == input_buf then
+          lnum = vim.api.nvim_win_get_cursor(winid)[1]
+          break
+        end
+      end
+      render_parser(lnum)
     end,
     buffer = bufnr,
   })
