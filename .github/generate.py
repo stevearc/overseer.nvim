@@ -133,16 +133,33 @@ def iter_parser_nodes() -> Iterable[Dict]:
             yield parser
 
 
-def format_parser_arg(arg: Dict) -> Iterable[str]:
-    pieces = [f"**{arg['name']}**[`{arg['type']}`]:", arg["desc"]]
-    if arg.get("default") is not None:
-        pieces.append("(default `%s`)" % json.dumps(arg["default"]))
-    yield " ".join(pieces) + " \\\n"
-    if arg.get("long_desc"):
-        yield from wrap(arg["long_desc"], 4, 100, " \\\n")
-    for subarg in arg.get("fields", []):
-        for line in format_parser_arg(subarg):
-            yield 4 * "&nbsp;" + line
+def format_parser_arg_table(args: List[Dict]) -> Iterable[str]:
+    rows = []
+    any_subparams = False
+    for arg in args:
+        ftype = arg['type'].replace("|", r"\|")
+        rows.append(
+            {
+                "Param": arg['name'],
+                "Type": f"`{ftype}`",
+                "Desc": arg['desc'],
+            }
+        )
+        for subp in arg.get('fields', []):
+            any_subparams = True
+            ftype = subp['type'].replace("|", r"\|")
+            rows.append(
+                {
+                    "Type": subp['name'],
+                    "Desc": f"`{ftype}`",
+                    "": subp['desc'],
+                }
+            )
+
+    cols = ["Param", "Type", "Desc"]
+    if any_subparams:
+        cols.append("")
+    yield from format_md_table(rows, cols)
 
 
 def format_parser_args(name: str, args: List[Dict]) -> Iterable[str]:
@@ -163,8 +180,7 @@ def format_parser_args(name: str, args: List[Dict]) -> Iterable[str]:
         yield "{" + ", ".join(all_args) + "}\n"
     yield "```\n"
     yield "\n"
-    for arg in args:
-        yield from format_parser_arg(arg)
+    yield from format_parser_arg_table(args)
 
 
 def format_example_code(code: str) -> Iterable[str]:
