@@ -127,15 +127,15 @@ describe("extract", function()
           return "zeta"
         end
       end,
-    }, "type")
+    }, "letter")
     local ctx = { item = {}, results = {} }
     assert.equals(STATUS.FAILURE, node:ingest("something", ctx))
     node:reset()
     assert.equals(STATUS.SUCCESS, node:ingest("apple", ctx))
-    assert.equals("alpha", ctx.item.type)
+    assert.equals("alpha", ctx.item.letter)
     node:reset()
     assert.equals(STATUS.SUCCESS, node:ingest("zero", ctx))
-    assert.equals("zeta", ctx.item.type)
+    assert.equals("zeta", ctx.item.letter)
   end)
 
   it("can postprocess item", function()
