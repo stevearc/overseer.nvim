@@ -294,6 +294,8 @@ The primary way of parsing output with overseer is the `on_output_parse` compone
   -- Put the parser results into the 'diagnostics' field on the task result
   diagnostics = {
     -- Extract fields using lua patterns
+    -- To integrate with other components, items in the "diagnostics" result should match
+    -- vim's quickfix item format (:help setqflist)
     { "extract", "^([^%s].+):(%d+): (.+)$", "filename", "lnum", "text" },
   }
 }}
