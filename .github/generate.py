@@ -202,12 +202,14 @@ def update_parsers_md():
     lines = []
     for parser in iter_parser_nodes():
         toc.append(f"- [{parser['name']}](#{parser['name']})\n")
-        lines.append(
-            f"## [{parser['name']}](../lua/overseer/parser/{parser['name']}.lua)\n\n"
-        )
-        lines.append(parser["desc"] + " \\\n")
+        lines.append(f"## {parser['name']}\n\n")
+        lines.append(f"[{parser['name']}.lua](../lua/overseer/parser/{parser['name']}.lua)\n\n")
+        lines.append(parser["desc"])
         if parser.get("long_desc"):
+            lines[-1] += " \\\n"
             lines.extend(wrap(parser["long_desc"], width=100))
+        else:
+            lines[-1] += "\n"
         lines.append("\n")
         lines.extend(format_parser_args(parser["name"], parser["doc_args"]))
         if parser.get("examples"):
@@ -560,10 +562,15 @@ def update_reference_md():
     components_toc = add_md_link_path(
         "components.md", generate_md_toc(os.path.join(DOC, "components.md"))
     )
+    parsers_toc = add_md_link_path(
+        "parsers.md", generate_md_toc(os.path.join(DOC, "parsers.md"), 1)
+    )
     reference_doc = os.path.join(DOC, "reference.md")
     toc = ["\n"] + generate_md_toc(reference_doc) + ["\n"]
     idx = toc.index("- [Components](#components)\n")
     toc[idx+1:idx+1] = ["  " + line for line in components_toc]
+    idx = toc.index("- [Parsers](#parsers)\n")
+    toc[idx+1:idx+1] = ["  " + line for line in parsers_toc]
     replace_section(
         reference_doc,
         r"^<!-- TOC -->$",
@@ -575,6 +582,12 @@ def update_reference_md():
         r"^<!-- TOC.components -->$",
         r"^<!-- /TOC.components -->$",
         ["\n"] + components_toc + ["\n"],
+    )
+    replace_section(
+        reference_doc,
+        r"^<!-- TOC.parsers -->$",
+        r"^<!-- /TOC.parsers -->$",
+        ["\n"] + parsers_toc + ["\n"],
     )
 
 

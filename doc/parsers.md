@@ -60,9 +60,11 @@ This is a list of the parser nodes that are built-in to overseer. They can be fo
 - [skip_until](#skip_until)
 - [test](#test)
 
-## [always](../lua/overseer/parser/always.lua)
+## always
 
-A decorator that always returns SUCCESS \
+[always.lua](../lua/overseer/parser/always.lua)
+
+A decorator that always returns SUCCESS
 
 ```lua
 {"always", child}
@@ -85,9 +87,11 @@ An extract node that returns SUCCESS even when it fails
 ```
 
 
-## [append](../lua/overseer/parser/append.lua)
+## append
 
-Append the current item to the results list \
+[append.lua](../lua/overseer/parser/append.lua)
+
+Append the current item to the results list
 
 ```lua
 {"append"}
@@ -99,9 +103,11 @@ Append the current item to the results list \
 | opts  | `object`    | Configuration options |                                                                   |
 |       | postprocess | `function`            | Call this function to do post-extraction processing on the values |
 
-## [ensure](../lua/overseer/parser/ensure.lua)
+## ensure
 
-Decorator that runs a child until it succeeds \
+[ensure.lua](../lua/overseer/parser/ensure.lua)
+
+Decorator that runs a child until it succeeds
 
 ```lua
 {"ensure", child}
@@ -124,9 +130,11 @@ An extract node that runs until it successfully parses
 ```
 
 
-## [extract](../lua/overseer/parser/extract.lua)
+## extract
 
-Parse a line into an object and append it to the results \
+[extract.lua](../lua/overseer/parser/extract.lua)
+
+Parse a line into an object and append it to the results
 
 ```lua
 {"extract", pattern, field...}
@@ -158,9 +166,11 @@ The same logic, but using a vim regex
 ```
 
 
-## [extract_efm](../lua/overseer/parser/extract_efm.lua)
+## extract_efm
 
-Parse a line using vim's errorformat and append it to the results \
+[extract_efm.lua](../lua/overseer/parser/extract_efm.lua)
+
+Parse a line using vim's errorformat and append it to the results
 
 ```lua
 {"extract_efm"}
@@ -176,9 +186,11 @@ Parse a line using vim's errorformat and append it to the results \
 |       | test        | `function`            | A function that operates on the parsed value and returns true/false for SUCCESS/FAILURE             |
 |       | postprocess | `function`            | Call this function to do post-extraction processing on the values                                   |
 
-## [extract_json](../lua/overseer/parser/extract_json.lua)
+## extract_json
 
-Parse a line as json and append it to the results \
+[extract_json.lua](../lua/overseer/parser/extract_json.lua)
+
+Parse a line as json and append it to the results
 
 ```lua
 {"extract_json"}
@@ -193,9 +205,11 @@ Parse a line as json and append it to the results \
 |       | test        | `function`            | A function that operates on the parsed value and returns true/false for SUCCESS/FAILURE             |
 |       | postprocess | `function`            | Call this function to do post-extraction processing on the values                                   |
 
-## [extract_multiline](../lua/overseer/parser/extract_multiline.lua)
+## extract_multiline
 
-Extract a multiline string as a single field on an item \
+[extract_multiline.lua](../lua/overseer/parser/extract_multiline.lua)
+
+Extract a multiline string as a single field on an item
 
 ```lua
 {"extract_multiline", pattern, field}
@@ -218,9 +232,11 @@ Extract all indented lines as a message
 ```
 
 
-## [extract_nested](../lua/overseer/parser/extract_nested.lua)
+## extract_nested
 
-Run a subparser and put the extracted results on the field of an item \
+[extract_nested.lua](../lua/overseer/parser/extract_nested.lua)
+
+Run a subparser and put the extracted results on the field of an item
 
 ```lua
 {"extract_nested", field, child}
@@ -269,9 +285,11 @@ Extract a golang test failure, then add the stacktrace to it (if present)
 ```
 
 
-## [invert](../lua/overseer/parser/invert.lua)
+## invert
 
-A decorator that inverts the child's return value \
+[invert.lua](../lua/overseer/parser/invert.lua)
+
+A decorator that inverts the child's return value
 
 ```lua
 {"invert", child}
@@ -292,9 +310,11 @@ An extract node that returns SUCCESS when it fails, and vice-versa
 ```
 
 
-## [loop](../lua/overseer/parser/loop.lua)
+## loop
 
-A decorator that repeats the child \
+[loop.lua](../lua/overseer/parser/loop.lua)
+
+A decorator that repeats the child
 
 ```lua
 {"loop", child}
@@ -308,9 +328,11 @@ A decorator that repeats the child \
 |       | repetitions    | `integer`             | When set, loop a set number of times then return SUCCESS |
 | child | `parser`       | The child parser node |                                                          |
 
-## [parallel](../lua/overseer/parser/parallel.lua)
+## parallel
 
-Run the child nodes in parallel \
+[parallel.lua](../lua/overseer/parser/parallel.lua)
+
+Run the child nodes in parallel
 
 ```lua
 {"parallel", child...}
@@ -325,9 +347,11 @@ Run the child nodes in parallel \
 |       | reset_children         | `boolean`                                                         | Reset all children at the beginning of each iteration |
 | child | `parser`               | The child parser nodes. Can be passed in as varargs or as a list. |                                                       |
 
-## [sequence](../lua/overseer/parser/sequence.lua)
+## sequence
 
-Run the child nodes sequentially \
+[sequence.lua](../lua/overseer/parser/sequence.lua)
+
+Run the child nodes sequentially
 
 ```lua
 {"sequence", child...}
@@ -353,9 +377,11 @@ Extract the message text from one line, then the filename and lnum from the next
 ```
 
 
-## [set_defaults](../lua/overseer/parser/set_defaults.lua)
+## set_defaults
 
-A decorator that adds values to any items extracted by the child \
+[set_defaults.lua](../lua/overseer/parser/set_defaults.lua)
+
+A decorator that adds values to any items extracted by the child
 
 ```lua
 {"set_defaults", child}
@@ -385,9 +411,11 @@ Extract the filename from a header line, then for each line of output beneath it
 ```
 
 
-## [skip_lines](../lua/overseer/parser/skip_lines.lua)
+## skip_lines
 
-Skip over a set number of lines \
+[skip_lines.lua](../lua/overseer/parser/skip_lines.lua)
+
+Skip over a set number of lines
 
 ```lua
 {"skip_lines", count}
@@ -397,9 +425,11 @@ Skip over a set number of lines \
 | ----- | --------- | ---------------------- |
 | count | `integer` | How many lines to skip |
 
-## [skip_until](../lua/overseer/parser/skip_until.lua)
+## skip_until
 
-Skip over lines until one matches \
+[skip_until.lua](../lua/overseer/parser/skip_until.lua)
+
+Skip over lines until one matches
 
 ```lua
 {"skip_until", pattern...}
@@ -421,9 +451,11 @@ Skip input until we see "Error" or "Warning"
 ```
 
 
-## [test](../lua/overseer/parser/test.lua)
+## test
 
-Returns SUCCESS when the line matches the pattern \
+[test.lua](../lua/overseer/parser/test.lua)
+
+Returns SUCCESS when the line matches the pattern
 
 ```lua
 {"test", pattern}

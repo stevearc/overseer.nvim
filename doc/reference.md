@@ -44,6 +44,23 @@
   - [run_after](components.md#run_after)
   - [timeout](components.md#timeout)
   - [unique](components.md#unique)
+- [Parsers](#parsers)
+  - [always](parsers.md#always)
+  - [append](parsers.md#append)
+  - [ensure](parsers.md#ensure)
+  - [extract](parsers.md#extract)
+  - [extract_efm](parsers.md#extract_efm)
+  - [extract_json](parsers.md#extract_json)
+  - [extract_multiline](parsers.md#extract_multiline)
+  - [extract_nested](parsers.md#extract_nested)
+  - [invert](parsers.md#invert)
+  - [loop](parsers.md#loop)
+  - [parallel](parsers.md#parallel)
+  - [sequence](parsers.md#sequence)
+  - [set_defaults](parsers.md#set_defaults)
+  - [skip_lines](parsers.md#skip_lines)
+  - [skip_until](parsers.md#skip_until)
+  - [test](parsers.md#test)
 - [Parameters](#parameters)
 
 <!-- /TOC -->
@@ -667,6 +684,29 @@ overseer.load_template('mytask')
 - [unique](components.md#unique)
 
 <!-- /TOC.components -->
+
+## Parsers
+
+<!-- TOC.parsers -->
+
+- [always](parsers.md#always)
+- [append](parsers.md#append)
+- [ensure](parsers.md#ensure)
+- [extract](parsers.md#extract)
+- [extract_efm](parsers.md#extract_efm)
+- [extract_json](parsers.md#extract_json)
+- [extract_multiline](parsers.md#extract_multiline)
+- [extract_nested](parsers.md#extract_nested)
+- [invert](parsers.md#invert)
+- [loop](parsers.md#loop)
+- [parallel](parsers.md#parallel)
+- [sequence](parsers.md#sequence)
+- [set_defaults](parsers.md#set_defaults)
+- [skip_lines](parsers.md#skip_lines)
+- [skip_until](parsers.md#skip_until)
+- [test](parsers.md#test)
+
+<!-- /TOC.parsers -->
 
 ## Parameters
 
