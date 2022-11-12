@@ -29,7 +29,7 @@ traces:
 
 # Writing parsers
 
-Writing a complicated parser can be tricky. To help, there is an interactive tool for iterating on a parser and debugging its logic. You can open the tool with `:lua require('overseer.parser.debug').start_debug_session()`. This should open up a view that looks like this:
+Writing a complicated parser can be tricky. To help, there is an interactive tool for iterating on a parser and debugging its logic. You can open the tool with `:lua require('overseer').debug_parser()`. This should open up a view that looks like this:
 
 ![parser debugger](https://user-images.githubusercontent.com/506791/180116805-bc230406-b99c-4bb7-a78c-3e4bb9458629.png)
 
@@ -45,6 +45,7 @@ This is a list of the parser nodes that are built-in to overseer. They can be fo
 
 - [always](#always)
 - [append](#append)
+- [dispatch](#dispatch)
 - [ensure](#ensure)
 - [extract](#extract)
 - [extract_efm](#extract_efm)
@@ -71,10 +72,10 @@ A decorator that always returns SUCCESS
 {"always", succeed, child}
 ```
 
-| Param   | Type      | Desc                                  |
-| ------- | --------- | ------------------------------------- |
-| succeed | `boolean` | Set to false to always return FAILURE |
-| child   | `parser`  | The child parser node                 |
+| Param   | Type      | Desc                                                 |
+| ------- | --------- | ---------------------------------------------------- |
+| succeed | `boolean` | Set to false to always return FAILURE (default true) |
+| child   | `parser`  | The child parser node                                |
 
 ### Examples
 
@@ -85,7 +86,6 @@ An extract node that returns SUCCESS even when it fails
   {"extract", "^([^%s].+):(%d+): (.+)$", "filename", "lnum", "text" }
 }
 ```
-
 
 ## append
 
@@ -103,6 +103,29 @@ Append the current item to the results list
 | opts  | `object`    | Configuration options |                                                                   |
 |       | postprocess | `function`            | Call this function to do post-extraction processing on the values |
 
+## dispatch
+
+[dispatch.lua](../lua/overseer/parser/dispatch.lua)
+
+Dispatch an event
+
+```lua
+{"dispatch", name, arg...}
+```
+
+| Param | Type         | Desc                                                               |
+| ----- | ------------ | ------------------------------------------------------------------ |
+| name  | `string`     | Event name                                                         |
+| arg   | `any\|fun()` | A value to send with the event, or a function that creates a value |
+
+### Examples
+
+Dispatch an "output_start" event
+
+```lua
+{"dispatch", "output_start"}
+```
+
 ## ensure
 
 [ensure.lua](../lua/overseer/parser/ensure.lua)
@@ -114,10 +137,10 @@ Decorator that runs a child until it succeeds
 {"ensure", succeed, child}
 ```
 
-| Param   | Type      | Desc                                    |
-| ------- | --------- | --------------------------------------- |
-| succeed | `boolean` | Set to false to run child until failure |
-| child   | `parser`  | The child parser node                   |
+| Param   | Type      | Desc                                                   |
+| ------- | --------- | ------------------------------------------------------ |
+| succeed | `boolean` | Set to false to run child until failure (default true) |
+| child   | `parser`  | The child parser node                                  |
 
 ### Examples
 
@@ -128,7 +151,6 @@ An extract node that runs until it successfully parses
   {"extract", "^([^%s].+):(%d+): (.+)$", "filename", "lnum", "text" }
 }
 ```
-
 
 ## extract
 
@@ -141,15 +163,15 @@ Parse a line into an object and append it to the results
 {"extract", opts, pattern, field...}
 ```
 
-| Param   | Type               | Desc                                                                                                           |                                                                                                     |
-| ------- | ------------------ | -------------------------------------------------------------------------------------------------------------- | --------------------------------------------------------------------------------------------------- |
-| opts    | `object`           | Configuration options                                                                                          |                                                                                                     |
-|         | consume            | `boolean`                                                                                                      | Consumes the line of input, blocking execution until the next line is fed in                        |
-|         | append             | `boolean`                                                                                                      | After parsing, append the item to the results list. When false, the pending item will stick around. |
-|         | regex              | `boolean`                                                                                                      | Use vim regex instead of lua pattern (see :help pattern)                                            |
-|         | postprocess        | `function`                                                                                                     | Call this function to do post-extraction processing on the values                                   |
-| pattern | `string\|function` | The lua pattern to use for matching. Must have the same number of capture groups as there are field arguments. |                                                                                                     |
-| field   | `string`           | The name of the extracted capture group. Use `"_"` to discard.                                                 |                                                                                                     |
+| Param   | Type                         | Desc                                                                                                           |                                                                                                                    |
+| ------- | ---------------------------- | -------------------------------------------------------------------------------------------------------------- | ------------------------------------------------------------------------------------------------------------------ |
+| opts    | `object`                     | Configuration options                                                                                          |                                                                                                                    |
+|         | consume                      | `boolean`                                                                                                      | Consumes the line of input, blocking execution until the next line is fed in (default true)                        |
+|         | append                       | `boolean`                                                                                                      | After parsing, append the item to the results list. When false, the pending item will stick around. (default true) |
+|         | regex                        | `boolean`                                                                                                      | Use vim regex instead of lua pattern (see :help pattern) (default false)                                           |
+|         | postprocess                  | `function`                                                                                                     | Call this function to do post-extraction processing on the values                                                  |
+| pattern | `string\|function\|string[]` | The lua pattern to use for matching. Must have the same number of capture groups as there are field arguments. |                                                                                                                    |
+| field   | `string`                     | The name of the extracted capture group. Use `"_"` to discard.                                                 |                                                                                                                    |
 
 ### Examples
 
@@ -165,7 +187,6 @@ The same logic, but using a vim regex
 {"extract", {regex = true}, "\\v^([^:space:].+):(\\d+): (.+)$", "filename", "lnum", "text" }
 ```
 
-
 ## extract_efm
 
 [extract_efm.lua](../lua/overseer/parser/extract_efm.lua)
@@ -177,14 +198,14 @@ Parse a line using vim's errorformat and append it to the results
 {"extract_efm", opts}
 ```
 
-| Param | Type        | Desc                  |                                                                                                     |
-| ----- | ----------- | --------------------- | --------------------------------------------------------------------------------------------------- |
-| opts  | `object`    | Configuration options |                                                                                                     |
-|       | efm         | `string`              | The errorformat string to use. Defaults to current option value.                                    |
-|       | consume     | `boolean`             | Consumes the line of input, blocking execution until the next line is fed in                        |
-|       | append      | `boolean`             | After parsing, append the item to the results list. When false, the pending item will stick around. |
-|       | test        | `function`            | A function that operates on the parsed value and returns true/false for SUCCESS/FAILURE             |
-|       | postprocess | `function`            | Call this function to do post-extraction processing on the values                                   |
+| Param | Type        | Desc                  |                                                                                                                    |
+| ----- | ----------- | --------------------- | ------------------------------------------------------------------------------------------------------------------ |
+| opts  | `object`    | Configuration options |                                                                                                                    |
+|       | efm         | `string`              | The errorformat string to use. Defaults to current option value.                                                   |
+|       | consume     | `boolean`             | Consumes the line of input, blocking execution until the next line is fed in (default true)                        |
+|       | append      | `boolean`             | After parsing, append the item to the results list. When false, the pending item will stick around. (default true) |
+|       | test        | `function`            | A function that operates on the parsed value and returns true/false for SUCCESS/FAILURE                            |
+|       | postprocess | `function`            | Call this function to do post-extraction processing on the values                                                  |
 
 ## extract_json
 
@@ -197,13 +218,13 @@ Parse a line as json and append it to the results
 {"extract_json", opts}
 ```
 
-| Param | Type        | Desc                  |                                                                                                     |
-| ----- | ----------- | --------------------- | --------------------------------------------------------------------------------------------------- |
-| opts  | `object`    | Configuration options |                                                                                                     |
-|       | consume     | `boolean`             | Consumes the line of input, blocking execution until the next line is fed in                        |
-|       | append      | `boolean`             | After parsing, append the item to the results list. When false, the pending item will stick around. |
-|       | test        | `function`            | A function that operates on the parsed value and returns true/false for SUCCESS/FAILURE             |
-|       | postprocess | `function`            | Call this function to do post-extraction processing on the values                                   |
+| Param | Type        | Desc                  |                                                                                                                    |
+| ----- | ----------- | --------------------- | ------------------------------------------------------------------------------------------------------------------ |
+| opts  | `object`    | Configuration options |                                                                                                                    |
+|       | consume     | `boolean`             | Consumes the line of input, blocking execution until the next line is fed in (default true)                        |
+|       | append      | `boolean`             | After parsing, append the item to the results list. When false, the pending item will stick around. (default true) |
+|       | test        | `function`            | A function that operates on the parsed value and returns true/false for SUCCESS/FAILURE                            |
+|       | postprocess | `function`            | Call this function to do post-extraction processing on the values                                                  |
 
 ## extract_multiline
 
@@ -216,12 +237,12 @@ Extract a multiline string as a single field on an item
 {"extract_multiline", opts, pattern, field}
 ```
 
-| Param   | Type               | Desc                                                                                                                  |                                                                                                     |
-| ------- | ------------------ | --------------------------------------------------------------------------------------------------------------------- | --------------------------------------------------------------------------------------------------- |
-| opts    | `object`           | Configuration options                                                                                                 |                                                                                                     |
-|         | append             | `boolean`                                                                                                             | After parsing, append the item to the results list. When false, the pending item will stick around. |
-| pattern | `string\|function` | The lua pattern to use for matching. As long as the pattern matches, lines will continue to be appended to the field. |                                                                                                     |
-| field   | `string`           | The name of the field to add to the item                                                                              |                                                                                                     |
+| Param   | Type               | Desc                                                                                                                  |                                                                                                                    |
+| ------- | ------------------ | --------------------------------------------------------------------------------------------------------------------- | ------------------------------------------------------------------------------------------------------------------ |
+| opts    | `object`           | Configuration options                                                                                                 |                                                                                                                    |
+|         | append             | `boolean`                                                                                                             | After parsing, append the item to the results list. When false, the pending item will stick around. (default true) |
+| pattern | `string\|function` | The lua pattern to use for matching. As long as the pattern matches, lines will continue to be appended to the field. |                                                                                                                    |
+| field   | `string`           | The name of the field to add to the item                                                                              |                                                                                                                    |
 
 ### Examples
 
@@ -230,7 +251,6 @@ Extract all indented lines as a message
 ```lua
 {"extract_multiline", "^(    .+)", "message"}
 ```
-
 
 ## extract_nested
 
@@ -243,13 +263,13 @@ Run a subparser and put the extracted results on the field of an item
 {"extract_nested", opts, field, child}
 ```
 
-| Param | Type          | Desc                                     |                                                                                                     |
-| ----- | ------------- | ---------------------------------------- | --------------------------------------------------------------------------------------------------- |
-| opts  | `object`      | Configuration options                    |                                                                                                     |
-|       | append        | `boolean`                                | After parsing, append the item to the results list. When false, the pending item will stick around. |
-|       | fail_on_empty | `boolean`                                | Return FAILURE if there are no results from the child                                               |
-| field | `string`      | The name of the field to add to the item |                                                                                                     |
-| child | `parser`      | The child parser node                    |                                                                                                     |
+| Param | Type          | Desc                                     |                                                                                                                    |
+| ----- | ------------- | ---------------------------------------- | ------------------------------------------------------------------------------------------------------------------ |
+| opts  | `object`      | Configuration options                    |                                                                                                                    |
+|       | append        | `boolean`                                | After parsing, append the item to the results list. When false, the pending item will stick around. (default true) |
+|       | fail_on_empty | `boolean`                                | Return FAILURE if there are no results from the child (default true)                                               |
+| field | `string`      | The name of the field to add to the item |                                                                                                                    |
+| child | `parser`      | The child parser node                    |                                                                                                                    |
 
 ### Examples
 
@@ -284,7 +304,6 @@ Extract a golang test failure, then add the stacktrace to it (if present)
 }
 ```
 
-
 ## invert
 
 [invert.lua](../lua/overseer/parser/invert.lua)
@@ -309,7 +328,6 @@ An extract node that returns SUCCESS when it fails, and vice-versa
 }
 ```
 
-
 ## loop
 
 [loop.lua](../lua/overseer/parser/loop.lua)
@@ -324,7 +342,7 @@ A decorator that repeats the child
 | Param | Type           | Desc                  |                                                          |
 | ----- | -------------- | --------------------- | -------------------------------------------------------- |
 | opts  | `object`       | Configuration options |                                                          |
-|       | ignore_failure | `boolean`             | Keep looping even when the child fails                   |
+|       | ignore_failure | `boolean`             | Keep looping even when the child fails (default false)   |
 |       | repetitions    | `integer`             | When set, loop a set number of times then return SUCCESS |
 | child | `parser`       | The child parser node |                                                          |
 
@@ -339,13 +357,13 @@ Run the child nodes in parallel
 {"parallel", opts, child...}
 ```
 
-| Param | Type                   | Desc                                                              |                                                       |
-| ----- | ---------------------- | ----------------------------------------------------------------- | ----------------------------------------------------- |
-| opts  | `object`               | Configuration options                                             |                                                       |
-|       | break_on_first_failure | `boolean`                                                         | Stop executing as soon as a child returns FAILURE     |
-|       | break_on_first_success | `boolean`                                                         | Stop executing as soon as a child returns SUCCESS     |
-|       | reset_children         | `boolean`                                                         | Reset all children at the beginning of each iteration |
-| child | `parser`               | The child parser nodes. Can be passed in as varargs or as a list. |                                                       |
+| Param | Type                   | Desc                                                              |                                                                       |
+| ----- | ---------------------- | ----------------------------------------------------------------- | --------------------------------------------------------------------- |
+| opts  | `object`               | Configuration options                                             |                                                                       |
+|       | break_on_first_failure | `boolean`                                                         | Stop executing as soon as a child returns FAILURE (default true)      |
+|       | break_on_first_success | `boolean`                                                         | Stop executing as soon as a child returns SUCCESS (default false)     |
+|       | reset_children         | `boolean`                                                         | Reset all children at the beginning of each iteration (default false) |
+| child | `parser`               | The child parser nodes. Can be passed in as varargs or as a list. |                                                                       |
 
 ## sequence
 
@@ -358,12 +376,12 @@ Run the child nodes sequentially
 {"sequence", opts, child...}
 ```
 
-| Param | Type                   | Desc                                                              |                                                   |
-| ----- | ---------------------- | ----------------------------------------------------------------- | ------------------------------------------------- |
-| opts  | `object`               | Configuration options                                             |                                                   |
-|       | break_on_first_failure | `boolean`                                                         | Stop executing as soon as a child returns FAILURE |
-|       | break_on_first_success | `boolean`                                                         | Stop executing as soon as a child returns SUCCESS |
-| child | `parser`               | The child parser nodes. Can be passed in as varargs or as a list. |                                                   |
+| Param | Type                   | Desc                                                              |                                                                   |
+| ----- | ---------------------- | ----------------------------------------------------------------- | ----------------------------------------------------------------- |
+| opts  | `object`               | Configuration options                                             |                                                                   |
+|       | break_on_first_failure | `boolean`                                                         | Stop executing as soon as a child returns FAILURE (default true)  |
+|       | break_on_first_success | `boolean`                                                         | Stop executing as soon as a child returns SUCCESS (default false) |
+| child | `parser`               | The child parser nodes. Can be passed in as varargs or as a list. |                                                                   |
 
 ### Examples
 
@@ -376,7 +394,6 @@ Extract the message text from one line, then the filename and lnum from the next
 }
 ```
 
-
 ## set_defaults
 
 [set_defaults.lua](../lua/overseer/parser/set_defaults.lua)
@@ -388,12 +405,12 @@ A decorator that adds values to any items extracted by the child
 {"set_defaults", opts, child}
 ```
 
-| Param | Type       | Desc                  |                                                                                  |
-| ----- | ---------- | --------------------- | -------------------------------------------------------------------------------- |
-| opts  | `object`   | Configuration options |                                                                                  |
-|       | values     | `object`              | Hardcoded key-value pairs to set as default values                               |
-|       | hoist_item | `boolean`             | Take the current pending item, and use its fields as the default key-value pairs |
-| child | `parser`   | The child parser node |                                                                                  |
+| Param | Type       | Desc                  |                                                                                                 |
+| ----- | ---------- | --------------------- | ----------------------------------------------------------------------------------------------- |
+| opts  | `object`   | Configuration options |                                                                                                 |
+|       | values     | `object`              | Hardcoded key-value pairs to set as default values                                              |
+|       | hoist_item | `boolean`             | Take the current pending item, and use its fields as the default key-value pairs (default true) |
+| child | `parser`   | The child parser node |                                                                                                 |
 
 ### Examples
 
@@ -409,7 +426,6 @@ Extract the filename from a header line, then for each line of output beneath it
   }
 }
 ```
-
 
 ## skip_lines
 
@@ -436,11 +452,11 @@ Skip over lines until one matches
 {"skip_until", opts, pattern...}
 ```
 
-| Param   | Type               | Desc                                                                                   |                                                                          |
-| ------- | ------------------ | -------------------------------------------------------------------------------------- | ------------------------------------------------------------------------ |
-| opts    | `object`           | Configuration options                                                                  |                                                                          |
-|         | skip_matching_line | `boolean`                                                                              | Consumes the line that matches. Later nodes will only see the next line. |
-| pattern | `string`           | The lua pattern to use for matching. The node succeeds if any of these patterns match. |                                                                          |
+| Param   | Type               | Desc                                                                                   |                                                                                         |
+| ------- | ------------------ | -------------------------------------------------------------------------------------- | --------------------------------------------------------------------------------------- |
+| opts    | `object`           | Configuration options                                                                  |                                                                                         |
+|         | skip_matching_line | `boolean`                                                                              | Consumes the line that matches. Later nodes will only see the next line. (default true) |
+| pattern | `string`           | The lua pattern to use for matching. The node succeeds if any of these patterns match. |                                                                                         |
 
 ### Examples
 
@@ -449,7 +465,6 @@ Skip input until we see "Error" or "Warning"
 ```lua
 {"skip_until", "^Error:", "^Warning:"}
 ```
-
 
 ## test
 
@@ -462,11 +477,11 @@ Returns SUCCESS when the line matches the pattern
 {"test", opts, pattern}
 ```
 
-| Param   | Type     | Desc                                |                                                          |
-| ------- | -------- | ----------------------------------- | -------------------------------------------------------- |
-| opts    | `object` | Configuration options               |                                                          |
-|         | regex    | `boolean`                           | Use vim regex instead of lua pattern (see :help pattern) |
-| pattern | `string` | The lua pattern to use for matching |                                                          |
+| Param   | Type     | Desc                                |                                                                         |
+| ------- | -------- | ----------------------------------- | ----------------------------------------------------------------------- |
+| opts    | `object` | Configuration options               |                                                                         |
+|         | regex    | `boolean`                           | Use vim regex instead of lua pattern (see :help pattern) (default true) |
+| pattern | `string` | The lua pattern to use for matching |                                                                         |
 
 ### Examples
 

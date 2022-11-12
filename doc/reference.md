@@ -26,6 +26,7 @@
   - [remove_template_hook(opts, hook)](#remove_template_hookopts-hook)
   - [register_template(defn)](#register_templatedefn)
   - [load_template(name)](#load_templatename)
+  - [debug_parser()](#debug_parser)
 - [Components](#components)
   - [dependencies](components.md#dependencies)
   - [display_duration](components.md#display_duration)
@@ -47,6 +48,7 @@
 - [Parsers](#parsers)
   - [always](parsers.md#always)
   - [append](parsers.md#append)
+  - [dispatch](parsers.md#dispatch)
   - [ensure](parsers.md#ensure)
   - [extract](parsers.md#extract)
   - [extract_efm](parsers.md#extract_efm)
@@ -658,6 +660,12 @@ Load a template definition from its module location
 overseer.load_template('mytask')
 ```
 
+### debug_parser()
+
+`debug_parser()` \
+Open a tab with windows laid out for debugging a parser
+
+
 
 <!-- /API -->
 
@@ -691,6 +699,7 @@ overseer.load_template('mytask')
 
 - [always](parsers.md#always)
 - [append](parsers.md#append)
+- [dispatch](parsers.md#dispatch)
 - [ensure](parsers.md#ensure)
 - [extract](parsers.md#extract)
 - [extract_efm](parsers.md#extract_efm)

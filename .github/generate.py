@@ -132,25 +132,31 @@ def iter_parser_nodes() -> Iterable[Dict]:
 
 
 def format_parser_arg_table(args: List[Dict]) -> Iterable[str]:
+    def get_desc(arg: Dict) -> str:
+        desc = arg["desc"]
+        if "default" in arg:
+            desc += " (default %s)" % json.dumps(arg["default"])
+        return desc
+
     rows = []
     any_subparams = False
     for arg in args:
-        ftype = arg['type'].replace("|", r"\|")
+        ftype = arg["type"].replace("|", r"\|")
         rows.append(
             {
-                "Param": arg['name'],
+                "Param": arg["name"],
                 "Type": f"`{ftype}`",
-                "Desc": arg['desc'],
+                "Desc": get_desc(arg),
             }
         )
-        for subp in arg.get('fields', []):
+        for subp in arg.get("fields", []):
             any_subparams = True
-            ftype = subp['type'].replace("|", r"\|")
+            ftype = subp["type"].replace("|", r"\|")
             rows.append(
                 {
-                    "Type": subp['name'],
+                    "Type": subp["name"],
                     "Desc": f"`{ftype}`",
-                    "": subp['desc'],
+                    "": get_desc(subp),
                 }
             )
 
@@ -203,7 +209,9 @@ def update_parsers_md():
     for parser in iter_parser_nodes():
         toc.append(f"- [{parser['name']}](#{parser['name']})\n")
         lines.append(f"## {parser['name']}\n\n")
-        lines.append(f"[{parser['name']}.lua](../lua/overseer/parser/{parser['name']}.lua)\n\n")
+        lines.append(
+            f"[{parser['name']}.lua](../lua/overseer/parser/{parser['name']}.lua)\n\n"
+        )
         lines.append(parser["desc"])
         if parser.get("long_desc"):
             lines[-1] += " \\\n"
@@ -213,17 +221,18 @@ def update_parsers_md():
         lines.append("\n")
         lines.extend(format_parser_args(parser["name"], parser["doc_args"]))
         if parser.get("examples"):
-            lines.extend(["\n", "### Examples\n", "\n"])
+            lines.extend(["\n", "### Examples\n"])
             for example in parser["examples"]:
                 lines.extend(
                     [
+                        "\n",
                         example["desc"] + "\n",
                         "\n",
                         "```lua\n",
                     ]
                 )
                 lines.extend(format_example_code(example["code"]))
-                lines.extend(["```\n", "\n"])
+                lines.extend(["```\n"])
         lines.append("\n")
     toc.append("\n")
     while lines[-1] == "\n":
@@ -568,9 +577,9 @@ def update_reference_md():
     reference_doc = os.path.join(DOC, "reference.md")
     toc = ["\n"] + generate_md_toc(reference_doc) + ["\n"]
     idx = toc.index("- [Components](#components)\n")
-    toc[idx+1:idx+1] = ["  " + line for line in components_toc]
+    toc[idx + 1 : idx + 1] = ["  " + line for line in components_toc]
     idx = toc.index("- [Parsers](#parsers)\n")
-    toc[idx+1:idx+1] = ["  " + line for line in parsers_toc]
+    toc[idx + 1 : idx + 1] = ["  " + line for line in parsers_toc]
     replace_section(
         reference_doc,
         r"^<!-- TOC -->$",

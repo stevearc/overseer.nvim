@@ -582,6 +582,9 @@ load_template({name})                                     *overseer.load_templat
       overseer.load_template('mytask')
 <
 
+debug_parser()                                             *overseer.debug_parser*
+    Open a tab with windows laid out for debugging a parser
+
 --------------------------------------------------------------------------------
 COMPONENTS                                                   *overseer-components*
 

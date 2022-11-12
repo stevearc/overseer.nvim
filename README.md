@@ -217,6 +217,7 @@ If you want to define custom tasks for your project, I'd recommend starting with
   - [remove_template_hook(opts, hook)](doc/reference.md#remove_template_hookopts-hook)
   - [register_template(defn)](doc/reference.md#register_templatedefn)
   - [load_template(name)](doc/reference.md#load_templatename)
+  - [debug_parser()](doc/reference.md#debug_parser)
 - [Components](doc/reference.md#components)
 - [Parsers](doc/reference.md#parsers)
 - [Parameters](doc/reference.md#parameters)
