@@ -36,8 +36,7 @@ function Test.new(opts, pattern)
     opts = {}
   end
   return setmetatable({
-    regex = opts.regex,
-    test = parser.util.patterns_to_test(pattern),
+    test = parser.util.patterns_to_test(pattern, opts.regex),
   }, { __index = Test })
 end
 
