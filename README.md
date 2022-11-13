@@ -59,7 +59,7 @@ A task runner and job management plugin for Neovim
 
 ## Requirements
 
-- Neovim 0.7+
+- Neovim 0.8+ (for older versions, use the [nvim-0.7 branch](https://github.com/stevearc/overseer.nvim/tree/nvim-0.7))
 - (optional) patches for `vim.ui` (e.g. [dressing.nvim](https://github.com/stevearc/dressing.nvim)). Provides nicer UI for input and selection.
 - (optional) [telescope.nvim](https://github.com/nvim-telescope/telescope.nvim). When used with [dressing.nvim](https://github.com/stevearc/dressing.nvim) provides best selection UI.
 - (optional) [nvim-notify](https://github.com/rcarriga/nvim-notify) a nice UI for `vim.notify`
