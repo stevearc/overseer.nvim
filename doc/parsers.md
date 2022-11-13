@@ -3,6 +3,9 @@
 <!-- TOC -->
 
 - [Writing parsers](#writing-parsers)
+- [Examples](#examples)
+  - [Parsing a Golang stack trace](#parsing-a-golang-stack-trace)
+  - [Parsing output from a background "watch" task](#parsing-output-from-a-background-watch-task)
 - [Problem matchers](#problem-matchers)
 - [Built-in problem matchers](#built-in-problem-matchers)
 - [Parser nodes](#parser-nodes)
@@ -30,8 +33,23 @@ The parser library is designed to be a flexible way of parsing many different ou
 structure of it is largely inspired by the design of [behavior
 trees](<https://en.wikipedia.org/wiki/Behavior_tree_(artificial_intelligence,_robotics_and_control)>)
 for game AI. This allows for composition of trees of logic that can handle more complex output
-formats than a pure line-by-line parser. For example, here is a a component that parses Go stack
-traces:
+formats than a pure line-by-line parser.
+
+## Writing parsers
+
+Writing a complicated parser can be tricky. To help, there is an interactive tool for iterating on a parser and debugging its logic. You can open the tool with `:lua require('overseer').debug_parser()`. This should open up a view that looks like this:
+
+![parser debugger](https://user-images.githubusercontent.com/506791/180116805-bc230406-b99c-4bb7-a78c-3e4bb9458629.png)
+
+The upper left window contains the parser definition, the lower left window contains the sample output that we want to try to parse, and the right window contains the debug view. Paste your sample output into the lower left window, and start making changes to the parser definition. As you save the new parser, it should recalculate the debug results in the right window.
+
+If you focus the example output window, the debug window will display the state of the parser tree after it ingests that particular line. When you move your cursor around, it should live update to show the new state. This allows you to effectively step through the execution of the parser while inspecting the internal state at every point.
+
+https://user-images.githubusercontent.com/506791/180116685-eaee5876-8692-4834-9916-647c2a1ae98d.mp4
+
+## Examples
+
+### Parsing a Golang stack trace
 
 ```lua
 {"on_output_parse", parser = {
@@ -53,17 +71,91 @@ traces:
 }}
 ```
 
-## Writing parsers
+### Parsing output from a background "watch" task
 
-Writing a complicated parser can be tricky. To help, there is an interactive tool for iterating on a parser and debugging its logic. You can open the tool with `:lua require('overseer').debug_parser()`. This should open up a view that looks like this:
+Some tasks are intended to continue running in the background, watching for file changes and printing out new output when they do. An example would be `tsc --watch`.
 
-![parser debugger](https://user-images.githubusercontent.com/506791/180116805-bc230406-b99c-4bb7-a78c-3e4bb9458629.png)
+```lua
+{
+  "on_output_parse",
+  parser = {
+    diagnostics = {
+      {
+        "always", -- When the loop exits, proceed to the next node
+        {
+          "loop", -- Extract errors until exit
+          {
+            "parallel",
+            {
+              "invert", -- Exit the loop when we detect the end of the output
+              { "test", "Watching for file changes%.$" },
+            },
+            {
+              "always", -- Don't exit the loop if extraction fails
+              {
+                "extract",
+                { regex = true },
+                "\\v^([^[:space:]].*)[\\(:](\\d+)[,:](\\d+)(\\):\\s+|\\s+-\\s+)(error|warning|info)\\s+TS(\\d+)\\s*:\\s*(.*)$",
+                "filename",
+                "lnum",
+                "col",
+                "_",
+                "type",
+                "code",
+                "text",
+              },
+            },
+            -- Prevent spin-looping when extraction fails
+            { "skip_lines", 1 },
+          },
+        },
+      },
+      -- We've reached the end of the output, so set the task results
+      { "dispatch", "set_results" },
+      -- Wait until we see that the watcher has restarted
+      {
+        "skip_until",
+        { skip_matching_line = true },
+        "File change detected%. Starting incremental compilation%.%.%.$",
+      },
+      -- Clear the previous results, then we loop back to the start
+      { "dispatch", "clear_results" },
+    },
+  },
+}
+```
 
-The upper left window contains the parser definition, the lower left window contains the sample output that we want to try to parse, and the right window contains the debug view. Paste your sample output into the lower left window, and start making changes to the parser definition. As you save the new parser, it should recalculate the debug results in the right window.
+A lot of this logic is common to any watch-style task. The common structure has been extracted into a helper method, so the above is equivalent to this:
 
-If you focus the example output window, the debug window will display the state of the parser tree after it ingests that particular line. When you move your cursor around, it should live update to show the new state. This allows you to effectively step through the execution of the parser while inspecting the internal state at every point.
+```lua
+{
+  "on_output_parse",
+  parser = {
+    diagnostics = require("overseer.parser.lib").watcher_output(
+      "File change detected%. Starting incremental compilation%.%.%.$",
+      "Watching for file changes%.$",
+      {
+        "extract",
+        { regex = true },
+        "\\v^([^[:space:]].*)[\\(:](\\d+)[,:](\\d+)(\\):\\s+|\\s+-\\s+)(error|warning|info)\\s+TS(\\d+)\\s*:\\s*(.*)$",
+        "filename",
+        "lnum",
+        "col",
+        "_",
+        "type",
+        "code",
+        "text",
+      }
+    ),
+  },
+}
+```
 
-https://user-images.githubusercontent.com/506791/180116685-eaee5876-8692-4834-9916-647c2a1ae98d.mp4
+A final example, there is a built-in VS Code [problem matcher](#problem-matchers) for `tsc --watch` specifically, so the most concise version is this:
+
+```lua
+{ "on_output_parse", problem_matcher = "$tsc-watch" }
+```
 
 ## Problem matchers
 

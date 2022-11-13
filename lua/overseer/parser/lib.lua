@@ -26,7 +26,7 @@ M.watcher_output = function(start_pat, end_pat, extraction, opts)
     start_opts.skip_matching_line = true
     skip_until_start = { "skip_until", start_opts, pat }
   else
-    skip_until_start = { "skip_until", start_pat }
+    skip_until_start = { "skip_until", { skip_matching_line = true }, start_pat }
   end
   local seq = {
     {
