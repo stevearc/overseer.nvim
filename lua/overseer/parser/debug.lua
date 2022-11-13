@@ -2,6 +2,7 @@
 ---Provides an environment for writing and debugging parsers
 local files = require("overseer.files")
 local parser = require("overseer.parser")
+local util = require("overseer.util")
 local M = {}
 
 local source_buf
@@ -27,6 +28,14 @@ local function load_parser()
   end
 end
 
+local parser_status_to_hl = setmetatable({
+  RESET = "OverseerCanceled",
+}, {
+  __index = function(_, key)
+    return string.format("Overseer%s", key)
+  end,
+})
+
 local function render_node(lines, highlights, node, depth, trace)
   local name = string.format("%s%s", string.rep("  ", depth), node.name)
   if trace[node.id] then
@@ -34,7 +43,7 @@ local function render_node(lines, highlights, node, depth, trace)
     for _, status in ipairs(trace[node.id]) do
       table.insert(
         highlights,
-        { string.format("Overseer%s", status), #lines + 1, col, col + string.len(status) }
+        { parser_status_to_hl[status], #lines + 1, col, col + string.len(status) }
       )
       col = col + string.len(status) + 1
     end
@@ -75,9 +84,11 @@ local function render_parser(input_lnum)
   local rem = p:get_remainder()
   if rem then
     table.insert(lines, "ITEM:")
+    table.insert(highlights, { "Title", #lines, 0, -1 })
     vim.list_extend(lines, vim.split(vim.inspect(rem), "\n"))
   end
   table.insert(lines, "RESULT:")
+  table.insert(highlights, { "Title", #lines, 0, -1 })
   local results = p:get_result()
   vim.list_extend(lines, vim.split(vim.inspect(results), "\n"))
 
@@ -86,10 +97,7 @@ local function render_parser(input_lnum)
   vim.api.nvim_buf_set_option(bufnr, "modifiable", false)
   local ns = vim.api.nvim_create_namespace("OverseerParser")
   vim.api.nvim_buf_clear_namespace(bufnr, ns, 0, -1)
-  for _, hl in ipairs(highlights) do
-    local group, lnum, col_start, col_end = unpack(hl)
-    vim.api.nvim_buf_add_highlight(bufnr, ns, group, lnum - 1, col_start, col_end)
-  end
+  util.add_highlights(bufnr, ns, highlights)
 end
 
 local function create_source_bufnr()
@@ -110,7 +118,14 @@ local function create_source_bufnr()
   vim.api.nvim_create_autocmd("BufWritePost", {
     desc = "update parser debug view on write",
     callback = function()
-      render_parser()
+      local lnum
+      for _, winid in ipairs(vim.api.nvim_tabpage_list_wins(0)) do
+        if vim.api.nvim_win_is_valid(winid) and vim.api.nvim_win_get_buf(winid) == input_buf then
+          lnum = vim.api.nvim_win_get_cursor(winid)[1]
+          break
+        end
+      end
+      render_parser(lnum)
     end,
     buffer = bufnr,
   })

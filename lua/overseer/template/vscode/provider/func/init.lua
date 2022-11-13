@@ -6,7 +6,7 @@ local vs_util = require("overseer.template.vscode.vs_util")
 local M = {}
 
 M.problem_patterns = {
-  func = {
+  ["$func"] = {
     kind = "file",
     regexp = "^.*Missing.*AzureWebJobsStorage.*(local.settings.json).*$",
     file = 1,
@@ -15,7 +15,7 @@ M.problem_patterns = {
 }
 
 M.problem_matchers = {
-  ["func-watch"] = {
+  ["$func-watch"] = {
     label = "%azureFunctions.problemMatchers.funcWatch%",
     owner = "Azure Functions",
     source = "func",
@@ -29,19 +29,19 @@ M.problem_matchers = {
     },
     severity = "error",
   },
-  ["func-dotnet-watch"] = {
+  ["$func-dotnet-watch"] = {
     label = "%azureFunctions.problemMatchers.funcDotnetWatch%",
     base = "$func-watch",
   },
-  ["func-java-watch"] = {
+  ["$func-java-watch"] = {
     label = "%azureFunctions.problemMatchers.funcJavaWatch%",
     base = "$func-watch",
   },
-  ["func-node-watch"] = {
+  ["$func-node-watch"] = {
     label = "%azureFunctions.problemMatchers.funcNodeWatch%",
     base = "$func-watch",
   },
-  ["func-powershell-watch"] = {
+  ["$func-powershell-watch"] = {
     label = "%azureFunctions.problemMatchers.funcPowerShellWatch%",
     base = "$func-watch",
     background = {
@@ -50,7 +50,7 @@ M.problem_matchers = {
       endsPattern = "^.*(Host lock lease acquired by instance ID).*$",
     },
   },
-  ["func-python-watch"] = {
+  ["$func-python-watch"] = {
     label = "%azureFunctions.problemMatchers.funcPythonWatch%",
     base = "$func-watch",
   },

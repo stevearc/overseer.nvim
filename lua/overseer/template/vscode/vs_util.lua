@@ -16,4 +16,19 @@ M.get_workspace_language = function()
   -- TODO powershell
 end
 
+---@param dir string
+M.get_tasks_file = function(dir)
+  local filename = vim.fn.findfile(files.join(".vscode", "tasks.json"), dir .. ";")
+  if filename ~= "" then
+    filename = vim.fn.fnamemodify(filename, ":p")
+  end
+  return filename
+end
+
+---@param dir string
+---@return table
+M.load_tasks_file = function(dir)
+  return files.load_json_file(M.get_tasks_file(dir))
+end
+
 return M

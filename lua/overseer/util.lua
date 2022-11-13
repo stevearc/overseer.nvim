@@ -600,4 +600,30 @@ M.run_in_cwd = function(cwd, callback)
   vim.api.nvim_win_close(winid, true)
 end
 
+---@param status overseer.Status
+---@return string
+M.status_to_log_level = function(status)
+  local constants = require("overseer.constants")
+  local STATUS = constants.STATUS
+  if status == STATUS.FAILURE then
+    return vim.log.levels.ERROR
+  elseif status == STATUS.CANCELED then
+    return vim.log.levels.WARN
+  else
+    return vim.log.levels.INFO
+  end
+end
+
+---Delete buffer. If buffer is visible, set bufhidden=wipe instead
+---@param bufnr integer
+M.soft_delete_buf = function(bufnr)
+  if bufnr and vim.api.nvim_buf_is_valid(bufnr) then
+    if M.is_bufnr_visible(bufnr) then
+      vim.api.nvim_buf_set_option(bufnr, "bufhidden", "wipe")
+    else
+      vim.api.nvim_buf_delete(bufnr, { force = true })
+    end
+  end
+end
+
 return M

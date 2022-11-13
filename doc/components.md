@@ -14,6 +14,7 @@
 - [on_output_write_file](#on_output_write_file)
 - [on_result_diagnostics](#on_result_diagnostics)
 - [on_result_diagnostics_quickfix](#on_result_diagnostics_quickfix)
+- [on_result_notify](#on_result_notify)
 - [restart_on_save](#restart_on_save)
 - [run_after](#run_after)
 - [timeout](#timeout)
@@ -96,9 +97,10 @@ Sets final task status based on exit code
 
 Parses task output and sets task result
 
-| Param   | Type     | Desc                                            |
-| ------- | -------- | ----------------------------------------------- |
-| *parser | `opaque` | Parser definition to extract values from output |
+| Param           | Type     | Desc                                            |
+| --------------- | -------- | ----------------------------------------------- |
+| parser          | `opaque` | Parser definition to extract values from output |
+| problem_matcher | `opaque` | VS Code-style problem matcher                   |
 
 ## on_output_quickfix
 
@@ -164,6 +166,23 @@ If task result contains diagnostics, add them to the quickfix
 | open              | `boolean` | `false` | If true, open the quickfix when there are diagnostics                    |
 | set_empty_results | `boolean` | `false` | If true, overwrite the current quickfix even if there are no diagnostics |
 | use_loclist       | `boolean` | `false` | If true, use the loclist instead of quickfix                             |
+
+## on_result_notify
+
+[on_result_notify.lua](../lua/overseer/component/on_result_notify.lua)
+
+vim.notify when task receives results
+
+Normally you will want to use on_complete_notify. If you have a long-running watch task (e.g. `tsc
+--watch`) that produces new results periodically, then this is the component you want.
+
+| Param                         | Type      | Default   | Desc                                                                          |
+| ----------------------------- | --------- | --------- | ----------------------------------------------------------------------------- |
+| infer_status_from_diagnostics | `boolean` | `true`    | Notification level will be error/info depending on if diagnostics are present |
+| on_change                     | `boolean` | `true`    | Only notify when status changes from previous value                           |
+| system                        | `enum`    | `"never"` | When to send a system notification                                            |
+
+- **on_change:** This only works when infer_status_from_diagnostics = true
 
 ## restart_on_save
 

@@ -3,6 +3,7 @@ local files = require("overseer.files")
 local log = require("overseer.log")
 local problem_matcher = require("overseer.template.vscode.problem_matcher")
 local variables = require("overseer.template.vscode.variables")
+local vs_util = require("overseer.template.vscode.vs_util")
 
 ---@param params table
 ---@param str string
@@ -114,26 +115,31 @@ local function get_task_builder(defn)
   return function(params)
     local task_opts = task_provider.get_task_opts(defn)
     local opts = vim.tbl_deep_extend("force", defn.options or {}, task_opts)
+    local components = { "default_vscode" }
     local pmatcher = defn.problemMatcher
-    if task_provider.problem_matcher then
+    if not pmatcher and task_provider.problem_matcher then
       pmatcher = task_provider.problem_matcher
     end
+    if pmatcher then
+      table.insert(components, 1, {
+        "on_output_parse",
+        problem_matcher = pmatcher,
+      })
+    end
+    if pmatcher then
+      table.insert(components, "on_result_diagnostics")
+    end
+    if defn.isBackground then
+      table.insert(components, "on_complete_restart")
+    end
+
     local task = {
       name = defn.label,
       cmd = variables.replace_vars(opts.cmd, params),
       cwd = variables.replace_vars(opts.cwd, params),
       env = variables.replace_vars(opts.env, params),
-      components = {
-        "default_vscode",
-        { "vscode.result_vscode_task", problem_matcher = pmatcher },
-      },
+      components = components,
     }
-    if defn.problemMatcher then
-      table.insert(task.components, "on_result_diagnostics")
-    end
-    if defn.isBackground then
-      table.insert(task.components, "on_complete_restart")
-    end
     return task
   end
 end
@@ -215,28 +221,20 @@ local function convert_vscode_task(defn)
   return tmpl
 end
 
-local function get_tasks_file(opts)
-  local filename = vim.fn.findfile(files.join(".vscode", "tasks.json"), opts.dir .. ";")
-  if filename ~= "" then
-    filename = vim.fn.fnamemodify(filename, ":p")
-  end
-  return filename
-end
-
 return {
   cache_key = function(opts)
-    return get_tasks_file(opts)
+    return vs_util.get_tasks_file(opts.dir)
   end,
   condition = {
     callback = function(opts)
-      if get_tasks_file(opts) == "" then
+      if vs_util.get_tasks_file(opts.dir) == "" then
         return false, "No .vscode/tasks.json file found"
       end
       return true
     end,
   },
   generator = function(opts, cb)
-    local content = files.load_json_file(get_tasks_file(opts))
+    local content = vs_util.load_tasks_file(opts.dir)
     local global_defaults = {}
     for k, v in pairs(content) do
       if k ~= "version" and k ~= "tasks" then

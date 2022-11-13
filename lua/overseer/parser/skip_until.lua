@@ -1,5 +1,4 @@
 local parser = require("overseer.parser")
-local util = require("overseer.util")
 local SkipUntil = {
   desc = "Skip over lines until one matches",
   doc_args = {
@@ -15,12 +14,18 @@ local SkipUntil = {
           desc = "Consumes the line that matches. Later nodes will only see the next line.",
           default = true,
         },
+        {
+          name = "regex",
+          type = "boolean",
+          desc = "Use vim regex instead of lua pattern (see :help pattern)",
+          default = true,
+        },
       },
     },
     {
       name = "pattern",
       vararg = true,
-      type = "string",
+      type = "string|string[]|fun(line: string): string",
       desc = "The lua pattern to use for matching. The node succeeds if any of these patterns match.",
     },
   },
@@ -35,10 +40,10 @@ local SkipUntil = {
 function SkipUntil.new(opts, ...)
   local patterns
   if type(opts) ~= "table" then
-    patterns = util.pack(opts, ...)
+    patterns = { opts, ... }
     opts = {}
   else
-    patterns = util.pack(...)
+    patterns = { ... }
   end
   vim.validate({
     skip_matching_line = { opts.skip_matching_line, "b", true },
@@ -48,7 +53,7 @@ function SkipUntil.new(opts, ...)
   end
   return setmetatable({
     skip_matching_line = opts.skip_matching_line,
-    patterns = patterns,
+    test = parser.util.patterns_to_test(patterns, opts.regex),
     done = false,
   }, { __index = SkipUntil })
 end
@@ -61,14 +66,12 @@ function SkipUntil:ingest(line)
   if self.done then
     return parser.STATUS.SUCCESS
   end
-  for _, pattern in ipairs(self.patterns) do
-    if line:match(pattern) then
-      self.done = true
-      if self.skip_matching_line then
-        return parser.STATUS.RUNNING
-      else
-        return parser.STATUS.SUCCESS
-      end
+  if self.test(line) then
+    self.done = true
+    if self.skip_matching_line then
+      return parser.STATUS.RUNNING
+    else
+      return parser.STATUS.SUCCESS
     end
   end
   return parser.STATUS.RUNNING

@@ -7,7 +7,12 @@ local initialized = false
 local pending_opts
 local function do_setup()
   if not pending_opts then
-    return
+    if initialized then
+      return
+    else
+      -- If user hasn't called setup(), assume an empty options table
+      pending_opts = {}
+    end
   end
   local config = require("overseer.config")
   config.setup(pending_opts)
@@ -502,6 +507,9 @@ M.register_template = lazy_pend("template", "register")
 --- -- This will load the template in lua/overseer/template/mytask.lua
 --- overseer.load_template('mytask')
 M.load_template = lazy_pend("template", "load_template")
+
+---Open a tab with windows laid out for debugging a parser
+M.debug_parser = lazy("parser.debug", "start_debug_session")
 
 -- Used for vim-session integration.
 local timer_active = false

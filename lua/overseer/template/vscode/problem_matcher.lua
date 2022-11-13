@@ -1,4 +1,4 @@
-local parser = require("overseer.parser")
+local parser_lib = require("overseer.parser.lib")
 local log = require("overseer.log")
 local M = {}
 
@@ -6,7 +6,7 @@ local M = {}
 local default_patterns = {
   ["$msCompile"] = {
     -- regexp: /^(?:\s+\d+>)?(\S.*)\((\d+|\d+,\d+|\d+,\d+,\d+,\d+)\)\s*:\s+(error|warning|info)\s+(\w+\d+)\s*:\s*(.*)$/,
-    regexp = "^(\\s+\\d+>)?(\\S.*)\\((\\d+|\\d+,\\d+|\\d+,\\d+,\\d+,\\d+)\\)\\s*:\\s+(error|warning|info)\\s+(\\w+\\d+)\\s*:\\s*(.*)$",
+    vim_regexp = "\\v^(\\s+\\d+>)?(\\S.*)\\((\\d+|\\d+,\\d+|\\d+,\\d+,\\d+,\\d+)\\)\\s*:\\s+(error|warning|info)\\s+(\\w+\\d+)\\s*:\\s*(.*)$",
     kind = "location",
     file = 2,
     location = 3,
@@ -16,7 +16,7 @@ local default_patterns = {
   },
   ["$gulp-tsc"] = {
     -- regexp: /^([^\s].*)\((\d+|\d+,\d+|\d+,\d+,\d+,\d+)\):\s+(\d+)\s+(.*)$/,
-    regexp = "^([^[:space:]].*)\\((\\d+|\\d+,\\d+|\\d+,\\d+,\\d+,\\d+)\\):\\s+(\\d+)\\s+(.*)$",
+    vim_regexp = "\\v^([^[:space:]].*)\\((\\d+|\\d+,\\d+|\\d+,\\d+,\\d+,\\d+)\\):\\s+(\\d+)\\s+(.*)$",
     kind = "location",
     file = 1,
     location = 2,
@@ -63,7 +63,7 @@ local default_patterns = {
   },
   ["$jshint"] = {
     -- regexp: /^(.*):\s+line\s+(\d+),\s+col\s+(\d+),\s(.+?)(?:\s+\((\w)(\d+)\))?$/,
-    regexp = "^(.*):\\s+line\\s+(\\d+),\\s+col\\s+(\\d+),\\s(.+?)(\\s+\\((\\w)(\\d+)\\))?$",
+    vim_regexp = "\\v^(.*):\\s+line\\s+(\\d+),\\s+col\\s+(\\d+),\\s(.+?)(\\s+\\((\\w)(\\d+)\\))?$",
     kind = "location",
     file = 1,
     line = 2,
@@ -81,7 +81,7 @@ local default_patterns = {
     },
     {
       -- regexp: /^\s+line\s+(\d+)\s+col\s+(\d+)\s+(.+?)(?:\s+\((\w)(\d+)\))?$/,
-      regexp = "^\\s+line\\s+(\\d+)\\s+col\\s+(\\d+)\\s+(.+?)(\\s+\\((\\w)(\\d+)\\))?$",
+      vim_regexp = "\\v^\\s+line\\s+(\\d+)\\s+col\\s+(\\d+)\\s+(.+?)(\\s+\\((\\w)(\\d+)\\))?$",
       line = 1,
       character = 2,
       message = 3,
@@ -104,13 +104,13 @@ local default_patterns = {
   ["$eslint-stylish"] = {
     {
       -- regexp: /^((?:[a-zA-Z]:)*[./\\]+.*?)$/,
-      regexp = "^(([a-zA-Z]:)*[./\\\\]+.*?)$",
+      vim_regexp = "\\v^(([a-zA-Z]:)*[./\\\\]+.*?)$",
       kind = "location",
       file = 1,
     },
     {
       -- regexp: /^\s+(\d+):(\d+)\s+(error|warning|info)\s+(.+?)(?:\s\s+(.*))?$/,
-      regexp = "^\\s+(\\d+):(\\d+)\\s+(error|warning|info)\\s+(.+?)(\\s\\s+(.*))?$",
+      vim_regexp = "\\v^\\s+(\\d+):(\\d+)\\s+(error|warning|info)\\s+(.+?)(\\s\\s+(.*))?$",
       line = 1,
       character = 2,
       severity = 3,
@@ -131,7 +131,7 @@ local default_patterns = {
   -- from https://github.com/microsoft/vscode/blob/main/extensions/typescript-language-features/package.json#L1396
   ["$tsc"] = {
     -- regexp: "^([^\\s].*)[\\(:](\\d+)[,:](\\d+)(?:\\):\\s+|\\s+-\\s+)(error|warning|info)\\s+TS(\\d+)\\s*:\\s*(.*)$",
-    regexp = "^([^[:space:]].*)[\\(:](\\d+)[,:](\\d+)(\\):\\s+|\\s+-\\s+)(error|warning|info)\\s+TS(\\d+)\\s*:\\s*(.*)$",
+    vim_regexp = "\\v^([^[:space:]].*)[\\(:](\\d+)[,:](\\d+)(\\):\\s+|\\s+-\\s+)(error|warning|info)\\s+TS(\\d+)\\s*:\\s*(.*)$",
     file = 1,
     line = 2,
     column = 3,
@@ -167,11 +167,11 @@ local default_matchers = {
       activeOnStart = true,
       beginsPattern = {
         -- "regexp": "^\\s*(?:message TS6032:|\\[?\\D*.{1,2}[:.].{1,2}[:.].{1,2}\\D*(├\\D*\\d{1,2}\\D+┤)?(?:\\]| -)) File change detected\\. Starting incremental compilation\\.\\.\\."
-        regexp = "^\\s*(message TS6032:|\\[?\\D*.{1,2}[:.].{1,2}[:.].{1,2}\\D*(├\\D*\\d{1,2}\\D+┤)?(\\]| -)) File change detected\\. Starting incremental compilation\\.\\.\\.",
+        lua_pat = "File change detected%. Starting incremental compilation%.%.%.$",
       },
       endsPattern = {
         -- "regexp": "^\\s*(?:message TS6042:|\\[?\\D*.{1,2}[:.].{1,2}[:.].{1,2}\\D*(├\\D*\\d{1,2}\\D+┤)?(?:\\]| -)) (?:Compilation complete\\.|Found \\d+ errors?\\.) Watching for file changes\\."
-        regexp = "^\\s*(message TS6042:|\\[?\\D*.{1,2}[:.].{1,2}[:.].{1,2}\\D*(├\\D*\\d{1,2}\\D+┤)?(\\]| -)) (Compilation complete\\.|Found \\d+ errors?\\.) Watching for file changes\\.",
+        lua_pat = "Watching for file changes%.$",
       },
     },
   },
@@ -239,7 +239,7 @@ local default_matchers = {
     fileLocation = { "autoDetect", "${cwd}" },
     pattern = {
       -- regexp = "^(.*?):(\\d+):(\\d*):?\\s+(?:fatal\\s+)?(warning|error):\\s+(.*)$",
-      regexp = "^([^:]*):(\\d+):(\\d*):?\\s+(fatal\\s+)?(warning|error):\\s+(.*)$",
+      vim_regexp = "\\v^([^:]*):(\\d+):(\\d*):?\\s+(fatal\\s+)?(warning|error):\\s+(.*)$",
       file = 1,
       line = 2,
       column = 3,
@@ -253,6 +253,7 @@ local default_matchers = {
 ---@param defn table
 M.register_pattern = function(name, defn)
   if name:find("$", nil, true) ~= 1 then
+    log:warn("Pattern '%s' should start with '$'", name)
     name = "$" .. name
   end
   default_patterns[name] = defn
@@ -262,6 +263,7 @@ end
 ---@param defn table
 M.register_problem_matcher = function(name, defn)
   if name:find("$", nil, true) ~= 1 then
+    log:warn("Problem matcher '%s' should start with '$'", name)
     name = "$" .. name
   end
   default_matchers[name] = defn
@@ -306,18 +308,7 @@ local function convert_match_name(name)
   elseif name == "endColumn" then
     return "end_col"
   elseif name == "severity" then
-    return {
-      "type",
-      function(value)
-        if value:lower():match("^w") then
-          return "W"
-        elseif value:lower():match("^i") then
-          return "I"
-        else
-          return "E"
-        end
-      end,
-    }
+    return "type"
   elseif name == "code" then
     -- TODO we don't have a use for the code at the moment
     return "code"
@@ -367,7 +358,6 @@ local function convert_pattern(pattern, opts)
     end
   end
   local extract_opts = {
-    regex = true,
     append = opts.append,
     postprocess = function(item, ctx)
       if not item.type then
@@ -378,9 +368,20 @@ local function convert_pattern(pattern, opts)
       end
     end,
   }
-  local extract = parser.extract(extract_opts, "\\v" .. pattern.regexp, unpack(args))
+  local extract_pat
+  if pattern.lua_pat then
+    extract_pat = pattern.lua_pat
+  elseif pattern.vim_regexp then
+    extract_pat = pattern.vim_regexp
+    extract_opts.regex = true
+  else
+    -- Fall back to trying to auto-convert the JS regex to a vim regex
+    extract_pat = "\\v" .. pattern.regexp
+    extract_opts.regex = true
+  end
+  local extract = { "extract", extract_opts, extract_pat, unpack(args) }
   if pattern.loop then
-    return parser.set_defaults(parser.loop(extract))
+    return { "set_defaults", { "loop", extract } }
   end
   return extract
 end
@@ -419,23 +420,61 @@ M.resolve_problem_matcher = function(problem_matcher)
   return problem_matcher
 end
 
+local function pattern_to_test(pattern)
+  if not pattern then
+    return nil
+  elseif type(pattern) == "string" then
+    return { { regex = true }, "\\v" .. pattern }
+  else
+    if pattern.lua_pat then
+      return pattern.lua_pat
+    elseif pattern.vim_regexp then
+      return { { regex = true }, pattern.vim_regexp }
+    else
+      return pattern_to_test(pattern.regexp)
+    end
+  end
+end
+
+local function add_background(background, child)
+  if not background then
+    return child
+  end
+  return parser_lib.watcher_output(
+    pattern_to_test(background.beginsPattern),
+    pattern_to_test(background.endsPattern),
+    child,
+    {
+      active_on_start = background.activeOnStart,
+    }
+  )
+end
+
 M.get_parser_from_problem_matcher = function(problem_matcher)
   if not problem_matcher then
     return nil
   end
   if vim.tbl_islist(problem_matcher) then
+    local background
     local children = {}
     for _, v in ipairs(problem_matcher) do
       vim.list_extend(children, M.get_parser_from_problem_matcher(v))
+      if v.background then
+        background = v.background
+      end
     end
-    return { parser.parallel({ break_on_first_failure = false }, unpack(children)) }
+    local ret = { "parallel", { break_on_first_failure = false }, unpack(children) }
+    return add_background(background, ret)
   end
+
   -- NOTE: we ignore matcher.owner
   -- TODO: support matcher.fileLocation
   local qf_type = severity_to_type[problem_matcher.severity]
   local pattern = problem_matcher.pattern
+  local background = problem_matcher.background
+  local ret
   if vim.tbl_islist(pattern) then
-    local ret = {}
+    ret = { "sequence" }
     for i, v in ipairs(pattern) do
       local append = i == #pattern
       local parse_node = convert_pattern(v, { append = append, qf_type = qf_type })
@@ -444,15 +483,31 @@ M.get_parser_from_problem_matcher = function(problem_matcher)
       end
       table.insert(ret, parse_node)
     end
-    return ret
   else
     local parse_node = convert_pattern(pattern, { qf_type = qf_type })
     if parse_node then
-      return { parse_node }
+      ret = parse_node
     else
       return nil
     end
   end
+  return add_background(background, ret)
+end
+
+---This is used for generating documentation
+---@private
+M.list_patterns = function()
+  local patterns = vim.tbl_keys(default_patterns)
+  table.sort(patterns)
+  return patterns
+end
+
+---This is used for generating documentation
+---@private
+M.list_problem_matchers = function()
+  local matchers = vim.tbl_keys(default_matchers)
+  table.sort(matchers)
+  return matchers
 end
 
 return M

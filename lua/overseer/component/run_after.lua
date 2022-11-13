@@ -69,12 +69,12 @@ return {
           end
         end
       end,
-      on_reset = function(self, task, soft)
+      on_reset = function(self, task)
         for _, task_id in pairs(self.task_lookup) do
           local after_task = task_list.get(task_id)
           if after_task then
             after_task:stop()
-            after_task:reset(soft)
+            after_task:reset()
           end
         end
       end,

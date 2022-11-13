@@ -127,15 +127,15 @@ describe("extract", function()
           return "zeta"
         end
       end,
-    }, "type")
+    }, "letter")
     local ctx = { item = {}, results = {} }
     assert.equals(STATUS.FAILURE, node:ingest("something", ctx))
     node:reset()
     assert.equals(STATUS.SUCCESS, node:ingest("apple", ctx))
-    assert.equals("alpha", ctx.item.type)
+    assert.equals("alpha", ctx.item.letter)
     node:reset()
     assert.equals(STATUS.SUCCESS, node:ingest("zero", ctx))
-    assert.equals("zeta", ctx.item.type)
+    assert.equals("zeta", ctx.item.letter)
   end)
 
   it("can postprocess item", function()
@@ -275,6 +275,76 @@ describe("extract_json", function()
     local ctx = { item = {}, results = {} }
     assert.equals(STATUS.RUNNING, node:ingest('{"msg": "hello"}', ctx))
     assert.are.same({ { msg = "hello", extra = true } }, ctx.results)
+  end)
+end)
+
+describe("extract_efm", function()
+  it("extracts values using built-in errorformat", function()
+    local node = parser.extract_efm()
+    local ctx = { item = {}, results = {} }
+    vim.o.errorformat = "%f:%l: %m"
+    assert.equals(STATUS.RUNNING, node:ingest("foo.txt:15: Text", ctx))
+    assert.are.same(
+      { { filename = vim.fn.fnamemodify("foo.txt", ":p"), lnum = 15, text = "Text" } },
+      ctx.results
+    )
+    assert.equals(STATUS.SUCCESS, node:ingest("next", ctx))
+  end)
+
+  it("extracts values using passed-in errorformat", function()
+    local node = parser.extract_efm({ efm = "%f:%m" })
+    local ctx = { item = {}, results = {} }
+    assert.equals(STATUS.RUNNING, node:ingest("foo.txt:15: Text", ctx))
+    assert.are.same(
+      { { filename = vim.fn.fnamemodify("foo.txt", ":p"), text = "15: Text" } },
+      ctx.results
+    )
+    assert.equals(STATUS.SUCCESS, node:ingest("next", ctx))
+  end)
+
+  it("modifies item in-place if append = false", function()
+    local node = parser.extract_efm({ efm = "%m", append = false })
+    local ctx = { item = {}, results = {} }
+    assert.equals(STATUS.RUNNING, node:ingest("hello", ctx))
+    assert.are.same({ text = "hello" }, ctx.item)
+  end)
+
+  it("can use a function to append", function()
+    local node = parser.extract_efm({
+      efm = "%m",
+      append = function(results, item)
+        results.single = item
+      end,
+    })
+    local ctx = { item = {}, results = {} }
+    assert.equals(STATUS.RUNNING, node:ingest("hello", ctx))
+    assert.are.same({ single = { text = "hello" } }, ctx.results)
+  end)
+
+  it("can test the values before appending", function()
+    local node = parser.extract_efm({
+      efm = "%m",
+      test = function(values)
+        return values.text == "pass"
+      end,
+    })
+    local ctx = { item = {}, results = {} }
+    assert.equals(STATUS.RUNNING, node:ingest("pass", ctx))
+    node:reset()
+    assert.equals(STATUS.FAILURE, node:ingest("fail", ctx))
+    assert.are.same({ { text = "pass" } }, ctx.results)
+  end)
+
+  it("can postprocess item", function()
+    local node = parser.extract_efm({
+      efm = "%m",
+      postprocess = function(item)
+        item.extra = true
+      end,
+    })
+    local ctx = { item = {}, results = {} }
+    assert.equals(STATUS.RUNNING, node:ingest("hello", ctx))
+    assert.are.same({ { text = "hello", extra = true } }, ctx.results)
   end)
 end)
 
@@ -583,6 +653,104 @@ describe("parser", function()
       filenames = { { filename = "/file.lua" }, { filename = "/other.cpp" } },
       lnums = { { lnum = 23 }, { lnum = 128 } },
     }, result)
+  end)
+
+  describe("events", function()
+    it("list parser dispatches new_item events", function()
+      local p = parser.new({
+        parser.extract("^(.+):(%d+)", "filename", "lnum"),
+      })
+      local results = {}
+      p:subscribe("new_item", function(_, item)
+        table.insert(results, item)
+      end)
+      p:ingest({
+        "foo",
+        "/file.lua:23",
+        "/other.cpp:128",
+        "bar",
+      })
+      assert.are.same({
+        { filename = "/file.lua", lnum = 23 },
+        { filename = "/other.cpp", lnum = 128 },
+      }, results)
+    end)
+
+    it("map parser dispatches new_item events", function()
+      local p = parser.new({
+        filenames = { parser.extract("([/%a%.]+)", "filename") },
+      })
+      local results = {}
+      p:subscribe("new_item", function(k, item)
+        table.insert(results, { k, item })
+      end)
+      p:ingest({
+        "/file.lua:23",
+        "/other.cpp:128",
+      })
+      assert.are.same({
+        { "filenames", { filename = "/file.lua" } },
+        { "filenames", { filename = "/other.cpp" } },
+      }, results)
+    end)
+
+    it("dispatch node can dispatch events", function()
+      local p = parser.new({
+        parser.extract("^(.+):(%d+)", "filename", "lnum"),
+        parser.dispatch("foo", "hi"),
+      })
+      local calls = 0
+      p:subscribe("foo", function(arg)
+        assert.equals("hi", arg)
+        calls = calls + 1
+      end)
+      p:ingest({
+        "foo",
+        "/file.lua:23",
+        "", -- To flush the RUNNING state
+      })
+      assert.equals(1, calls)
+    end)
+
+    it("can unsubscribe from events", function()
+      local p = parser.new({
+        parser.extract("^(.+):(%d+)", "filename", "lnum"),
+      })
+      local results = {}
+      local cb = function(_, item)
+        table.insert(results, item)
+      end
+      p:subscribe("new_item", cb)
+      p:ingest({
+        "/file.lua:23",
+      })
+      p:unsubscribe("new_item", cb)
+      p:ingest({
+        "/other.cpp:128",
+      })
+      assert.are.same({
+        { filename = "/file.lua", lnum = 23 },
+      }, results)
+    end)
+
+    it("dispatch node can generate dynamic arguments for event", function()
+      local p = parser.new({
+        parser.extract("^(.+):(%d+)", "filename", "lnum"),
+        parser.dispatch("foo", function(line, ctx)
+          return line
+        end),
+      })
+      local called = {}
+      p:subscribe("foo", function(line)
+        table.insert(called, line)
+      end)
+      p:ingest({
+        "foo",
+        "/file.lua:23",
+        "flush", -- To flush the RUNNING state
+      })
+      assert.are.same({ "flush" }, called)
+    end)
   end)
 end)
 

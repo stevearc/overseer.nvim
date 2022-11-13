@@ -64,11 +64,11 @@ return {
         end
         return not started_any
       end,
-      on_reset = function(self, task, soft)
+      on_reset = function(self, task)
         for _, task_id in pairs(self.task_lookup) do
           local dep_task = task_list.get(task_id)
           if dep_task then
-            dep_task:reset(soft)
+            dep_task:reset()
           end
         end
       end,

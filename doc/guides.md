@@ -207,8 +207,7 @@ return {
       on_start = function(self, task)
         -- Called when the task is started
       end,
-      ---@param soft boolean When true, the components are being reset but the *task* is not. This is used to support commands that are watching the filesystem and rerunning themselves on file change.
-      on_reset = function(self, task, soft)
+      on_reset = function(self, task)
         -- Called when the task is reset to run again
       end,
       ---@return table
@@ -294,6 +293,8 @@ The primary way of parsing output with overseer is the `on_output_parse` compone
   -- Put the parser results into the 'diagnostics' field on the task result
   diagnostics = {
     -- Extract fields using lua patterns
+    -- To integrate with other components, items in the "diagnostics" result should match
+    -- vim's quickfix item format (:help setqflist)
     { "extract", "^([^%s].+):(%d+): (.+)$", "filename", "lnum", "text" },
   }
 }}
@@ -354,7 +355,7 @@ Supported features:
 - [Standard variables](https://code.visualstudio.com/docs/editor/tasks#_variable-substitution)
 - [Input variables](https://code.visualstudio.com/docs/editor/variables-reference#_input-variables) (e.g. `${input:variableID}`)
 - [Problem matchers](https://code.visualstudio.com/docs/editor/tasks#_processing-task-output-with-problem-matchers)
-- Built-in library of problem matchers and patterns (e.g. `$tsc` and `$jshint-stylish`)
+- [Built-in library](parsers.md#built-in-problem-matchers) of problem matchers and patterns (e.g. `$tsc` and `$jshint-stylish`)
 - [Compound tasks](https://code.visualstudio.com/docs/editor/tasks#_compound-tasks) (including `dependsOrder = sequence`)
 - [Background tasks](https://code.visualstudio.com/docs/editor/tasks#_background-watching-tasks)
 - `group` (sets template tag; supports `BUILD`, `TEST`, and `CLEAN`) and `isDefault` (sets priority)
@@ -371,6 +372,6 @@ Unsupported features:
 - `${config:*}` variables
 - `${command:*}` variables
 - The `${defaultBuildTask}` variable
-- Custom problem matcher patterns may fail due to differences between JS and vim regex (notably vim regex doesn't support non-capturing groups `(?:.*)` or character classes inside of brackets `[\d\s]`)
+- Custom problem matcher patterns may fail due to differences between JS and vim regex (notably vim regex doesn't support non-capturing groups `(?:.*)` or character classes inside of brackets `[\d\s]`). Most built-in matchers have already been translated.
 - [Output behavior](https://code.visualstudio.com/docs/editor/tasks#_output-behavior) (probably not going to support this)
 - [Run behavior](https://code.visualstudio.com/docs/editor/tasks#_run-behavior) (probably not going to support this)

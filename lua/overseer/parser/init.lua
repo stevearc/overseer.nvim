@@ -18,10 +18,15 @@ end
 ---@class overseer.Parser
 ---@field reset fun(self: overseer.Parser)
 ---@field ingest fun(self: overseer.Parser, lines: string[])
----@field subscribe fun(self: overseer.Parser, callback: fun(key: string, value: any))
----@field unsubscribe fun(self: overseer.Parser, callback: fun(key: string, value: any))
+---@field subscribe fun(self: overseer.Parser, event: string, callback: fun(key: string, value: any))
+---@field unsubscribe fun(self: overseer.Parser, event: string, callback: fun(key: string, value: any))
 ---@field get_result fun(self: overseer.Parser): table
 ---@field get_remainder fun(self: overseer.Parser): table
+---@note
+--- Built-in events that can be subscribed to:
+---   new_item        Dispatched when an item is appended to the result
+---   clear_results   Clear results items from the parser
+---   set_results     Canonically used to force the on_output_parse component to set task results
 
 ---@class overseer.ParserNode
 ---@field ingest fun(self: overseer.ParserNode, line: string, ctx: table): overseer.ParserStatus
@@ -69,18 +74,53 @@ M.STATUS = Enum.new({
   "FAILURE",
 })
 
+---@param subs table<string, fun(key: string, value: any)[]>
+---@param event string
+---@param callback fun()
+local function subscribe(subs, event, callback)
+  if not subs[event] then
+    subs[event] = {}
+  end
+  table.insert(subs[event], callback)
+end
+
+---@param subs table<string, fun(key: string, value: any)[]>
+---@param event string
+---@param callback fun()
+local function unsubscribe(subs, event, callback)
+  if subs[event] then
+    util.tbl_remove(subs[event], callback)
+  end
+end
+
+local function dispatch(subs, event, ...)
+  if subs[event] then
+    for _, cb in ipairs(subs[event]) do
+      cb(...)
+    end
+  end
+end
+
 ---@class overseer.ListParser : overseer.Parser
 ---@field tree overseer.ParserNode
----@field subs fun(key: string, value: any)[]
+---@field subs table<string, fun(key: string, value: any)[]>
 local ListParser = {}
 
 function ListParser.new(children)
-  return setmetatable({
-    tree = M.loop({ ignore_failure = true }, M.sequence(unpack(children))),
+  local parser = setmetatable({
+    tree = M.loop({ ignore_failure = true }, M.sequence(children)),
     results = {},
     item = {},
     subs = {},
   }, { __index = ListParser })
+  parser:subscribe("clear_results", function()
+    parser.results = {}
+    if parser.ctx then
+      parser.ctx.results = parser.results
+      parser.ctx.__num_results = 0
+    end
+  end)
+  return parser
 end
 
 function ListParser:reset()
@@ -90,29 +130,35 @@ function ListParser:reset()
 end
 
 function ListParser:ingest(lines)
-  local num_results = #self.results
-  local ctx = { item = self.item, results = self.results, default_values = {} }
+  self.ctx = {
+    __num_results = #self.results,
+    item = self.item,
+    results = self.results,
+    default_values = {},
+    dispatch = function(...)
+      dispatch(self.subs, ...)
+    end,
+  }
   for _, line in ipairs(lines) do
-    ctx.line = line
+    self.ctx.line = line
     if debug then
       trace = {}
     end
-    self.tree:ingest(line, ctx)
+    self.tree:ingest(line, self.ctx)
   end
-  for i = num_results + 1, #self.results do
+  for i = self.ctx.__num_results + 1, #self.results do
     local result = self.results[i]
-    for _, cb in ipairs(self.subs) do
-      cb("", result)
-    end
+    dispatch(self.subs, "new_item", "", result)
   end
+  self.ctx = nil
 end
 
-function ListParser:subscribe(callback)
-  table.insert(self.subs, callback)
+function ListParser:subscribe(event, callback)
+  subscribe(self.subs, event, callback)
 end
 
-function ListParser:unsubscribe(callback)
-  util.tbl_remove(self.subs, callback)
+function ListParser:unsubscribe(event, callback)
+  unsubscribe(self.subs, event, callback)
 end
 
 function ListParser:get_result()
@@ -129,7 +175,7 @@ end
 ---@field children table<string, overseer.ParserNode>
 ---@field results table<string, table>
 ---@field items table<string, table>
----@field subs fun(key: string, value: any)[]
+---@field subs table<string, fun(key: string, value: any)[]>
 local MapParser = {}
 
 function MapParser.new(children)
@@ -139,14 +185,33 @@ function MapParser.new(children)
   for k, v in pairs(children) do
     results[k] = {}
     items[k] = {}
-    wrapped_children[k] = M.loop({ ignore_failure = true }, M.sequence(unpack(v)))
+    wrapped_children[k] = M.loop({ ignore_failure = true }, M.sequence(v))
   end
-  return setmetatable({
+  local parser = setmetatable({
     children = wrapped_children,
     results = results,
     items = items,
     subs = {},
   }, { __index = MapParser })
+  parser:subscribe("clear_results", function(current_key_only)
+    if not current_key_only then
+      for k in pairs(parser.children) do
+        parser.results[k] = {}
+      end
+      if parser.ctx then
+        parser.ctx.results = parser.results[parser.ctx.__key]
+        parser.ctx.__num_results = 0
+      end
+    elseif parser.ctx then
+      -- We want to clear just the items for the current key in results, so we need to modify the
+      -- ctx results in-place
+      while not vim.tbl_isempty(parser.ctx.results) do
+        table.remove(parser.ctx.results)
+      end
+      parser.ctx.__num_results = 0
+    end
+  end)
+  return parser
 end
 
 function MapParser:reset()
@@ -163,30 +228,33 @@ function MapParser:ingest(lines)
       trace = {}
     end
     for k, v in pairs(self.children) do
-      local ctx = {
+      self.ctx = {
+        __key = k,
+        __num_results = #self.results[k],
         item = self.items[k],
         results = self.results[k],
         default_values = {},
         line = line,
+        dispatch = function(...)
+          dispatch(self.subs, ...)
+        end,
       }
-      local num_results = #ctx.results
-      v:ingest(line, ctx)
-      for i = num_results + 1, #ctx.results do
-        local result = ctx.results[i]
-        for _, cb in ipairs(self.subs) do
-          cb(k, result)
-        end
+      v:ingest(line, self.ctx)
+      for i = self.ctx.__num_results + 1, #self.ctx.results do
+        local result = self.ctx.results[i]
+        dispatch(self.subs, "new_item", k, result)
       end
+      self.ctx = nil
     end
   end
 end
 
-function MapParser:subscribe(callback)
-  table.insert(self.subs, callback)
+function MapParser:subscribe(event, callback)
+  subscribe(self.subs, event, callback)
 end
 
-function MapParser:unsubscribe(callback)
-  util.tbl_remove(self.subs, callback)
+function MapParser:unsubscribe(event, callback)
+  unsubscribe(self.subs, event, callback)
 end
 
 function MapParser:get_result()
@@ -207,10 +275,8 @@ M.new = function(config)
   vim.validate({
     config = { config, "t" },
   })
-  if vim.tbl_islist(config) then
+  if vim.tbl_islist(config) or M.util.is_parser(config) then
     return ListParser.new(config)
-  elseif config.ingest then
-    return config
   else
     return MapParser.new(config)
   end
@@ -228,18 +294,22 @@ end
 
 ---Used for documentation generation
 ---@private
-M.get_parser_docs = function(name)
-  local mod = require(string.format("overseer.parser.%s", name))
-  if mod.doc_args then
-    return {
-      name = name,
-      desc = mod.desc,
-      doc_args = mod.doc_args,
-      examples = mod.examples,
-    }
-  else
-    return {}
+M.get_parser_docs = function(...)
+  local ret = {}
+  for _, name in ipairs({ ... }) do
+    local mod = require(string.format("overseer.parser.%s", name))
+    if mod.doc_args then
+      table.insert(ret, {
+        name = name,
+        desc = mod.desc,
+        doc_args = mod.doc_args,
+        examples = mod.examples,
+      })
+    else
+      table.insert(ret, {})
+    end
   end
+  return ret
 end
 
 return M

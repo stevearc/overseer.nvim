@@ -26,6 +26,7 @@
   - [remove_template_hook(opts, hook)](#remove_template_hookopts-hook)
   - [register_template(defn)](#register_templatedefn)
   - [load_template(name)](#load_templatename)
+  - [debug_parser()](#debug_parser)
 - [Components](#components)
   - [dependencies](components.md#dependencies)
   - [display_duration](components.md#display_duration)
@@ -39,10 +40,29 @@
   - [on_output_write_file](components.md#on_output_write_file)
   - [on_result_diagnostics](components.md#on_result_diagnostics)
   - [on_result_diagnostics_quickfix](components.md#on_result_diagnostics_quickfix)
+  - [on_result_notify](components.md#on_result_notify)
   - [restart_on_save](components.md#restart_on_save)
   - [run_after](components.md#run_after)
   - [timeout](components.md#timeout)
   - [unique](components.md#unique)
+- [Parsers](#parsers)
+    - [always](parsers.md#always)
+    - [append](parsers.md#append)
+    - [dispatch](parsers.md#dispatch)
+    - [ensure](parsers.md#ensure)
+    - [extract](parsers.md#extract)
+    - [extract_efm](parsers.md#extract_efm)
+    - [extract_json](parsers.md#extract_json)
+    - [extract_multiline](parsers.md#extract_multiline)
+    - [extract_nested](parsers.md#extract_nested)
+    - [invert](parsers.md#invert)
+    - [loop](parsers.md#loop)
+    - [parallel](parsers.md#parallel)
+    - [sequence](parsers.md#sequence)
+    - [set_defaults](parsers.md#set_defaults)
+    - [skip_lines](parsers.md#skip_lines)
+    - [skip_until](parsers.md#skip_until)
+    - [test](parsers.md#test)
 - [Parameters](#parameters)
 
 <!-- /TOC -->
@@ -640,6 +660,12 @@ Load a template definition from its module location
 overseer.load_template('mytask')
 ```
 
+### debug_parser()
+
+`debug_parser()` \
+Open a tab with windows laid out for debugging a parser
+
+
 
 <!-- /API -->
 
@@ -659,12 +685,37 @@ overseer.load_template('mytask')
 - [on_output_write_file](components.md#on_output_write_file)
 - [on_result_diagnostics](components.md#on_result_diagnostics)
 - [on_result_diagnostics_quickfix](components.md#on_result_diagnostics_quickfix)
+- [on_result_notify](components.md#on_result_notify)
 - [restart_on_save](components.md#restart_on_save)
 - [run_after](components.md#run_after)
 - [timeout](components.md#timeout)
 - [unique](components.md#unique)
 
 <!-- /TOC.components -->
+
+## Parsers
+
+<!-- TOC.parsers -->
+
+  - [always](parsers.md#always)
+  - [append](parsers.md#append)
+  - [dispatch](parsers.md#dispatch)
+  - [ensure](parsers.md#ensure)
+  - [extract](parsers.md#extract)
+  - [extract_efm](parsers.md#extract_efm)
+  - [extract_json](parsers.md#extract_json)
+  - [extract_multiline](parsers.md#extract_multiline)
+  - [extract_nested](parsers.md#extract_nested)
+  - [invert](parsers.md#invert)
+  - [loop](parsers.md#loop)
+  - [parallel](parsers.md#parallel)
+  - [sequence](parsers.md#sequence)
+  - [set_defaults](parsers.md#set_defaults)
+  - [skip_lines](parsers.md#skip_lines)
+  - [skip_until](parsers.md#skip_until)
+  - [test](parsers.md#test)
+
+<!-- /TOC.parsers -->
 
 ## Parameters
 

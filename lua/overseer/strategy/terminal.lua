@@ -129,14 +129,7 @@ end
 
 function TerminalStrategy:dispose()
   self:stop()
-  local bufnr_visible = util.is_bufnr_visible(self.bufnr)
-  if self.bufnr and vim.api.nvim_buf_is_valid(self.bufnr) then
-    if bufnr_visible then
-      vim.api.nvim_buf_set_option(self.bufnr, "bufhidden", "wipe")
-    else
-      vim.api.nvim_buf_delete(self.bufnr, { force = true })
-    end
-  end
+  util.soft_delete_buf(self.bufnr)
 end
 
 return TerminalStrategy

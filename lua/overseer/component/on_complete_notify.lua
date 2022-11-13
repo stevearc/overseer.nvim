@@ -3,16 +3,6 @@ local Notifier = require("overseer.notifier")
 local util = require("overseer.util")
 local STATUS = constants.STATUS
 
-local function get_level_from_status(status)
-  if status == STATUS.FAILURE then
-    return vim.log.levels.ERROR
-  elseif status == STATUS.CANCELED then
-    return vim.log.levels.WARN
-  else
-    return vim.log.levels.INFO
-  end
-end
-
 return {
   desc = "vim.notify when task is completed",
   params = {
@@ -58,7 +48,7 @@ return {
             end
             self.last_status = status
           end
-          local level = get_level_from_status(status)
+          local level = util.status_to_log_level(status)
           local message = string.format("%s %s", status, task.name)
           self.notifier:notify(message, level)
         end
