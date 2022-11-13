@@ -1,6 +1,7 @@
 local parser = require("overseer.parser")
 local Dispatch = {
   desc = "Dispatch an event",
+  long_desc = "Events can be subscribed to using the parser:subscribe() method.",
   doc_args = {
     {
       name = "name",
@@ -16,8 +17,12 @@ local Dispatch = {
   },
   examples = {
     {
-      desc = [[Dispatch an "output_start" event]],
-      code = [[{"dispatch", "output_start"}]],
+      desc = [[clear_results will clear all current results from the parser. Pass `true` to only clear the results under the current key]],
+      code = [[{"dispatch", "clear_results"}]],
+    },
+    {
+      desc = [[set_results is used by the on_output_parse component to immediately set the current results on the task]],
+      code = [[{"dispatch", "set_results"}]],
     },
   },
 }

@@ -237,11 +237,9 @@ def update_parsers_md():
         "This is a list of the parser nodes that are built-in to overseer. They can be found in [lua/overseer/parser](../lua/overseer/parser)\n",
         "\n",
     ]
-    toc = []
     lines = []
     for name, parser in get_parser_nodes().items():
-        toc.append(f"- [{name}](#{name})\n")
-        lines.append(f"## {name}\n\n")
+        lines.append(f"### {name}\n\n")
         lines.append(f"[{name}.lua](../lua/overseer/parser/{name}.lua)\n\n")
         lines.append(parser["desc"])
         if parser.get("long_desc"):
@@ -252,7 +250,7 @@ def update_parsers_md():
         lines.append("\n")
         lines.extend(format_parser_args(parser["name"], parser["doc_args"]))
         if parser.get("examples"):
-            lines.extend(["\n", "### Examples\n"])
+            lines.extend(["\n", "#### Examples\n"])
             for example in parser["examples"]:
                 lines.extend(
                     [
@@ -265,14 +263,13 @@ def update_parsers_md():
                 lines.extend(format_example_code(example["code"]))
                 lines.extend(["```\n"])
         lines.append("\n")
-    toc.append("\n")
     while lines[-1] == "\n":
         lines.pop()
     replace_section(
         doc,
-        r"^# Parser nodes",
+        r"^## Parser nodes",
         None,
-        prefix + toc + lines,
+        prefix + lines,
     )
 
 
@@ -504,7 +501,7 @@ def generate_vimdoc():
             convert_md_section(
                 os.path.join(DOC, "reference.md"),
                 "^## Parameters",
-                "^#",
+                None,
                 "Parameters",
                 "overseer-params",
             ),
@@ -534,8 +531,8 @@ def update_md_api():
     )
 
 
-def update_md_toc(filename: str):
-    toc = ["\n"] + generate_md_toc(filename) + ["\n"]
+def update_md_toc(filename: str, max_level: int = 99):
+    toc = ["\n"] + generate_md_toc(filename, max_level) + ["\n"]
     replace_section(
         filename,
         r"^<!-- TOC -->$",
@@ -634,9 +631,10 @@ def update_reference_md():
     components_toc = add_md_link_path(
         "components.md", generate_md_toc(os.path.join(DOC, "components.md"))
     )
-    parsers_toc = add_md_link_path(
-        "parsers.md", generate_md_toc(os.path.join(DOC, "parsers.md"), 1)
+    parser_section = read_section(
+        os.path.join(DOC, "parsers.md"), "^## Parser nodes", None
     )
+    parsers_toc = add_md_link_path("parsers.md", generate_md_toc(parser_section, 2))
     reference_doc = os.path.join(DOC, "reference.md")
     toc = ["\n"] + generate_md_toc(reference_doc) + ["\n"]
     idx = toc.index("- [Components](#components)\n")
@@ -666,8 +664,9 @@ def update_reference_md():
 def main() -> None:
     """Update the README"""
     update_config_options()
-    update_components_md()
     update_parsers_md()
+    update_md_toc(os.path.join(DOC, "parsers.md"), 2)
+    update_components_md()
     update_md_toc(os.path.join(DOC, "components.md"))
     update_reference_md()
     update_md_toc(os.path.join(DOC, "tutorials.md"))

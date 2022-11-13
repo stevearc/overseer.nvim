@@ -810,9 +810,17 @@ dispatch                                                         *parser.dispatc
              creates a value
 
     Examples:
-    Dispatch an "output_start" event
+    clear_results will clear all current results from the parser. Pass `true` to
+    only clear the results under the current key
 >
-    {"dispatch", "output_start"}
+    {"dispatch", "clear_results"}
+<
+
+    Examples:
+    set_results is used by the on_output_parse component to immediately set the
+    current results on the task
+>
+    {"dispatch", "set_results"}
 <
 
 ensure                                                             *parser.ensure*
