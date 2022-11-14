@@ -417,16 +417,6 @@ function Task:reset()
   self.exit_code = nil
   self.status = STATUS.PENDING
   self:dispatch("on_status", self.status)
-  local bufnr = self:get_bufnr()
-  vim.defer_fn(function()
-    if bufnr and vim.api.nvim_buf_is_valid(bufnr) then
-      if util.is_bufnr_visible(bufnr) then
-        vim.api.nvim_buf_set_option(bufnr, "bufhidden", "wipe")
-      else
-        vim.api.nvim_buf_delete(bufnr, { force = true })
-      end
-    end
-  end, 1000)
   self.strategy:reset()
   task_list.touch_task(self)
   self:dispatch("on_reset")

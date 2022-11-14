@@ -580,24 +580,36 @@ M.run_template_or_task = function(name_or_config, cb)
   end
 end
 
+---Run a function in the context of a full-editor window
+---@param bufnr nil|integer
+---@param callback fun()
+M.run_in_fullscreen_win = function(bufnr, callback)
+  if not bufnr then
+    bufnr = vim.api.nvim_create_buf(false, true)
+    vim.api.nvim_buf_set_option(bufnr, "bufhidden", "wipe")
+  end
+  local winid = vim.api.nvim_open_win(bufnr, false, {
+    relative = "editor",
+    width = vim.o.columns,
+    height = vim.o.lines,
+    row = 0,
+    col = 0,
+    noautocmd = true,
+  })
+  local winnr = vim.api.nvim_win_get_number(winid)
+  vim.cmd.wincmd({ count = winnr, args = { "w" }, mods = { noautocmd = true } })
+  callback()
+  vim.cmd.close({ count = winnr, mods = { noautocmd = true, emsg_silent = true } })
+end
+
 ---Run a function in the context of a current directory
 ---@param cwd string
 ---@param callback fun()
 M.run_in_cwd = function(cwd, callback)
-  local bufnr = vim.api.nvim_create_buf(false, true)
-  local winid = vim.api.nvim_open_win(bufnr, true, {
-    relative = "editor",
-    width = 1,
-    height = 1,
-    row = 1,
-    col = 1,
-    style = "minimal",
-    noautocmd = true,
-  })
-  vim.api.nvim_buf_set_option(bufnr, "bufhidden", "wipe")
-  vim.cmd.lcd({ args = { cwd }, mods = { noautocmd = true } })
-  callback()
-  vim.api.nvim_win_close(winid, true)
+  M.run_in_fullscreen_win(nil, function()
+    vim.cmd.lcd({ args = { cwd }, mods = { noautocmd = true } })
+    callback()
+  end)
 end
 
 ---@param status overseer.Status
@@ -624,6 +636,23 @@ M.soft_delete_buf = function(bufnr)
       vim.api.nvim_buf_delete(bufnr, { force = true })
     end
   end
+end
+
+---This is a hack so we don't end up in insert mode after starting a task
+---@param prev_mode string The vim mode we were in before opening a terminal
+M.hack_around_termopen_autocmd = function(prev_mode)
+  -- It's common to have autocmds that enter insert mode when opening a terminal
+  vim.defer_fn(function()
+    local new_mode = vim.api.nvim_get_mode().mode
+    if new_mode ~= prev_mode then
+      if string.find(new_mode, "i") == 1 then
+        vim.api.nvim_feedkeys(vim.api.nvim_replace_termcodes("<ESC>", true, true, true), "n", false)
+        if string.find(prev_mode, "v") == 1 or string.find(prev_mode, "V") == 1 then
+          vim.cmd.normal({ bang = true, args = { "gv" } })
+        end
+      end
+    end
+  end, 10)
 end
 
 return M
