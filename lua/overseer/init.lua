@@ -267,6 +267,13 @@ end
 ---Initialize overseer
 ---@param opts overseer.Config|nil Configuration options
 M.setup = function(opts)
+  if vim.fn.has("nvim-0.8") == 0 then
+    vim.notify_once(
+      "overseer is deprecated for Neovim <0.8. Please use the nvim-0.7 branch or upgrade Neovim",
+      vim.log.levels.ERROR
+    )
+    return
+  end
   opts = opts or {}
   create_commands()
   patch_dap(opts.dap ~= false)
