@@ -150,7 +150,10 @@ M.load_template = function(name)
       defn.name = name
     end
     defn.module = name
-    M.register(defn)
+    local register_ok, err = pcall(M.register, defn)
+    if not register_ok then
+      log:error("Error loading template '%s': %s", name, err)
+    end
   end
 end
 

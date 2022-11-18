@@ -15,6 +15,7 @@ local function do_setup()
     end
   end
   local config = require("overseer.config")
+  local log = require("overseer.log")
   config.setup(pending_opts)
   pending_opts = nil
   local util = require("overseer.util")
@@ -76,7 +77,10 @@ local function do_setup()
   end
   initialized = true
   for _, cb in ipairs(setup_callbacks) do
-    cb()
+    local cb_ok, err = pcall(cb)
+    if not cb_ok then
+      log:error("Error running overseer setup callback: %s", err)
+    end
   end
 end
 
@@ -100,8 +104,18 @@ local function lazy_pend(mod, fn)
       require(string.format("overseer.%s", mod))[fn](...)
     else
       local args = { ... }
+      local traceback = debug.traceback()
       M.on_setup(function()
-        require(string.format("overseer.%s", mod))[fn](unpack(args))
+        local log = require("overseer.log")
+        local ok, module = pcall(require, string.format("overseer.%s", mod))
+        if not ok then
+          log:error("Error requiring overseer lazy module: %s", module)
+          return
+        end
+        local call_ok, err = pcall(module[fn], unpack(args))
+        if not call_ok then
+          log:error("Error in overseer lazy call to %s.%s: %s\n%s", mod, fn, err, traceback)
+        end
       end)
     end
   end
