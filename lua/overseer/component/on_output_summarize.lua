@@ -5,20 +5,22 @@ local util = require("overseer.util")
 ---@param num_lines integer
 ---@return string[]
 local function get_last_lines(bufnr, num_lines)
-  num_lines = math.min(num_lines, vim.api.nvim_buf_line_count(bufnr))
-  local lines = vim.api.nvim_buf_get_lines(bufnr, -1 - num_lines, -1, false)
-  local num_empty = 0
-  while
-    not vim.tbl_isempty(lines) and (lines[#lines] == "" or lines[#lines]:match("^%[Process exited"))
-  do
-    table.remove(lines)
-    num_empty = num_empty + 1
-  end
-  if num_empty > 0 then
+  local end_line = vim.api.nvim_buf_line_count(bufnr)
+  num_lines = math.min(num_lines, end_line)
+  local lines = {}
+  while end_line > 0 and #lines < num_lines do
+    local need_lines = num_lines - #lines
     lines = vim.list_extend(
-      vim.api.nvim_buf_get_lines(bufnr, -1 - num_lines - num_empty, -1 - num_lines, false),
+      vim.api.nvim_buf_get_lines(bufnr, end_line - need_lines, end_line, false),
       lines
     )
+    while
+      not vim.tbl_isempty(lines)
+      and (lines[#lines]:match("^%s*$") or lines[#lines]:match("^%[Process exited"))
+    do
+      table.remove(lines)
+    end
+    end_line = end_line - need_lines
   end
   return lines
 end
