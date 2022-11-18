@@ -1,6 +1,7 @@
 require("plenary.async").tests.add_to_env()
 local overseer = require("overseer")
 local constants = require("overseer.constants")
+local files = require("overseer.files")
 local parser = require("overseer.parser")
 local vscode = require("overseer.template.vscode")
 local problem_matcher = require("overseer.template.vscode.problem_matcher")
@@ -332,7 +333,7 @@ src/index.ts:3:1 - error TS1435: Unknown keyword or identifier. Did you mean 'im
     assert.are.same({
       diagnostics = {
         {
-          filename = "src/index.ts",
+          filename = files.join(task.cwd, "src/index.ts"),
           lnum = 3,
           col = 1,
           type = "E",
@@ -363,7 +364,7 @@ src/index.ts:3:1 - error TS1435: Unknown keyword or identifier. Did you mean 'im
     assert.are.same({
       diagnostics = {
         {
-          filename = "src/index.ts",
+          filename = files.join(task.cwd, "src/index.ts"),
           lnum = 3,
           col = 1,
           type = "E",
