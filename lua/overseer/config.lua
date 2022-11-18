@@ -248,8 +248,8 @@ M.setup = function(opts)
 
   -- Deprecated option
   if newconf.pre_task_hook then
-    vim.notify(
-      "Overseer pre_task_hook is deprecated. Use overseer.add_template_hook",
+    vim.notify_once(
+      "Overseer pre_task_hook is deprecated. Use overseer.add_template_hook\nThis option will be removed on 2023-02-01",
       vim.log.levels.WARN
     )
     overseer.add_template_hook(nil, newconf.pre_task_hook)

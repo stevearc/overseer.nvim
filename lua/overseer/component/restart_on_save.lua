@@ -57,14 +57,14 @@ return {
     })
     if opts.dir then
       vim.notify_once(
-        "Overseer[restart_on_save]: dir param is deprecated. Use 'path'",
+        "Overseer[restart_on_save]: dir param is deprecated. Use 'path'\nThis parameter will be removed on 2023-02-01",
         vim.log.levels.WARN
       )
       opts.paths = { opts.dir }
     end
     if opts.path then
       vim.notify_once(
-        "Overseer[restart_on_save]: path param is deprecated. Use 'paths'",
+        "Overseer[restart_on_save]: path param is deprecated. Use 'paths'\nThis parameter will be removed on 2023-02-01",
         vim.log.levels.WARN
       )
       opts.paths = { opts.path }

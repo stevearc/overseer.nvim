@@ -269,7 +269,7 @@ end
 M.setup = function(opts)
   if vim.fn.has("nvim-0.8") == 0 then
     vim.notify_once(
-      "overseer is deprecated for Neovim <0.8. Please use the nvim-0.7 branch or upgrade Neovim",
+      "overseer has dropped support for Neovim <0.8. Please use the nvim-0.7 branch or upgrade Neovim",
       vim.log.levels.ERROR
     )
     return
@@ -503,7 +503,13 @@ M.add_template_hook = lazy_pend("template", "add_hook_template")
 M.remove_template_hook = lazy_pend("template", "remove_hook_template")
 
 ---@deprecated
-M.hook_template = M.add_template_hook
+M.hook_template = function(...)
+  vim.notify_once(
+    "Deprecated(overseer.hook_template): Use overseer.add_template_hook instead.\nThis function will be removed on 2023-02-01",
+    vim.log.levels.WARN
+  )
+  M.add_template_hook(...)
+end
 
 ---Directly register an overseer template
 ---@param defn overseer.TemplateDefinition|overseer.TemplateProvider

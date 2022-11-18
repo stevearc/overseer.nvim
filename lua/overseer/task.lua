@@ -207,6 +207,10 @@ end
 
 ---@deprecated
 function Task:is_serializable()
+  vim.notify_once(
+    "Deprecated(overseer): task:is_serializable is deprecated.\nThis function will be removed in 2023-02-01",
+    vim.log.levels.WARN
+  )
   return true
 end
 

@@ -79,8 +79,9 @@ M = {
     run = function(task)
       local comp = component.get("restart_on_save")
       local schema = vim.deepcopy(comp.params)
-      -- This is a deprecated param
+      -- These are deprecated param
       schema.dir = nil
+      schema.path = nil
       form.open("Restart task when files are written", schema, {
         paths = { vim.fn.getcwd() },
       }, function(params)

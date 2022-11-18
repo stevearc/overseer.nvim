@@ -1,5 +1,5 @@
 return {
-  deprecated_message = "Use task:subscribe instead",
+  deprecated_message = "Use task:subscribe instead\nThis component will be removed on 2023-02-01",
   desc = "Call a callback when task completes",
   params = {
     on_complete = {
