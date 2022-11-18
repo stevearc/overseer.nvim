@@ -151,10 +151,14 @@ return {
           action = self.qf_id == 0 and "r" or "a"
         end
         local scroll_buffer = action ~= "a" or is_cursor_at_bottom(cur_qf.winid)
-        local items = vim.fn.getqflist({
-          lines = lines,
-          efm = params.errorformat,
-        }).items
+        -- Run this in the context of the task cwd so that relative filenames are parsed correctly
+        local items
+        util.run_in_cwd(task.cwd, function()
+          items = vim.fn.getqflist({
+            lines = lines,
+            efm = params.errorformat,
+          }).items
+        end)
         local valid_items = vim.tbl_filter(function(item)
           return item.valid == 1
         end, items)
