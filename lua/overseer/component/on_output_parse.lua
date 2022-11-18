@@ -1,3 +1,4 @@
+local files = require("overseer.files")
 local log = require("overseer.log")
 local parser = require("overseer.parser")
 local problem_matcher = require("overseer.template.vscode.problem_matcher")
@@ -41,7 +42,16 @@ return {
         end
         self.parser:subscribe("new_item", self.parser_sub)
         self.set_results_sub = function()
-          task:set_result(self.parser:get_result())
+          local result = self.parser:get_result()
+          if result.diagnostics then
+            -- Ensure that all relative filenames are rooted at the task cwd, not vim's current cwd
+            for _, diag in ipairs(result.diagnostics) do
+              if diag.filename and not files.is_absolute(diag.filename) then
+                diag.filename = files.join(task.cwd, diag.filename)
+              end
+            end
+          end
+          task:set_result(result)
         end
         self.parser:subscribe("set_results", self.set_results_sub)
       end,
