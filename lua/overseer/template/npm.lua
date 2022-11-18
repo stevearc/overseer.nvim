@@ -7,6 +7,7 @@ local tmpl = {
   params = {
     args = { optional = true, type = "list", delimiter = " " },
     use_yarn = { optional = true, type = "boolean" },
+    cwd = { optional = true },
   },
   builder = function(params)
     local bin = params.use_yarn and "yarn" or "npm"
@@ -16,6 +17,7 @@ local tmpl = {
     end
     return {
       cmd = cmd,
+      cwd = params.cwd,
     }
   end,
 }
@@ -59,6 +61,27 @@ return {
             { args = { "run", k }, use_yarn = use_yarn }
           )
         )
+      end
+    end
+
+    -- Load tasks from workspaces
+    if data.workspaces then
+      for _, workspace in ipairs(data.workspaces) do
+        local workspace_path = files.join(vim.fn.fnamemodify(package, ":h"), workspace)
+        local workspace_package_file = files.join(workspace_path, "package.json")
+        local workspace_data = files.load_json_file(workspace_package_file)
+        if workspace_data and workspace_data.scripts then
+          for k in pairs(workspace_data.scripts) do
+            table.insert(
+              ret,
+              overseer.wrap_template(
+                tmpl,
+                { name = string.format("%s[%s] %s", bin, workspace, k) },
+                { args = { "run", k }, use_yarn = use_yarn, cwd = workspace_path }
+              )
+            )
+          end
+        end
       end
     end
     table.insert(ret, overseer.wrap_template(tmpl, { name = bin }, { use_yarn = use_yarn }))
