@@ -120,7 +120,26 @@ M.scroll_to_end = function(winid)
   winid = winid or 0
   local bufnr = vim.api.nvim_win_get_buf(winid)
   local lnum = vim.api.nvim_buf_line_count(bufnr)
-  vim.api.nvim_win_set_cursor(winid, { lnum, 0 })
+  local last_line = vim.api.nvim_buf_get_lines(bufnr, -2, -1, true)[1]
+  -- Hack: terminal buffers add a bunch of empty lines at the end. We need to ignore them so that
+  -- we don't end up scrolling off the end of the useful output.
+  -- This has the unfortunate effect that we may not end up tailing the output as more arrives
+  if vim.bo[bufnr].buftype == "terminal" then
+    local half_height = math.floor(vim.api.nvim_win_get_height(winid) / 2)
+    for i = lnum, 1, -1 do
+      local prev_line = vim.api.nvim_buf_get_lines(bufnr, i - 1, i, true)[1]
+      if prev_line ~= "" then
+        -- Only scroll back if we detect a lot of padding lines, and the total real output is
+        -- small. Otherwise the padding may be legit
+        if lnum - i >= half_height and i < half_height then
+          lnum = i
+          last_line = prev_line
+        end
+        break
+      end
+    end
+  end
+  vim.api.nvim_win_set_cursor(winid, { lnum, vim.api.nvim_strwidth(last_line) })
 end
 
 ---@param bufnr number

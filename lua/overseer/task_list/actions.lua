@@ -103,7 +103,8 @@ M = {
       return bufnr and vim.api.nvim_buf_is_valid(bufnr)
     end,
     run = function(task)
-      layout.open_fullscreen_float(task:get_bufnr())
+      local winid = layout.open_fullscreen_float(task:get_bufnr())
+      util.scroll_to_end(winid)
     end,
   },
   open = {
@@ -115,6 +116,7 @@ M = {
     run = function(task)
       vim.cmd([[normal! m']])
       vim.api.nvim_win_set_buf(0, task:get_bufnr())
+      util.scroll_to_end(0)
     end,
   },
   ["open hsplit"] = {
@@ -136,6 +138,7 @@ M = {
       vim.cmd([[split]])
       util.set_term_window_opts()
       vim.api.nvim_win_set_buf(0, task:get_bufnr())
+      util.scroll_to_end(0)
     end,
   },
   ["open vsplit"] = {
@@ -148,6 +151,7 @@ M = {
       vim.cmd([[vsplit]])
       util.set_term_window_opts()
       vim.api.nvim_win_set_buf(0, task:get_bufnr())
+      util.scroll_to_end(0)
     end,
   },
   ["set quickfix diagnostics"] = {

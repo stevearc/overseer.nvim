@@ -81,6 +81,8 @@ M.calculate_height = function(desired_height, opts)
   )
 end
 
+---@param bufnr integer
+---@return integer
 M.open_fullscreen_float = function(bufnr)
   local conf = config.task_win
   local width = M.get_editor_width() - 2 - 2 * conf.padding
@@ -108,6 +110,7 @@ M.open_fullscreen_float = function(bufnr)
       pcall(vim.api.nvim_win_close, winid, true)
     end,
   })
+  return winid
 end
 
 return M
