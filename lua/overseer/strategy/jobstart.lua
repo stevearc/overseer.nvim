@@ -8,6 +8,7 @@ local JobstartStrategy = {}
 function JobstartStrategy.new(opts)
   opts = vim.tbl_extend("keep", opts or {}, {
     preserve_output = false,
+    use_terminal = true,
   })
   return setmetatable({
     bufnr = nil,
@@ -37,24 +38,72 @@ end
 function JobstartStrategy:start(task)
   if not self.bufnr then
     self.bufnr = vim.api.nvim_create_buf(false, true)
-    local mode = vim.api.nvim_get_mode().mode
-    local term_id
-    util.run_in_fullscreen_win(self.bufnr, function()
-      term_id = vim.api.nvim_open_term(self.bufnr, {
-        on_input = function(_, _, _, data)
-          pcall(vim.api.nvim_chan_send, self.job_id, data)
-        end,
-      })
-    end)
-    self.term_id = term_id
-    util.hack_around_termopen_autocmd(mode)
+    if self.opts.use_terminal then
+      local mode = vim.api.nvim_get_mode().mode
+      local term_id
+      util.run_in_fullscreen_win(self.bufnr, function()
+        term_id = vim.api.nvim_open_term(self.bufnr, {
+          on_input = function(_, _, _, data)
+            pcall(vim.api.nvim_chan_send, self.job_id, data)
+          end,
+        })
+      end)
+      self.term_id = term_id
+      util.hack_around_termopen_autocmd(mode)
+    else
+      vim.api.nvim_buf_set_option(self.bufnr, "modifiable", false)
+      local function open_input()
+        local prompt = vim.api.nvim_buf_get_lines(self.bufnr, -2, -1, true)[1]
+        if prompt:match("^%s*$") then
+          prompt = "Input: "
+        end
+        vim.ui.input({ prompt = prompt }, function(text)
+          if text then
+            pcall(vim.fn.chansend, self.job_id, text .. "\r")
+          end
+        end)
+      end
+      for _, lhs in ipairs({ "i", "I", "a", "A", "o", "O" }) do
+        vim.keymap.set("n", lhs, open_input, { buffer = self.bufnr })
+      end
+    end
   end
 
   local job_id
   local stdout_iter = util.get_stdout_line_iter()
 
   local function on_stdout(data)
-    pcall(vim.api.nvim_chan_send, self.term_id, table.concat(data, "\r\n"))
+    -- Update the buffer
+    if self.opts.use_terminal then
+      pcall(vim.api.nvim_chan_send, self.term_id, table.concat(data, "\r\n"))
+    else
+      -- Track which wins we will need to scroll
+      local trail_wins = {}
+      local line_count = vim.api.nvim_buf_line_count(self.bufnr)
+      for _, winid in ipairs(vim.api.nvim_list_wins()) do
+        if vim.api.nvim_win_is_valid(winid) and vim.api.nvim_win_get_buf(winid) == self.bufnr then
+          if vim.api.nvim_win_get_cursor(winid)[1] == line_count then
+            table.insert(trail_wins, winid)
+          end
+        end
+      end
+      local end_line = vim.api.nvim_buf_get_lines(self.bufnr, -2, -1, true)[1]
+      local end_lines = vim.tbl_map(util.clean_job_line, data)
+      end_lines[1] = end_line .. end_lines[1]
+      vim.api.nvim_buf_set_option(self.bufnr, "modifiable", true)
+      vim.api.nvim_buf_set_lines(self.bufnr, -2, -1, true, end_lines)
+      vim.api.nvim_buf_set_option(self.bufnr, "modifiable", false)
+      vim.api.nvim_buf_set_option(self.bufnr, "modified", false)
+
+      -- Scroll to end of updated windows so we can tail output
+      local lnum = line_count + #end_lines - 1
+      local col = vim.api.nvim_strwidth(end_lines[#end_lines])
+      for _, winid in ipairs(trail_wins) do
+        vim.api.nvim_win_set_cursor(winid, { lnum, col })
+      end
+    end
+
+    -- Send output to task
     task:dispatch("on_output", data)
     local lines = stdout_iter(data)
     if not vim.tbl_isempty(lines) then
@@ -64,7 +113,7 @@ function JobstartStrategy:start(task)
   job_id = vim.fn.jobstart(task.cmd, {
     cwd = task.cwd,
     env = task.env,
-    pty = true,
+    pty = self.opts.use_terminal,
     -- Take 4 off the total width so it looks nice in the floating window
     width = vim.o.columns - 4,
     on_stdout = function(j, d)
@@ -87,7 +136,20 @@ function JobstartStrategy:start(task)
       log:debug("Task %s exited with code %s", task.name, c)
       -- Feed one last line end to flush the output
       on_stdout({ "" })
-      pcall(vim.api.nvim_chan_send, self.term_id, string.format("\r\n[Process exited %d]\r\n", c))
+      if self.opts.use_terminal then
+        pcall(vim.api.nvim_chan_send, self.term_id, string.format("\r\n[Process exited %d]\r\n", c))
+      else
+        vim.api.nvim_buf_set_option(self.bufnr, "modifiable", true)
+        vim.api.nvim_buf_set_lines(
+          self.bufnr,
+          -1,
+          -1,
+          true,
+          { string.format("[Process exited %d]", c), "" }
+        )
+        vim.api.nvim_buf_set_option(self.bufnr, "modifiable", false)
+        vim.api.nvim_buf_set_option(self.bufnr, "modified", false)
+      end
       self.job_id = nil
       -- If we're exiting vim, don't call the on_exit handler
       -- We manually kill processes during VimLeavePre cleanup, and we don't want to trigger user

@@ -322,12 +322,21 @@ M.tbl_index = function(tbl, needle, extract)
   end
 end
 
+---Removes some ansi escape codes from a string
 ---@param str string
 ---@return string
 M.remove_ansi = function(str)
-  return str
+  local ret = str
     :gsub("\x1b%[[%d;]*m", "") -- Strip color codes
     :gsub("\x1b%[%d*K", "") -- Strip the "erase in line" codes
+  return ret
+end
+
+---Removes carriage returns and some ansi escape codes from a string
+---@param str string
+---@return string
+M.clean_job_line = function(str)
+  return M.remove_ansi(str:gsub("\r$", ""))
 end
 
 M.get_stdout_line_iter = function()
@@ -340,13 +349,13 @@ M.get_stdout_line_iter = function()
           table.insert(ret, pending)
           pending = ""
         else
-          pending = pending .. string.gsub(M.remove_ansi(chunk), "\r$", "")
+          pending = pending .. M.clean_job_line(chunk)
         end
       else
         if data[1] ~= "" then
           table.insert(ret, pending)
         end
-        pending = string.gsub(M.remove_ansi(chunk), "\r$", "")
+        pending = M.clean_job_line(chunk)
       end
     end
     return ret
