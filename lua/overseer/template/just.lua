@@ -34,12 +34,21 @@ return {
           end
           local params_defn = {}
           for _, param in ipairs(recipe.parameters) do
-            params_defn[param.name] = {
+            local param_defn = {
               default = param.default,
-              optional = param.kind == "star",
               type = param.kind == "singular" and "string" or "list",
               delimiter = " ",
             }
+            -- We don't want "star" arguments to be optional = true because then we won't show the
+            -- input form. Instead, let's set a default value and filter it out in the builder.
+            if param.kind == "star" and param.default == nil then
+              if param_defn.type == "string" then
+                param_defn.default = ""
+              else
+                param_defn.default = {}
+              end
+            end
+            params_defn[param.name] = param_defn
           end
           table.insert(ret, {
             name = string.format("just %s", recipe.name),
@@ -50,10 +59,12 @@ return {
               local cmd = { "just", recipe.name }
               for _, param in ipairs(recipe.parameters) do
                 local v = params[param.name]
-                if type(v) == "string" then
-                  table.insert(cmd, v)
-                else
-                  vim.list_extend(cmd, v)
+                if v then
+                  if type(v) == "table" then
+                    vim.list_extend(cmd, v)
+                  elseif v ~= "" then
+                    table.insert(cmd, v)
+                  end
                 end
               end
               return {
