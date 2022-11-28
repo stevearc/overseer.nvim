@@ -298,7 +298,8 @@ new_task({opts}): overseer.Task                                *overseer.new_tas
 
     Parameters:
       {opts} `overseer.TaskDefinition`
-          {cmd}        `string|string[]` Command to run
+          {cmd}        `string|string[]` Command to run. If it's a string it is
+                       run in the shell; a table is run directly
           {args}       `nil|string[]` Arguments to pass to the command
           {name}       `nil|string` Name of the task. Defaults to the cmd
           {cwd}        `nil|string` Working directory to run in
@@ -309,7 +310,7 @@ new_task({opts}): overseer.Task                                *overseer.new_tas
           {default_component_params} `nil|table` Default values for component
                        params
           {components} `nil|overseer.Serialized[]` List of components to attach.
-                       Defaults to `{'default'}`
+                       Defaults to `{"default"}`
 
     Examples: >
       local task = overseer.new_task({

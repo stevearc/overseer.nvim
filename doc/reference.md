@@ -331,18 +331,18 @@ Add a callback to run after overseer lazy setup
 `new_task(opts): overseer.Task` \
 Create a new Task
 
-| Param | Type                      | Desc                         |                                                         |
-| ----- | ------------------------- | ---------------------------- | ------------------------------------------------------- |
-| opts  | `overseer.TaskDefinition` |                              |                                                         |
-|       | cmd                       | `string\|string[]`           | Command to run                                          |
-|       | args                      | `nil\|string[]`              | Arguments to pass to the command                        |
-|       | name                      | `nil\|string`                | Name of the task. Defaults to the cmd                   |
-|       | cwd                       | `nil\|string`                | Working directory to run in                             |
-|       | env                       | `nil\|table<string, string>` | Additional environment variables                        |
-|       | strategy                  | `nil\|overseer.Serialized`   | Definition for a run Strategy                           |
-|       | metadata                  | `nil\|table`                 | Arbitrary metadata for your own use                     |
-|       | default_component_params  | `nil\|table`                 | Default values for component params                     |
-|       | components                | `nil\|overseer.Serialized[]` | List of components to attach. Defaults to `{'default'}` |
+| Param | Type                      | Desc                         |                                                                                  |
+| ----- | ------------------------- | ---------------------------- | -------------------------------------------------------------------------------- |
+| opts  | `overseer.TaskDefinition` |                              |                                                                                  |
+|       | cmd                       | `string\|string[]`           | Command to run. If it's a string it is run in the shell; a table is run directly |
+|       | args                      | `nil\|string[]`              | Arguments to pass to the command                                                 |
+|       | name                      | `nil\|string`                | Name of the task. Defaults to the cmd                                            |
+|       | cwd                       | `nil\|string`                | Working directory to run in                                                      |
+|       | env                       | `nil\|table<string, string>` | Additional environment variables                                                 |
+|       | strategy                  | `nil\|overseer.Serialized`   | Definition for a run Strategy                                                    |
+|       | metadata                  | `nil\|table`                 | Arbitrary metadata for your own use                                              |
+|       | default_component_params  | `nil\|table`                 | Default values for component params                                              |
+|       | components                | `nil\|overseer.Serialized[]` | List of components to attach. Defaults to `{"default"}`                          |
 
 **Examples:**
 ```lua
