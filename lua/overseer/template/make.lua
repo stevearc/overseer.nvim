@@ -1,5 +1,4 @@
 local constants = require("overseer.constants")
-local files = require("overseer.files")
 local log = require("overseer.log")
 local overseer = require("overseer")
 local TAG = constants.TAG
@@ -30,14 +29,14 @@ local tmpl = {
   end,
 }
 
-local function ts_parse_make_targets(parser, content, cwd)
+local function ts_parse_make_targets(parser, bufnr, cwd)
   local query = vim.treesitter.parse_query("make", make_targets)
   local root = parser:parse()[1]:root()
   pcall(vim.tbl_add_reverse_lookup, query.captures)
   local targets = {}
   local default_target
-  for _, match in query:iter_matches(root, content) do
-    local name = vim.treesitter.get_node_text(match[query.captures.name], content)
+  for _, match in query:iter_matches(root, bufnr) do
+    local name = vim.treesitter.get_node_text(match[query.captures.name], bufnr)
     targets[name] = true
     if not default_target and not match[query.captures.phony] then
       default_target = name
@@ -111,12 +110,13 @@ return {
   generator = function(opts, cb)
     local makefile = vim.fn.findfile("Makefile", opts.dir .. ";")
     local cwd = vim.fn.fnamemodify(makefile, ":h")
-    local content = files.read_file(makefile)
+    local bufnr = vim.fn.bufadd(makefile)
 
     local ret = { overseer.wrap_template(tmpl, nil, { cwd = cwd }) }
-    local ok, parser = pcall(vim.treesitter.get_string_parser, content, "make", {})
+    local ok, parser =
+      pcall(vim.treesitter.get_parser, bufnr, "make", { injections = { make = {} } })
     if ok then
-      vim.list_extend(ret, ts_parse_make_targets(parser, content, cwd))
+      vim.list_extend(ret, ts_parse_make_targets(parser, bufnr, cwd))
       cb(ret)
     else
       parse_make_output(cwd, ret, cb)
