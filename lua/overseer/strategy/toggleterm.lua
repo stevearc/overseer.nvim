@@ -42,7 +42,6 @@ function ToggleTermStrategy:start(task)
   local stdout_iter = util.get_stdout_line_iter()
 
   local function on_stdout(data)
-    log:debug("Provided output %s", data)
     task:dispatch("on_output", data)
     local lines = stdout_iter(data)
     if not vim.tbl_isempty(lines) then
@@ -66,19 +65,12 @@ function ToggleTermStrategy:start(task)
       if self.chan_id ~= j then
         return
       end
-      log:debug("Task %s exited with code %s", task.name, c)
       -- Feed one last line end to flush the output
       on_stdout({ "" })
       self.chan_id = nil
-      -- If we're exiting vim, don't call the on_exit handler
-      -- We manually kill processes during VimLeavePre cleanup, and we don't want to trigger user
-      -- code because of that
       if vim.v.exiting == vim.NIL then
         task:on_exit(c)
       end
-    end,
-    on_close = function(_)
-      log:debug("Closing terminal")
     end,
     auto_scroll = true,
     close_on_exit = false,
