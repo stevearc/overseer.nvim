@@ -6,15 +6,18 @@ local log = require("overseer.log")
 local tmpl = {
   priority = 60,
   params = {
-    args = { optional = true, type = "list", delimiter = " " },
+    subcmd = { optional = true },
+    args = { type = "list", delimiter = " ", default = {} },
   },
   builder = function(params)
     local cmd = { "mix" }
-    if params.args then
-      cmd = vim.list_extend(cmd, params.args)
+    local args = params.args or {}
+    if params.subcmd then
+      table.insert(args, 1, params.subcmd)
     end
     return {
       cmd = cmd,
+      args = args,
     }
   end,
 }
@@ -47,10 +50,11 @@ return {
             overseer.wrap_template(
               tmpl,
               { name = string.format("mix %s", task_name) },
-              { args = { task_name } }
+              { subcmd = task_name }
             )
           )
         end
+        table.insert(ret, overseer.wrap_template(tmpl, { name = "mix", priority = 65 }))
       end),
       on_exit = vim.schedule_wrap(function(j, output)
         cb(ret)
