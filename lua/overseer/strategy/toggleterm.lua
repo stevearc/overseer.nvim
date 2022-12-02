@@ -40,7 +40,12 @@ function ToggleTermStrategy:start(task)
     end
   end
 
-  local cmd = type(task.cmd) == "table" and unpack(task.cmd) or task.cmd
+
+  local cmd = task.cmd
+  if type(task.cmd) == "table" then
+    cmd = table.concat(vim.tbl_map(vim.fn.shellescape, task.cmd), " ")
+  end
+
   local term = terminal.Terminal:new({
     cmd = cmd,
     cwd = task.cwd,
