@@ -6,10 +6,21 @@ local terminal = require('toggleterm.terminal')
 local ToggleTermStrategy = {}
 
 ---@return overseer.Strategy
-function ToggleTermStrategy.new()
+function ToggleTermStrategy.new(opts)
+  opts = vim.tbl_extend("keep", opts or {}, {
+    use_shell = false,     -- load user shell before running task
+    direction = nil,       -- "vertical" | "horizontal" | "tab" | "float"
+    dir = nil,             -- open ToggleTerm at specified directory before task
+    highlights = nil,      -- map to a highlight group name and a table of it's values
+    auto_scroll = nil,     -- automatically scroll to the bottom on task output
+    close_on_exit = false, -- close the terminal (if open) after task exits
+    open_on_start = true,  -- toggle open the terminal automatically when task starts
+    hidden = false         -- cannot be toggled with normal ToggleTerm commands
+  })
   return setmetatable({
     bufnr = nil,
     chan_id = nil,
+    opts = opts
   }, { __index = ToggleTermStrategy })
 end
 
@@ -46,10 +57,29 @@ function ToggleTermStrategy:start(task)
     cmd = table.concat(vim.tbl_map(vim.fn.shellescape, task.cmd), " ")
   end
 
+  local passed_cmd
+  if self.opts.use_shell then
+    passed_cmd = nil
+  else
+    passed_cmd = cmd
+  end
+
   local term = terminal.Terminal:new({
-    cmd = cmd,
+    cmd = passed_cmd,
     cwd = task.cwd,
     env = task.env,
+    highlights = self.opts.highlights,
+    dir = self.opts.dir,
+    direction = self.opts.direction,
+    auto_scroll = self.opts.auto_scroll,
+    close_on_exit = self.opts.close_on_exit,
+    hidden = self.opts.hidden,
+    on_create = function(t)
+      if self.opts.use_shell then
+        t:send(cmd)
+        t:send("exit $?")
+      end
+    end,
     on_stdout = function(j, d)
       if self.chan_id ~= j then
         return
@@ -68,10 +98,13 @@ function ToggleTermStrategy:start(task)
         task:on_exit(c)
       end
     end,
-    auto_scroll = true,
-    close_on_exit = false,
-    hidden = false,
-  }):toggle()
+  })
+
+  if self.opts.open_on_start then
+    term:toggle()
+  else
+    term:spawn()
+  end
 
   chan_id = term.job_id
   self.bufnr = term.bufnr
