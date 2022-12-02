@@ -83,7 +83,7 @@ function Builder.new(title, schema, params, callback)
   end)
   for k, v in pairs(schema) do
     if params[k] == nil then
-      params[k] = v.default
+      params[k] = vim.deepcopy(v.default)
     end
   end
 
