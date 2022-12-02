@@ -1,18 +1,9 @@
-local log = require("overseer.log")
 local jobs = require("overseer.strategy._jobs")
 local util = require("overseer.util")
 
 local terminal = require('toggleterm.terminal')
 
 local ToggleTermStrategy = {}
-
-local function with_cr(...)
-  local result = {}
-  for _, str in ipairs({ ... }) do
-    table.insert(result, str .. " ")
-  end
-  return table.concat(result, "")
-end
 
 ---@return overseer.Strategy
 function ToggleTermStrategy.new()
@@ -49,7 +40,7 @@ function ToggleTermStrategy:start(task)
     end
   end
 
-  local cmd = type(task.cmd) == "table" and with_cr(unpack(task.cmd)) or with_cr(task.cmd)
+  local cmd = type(task.cmd) == "table" and unpack(task.cmd) or task.cmd
   local term = terminal.Terminal:new({
     cmd = cmd,
     cwd = task.cwd,
