@@ -116,7 +116,7 @@ function ToggleTermStrategy:start(task)
   elseif chan_id == -1 then
     error(string.format("Command '%s' not executable", vim.inspect(task.cmd)))
   else
-    jobs.unregister(chan_id)
+    jobs.register(chan_id)
     self.chan_id = chan_id
   end
 end
