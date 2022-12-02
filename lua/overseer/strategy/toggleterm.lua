@@ -1,26 +1,26 @@
 local jobs = require("overseer.strategy._jobs")
 local util = require("overseer.util")
 
-local terminal = require('toggleterm.terminal')
+local terminal = require("toggleterm.terminal")
 
 local ToggleTermStrategy = {}
 
 ---@return overseer.Strategy
 function ToggleTermStrategy.new(opts)
   opts = vim.tbl_extend("keep", opts or {}, {
-    use_shell = false,     -- load user shell before running task
-    direction = nil,       -- "vertical" | "horizontal" | "tab" | "float"
-    dir = nil,             -- open ToggleTerm at specified directory before task
-    highlights = nil,      -- map to a highlight group name and a table of it's values
-    auto_scroll = nil,     -- automatically scroll to the bottom on task output
+    use_shell = false, -- load user shell before running task
+    direction = nil, -- "vertical" | "horizontal" | "tab" | "float"
+    dir = nil, -- open ToggleTerm at specified directory before task
+    highlights = nil, -- map to a highlight group name and a table of it's values
+    auto_scroll = nil, -- automatically scroll to the bottom on task output
     close_on_exit = false, -- close the terminal (if open) after task exits
-    open_on_start = true,  -- toggle open the terminal automatically when task starts
-    hidden = false         -- cannot be toggled with normal ToggleTerm commands
+    open_on_start = true, -- toggle open the terminal automatically when task starts
+    hidden = false, -- cannot be toggled with normal ToggleTerm commands
   })
   return setmetatable({
     bufnr = nil,
     chan_id = nil,
-    opts = opts
+    opts = opts,
   }, { __index = ToggleTermStrategy })
 end
 
@@ -50,7 +50,6 @@ function ToggleTermStrategy:start(task)
       task:dispatch("on_output_lines", lines)
     end
   end
-
 
   local cmd = task.cmd
   if type(task.cmd) == "table" then
