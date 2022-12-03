@@ -8,9 +8,10 @@ CONTENTS                                                       *overseer-content
   3. Highlights..........................................|overseer-highlights|
   4. Api........................................................|overseer-api|
   5. Components..........................................|overseer-components|
-  6. Parsers................................................|overseer-parsers|
-  7. Parameters..............................................|overseer-params|
-  8. Actions................................................|overseer-actions|
+  6. Strategies..........................................|overseer-strategies|
+  7. Parsers................................................|overseer-parsers|
+  8. Parameters..............................................|overseer-params|
+  9. Actions................................................|overseer-actions|
 
 --------------------------------------------------------------------------------
 COMMANDS                                                       *overseer-commands*
@@ -775,6 +776,73 @@ unique                                                                    *uniqu
                 dependency, etc)
       {restart_interrupts} `boolean` When replace = false, should restarting the
                 existing task interrupt it (default `true`)
+
+--------------------------------------------------------------------------------
+STRATEGIES                                                   *overseer-strategies*
+
+terminal(): overseer.Strategy                                  *strategy.terminal*
+    Run tasks using termopen()
+
+
+toggleterm({opts}): overseer.Strategy                        *strategy.toggleterm*
+    Run tasks using the toggleterm plugin
+
+    Parameters:
+      {opts} `nil|table`
+          {use_shell}     `nil|boolean` load user shell before running task
+          {direction}     `nil|"vertical"|"horizontal"|"tab"|"float"`
+          {dir}           `nil|string` open ToggleTerm at specified directory
+                          before task
+          {highlights}    `nil|table` map to a highlight group name and a table
+                          of it's values
+          {auto_scroll}   `nil|boolean` automatically scroll to the bottom on
+                          task output
+          {close_on_exit} `nil|boolean` close the terminal (if open) after task
+                          exits
+          {open_on_start} `nil|boolean` toggle open the terminal automatically
+                          when task starts
+          {hidden}        `nil|boolean` cannot be toggled with normal ToggleTerm
+                          commands
+
+jobstart({opts}): overseer.Strategy                            *strategy.jobstart*
+    Run tasks using jobstart()
+
+    Parameters:
+      {opts} `nil|table`
+          {preserve_output} `boolean` If true, don't clear the buffer when tasks
+                            restart
+          {use_terminal}    `boolean` If false, use a normal non-terminal buffer
+                            to store the output. This may produce unwanted
+                            results if the task outputs terminal escape
+                            sequences.
+
+orchestrator({opts}): overseer.Strategy                    *strategy.orchestrator*
+    Strategy for a meta-task that manage a sequence of other tasks
+
+    Parameters:
+      {opts} `table`
+          {tasks} `table` A list of task definitions to run. Can include sub-
+                  lists that will be run in parallel
+
+    Examples: >
+      overseer.new_task({
+        name = "Build and serve app",
+        strategy = {
+          "orchestrator",
+          tasks = {
+            "make clean", -- Step 1: clean
+            {             -- Step 2: build js and css in parallel
+               "npm build",
+              { "shell", cmd = "lessc styles.less styles.css" },
+            },
+            "npm serve",  -- Step 3: serve
+          },
+        },
+      })
+<
+
+test(): overseer.Strategy                                          *strategy.test*
+    Strategy used for unit testing
 
 --------------------------------------------------------------------------------
 PARSERS                                                         *overseer-parsers*

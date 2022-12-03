@@ -7,6 +7,7 @@ from functools import lru_cache
 from typing import Any, Dict, Iterable, List, Optional, Tuple
 
 from nvim_doc_tools import (
+    LuaFunc,
     LuaParam,
     Vimdoc,
     VimdocSection,
@@ -327,7 +328,8 @@ def update_highlights_md():
     )
 
 
-def update_strategies_md():
+@lru_cache(maxsize=100)
+def get_strategy_funcs() -> List[LuaFunc]:
     strategy_dir = os.path.join(ROOT, "lua", "overseer", "strategy")
     new_funcs = []
     for fname in os.listdir(strategy_dir):
@@ -338,6 +340,11 @@ def update_strategies_md():
             if func.name.endswith(".new"):
                 func.name = os.path.splitext(fname)[0]
                 new_funcs.append(func)
+    return new_funcs
+
+
+def update_strategies_md():
+    new_funcs = get_strategy_funcs()
     lines = ["\n"] + render_md_api(new_funcs, level=2) + ["\n"]
     replace_section(
         os.path.join(DOC, "strategies.md"),
@@ -417,6 +424,13 @@ def get_components_vimdoc() -> "VimdocSection":
                 lua_params.append(LuaParam(name, typestr, desc))
             section.body.extend(format_vimdoc_params(lua_params, 6))
         section.body.append("\n")
+    return section
+
+
+def get_strategies_vimdoc() -> "VimdocSection":
+    section = VimdocSection("Strategies", "overseer-strategies", ["\n"])
+    new_funcs = get_strategy_funcs()
+    section.body += render_vimdoc_api("strategy", new_funcs)
     return section
 
 
@@ -517,6 +531,7 @@ def generate_vimdoc():
             get_highlights_vimdoc(),
             VimdocSection("API", "overseer-api", render_vimdoc_api("overseer", funcs)),
             get_components_vimdoc(),
+            get_strategies_vimdoc(),
             get_parsers_vimdoc(),
             convert_md_section(
                 os.path.join(DOC, "reference.md"),
