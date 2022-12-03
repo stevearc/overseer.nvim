@@ -41,6 +41,7 @@ A task runner and job management plugin for Neovim
   - [Highlight groups](doc/reference.md#highlight-groups)
   - [Lua API](doc/reference.md#lua-api)
   - [Components](doc/reference.md#components)
+  - [Strategies](doc/reference.md#strategies)
   - [Parsers](doc/reference.md#parsers)
   - [Parameters](doc/reference.md#parameters)
 - [Screenshots](#screenshots)
@@ -219,6 +220,7 @@ If you want to define custom tasks for your project, I'd recommend starting with
   - [load_template(name)](doc/reference.md#load_templatename)
   - [debug_parser()](doc/reference.md#debug_parser)
 - [Components](doc/reference.md#components)
+- [Strategies](doc/reference.md#strategies)
 - [Parsers](doc/reference.md#parsers)
 - [Parameters](doc/reference.md#parameters)
 

@@ -654,11 +654,16 @@ def update_reference_md():
     parser_section = read_section(
         os.path.join(DOC, "parsers.md"), "^## Parser nodes", None
     )
+    strategies_toc = add_md_link_path(
+        "strategies.md", generate_md_toc(os.path.join(DOC, "strategies.md"))
+    )
     parsers_toc = add_md_link_path("parsers.md", generate_md_toc(parser_section, 2))
     reference_doc = os.path.join(DOC, "reference.md")
     toc = ["\n"] + generate_md_toc(reference_doc) + ["\n"]
     idx = toc.index("- [Components](#components)\n")
     toc[idx + 1 : idx + 1] = ["  " + line for line in components_toc]
+    idx = toc.index("- [Strategies](#strategies)\n")
+    toc[idx + 1 : idx + 1] = ["  " + line for line in strategies_toc]
     idx = toc.index("- [Parsers](#parsers)\n")
     toc[idx + 1 : idx + 1] = ["  " + line for line in parsers_toc]
     replace_section(
@@ -672,6 +677,12 @@ def update_reference_md():
         r"^<!-- TOC.components -->$",
         r"^<!-- /TOC.components -->$",
         ["\n"] + components_toc + ["\n"],
+    )
+    replace_section(
+        reference_doc,
+        r"^<!-- TOC.strategies -->$",
+        r"^<!-- /TOC.strategies -->$",
+        ["\n"] + strategies_toc + ["\n"],
     )
     replace_section(
         reference_doc,
