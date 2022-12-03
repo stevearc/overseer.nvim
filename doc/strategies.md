@@ -5,6 +5,7 @@ The strategy is what controls how a task is actually run. The default, `terminal
 <!-- TOC -->
 
 - [terminal()](#terminal)
+- [toggleterm(opts)](#toggletermopts)
 - [jobstart(opts)](#jobstartopts)
 - [orchestrator(opts)](#orchestratoropts)
 - [test()](#test)
@@ -18,6 +19,23 @@ The strategy is what controls how a task is actually run. The default, `terminal
 `terminal(): overseer.Strategy` \
 Run tasks using termopen()
 
+
+## toggleterm(opts)
+
+`toggleterm(opts): overseer.Strategy` \
+Run tasks using the toggleterm plugin
+
+| Param | Type          | Desc                                            |                                                          |
+| ----- | ------------- | ----------------------------------------------- | -------------------------------------------------------- |
+| opts  | `nil\|table`  |                                                 |                                                          |
+|       | use_shell     | `nil\|boolean`                                  | load user shell before running task                      |
+|       | direction     | `nil\|"vertical"\|"horizontal"\|"tab"\|"float"` |                                                          |
+|       | dir           | `nil\|string`                                   | open ToggleTerm at specified directory before task       |
+|       | highlights    | `nil\|table`                                    | map to a highlight group name and a table of it's values |
+|       | auto_scroll   | `nil\|boolean`                                  | automatically scroll to the bottom on task output        |
+|       | close_on_exit | `nil\|boolean`                                  | close the terminal (if open) after task exits            |
+|       | open_on_start | `nil\|boolean`                                  | toggle open the terminal automatically when task starts  |
+|       | hidden        | `nil\|boolean`                                  | cannot be toggled with normal ToggleTerm commands        |
 
 ## jobstart(opts)
 

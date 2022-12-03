@@ -5,17 +5,27 @@ local terminal = require("toggleterm.terminal")
 
 local ToggleTermStrategy = {}
 
+---Run tasks using the toggleterm plugin
+---@param opts nil|table
+---    use_shell nil|boolean load user shell before running task
+---    direction nil|"vertical"|"horizontal"|"tab"|"float"
+---    dir nil|string open ToggleTerm at specified directory before task
+---    highlights nil|table map to a highlight group name and a table of it's values
+---    auto_scroll nil|boolean automatically scroll to the bottom on task output
+---    close_on_exit nil|boolean close the terminal (if open) after task exits
+---    open_on_start nil|boolean toggle open the terminal automatically when task starts
+---    hidden nil|boolean cannot be toggled with normal ToggleTerm commands
 ---@return overseer.Strategy
 function ToggleTermStrategy.new(opts)
   opts = vim.tbl_extend("keep", opts or {}, {
-    use_shell = false, -- load user shell before running task
-    direction = nil, -- "vertical" | "horizontal" | "tab" | "float"
-    dir = nil, -- open ToggleTerm at specified directory before task
-    highlights = nil, -- map to a highlight group name and a table of it's values
-    auto_scroll = nil, -- automatically scroll to the bottom on task output
-    close_on_exit = false, -- close the terminal (if open) after task exits
-    open_on_start = true, -- toggle open the terminal automatically when task starts
-    hidden = false, -- cannot be toggled with normal ToggleTerm commands
+    use_shell = false,
+    direction = nil,
+    dir = nil,
+    highlights = nil,
+    auto_scroll = nil,
+    close_on_exit = false,
+    open_on_start = true,
+    hidden = false,
   })
   return setmetatable({
     bufnr = nil,
@@ -57,9 +67,7 @@ function ToggleTermStrategy:start(task)
   end
 
   local passed_cmd
-  if self.opts.use_shell then
-    passed_cmd = nil
-  else
+  if not self.opts.use_shell then
     passed_cmd = cmd
   end
 
