@@ -2,8 +2,17 @@ local log = require("overseer.log")
 local jobs = require("overseer.strategy._jobs")
 local util = require("overseer.util")
 
+---@class overseer.JobstartStrategy : overseer.Strategy
+---@field bufnr integer
+---@field job_id nil|integer
+---@field term_id nil|integer
+---@field opts table
 local JobstartStrategy = {}
 
+---Run tasks using jobstart()
+---@param opts nil|table
+---    preserve_output boolean If true, don't clear the buffer when tasks restart
+---    use_terminal boolean If false, use a normal non-terminal buffer to store the output. This may produce unwanted results if the task outputs terminal escape sequences.
 ---@return overseer.Strategy
 function JobstartStrategy.new(opts)
   opts = vim.tbl_extend("keep", opts or {}, {

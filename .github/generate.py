@@ -4,7 +4,7 @@ import re
 import subprocess
 from collections import OrderedDict
 from functools import lru_cache
-from typing import Any, Dict, Iterable, List, Tuple
+from typing import Any, Dict, Iterable, List, Optional, Tuple
 
 from nvim_doc_tools import (
     LuaParam,
@@ -327,6 +327,26 @@ def update_highlights_md():
     )
 
 
+def update_strategies_md():
+    strategy_dir = os.path.join(ROOT, "lua", "overseer", "strategy")
+    new_funcs = []
+    for fname in os.listdir(strategy_dir):
+        if fname.startswith("_") or not fname.endswith(".lua") or fname == "init.lua":
+            continue
+        funcs = parse_functions(os.path.join(strategy_dir, fname))
+        for func in funcs:
+            if func.name.endswith(".new"):
+                func.name = os.path.splitext(fname)[0]
+                new_funcs.append(func)
+    lines = ["\n"] + render_md_api(new_funcs, level=2) + ["\n"]
+    replace_section(
+        os.path.join(DOC, "strategies.md"),
+        r"^<!-- API -->$",
+        r"^<!-- /API -->$",
+        lines,
+    )
+
+
 def get_commands_vimdoc() -> "VimdocSection":
     section = VimdocSection("Commands", "overseer-commands", ["\n"])
     commands = read_nvim_json('require("overseer").get_all_commands()')
@@ -477,7 +497,7 @@ def convert_markdown_to_vimdoc(lines: List[str]) -> List[str]:
 def convert_md_section(
     filename: str,
     start_pat: str,
-    end_pat: str,
+    end_pat: Optional[str],
     section_name: str,
     section_tag: str,
     inclusive: Tuple[bool, bool] = (False, False),
@@ -664,6 +684,8 @@ def update_reference_md():
 def main() -> None:
     """Update the README"""
     update_config_options()
+    update_strategies_md()
+    update_md_toc(os.path.join(DOC, "strategies.md"), 2)
     update_parsers_md()
     update_md_toc(os.path.join(DOC, "parsers.md"), 2)
     update_components_md()

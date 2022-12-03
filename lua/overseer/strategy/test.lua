@@ -1,7 +1,11 @@
 local util = require("overseer.util")
 
+---@class overseer.TestStrategy : overseer.Strategy
+---@field bufnr integer
+---@field task nil|overseer.Task
 local TestStrategy = {}
 
+---Strategy used for unit testing
 ---@return overseer.Strategy
 function TestStrategy.new()
   return setmetatable({
@@ -19,6 +23,7 @@ function TestStrategy:get_bufnr()
   return self.bufnr
 end
 
+---Simulate output from the task
 ---@param lines string|string[]
 function TestStrategy:send_output(lines)
   if type(lines) == "string" then
@@ -29,6 +34,7 @@ function TestStrategy:send_output(lines)
   self.task:dispatch("on_output_lines", lines)
 end
 
+---Simulate task exiting
 ---@param code nil|integer
 function TestStrategy:send_exit(code)
   -- Feed one last line end to flush the output

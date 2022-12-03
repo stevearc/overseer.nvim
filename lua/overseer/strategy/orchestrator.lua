@@ -20,13 +20,31 @@ local function for_each_task(tasks, cb)
   end
 end
 
----@class overseer.OrchestratorStrategy
+---@class overseer.OrchestratorStrategy : overseer.Strategy
 ---@field bufnr integer
 ---@field task_defns overseer.Serialized[][]
 ---@field tasks integer[][]
 local OrchestratorStrategy = {}
 
+---Strategy for a meta-task that manage a sequence of other tasks
+---@param opts table
+---    tasks table A list of task definitions to run. Can include sub-lists that will be run in parallel
 ---@return overseer.Strategy
+---@example
+--- overseer.new_task({
+---   name = "Build and serve app",
+---   strategy = {
+---     "orchestrator",
+---     tasks = {
+---       "make clean", -- Step 1: clean
+---       {             -- Step 2: build js and css in parallel
+---          "npm build",
+---         { "shell", cmd = "lessc styles.less styles.css" },
+---       },
+---       "npm serve",  -- Step 3: serve
+---     },
+---   },
+--- })
 function OrchestratorStrategy.new(opts)
   vim.validate({
     opts = { opts, "t" },
@@ -112,7 +130,7 @@ end
 function OrchestratorStrategy:reset()
   self.task = nil
   for_each_task(self.tasks, function(task)
-    task:reset(false)
+    task:reset()
   end)
 end
 
