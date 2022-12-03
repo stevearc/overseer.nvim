@@ -45,6 +45,7 @@ overseer-highlights	overseer.txt	/*overseer-highlights*
 overseer-options	overseer.txt	/*overseer-options*
 overseer-params	overseer.txt	/*overseer-params*
 overseer-parsers	overseer.txt	/*overseer-parsers*
+overseer-strategies	overseer.txt	/*overseer-strategies*
 overseer.add_template_hook	overseer.txt	/*overseer.add_template_hook*
 overseer.clear_task_cache	overseer.txt	/*overseer.clear_task_cache*
 overseer.close	overseer.txt	/*overseer.close*
@@ -87,6 +88,11 @@ parser.skip_until	overseer.txt	/*parser.skip_until*
 parser.test	overseer.txt	/*parser.test*
 restart_on_save	overseer.txt	/*restart_on_save*
 run_after	overseer.txt	/*run_after*
+strategy.jobstart	overseer.txt	/*strategy.jobstart*
+strategy.orchestrator	overseer.txt	/*strategy.orchestrator*
+strategy.terminal	overseer.txt	/*strategy.terminal*
+strategy.test	overseer.txt	/*strategy.test*
+strategy.toggleterm	overseer.txt	/*strategy.toggleterm*
 timeout	overseer.txt	/*timeout*
 unique	overseer.txt	/*unique*
 without	overseer.txt	/*without*

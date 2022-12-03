@@ -4,21 +4,15 @@ The strategy is what controls how a task is actually run. The default, `terminal
 
 <!-- TOC -->
 
-- [terminal()](#terminal)
 - [toggleterm(opts)](#toggletermopts)
-- [jobstart(opts)](#jobstartopts)
 - [orchestrator(opts)](#orchestratoropts)
 - [test()](#test)
+- [jobstart(opts)](#jobstartopts)
+- [terminal()](#terminal)
 
 <!-- /TOC -->
 
 <!-- API -->
-
-## terminal()
-
-`terminal(): overseer.Strategy` \
-Run tasks using termopen()
-
 
 ## toggleterm(opts)
 
@@ -36,17 +30,6 @@ Run tasks using the toggleterm plugin
 |       | close_on_exit | `nil\|boolean`                                  | close the terminal (if open) after task exits            |
 |       | open_on_start | `nil\|boolean`                                  | toggle open the terminal automatically when task starts  |
 |       | hidden        | `nil\|boolean`                                  | cannot be toggled with normal ToggleTerm commands        |
-
-## jobstart(opts)
-
-`jobstart(opts): overseer.Strategy` \
-Run tasks using jobstart()
-
-| Param | Type            | Desc      |                                                                                                                                                  |
-| ----- | --------------- | --------- | ------------------------------------------------------------------------------------------------------------------------------------------------ |
-| opts  | `nil\|table`    |           |                                                                                                                                                  |
-|       | preserve_output | `boolean` | If true, don't clear the buffer when tasks restart                                                                                               |
-|       | use_terminal    | `boolean` | If false, use a normal non-terminal buffer to store the output. This may produce unwanted results if the task outputs terminal escape sequences. |
 
 ## orchestrator(opts)
 
@@ -80,6 +63,23 @@ overseer.new_task({
 
 `test(): overseer.Strategy` \
 Strategy used for unit testing
+
+
+## jobstart(opts)
+
+`jobstart(opts): overseer.Strategy` \
+Run tasks using jobstart()
+
+| Param | Type            | Desc      |                                                                                                                                                  |
+| ----- | --------------- | --------- | ------------------------------------------------------------------------------------------------------------------------------------------------ |
+| opts  | `nil\|table`    |           |                                                                                                                                                  |
+|       | preserve_output | `boolean` | If true, don't clear the buffer when tasks restart                                                                                               |
+|       | use_terminal    | `boolean` | If false, use a normal non-terminal buffer to store the output. This may produce unwanted results if the task outputs terminal escape sequences. |
+
+## terminal()
+
+`terminal(): overseer.Strategy` \
+Run tasks using termopen()
 
 
 

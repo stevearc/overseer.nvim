@@ -780,10 +780,6 @@ unique                                                                    *uniqu
 --------------------------------------------------------------------------------
 STRATEGIES                                                   *overseer-strategies*
 
-terminal(): overseer.Strategy                                  *strategy.terminal*
-    Run tasks using termopen()
-
-
 toggleterm({opts}): overseer.Strategy                        *strategy.toggleterm*
     Run tasks using the toggleterm plugin
 
@@ -803,18 +799,6 @@ toggleterm({opts}): overseer.Strategy                        *strategy.toggleter
                           when task starts
           {hidden}        `nil|boolean` cannot be toggled with normal ToggleTerm
                           commands
-
-jobstart({opts}): overseer.Strategy                            *strategy.jobstart*
-    Run tasks using jobstart()
-
-    Parameters:
-      {opts} `nil|table`
-          {preserve_output} `boolean` If true, don't clear the buffer when tasks
-                            restart
-          {use_terminal}    `boolean` If false, use a normal non-terminal buffer
-                            to store the output. This may produce unwanted
-                            results if the task outputs terminal escape
-                            sequences.
 
 orchestrator({opts}): overseer.Strategy                    *strategy.orchestrator*
     Strategy for a meta-task that manage a sequence of other tasks
@@ -843,6 +827,22 @@ orchestrator({opts}): overseer.Strategy                    *strategy.orchestrato
 
 test(): overseer.Strategy                                          *strategy.test*
     Strategy used for unit testing
+
+
+jobstart({opts}): overseer.Strategy                            *strategy.jobstart*
+    Run tasks using jobstart()
+
+    Parameters:
+      {opts} `nil|table`
+          {preserve_output} `boolean` If true, don't clear the buffer when tasks
+                            restart
+          {use_terminal}    `boolean` If false, use a normal non-terminal buffer
+                            to store the output. This may produce unwanted
+                            results if the task outputs terminal escape
+                            sequences.
+
+terminal(): overseer.Strategy                                  *strategy.terminal*
+    Run tasks using termopen()
 
 --------------------------------------------------------------------------------
 PARSERS                                                         *overseer-parsers*
