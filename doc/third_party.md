@@ -134,6 +134,8 @@ require('overseer').setup({
 })
 ```
 
+More documentation on this strategy can be found [here](strategies.md#toggletermopts).
+
 ## Session managers
 
 ### resession.nvim
