@@ -4,32 +4,26 @@ The strategy is what controls how a task is actually run. The default, `terminal
 
 <!-- TOC -->
 
-- [toggleterm(opts)](#toggletermopts)
-- [orchestrator(opts)](#orchestratoropts)
-- [test()](#test)
 - [jobstart(opts)](#jobstartopts)
+- [orchestrator(opts)](#orchestratoropts)
 - [terminal()](#terminal)
+- [test()](#test)
+- [toggleterm(opts)](#toggletermopts)
 
 <!-- /TOC -->
 
 <!-- API -->
 
-## toggleterm(opts)
+## jobstart(opts)
 
-`toggleterm(opts): overseer.Strategy` \
-Run tasks using the toggleterm plugin
+`jobstart(opts): overseer.Strategy` \
+Run tasks using jobstart()
 
-| Param | Type          | Desc                                            |                                                          |
-| ----- | ------------- | ----------------------------------------------- | -------------------------------------------------------- |
-| opts  | `nil\|table`  |                                                 |                                                          |
-|       | use_shell     | `nil\|boolean`                                  | load user shell before running task                      |
-|       | direction     | `nil\|"vertical"\|"horizontal"\|"tab"\|"float"` |                                                          |
-|       | dir           | `nil\|string`                                   | open ToggleTerm at specified directory before task       |
-|       | highlights    | `nil\|table`                                    | map to a highlight group name and a table of it's values |
-|       | auto_scroll   | `nil\|boolean`                                  | automatically scroll to the bottom on task output        |
-|       | close_on_exit | `nil\|boolean`                                  | close the terminal (if open) after task exits            |
-|       | open_on_start | `nil\|boolean`                                  | toggle open the terminal automatically when task starts  |
-|       | hidden        | `nil\|boolean`                                  | cannot be toggled with normal ToggleTerm commands        |
+| Param | Type            | Desc      |                                                                                                                                                  |
+| ----- | --------------- | --------- | ------------------------------------------------------------------------------------------------------------------------------------------------ |
+| opts  | `nil\|table`    |           |                                                                                                                                                  |
+|       | preserve_output | `boolean` | If true, don't clear the buffer when tasks restart                                                                                               |
+|       | use_terminal    | `boolean` | If false, use a normal non-terminal buffer to store the output. This may produce unwanted results if the task outputs terminal escape sequences. |
 
 ## orchestrator(opts)
 
@@ -59,28 +53,34 @@ overseer.new_task({
 })
 ```
 
+## terminal()
+
+`terminal(): overseer.Strategy` \
+Run tasks using termopen()
+
+
 ## test()
 
 `test(): overseer.Strategy` \
 Strategy used for unit testing
 
 
-## jobstart(opts)
+## toggleterm(opts)
 
-`jobstart(opts): overseer.Strategy` \
-Run tasks using jobstart()
+`toggleterm(opts): overseer.Strategy` \
+Run tasks using the toggleterm plugin
 
-| Param | Type            | Desc      |                                                                                                                                                  |
-| ----- | --------------- | --------- | ------------------------------------------------------------------------------------------------------------------------------------------------ |
-| opts  | `nil\|table`    |           |                                                                                                                                                  |
-|       | preserve_output | `boolean` | If true, don't clear the buffer when tasks restart                                                                                               |
-|       | use_terminal    | `boolean` | If false, use a normal non-terminal buffer to store the output. This may produce unwanted results if the task outputs terminal escape sequences. |
-
-## terminal()
-
-`terminal(): overseer.Strategy` \
-Run tasks using termopen()
-
+| Param | Type          | Desc                                            |                                                          |
+| ----- | ------------- | ----------------------------------------------- | -------------------------------------------------------- |
+| opts  | `nil\|table`  |                                                 |                                                          |
+|       | use_shell     | `nil\|boolean`                                  | load user shell before running task                      |
+|       | direction     | `nil\|"vertical"\|"horizontal"\|"tab"\|"float"` |                                                          |
+|       | dir           | `nil\|string`                                   | open ToggleTerm at specified directory before task       |
+|       | highlights    | `nil\|table`                                    | map to a highlight group name and a table of it's values |
+|       | auto_scroll   | `nil\|boolean`                                  | automatically scroll to the bottom on task output        |
+|       | close_on_exit | `nil\|boolean`                                  | close the terminal (if open) after task exits            |
+|       | open_on_start | `nil\|boolean`                                  | toggle open the terminal automatically when task starts  |
+|       | hidden        | `nil\|boolean`                                  | cannot be toggled with normal ToggleTerm commands        |
 
 
 <!-- /API -->

@@ -46,11 +46,11 @@
   - [timeout](components.md#timeout)
   - [unique](components.md#unique)
 - [Strategies](#strategies)
-  - [toggleterm(opts)](strategies.md#toggletermopts)
-  - [orchestrator(opts)](strategies.md#orchestratoropts)
-  - [test()](strategies.md#test)
   - [jobstart(opts)](strategies.md#jobstartopts)
+  - [orchestrator(opts)](strategies.md#orchestratoropts)
   - [terminal()](strategies.md#terminal)
+  - [test()](strategies.md#test)
+  - [toggleterm(opts)](strategies.md#toggletermopts)
 - [Parsers](#parsers)
     - [always](parsers.md#always)
     - [append](parsers.md#append)
@@ -703,11 +703,11 @@ Open a tab with windows laid out for debugging a parser
 
 <!-- TOC.strategies -->
 
-- [toggleterm(opts)](strategies.md#toggletermopts)
-- [orchestrator(opts)](strategies.md#orchestratoropts)
-- [test()](strategies.md#test)
 - [jobstart(opts)](strategies.md#jobstartopts)
+- [orchestrator(opts)](strategies.md#orchestratoropts)
 - [terminal()](strategies.md#terminal)
+- [test()](strategies.md#test)
+- [toggleterm(opts)](strategies.md#toggletermopts)
 
 <!-- /TOC.strategies -->
 

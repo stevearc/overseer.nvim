@@ -332,7 +332,7 @@ def update_highlights_md():
 def get_strategy_funcs() -> List[LuaFunc]:
     strategy_dir = os.path.join(ROOT, "lua", "overseer", "strategy")
     new_funcs = []
-    for fname in os.listdir(strategy_dir):
+    for fname in sorted(os.listdir(strategy_dir)):
         if fname.startswith("_") or not fname.endswith(".lua") or fname == "init.lua":
             continue
         funcs = parse_functions(os.path.join(strategy_dir, fname))

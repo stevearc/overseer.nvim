@@ -780,25 +780,17 @@ unique                                                                    *uniqu
 --------------------------------------------------------------------------------
 STRATEGIES                                                   *overseer-strategies*
 
-toggleterm({opts}): overseer.Strategy                        *strategy.toggleterm*
-    Run tasks using the toggleterm plugin
+jobstart({opts}): overseer.Strategy                            *strategy.jobstart*
+    Run tasks using jobstart()
 
     Parameters:
       {opts} `nil|table`
-          {use_shell}     `nil|boolean` load user shell before running task
-          {direction}     `nil|"vertical"|"horizontal"|"tab"|"float"`
-          {dir}           `nil|string` open ToggleTerm at specified directory
-                          before task
-          {highlights}    `nil|table` map to a highlight group name and a table
-                          of it's values
-          {auto_scroll}   `nil|boolean` automatically scroll to the bottom on
-                          task output
-          {close_on_exit} `nil|boolean` close the terminal (if open) after task
-                          exits
-          {open_on_start} `nil|boolean` toggle open the terminal automatically
-                          when task starts
-          {hidden}        `nil|boolean` cannot be toggled with normal ToggleTerm
-                          commands
+          {preserve_output} `boolean` If true, don't clear the buffer when tasks
+                            restart
+          {use_terminal}    `boolean` If false, use a normal non-terminal buffer
+                            to store the output. This may produce unwanted
+                            results if the task outputs terminal escape
+                            sequences.
 
 orchestrator({opts}): overseer.Strategy                    *strategy.orchestrator*
     Strategy for a meta-task that manage a sequence of other tasks
@@ -825,24 +817,33 @@ orchestrator({opts}): overseer.Strategy                    *strategy.orchestrato
       })
 <
 
+terminal(): overseer.Strategy                                  *strategy.terminal*
+    Run tasks using termopen()
+
+
 test(): overseer.Strategy                                          *strategy.test*
     Strategy used for unit testing
 
 
-jobstart({opts}): overseer.Strategy                            *strategy.jobstart*
-    Run tasks using jobstart()
+toggleterm({opts}): overseer.Strategy                        *strategy.toggleterm*
+    Run tasks using the toggleterm plugin
 
     Parameters:
       {opts} `nil|table`
-          {preserve_output} `boolean` If true, don't clear the buffer when tasks
-                            restart
-          {use_terminal}    `boolean` If false, use a normal non-terminal buffer
-                            to store the output. This may produce unwanted
-                            results if the task outputs terminal escape
-                            sequences.
-
-terminal(): overseer.Strategy                                  *strategy.terminal*
-    Run tasks using termopen()
+          {use_shell}     `nil|boolean` load user shell before running task
+          {direction}     `nil|"vertical"|"horizontal"|"tab"|"float"`
+          {dir}           `nil|string` open ToggleTerm at specified directory
+                          before task
+          {highlights}    `nil|table` map to a highlight group name and a table
+                          of it's values
+          {auto_scroll}   `nil|boolean` automatically scroll to the bottom on
+                          task output
+          {close_on_exit} `nil|boolean` close the terminal (if open) after task
+                          exits
+          {open_on_start} `nil|boolean` toggle open the terminal automatically
+                          when task starts
+          {hidden}        `nil|boolean` cannot be toggled with normal ToggleTerm
+                          commands
 
 --------------------------------------------------------------------------------
 PARSERS                                                         *overseer-parsers*
