@@ -29,6 +29,7 @@ A task runner and job management plugin for Neovim
   - [Lualine](doc/third_party.md#lualine)
   - [Neotest](doc/third_party.md#neotest)
   - [DAP](doc/third_party.md#dap)
+  - [ToggleTerm](doc/third_party.md#toggleterm)
   - [Session managers](doc/third_party.md#session-managers)
 - [Recipes](#recipes)
   - [Restart last task](doc/recipes.md#restart-last-task)

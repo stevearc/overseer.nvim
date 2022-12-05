@@ -97,6 +97,45 @@ require('overseer').setup({
 
 If you have both overseer and [nvim-dap](https://github.com/mfussenegger/nvim-dap) installed, overseer will automatically run the `preLaunchTask` and `postDebugTask` when present in a debug configuration.
 
+## ToggleTerm
+
+If you use [toggleterm](https://github.com/akinsho/toggleterm.nvim), you can use the built-in "toggleterm" strategy to allow your tasks to be in a terminal buffer owned by toggleterm. You can use your existing toggleterm keybinds to pull up long-running tasks started with overseer. You can set it up with defaults using:
+
+```lua
+require('overseer').setup({
+  strategy = "toggleterm",
+})
+```
+
+You can also configure the behavior a bit more:
+
+```lua
+require('overseer').setup({
+  strategy = {
+    "toggleterm",
+    -- load your default shell before starting the task
+    use_shell = false,
+    -- overwrite the default toggleterm "direction" parameter
+    direction = nil,
+    -- overwrite the default toggleterm "dir" parameter
+    dir = nil,
+    -- overwrite the default toggleterm "highlights" parameter
+    highlights = nil,
+    -- overwrite the default toggleterm "auto_scroll" parameter
+    auto_scroll = nil,
+    -- have the toggleterm window close automatically after the task exits
+    close_on_exit = false,
+    -- open the toggleterm window when a task starts
+    open_on_start = true,
+    -- mirrors the toggleterm "hidden" parameter, and keeps the task from
+    -- being rendered in the toggleable window
+    hidden = false,
+  }
+})
+```
+
+More documentation on this strategy can be found [here](strategies.md#toggletermopts).
+
 ## Session managers
 
 ### resession.nvim
