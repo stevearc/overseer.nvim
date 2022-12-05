@@ -182,6 +182,7 @@ If you want to define custom tasks for your project, I'd recommend starting with
 - [Lualine](doc/third_party.md#lualine)
 - [Neotest](doc/third_party.md#neotest)
 - [DAP](doc/third_party.md#dap)
+- [ToggleTerm](doc/third_party.md#toggleterm)
 - [Session managers](doc/third_party.md#session-managers)
   - [resession.nvim](doc/third_party.md#resessionnvim)
   - [Other session managers](doc/third_party.md#other-session-managers)

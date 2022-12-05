@@ -5,6 +5,7 @@
 - [Lualine](#lualine)
 - [Neotest](#neotest)
 - [DAP](#dap)
+- [ToggleTerm](#toggleterm)
 - [Session managers](#session-managers)
   - [resession.nvim](#resessionnvim)
   - [Other session managers](#other-session-managers)
