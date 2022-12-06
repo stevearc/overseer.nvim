@@ -1,4 +1,5 @@
 local files = require("overseer.files")
+local log = require("overseer.log")
 local M = {}
 
 M.get_selected_text = function()
@@ -47,8 +48,7 @@ M.replace_vars = function(str, params)
     end
     return ret
   end
-  return str:gsub("%${%a+:?%a*}", function(match)
-    local name = match:sub(3, string.len(match) - 1)
+  return str:gsub("%${([^}:]+):?([^}]*)}", function(name, arg)
     -- TODO does not support ${workspacefolder:VALUE}
     -- TODO does not support ${config:VALUE}
     -- TODO does not support ${command:VALUE}
@@ -87,12 +87,19 @@ M.replace_vars = function(str, params)
       return "BUILD"
     elseif name == "pathSeparator" then
       return files.sep
-    elseif name:match("^env:") then
-      return os.getenv(name:sub(5))
-    elseif name:match("^input:") then
-      return params[name:sub(7)]
+    elseif name == "env" then
+      return os.getenv(arg)
+    elseif name == "input" then
+      return params[arg]
     else
-      return match
+      local fullname
+      if arg ~= "" then
+        fullname = string.format("${%s:%s}", name, arg)
+      else
+        fullname = string.format("${%s}", name)
+      end
+      log:warn("Unsupported VS Code variable: %s", fullname)
+      return fullname
     end
   end)
 end

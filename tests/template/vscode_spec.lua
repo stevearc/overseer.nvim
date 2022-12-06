@@ -59,17 +59,17 @@ describe("vscode", function()
       label = "task",
       type = "shell",
       command = "echo",
-      args = { "${input:word}" },
+      args = { "${input:a_word}" },
       inputs = {
         {
-          id = "word",
+          id = "a_word",
           type = "pickString",
           desc = "A word",
           options = { "first", "second" },
         },
       },
     })
-    local task = tmpl.builder({ word = "hello" })
+    local task = tmpl.builder({ a_word = "hello" })
     assert.equals("echo 'hello'", task.cmd)
   end)
 
