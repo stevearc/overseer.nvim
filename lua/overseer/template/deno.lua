@@ -1,19 +1,17 @@
-local files    = require('overseer.files')
-local overseer = require('overseer')
+local files = require("overseer.files")
+local overseer = require("overseer")
 
 ---@type overseer.TemplateDefinition
 local tmpl = {
   priority = 60,
   params = {
-    args = { optional = true, type = "list", delimiter = " " },
+    args = { type = "list", delimiter = " " },
     cwd = { optional = true },
   },
   builder = function(params)
     local cmd = { "deno" }
-    if params.args then
-      cmd = vim.list_extend(cmd, params.args)
-    end
     return {
+      args = params.args,
       cmd = cmd,
       cwd = params.cwd,
     }
@@ -21,12 +19,14 @@ local tmpl = {
 }
 
 local function get_deno_file(opts)
-  local deno_json = { 'deno.json', "deno.jsonc" }
+  local deno_json = { "deno.json", "deno.jsonc" }
   local filename = ""
   for i = 1, #deno_json do
     local results = vim.fn.findfile(deno_json[i], opts.dir .. ";")
-    if results ~= "" then filename = results break end
-
+    if results ~= "" then
+      filename = results
+      break
+    end
   end
   if filename ~= "" then
     filename = vim.fn.fnamemodify(filename, ":p")
@@ -41,7 +41,7 @@ return {
   condition = {
     callback = function(opts)
       if vim.fn.executable("deno") == 0 then
-        return false, 'executable deno not found'
+        return false, "executable deno not found"
       end
       if get_deno_file(opts) == "" then
         return false, "No deno.{json,jsonc} file found"
@@ -51,7 +51,6 @@ return {
   },
   generator = function(opts, cb)
     local package = get_deno_file(opts)
-    local bin = "deno"
     local data = files.load_json_file(package)
     local ret = {}
     local tasks = data.tasks
@@ -61,13 +60,13 @@ return {
           ret,
           overseer.wrap_template(
             tmpl,
-            { name = string.format("%s %s", bin, k) },
+            { name = string.format("deno %s", k) },
             { args = { "task", k } }
           )
         )
       end
     end
-    table.insert(ret, overseer.wrap_template(tmpl, { name = bin }))
+    table.insert(ret, overseer.wrap_template(tmpl, { name = "deno" }))
     cb(ret)
   end,
 }
