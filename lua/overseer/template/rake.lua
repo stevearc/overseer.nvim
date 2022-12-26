@@ -53,9 +53,7 @@ return {
             builder = function(parms)
               local param_vals = {}
               for _, param_name in ipairs(task.param_names) do
-                if parms[param_name] ~= nil then
-                  table.insert(param_vals, parms[param_name])
-                end
+                table.insert(param_vals, parms[param_name])
               end
               local p = ""
               if #param_vals > 0 then
