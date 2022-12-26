@@ -34,11 +34,11 @@ return {
             end
             if task_name ~= nil then
               local param_names = {}
-              local args = { subcmd = { type = "string", default = task_name } }
+              local args = {}
               if params ~= nil then
                 for token in string.gmatch(params, "[^,%[%]]+") do
                   table.insert(param_names, token)
-                  args[token] = { type = "string", optional = true }
+                  args[token] = { type = "string", default = "" }
                 end
               end
               table.insert(tasks, { task_name = task_name, args = args, param_names = param_names })
