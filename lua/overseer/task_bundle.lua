@@ -140,10 +140,12 @@ M.save_task_bundle = function(name, tasks, opts)
         return task:serialize()
       end, task_list.list_tasks(config.bundles.save_task_opts))
     end
-    if vim.tbl_isempty(serialized) then
+    local filepath = files.join(get_bundle_dir(), filename)
+    -- If we're not saving any tasks, don't bother saving anything unless the bundle file already
+    -- exists; then we might need to save over it.
+    if vim.tbl_isempty(serialized) and not files.exists(filepath) then
       return
     end
-    local filepath = files.join(get_bundle_dir(), filename)
 
     local function append_to_file()
       local data = files.load_json_file(files.join(get_bundle_dir(), filename))
