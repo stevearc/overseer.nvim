@@ -92,6 +92,8 @@ M.render_value = function(schema, value)
       table.insert(rendered_values, M.render_value(schema.subtype or {}, v))
     end
     return table.concat(rendered_values, schema.delimiter or ", ")
+  elseif type(value) == "boolean" then
+    return value and "[x]" or "[ ]"
   end
   return value
 end
@@ -206,9 +208,9 @@ M.parse_value = function(schema, value)
       return true, math.floor(num)
     end
   elseif schema.type == "boolean" then
-    if string.match(value, "^ye?s?") or string.match(value, "^tr?u?e?") then
+    if value:match("^ye?s?") or value:match("^tr?u?e?") or value:match("^%[%S%]") then
       return true, true
-    elseif string.match(value, "^no?") or string.match(value, "^fa?l?s?e?") then
+    elseif value:match("^no?") or value:match("^fa?l?s?e?") or value:match("^%[%s*%]") then
       return true, false
     end
   end
