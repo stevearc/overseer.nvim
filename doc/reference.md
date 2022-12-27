@@ -746,6 +746,7 @@ local params = {
     -- Optional fields that are available on any type
     name = "More readable name",
     desc = "A detailed description",
+    order = 1, -- determines order of parameters in the UI
     validate = function(value)
       return true,
     end,

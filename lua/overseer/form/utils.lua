@@ -10,6 +10,7 @@ local M = {}
 ---@field name? string
 ---@field desc? string
 ---@field long_desc? string
+---@field order? integer
 ---@field validate? fun(value: any): boolean
 ---@field optional? boolean
 

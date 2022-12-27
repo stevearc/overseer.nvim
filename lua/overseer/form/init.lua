@@ -69,6 +69,15 @@ function Builder.new(title, schema, params, callback)
   table.sort(keys, function(a, b)
     local aparam = schema[a]
     local bparam = schema[b]
+    if aparam.order then
+      if not bparam.order then
+        return true
+      elseif aparam.order ~= bparam.order then
+        return aparam.order < bparam.order
+      end
+    elseif bparam.order then
+      return false
+    end
     if (aparam.optional == true) ~= (bparam.optional == true) then
       return bparam.optional
     end

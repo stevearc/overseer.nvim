@@ -2,16 +2,17 @@
 local tmpl = {
   name = "shell",
   params = {
-    cmd = { type = "string" },
+    cmd = { type = "string", order = 1 },
+    name = { type = "string", optional = true, order = 2 },
+    cwd = { type = "string", optional = true, order = 4 },
     env = { type = "opaque", optional = true },
-    cwd = { type = "string", optional = true },
-    name = { type = "string", optional = true },
     metadata = { type = "opaque", optional = true },
     expand_cmd = {
       desc = "Run expandcmd() on command before execution",
       type = "boolean",
       default = true,
       optional = true,
+      order = 3,
     },
   },
   builder = function(params)
