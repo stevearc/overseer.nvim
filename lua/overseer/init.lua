@@ -475,6 +475,7 @@ M.wrap_template = function(base, override, default_params)
     override.params = vim.deepcopy(base.params)
     for k, v in pairs(default_params) do
       override.params[k].default = v
+      override.params[k].optional = true
     end
   end
   return setmetatable(override, { __index = base })
