@@ -36,9 +36,11 @@ return {
               local param_names = {}
               local args = {}
               if params ~= nil then
+                local idx = 1
                 for token in string.gmatch(params, "[^,%[%]]+") do
                   table.insert(param_names, token)
-                  args[token] = { type = "string", default = "" }
+                  args[token] = { type = "string", default = "", order = idx }
+                  idx = idx + 1
                 end
               end
               table.insert(tasks, { task_name = task_name, args = args, param_names = param_names })
