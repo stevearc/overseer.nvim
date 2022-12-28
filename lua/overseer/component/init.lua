@@ -313,6 +313,8 @@ local function simplify_param(param)
     default = param.default,
     type = param.type or "string",
     subtype = param.subtype and simplify_param(param.subtype),
+    deprecated = param.deprecated,
+    choices = param.choices,
   }
 end
 

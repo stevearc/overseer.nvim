@@ -62,11 +62,11 @@ After task is completed, dispose it after a timeout
 
 vim.notify when task is completed
 
-| Param     | Type         | Default                  | Desc                                                     |
-| --------- | ------------ | ------------------------ | -------------------------------------------------------- |
-| on_change | `boolean`    | `false`                  | Only notify when task status changes from previous value |
-| statuses  | `list[enum]` | `["FAILURE", "SUCCESS"]` | List of statuses to notify on                            |
-| system    | `enum`       | `"never"`                | When to send a system notification                       |
+| Param     | Type         | Default                  | Desc                                                                |
+| --------- | ------------ | ------------------------ | ------------------------------------------------------------------- |
+| on_change | `boolean`    | `false`                  | Only notify when task status changes from previous value            |
+| statuses  | `list[enum]` | `["FAILURE", "SUCCESS"]` | List of statuses to notify on                                       |
+| system    | `enum`       | `"never"`                | When to send a system notification (`"always"|"never"|"unfocused"`) |
 
 - **on_change:** This is mostly used when a task is going to be restarted, and you want notifications only when it goes from SUCCESS to FAILURE, or vice-versa
 
@@ -180,7 +180,7 @@ Normally you will want to use on_complete_notify. If you have a long-running wat
 | ----------------------------- | --------- | --------- | ----------------------------------------------------------------------------- |
 | infer_status_from_diagnostics | `boolean` | `true`    | Notification level will be error/info depending on if diagnostics are present |
 | on_change                     | `boolean` | `true`    | Only notify when status changes from previous value                           |
-| system                        | `enum`    | `"never"` | When to send a system notification                                            |
+| system                        | `enum`    | `"never"` | When to send a system notification (`"always"|"never"|"unfocused"`)           |
 
 - **on_change:** This only works when infer_status_from_diagnostics = true
 
@@ -193,10 +193,8 @@ Restart on any buffer :write
 | Param     | Type           | Default     | Desc                                                                      |
 | --------- | -------------- | ----------- | ------------------------------------------------------------------------- |
 | delay     | `number`       | `500`       | How long to wait (in ms) before triggering restart                        |
-| dir       | `string`       |             | DEPRECATED: use 'path' instead                                            |
 | interrupt | `boolean`      | `true`      | Interrupt running tasks                                                   |
-| mode      | `enum`         | `"autocmd"` | How to watch the paths                                                    |
-| path      | `string`       |             | DEPRECATED: use 'paths' instead                                           |
+| mode      | `enum`         | `"autocmd"` | How to watch the paths (`"autocmd"|"uv"`)                                 |
 | paths     | `list[string]` |             | Only restart when writing files in these paths (can be directory or file) |
 
 - **mode:** 'autocmd' will set autocmds on BufWritePost. 'uv' will use a libuv file watcher (recursive watching may not be supported on all platforms).

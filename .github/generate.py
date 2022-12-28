@@ -87,6 +87,8 @@ def update_components_md():
             rows = []
             has_default = False
             for k, param in sorted(comp["params"].items(), key=params_sort_key):
+                if param.get('deprecated'):
+                    continue
                 typestr = param["type"]
                 if "subtype" in param:
                     typestr += "[" + str(param["subtype"]["type"]) + "]"
@@ -96,6 +98,8 @@ def update_components_md():
                     "Type": f"`{typestr}`",
                     "Desc": param.get("desc", ""),
                 }
+                if param['type'] == 'enum':
+                    row['Desc'] += " (`" + '|'.join([json.dumps(c) for c in param['choices']]) + "`)"
                 if param.get("default") is not None:
                     row["Default"] = "`" + json.dumps(param["default"]) + "`"
                     required = False
@@ -408,6 +412,8 @@ def get_components_vimdoc() -> "VimdocSection":
             section.body.append(4 * " " + "Parameters:\n")
             lua_params = []
             for k, param in sorted(comp["params"].items(), key=params_sort_key):
+                if param.get('deprecated'):
+                    continue
                 typestr = param["type"]
                 if "subtype" in param:
                     typestr += "[" + str(param["subtype"]["type"]) + "]"
@@ -415,10 +421,12 @@ def get_components_vimdoc() -> "VimdocSection":
                 name = k
                 desc = param.get("desc", "")
                 if param.get("default") is not None:
-                    desc = desc + " (default `" + json.dumps(param["default"]) + "`)"
+                    desc += " (default `" + json.dumps(param["default"]) + "`)"
                     required = False
                 if "long_desc" in param:
                     desc = desc + " " + param["long_desc"]
+                if param['type'] == 'enum':
+                    desc += " (choices: `" + '|'.join([json.dumps(c) for c in param['choices']]) + "`)"
                 if required:
                     name = "*" + name
                 lua_params.append(LuaParam(name, typestr, desc))

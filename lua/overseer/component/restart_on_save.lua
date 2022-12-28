@@ -5,6 +5,7 @@ return {
   desc = "Restart on any buffer :write",
   params = {
     path = {
+      deprecated = true,
       desc = "DEPRECATED: use 'paths' instead",
       optional = true,
       validate = function(v)
@@ -22,6 +23,7 @@ return {
       },
     },
     dir = {
+      deprecated = true,
       name = "directory",
       desc = "DEPRECATED: use 'path' instead",
       optional = true,
