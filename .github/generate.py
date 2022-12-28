@@ -99,7 +99,7 @@ def update_components_md():
                     "Desc": param.get("desc", ""),
                 }
                 if param['type'] == 'enum':
-                    row['Desc'] += " (`" + '|'.join([json.dumps(c) for c in param['choices']]) + "`)"
+                    row['Desc'] += " (`" + r'\|'.join([json.dumps(c) for c in param['choices']]) + "`)"
                 if param.get("default") is not None:
                     row["Default"] = "`" + json.dumps(param["default"]) + "`"
                     required = False
