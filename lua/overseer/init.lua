@@ -71,10 +71,6 @@ local function do_setup()
       Notifier.focused = false
     end,
   })
-  local ok, cmp = pcall(require, "cmp")
-  if ok then
-    cmp.register_source("overseer", require("cmp_overseer").new())
-  end
   initialized = true
   for _, cb in ipairs(setup_callbacks) do
     local cb_ok, err = pcall(cb)

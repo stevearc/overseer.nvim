@@ -22,8 +22,15 @@ local schema = {
     type = "boolean",
     optional = true,
   },
+  optional_enum = {
+    desc = "This is an optional enum param",
+    type = "enum",
+    optional = true,
+    choices = { "first", "second", "third" },
+  },
 }
 
+overseer.close() -- Need this to trigger the setup()
 overseer.form.open("Test template builder", schema, {}, function(params)
   vim.notify(vim.inspect(params))
 end)

@@ -228,6 +228,8 @@ function _G.overseer_form_omnifunc(findstart, base)
   end
 end
 
+local registered_cmp = false
+
 M.open_form_win = function(bufnr, opts)
   opts = opts or {}
   vim.validate({
@@ -317,7 +319,23 @@ M.open_form_win = function(bufnr, opts)
     })
   )
 
-  vim.api.nvim_buf_set_option(0, "omnifunc", "v:lua.overseer_form_omnifunc")
+  vim.api.nvim_buf_set_option(bufnr, "omnifunc", "v:lua.overseer_form_omnifunc")
+  -- Configure nvim-cmp if installed
+  local has_cmp, cmp = pcall(require, "cmp")
+  if has_cmp then
+    if not registered_cmp then
+      require("cmp").register_source("overseer", require("cmp_overseer").new())
+      registered_cmp = true
+    end
+    cmp.setup.buffer({
+      enabled = true,
+      sources = {
+        { name = "overseer" },
+        { name = "path" },
+      },
+    })
+  end
+
   local function cleanup()
     for _, id in ipairs(opts.autocmds) do
       vim.api.nvim_del_autocmd(id)

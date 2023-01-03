@@ -267,11 +267,10 @@ function Editor:on_cursor_move()
         virt_text = { { schema.desc, "Comment" } },
       })
     end
-    if schema.subtype then
-      vim.api.nvim_buf_set_var(0, "overseer_choices", schema.subtype.choices)
-    else
-      vim.api.nvim_buf_set_var(0, "overseer_choices", schema.choices)
-    end
+    local completion_schema = schema.subtype and schema.subtype or schema
+    local choices = completion_schema.type == "boolean" and { "true", "false" }
+      or completion_schema.choices
+    vim.api.nvim_buf_set_var(0, "overseer_choices", choices)
   end
   if cur[1] ~= original_cur[1] or cur[2] ~= original_cur[2] then
     vim.api.nvim_win_set_cursor(0, cur)

@@ -8,6 +8,10 @@ function source:is_available()
   return vim.bo.filetype == "OverseerForm"
 end
 
+source.get_position_encoding_kind = function()
+  return "utf-8"
+end
+
 function source:get_keyword_pattern()
   return [[\w*]]
 end

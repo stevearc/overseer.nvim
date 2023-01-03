@@ -101,6 +101,7 @@ function Builder.new(title, schema, params, callback)
   vim.api.nvim_buf_set_option(bufnr, "bufhidden", "wipe")
   vim.api.nvim_buf_set_option(bufnr, "buftype", "acwrite")
   vim.api.nvim_buf_set_name(bufnr, "Overseer task builder")
+
   local autocmds = {}
   local builder
   local cleanup, layout = form_utils.open_form_win(bufnr, {
@@ -291,11 +292,10 @@ function Builder:on_cursor_move()
             virt_text = { { schema.desc, "Comment" } },
           })
         end
-        if schema.subtype then
-          vim.api.nvim_buf_set_var(0, "overseer_choices", schema.subtype.choices)
-        else
-          vim.api.nvim_buf_set_var(0, "overseer_choices", schema.choices)
-        end
+        local completion_schema = schema.subtype and schema.subtype or schema
+        local choices = completion_schema.type == "boolean" and { "true", "false" }
+          or completion_schema.choices
+        vim.api.nvim_buf_set_var(0, "overseer_choices", choices)
       end
 
       -- Track historical focus for showing errors
