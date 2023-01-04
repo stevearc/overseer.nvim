@@ -538,7 +538,7 @@ M.find_success_color = function()
 end
 
 ---@param func fun(any)
----@param opts? {delay?: integer|fun(any): integer, reset_timer_on_call?: boolean}
+---@param opts? {reset_timer_on_call: nil|boolean, delay: nil|integer|fun(any): integer}
 M.debounce = function(func, opts)
   vim.validate({
     func = { func, "f" },
@@ -641,7 +641,7 @@ M.run_in_cwd = function(cwd, callback)
 end
 
 ---@param status overseer.Status
----@return string
+---@return integer
 M.status_to_log_level = function(status)
   local constants = require("overseer.constants")
   local STATUS = constants.STATUS
