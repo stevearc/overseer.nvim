@@ -16,6 +16,7 @@ local M = {}
 
 ---@class overseer.StringParam : overseer.BaseParam
 ---@field type? "string"
+---@field conceal? boolean
 ---@field default? string
 
 ---@class overseer.BoolParam : overseer.BaseParam
@@ -261,6 +262,9 @@ M.open_form_win = function(bufnr, opts)
   local winopt = calc_layout()
   winopt.style = "minimal"
   local winid = vim.api.nvim_open_win(bufnr, true, winopt)
+  -- Explicitly set these so the "conceal" option will work for string params
+  vim.api.nvim_win_set_option(winid, "conceallevel", 1)
+  vim.api.nvim_win_set_option(winid, "concealcursor", "nic")
   for k, v in pairs(config.form.win_opts) do
     vim.api.nvim_win_set_option(winid, k, v)
   end

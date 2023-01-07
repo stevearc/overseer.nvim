@@ -243,11 +243,32 @@ end
 
 function Builder:render()
   local title_ns = vim.api.nvim_create_namespace("overseer_title")
+  vim.api.nvim_buf_clear_namespace(self.bufnr, title_ns, 0, -1)
   local lines = { util.align(self.title, vim.api.nvim_win_get_width(0), "center") }
   local highlights = { { "OverseerTask", 1, 0, -1 } }
+  local extmarks = {}
   for _, name in ipairs(self.schema_keys) do
     local prefix = self.schema[name].optional and "" or "*"
-    table.insert(lines, form_utils.render_field(self.schema[name], prefix, name, self.params[name]))
+    local schema = self.schema[name]
+    table.insert(lines, form_utils.render_field(schema, prefix, name, self.params[name]))
+    if schema.conceal then
+      local start_col = (prefix .. name):len() + 1
+      local length = #lines[#lines] - start_col
+      -- Because conceallevel replaces every concealed _block_ with a single character, we have to
+      -- create 1-width conceal blocks, one for each character
+      for i = 1, length do
+        table.insert(extmarks, {
+          #lines - 1,
+          start_col + i,
+          {
+            right_gravity = false,
+            strict = false,
+            conceal = "*",
+            end_col = start_col + i + 2,
+          },
+        })
+      end
+    end
   end
   if self.cur_line and vim.api.nvim_get_mode().mode == "i" then
     local lnum, line = unpack(self.cur_line)
@@ -255,6 +276,10 @@ function Builder:render()
   end
   vim.api.nvim_buf_set_lines(self.bufnr, 0, -1, true, lines)
   util.add_highlights(self.bufnr, title_ns, highlights)
+  for _, mark in ipairs(extmarks) do
+    local line, col, opts = unpack(mark)
+    vim.api.nvim_buf_set_extmark(self.bufnr, title_ns, line, col, opts)
+  end
   self:on_cursor_move()
 end
 
