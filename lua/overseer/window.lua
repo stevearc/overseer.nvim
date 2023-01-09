@@ -70,10 +70,10 @@ M.open = function(opts)
     enter = true,
     direction = config.task_list.direction,
   })
-  if M.is_open() then
-    return
+  local winid = M.get_win_id()
+  if winid == nil then
+    winid = create_overseer_window(opts.direction, opts.winid)
   end
-  local winid = create_overseer_window(opts.direction, opts.winid)
   if opts.enter then
     vim.api.nvim_set_current_win(winid)
   end
