@@ -118,8 +118,6 @@ require('overseer').setup({
     use_shell = false,
     -- overwrite the default toggleterm "direction" parameter
     direction = nil,
-    -- overwrite the default toggleterm "dir" parameter
-    dir = nil,
     -- overwrite the default toggleterm "highlights" parameter
     highlights = nil,
     -- overwrite the default toggleterm "auto_scroll" parameter

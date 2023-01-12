@@ -75,7 +75,6 @@ Run tasks using the toggleterm plugin
 | opts  | `nil\|table`  |                                                 |                                                          |
 |       | use_shell     | `nil\|boolean`                                  | load user shell before running task                      |
 |       | direction     | `nil\|"vertical"\|"horizontal"\|"tab"\|"float"` |                                                          |
-|       | dir           | `nil\|string`                                   | open ToggleTerm at specified directory before task       |
 |       | highlights    | `nil\|table`                                    | map to a highlight group name and a table of it's values |
 |       | auto_scroll   | `nil\|boolean`                                  | automatically scroll to the bottom on task output        |
 |       | close_on_exit | `nil\|boolean`                                  | close the terminal (if open) after task exits            |

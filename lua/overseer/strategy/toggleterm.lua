@@ -9,7 +9,6 @@ local ToggleTermStrategy = {}
 ---@param opts nil|table
 ---    use_shell nil|boolean load user shell before running task
 ---    direction nil|"vertical"|"horizontal"|"tab"|"float"
----    dir nil|string open ToggleTerm at specified directory before task
 ---    highlights nil|table map to a highlight group name and a table of it's values
 ---    auto_scroll nil|boolean automatically scroll to the bottom on task output
 ---    close_on_exit nil|boolean close the terminal (if open) after task exits
@@ -20,13 +19,18 @@ function ToggleTermStrategy.new(opts)
   opts = vim.tbl_extend("keep", opts or {}, {
     use_shell = false,
     direction = nil,
-    dir = nil,
     highlights = nil,
     auto_scroll = nil,
     close_on_exit = false,
     open_on_start = true,
     hidden = false,
   })
+  if opts.dir then
+    vim.notify_once(
+      "Overseer toggleterm option 'dir' is deprecated. Use the task cwd option instead.\nThis option will be removed on 2023-04-01",
+      vim.log.levels.WARN
+    )
+  end
   return setmetatable({
     bufnr = nil,
     chan_id = nil,
@@ -73,10 +77,9 @@ function ToggleTermStrategy:start(task)
 
   local term = terminal.Terminal:new({
     cmd = passed_cmd,
-    cwd = task.cwd,
     env = task.env,
     highlights = self.opts.highlights,
-    dir = self.opts.dir,
+    dir = self.opts.dir or task.cwd,
     direction = self.opts.direction,
     auto_scroll = self.opts.auto_scroll,
     close_on_exit = self.opts.close_on_exit,
