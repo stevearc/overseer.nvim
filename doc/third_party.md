@@ -178,6 +178,14 @@ require("auto-session").setup({
       )
     end,
   },
+  -- Optionally get rid of all previous tasks when restoring a session
+  pre_restore_cmds = {
+    function()
+      for _, task in ipairs(overseer.list_tasks({})) do
+        task:dispose(true)
+      end
+    end
+  },
   post_restore_cmds = {
     function()
       overseer.load_task_bundle(get_cwd_as_name(), { ignore_missing = true })
