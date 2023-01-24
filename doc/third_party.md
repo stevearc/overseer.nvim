@@ -94,6 +94,25 @@ require('overseer').setup({
 })
 ```
 
+You can also customize the components by passing them in to the strategy spec for neotest. This can be a normal list of components, or a function that returns a list of components like so:
+
+```lua
+require("neotest").setup({
+  strategies = {
+    overseer = {
+      components = function(run_spec)
+        return {
+          { "dependencies", task_names = {
+            { "shell", cmd = "sleep 4" },
+          } },
+          "default_neotest",
+        }
+      end,
+    },
+  },
+})
+```
+
 ## DAP
 
 If you have both overseer and [nvim-dap](https://github.com/mfussenegger/nvim-dap) installed, overseer will automatically run the `preLaunchTask` and `postDebugTask` when present in a debug configuration.
