@@ -53,9 +53,9 @@ local function get_or_create_task(spec, output_path)
       name = "Neotest",
       components = { "default_neotest" },
     })
-    vim.list_extend(
-      opts.components,
-      { { "on_output_write_file", filename = output_path }, "neotest.link_with_neotest" }
+    opts.components = vim.list_extend(
+      { { "on_output_write_file", filename = output_path }, "neotest.link_with_neotest" },
+      opts.components
     )
     opts.cmd = spec.command
     opts.env = spec.env
