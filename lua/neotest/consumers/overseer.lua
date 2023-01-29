@@ -17,8 +17,6 @@ function neotest.overseer.run(args)
 
   if args.strategy and args.strategy ~= "overseer" then
     return neotest.run.run(args)
-  else
-    args.strategy = "overseer"
   end
   local strategy = require("neotest.client.strategies.overseer")
   async.run(function()
@@ -27,6 +25,20 @@ function neotest.overseer.run(args)
       lib.notify("No tests found")
       return
     end
+
+    if not args.strategy then
+      local root = tree:root():data().path
+      local default_strategy = config.projects[root].default_strategy
+      if
+        default_strategy
+        and default_strategy ~= "overseer"
+        and default_strategy ~= "integrated"
+      then
+        return neotest.run.run(args)
+      end
+    end
+
+    args.strategy = "overseer"
     last_group_id = last_group_id + 1
     args.overseer_group_id = last_group_id
     strategy.set_group_id(last_group_id)
