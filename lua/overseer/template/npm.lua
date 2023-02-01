@@ -1,7 +1,11 @@
 local files = require("overseer.files")
 local overseer = require("overseer")
 
-local package_managers = { "npm", "pnpm", "yarn" }
+local lockfiles = {
+  npm = "package-lock.json",
+  pnpm = "pnpm-lock.yaml",
+  yarn = "yarn.lock",
+}
 
 ---@type overseer.TemplateDefinition
 local tmpl = {
@@ -9,10 +13,17 @@ local tmpl = {
   params = {
     args = { optional = true, type = "list", delimiter = " " },
     cwd = { optional = true },
+    use_yarn = {
+      deprecated = true,
+      desc = "DEPRECATED: use 'bin' instead",
+      optional = true,
+      type = "boolean",
+    },
     bin = { optional = true, type = "string" },
   },
   builder = function(params)
-    local bin = params.bin and params.bin or "npm"
+    local fallback = params.use_yarn and "yarn" or "npm"
+    local bin = params.bin or fallback
     local cmd = { bin }
     if params.args then
       cmd = vim.list_extend(cmd, params.args)
@@ -33,18 +44,12 @@ local function get_package_file(opts)
 end
 
 local function pick_package_manager(opts)
-  return files.exists(files.join(opts.dir, "yarn.lock")) and "yarn"
-    or files.exists(files.join(opts.dir, "pnpm-lock.yaml")) and "pnpm"
-    or "npm"
-end
-
-local function has_package_manager()
-  for _, bin in ipairs(package_managers) do
-    if vim.fn.executable(bin) == 1 then
-      return true
+  for mgr, lockfile in pairs(lockfiles) do
+    if files.exists(files.join(opts.dir, lockfile)) then
+      return mgr
     end
   end
-  return false
+  return "npm"
 end
 
 return {
@@ -53,8 +58,9 @@ return {
   end,
   condition = {
     callback = function(opts)
-      if not has_package_manager() then
-        return false, "No valid package manager found."
+      local package_manager = pick_package_manager(opts)
+      if not vim.fn.executable(package_manager) then
+        return false, string.format("Could not find command '%s'", package_manager)
       end
       if get_package_file(opts) == "" then
         return false, "No package.json file found"
