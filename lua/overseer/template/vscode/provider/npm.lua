@@ -1,10 +1,25 @@
 local files = require("overseer.files")
 local M = {}
 
+local lockfiles = {
+  npm = "package-lock.json",
+  pnpm = "pnpm-lock.yaml",
+  yarn = "yarn.lock",
+}
+
+local function pick_package_manager()
+  for mgr, lockfile in pairs(lockfiles) do
+    if files.exists(lockfile) then
+      return mgr
+    end
+  end
+  return "npm"
+end
+
 M.get_task_opts = function(defn)
-  local use_yarn = files.exists("yarn.lock")
+  local bin = pick_package_manager()
   return {
-    cmd = { use_yarn and "yarn" or "npm", defn.script },
+    cmd = { bin, defn.script },
   }
 end
 
