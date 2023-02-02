@@ -8,6 +8,7 @@ Have a cool recipe to share? Open a pull request and add it to this doc!
 - [Run shell scripts in the current directory](#run-shell-scripts-in-the-current-directory)
 - [Directory-local tasks with nvim-config-local](#directory-local-tasks-with-nvim-config-local)
 - [:Make similar to vim-dispatch](#make-similar-to-vim-dispatch)
+- [Asynchronous :Grep command](#asynchronous-grep-command)
 
 <!-- /TOC -->
 
