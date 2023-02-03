@@ -169,8 +169,9 @@ local commands = {
     args = "`[name]`",
     func = "_load_bundle",
     def = {
-      desc = "Load tasks that were saved to disk",
+      desc = "Load tasks that were saved to disk. With `!` tasks will not be started",
       nargs = "?",
+      bang = true,
     },
   },
   {
@@ -342,9 +343,10 @@ M.close = lazy("window", "close")
 ---@return string[] Names of task bundles
 M.list_task_bundles = lazy("task_bundle", "list_task_bundles")
 ---Load tasks from a saved bundle
----@param name string|nil
----@param opts table|nil
----    ignore_missing boolean|nil When true, don't notify if bundle doesn't exist
+---@param name nil|string
+---@param opts nil|table
+---    ignore_missing nil|boolean When true, don't notify if bundle doesn't exist
+---    autostart nil|boolean When true, start the tasks after loading (default true)
 M.load_task_bundle = lazy("task_bundle", "load_task_bundle")
 ---Save tasks to a bundle on disk
 ---@param name string|nil Name of bundle. If nil, will prompt user.

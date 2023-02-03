@@ -36,7 +36,7 @@ M._save_bundle = function(params)
 end
 
 M._load_bundle = function(params)
-  task_bundle.load_task_bundle(args_or_nil(params.args))
+  task_bundle.load_task_bundle(args_or_nil(params.args), { autostart = not params.bang })
 end
 
 M._delete_bundle = function(params)

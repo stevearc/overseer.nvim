@@ -67,14 +67,18 @@ M.list_task_bundles = function()
   return ret
 end
 
----@param name? string
----@param opts? {ignore_missing?: boolean}
+---@param name nil|string
+---@param opts nil|table
+---    ignore_missing nil|boolean When true, don't notify if bundle doesn't exist
+---    autostart nil|boolean When true, start the tasks after loading (default true)
 M.load_task_bundle = function(name, opts)
   vim.validate({
     name = { name, "s", true },
     opts = { opts, "t", true },
   })
-  opts = opts or {}
+  opts = vim.tbl_deep_extend("keep", opts or {}, {
+    autostart = true,
+  })
   if name then
     local filepath = files.join(get_bundle_dir(), string.format("%s.bundle.json", name))
     local data = files.load_json_file(filepath)
@@ -89,7 +93,9 @@ M.load_task_bundle = function(name, opts)
       local ok, task = pcall(Task.new, params)
       if ok then
         count = count + 1
-        task:start()
+        if opts.autostart then
+          task:start()
+        end
       else
         log:error("Could not load task in bundle %s: %s", filepath, task)
       end
@@ -111,7 +117,7 @@ M.load_task_bundle = function(name, opts)
       },
     }, function(selected)
       if selected then
-        M.load_task_bundle(selected)
+        M.load_task_bundle(selected, opts)
       end
     end)
   end
