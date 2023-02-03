@@ -267,21 +267,21 @@ require("overseer").setup({
 
 ## Commands
 
-| Command                | Args          | Description                                                         |
-| ---------------------- | ------------- | ------------------------------------------------------------------- |
-| `OverseerOpen[!]`      | `left/right`  | Open the overseer window. With `!` cursor stays in current window   |
-| `OverseerClose`        |               | Close the overseer window                                           |
-| `OverseerToggle[!]`    | `left/right`  | Toggle the overseer window. With `!` cursor stays in current window |
-| `OverseerSaveBundle`   | `[name]`      | Serialize and save the current tasks to disk                        |
-| `OverseerLoadBundle`   | `[name]`      | Load tasks that were saved to disk                                  |
-| `OverseerDeleteBundle` | `[name]`      | Delete a saved task bundle                                          |
-| `OverseerRunCmd`       | `[command]`   | Run a raw shell command                                             |
-| `OverseerRun`          | `[name/tags]` | Run a task from a template                                          |
-| `OverseerInfo`         |               | Display diagnostic information about overseer                       |
-| `OverseerBuild`        |               | Open the task builder                                               |
-| `OverseerQuickAction`  | `[action]`    | Run an action on the most recent task, or the task under the cursor |
-| `OverseerTaskAction`   |               | Select a task to run an action on                                   |
-| `OverseerClearCache`   |               | Clear the task cache                                                |
+| Command                 | Args          | Description                                                            |
+| ----------------------- | ------------- | ---------------------------------------------------------------------- |
+| `OverseerOpen[!]`       | `left/right`  | Open the overseer window. With `!` cursor stays in current window      |
+| `OverseerClose`         |               | Close the overseer window                                              |
+| `OverseerToggle[!]`     | `left/right`  | Toggle the overseer window. With `!` cursor stays in current window    |
+| `OverseerSaveBundle`    | `[name]`      | Serialize and save the current tasks to disk                           |
+| `OverseerLoadBundle[!]` | `[name]`      | Load tasks that were saved to disk. With `!` tasks will not be started |
+| `OverseerDeleteBundle`  | `[name]`      | Delete a saved task bundle                                             |
+| `OverseerRunCmd`        | `[command]`   | Run a raw shell command                                                |
+| `OverseerRun`           | `[name/tags]` | Run a task from a template                                             |
+| `OverseerInfo`          |               | Display diagnostic information about overseer                          |
+| `OverseerBuild`         |               | Open the task builder                                                  |
+| `OverseerQuickAction`   | `[action]`    | Run an action on the most recent task, or the task under the cursor    |
+| `OverseerTaskAction`    |               | Select a task to run an action on                                      |
+| `OverseerClearCache`    |               | Clear the task cache                                                   |
 
 ## Highlight groups
 
@@ -404,11 +404,12 @@ Returns:
 `load_task_bundle(name, opts)` \
 Load tasks from a saved bundle
 
-| Param | Type           | Desc           |                                                 |
-| ----- | -------------- | -------------- | ----------------------------------------------- |
-| name  | `string\|nil`  |                |                                                 |
-| opts  | `table\|nil`   |                |                                                 |
-|       | ignore_missing | `boolean\|nil` | When true, don't notify if bundle doesn't exist |
+| Param | Type           | Desc           |                                                         |
+| ----- | -------------- | -------------- | ------------------------------------------------------- |
+| name  | `nil\|string`  |                |                                                         |
+| opts  | `nil\|table`   |                |                                                         |
+|       | ignore_missing | `nil\|boolean` | When true, don't notify if bundle doesn't exist         |
+|       | autostart      | `nil\|boolean` | When true, start the tasks after loading (default true) |
 
 ### save_task_bundle(name, tasks, opts)
 

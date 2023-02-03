@@ -28,8 +28,8 @@ OverseerToggle[!] `left/right`                                     *:OverseerTog
 OverseerSaveBundle `[name]`                                    *:OverseerSaveBundle*
     Serialize and save the current tasks to disk
 
-OverseerLoadBundle `[name]`                                    *:OverseerLoadBundle*
-    Load tasks that were saved to disk
+OverseerLoadBundle[!] `[name]`                                 *:OverseerLoadBundle*
+    Load tasks that were saved to disk. With `!` tasks will not be started
 
 OverseerDeleteBundle `[name]`                                *:OverseerDeleteBundle*
     Delete a saved task bundle
@@ -354,10 +354,12 @@ load_task_bundle({name}, {opts})                       *overseer.load_task_bundl
     Load tasks from a saved bundle
 
     Parameters:
-      {name} `string|nil`
-      {opts} `table|nil`
-          {ignore_missing} `boolean|nil` When true, don't notify if bundle
+      {name} `nil|string`
+      {opts} `nil|table`
+          {ignore_missing} `nil|boolean` When true, don't notify if bundle
                            doesn't exist
+          {autostart}      `nil|boolean` When true, start the tasks after
+                           loading (default true)
 
 save_task_bundle({name}, {tasks}, {opts})              *overseer.save_task_bundle*
     Save tasks to a bundle on disk
