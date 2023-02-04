@@ -1,15 +1,16 @@
 local log = require("overseer.log")
+local files = require("overseer.files")
 
 return {
   cache_key = function(opts)
-    return vim.fn.fnamemodify(vim.fn.findfile("justfile", opts.dir .. ";"), ":p")
+    return files.findfile('justfile', opts.dir, true)
   end,
   condition = {
     callback = function(opts)
       if vim.fn.executable("just") == 0 then
         return false, 'Command "just" not found'
       end
-      if vim.fn.findfile("justfile", opts.dir .. ";") == "" then
+      if files.findfile('justfile', opts.dir) == "" then
         return false, "No justfile found"
       end
       return true

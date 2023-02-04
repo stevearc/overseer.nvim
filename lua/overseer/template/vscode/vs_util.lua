@@ -18,11 +18,7 @@ end
 
 ---@param dir string
 M.get_tasks_file = function(dir)
-  local filename = vim.fn.findfile(files.join(".vscode", "tasks.json"), dir .. ";")
-  if filename ~= "" then
-    filename = vim.fn.fnamemodify(filename, ":p")
-  end
-  return filename
+  return files.findfile('tasks.json', files.join(dir, '.vscode'), true)
 end
 
 ---@param dir string
