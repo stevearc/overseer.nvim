@@ -165,7 +165,7 @@ end
 
 M.findfile = function (name, path, full)
   local result = vim.fs.find(name, {path = path, type = 'file', upward = true})
-  if (#result == 0) or (result[1] == '') then return '' end
+  if #result == 0 then return '' end
   if full then
     return result[1]
   else
