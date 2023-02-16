@@ -20,6 +20,9 @@ return {
   constructor = function(params)
     if params.parser and params.problem_matcher then
       log:warn("on_output_parse: cannot specify both 'parser' and 'problem_matcher'")
+    elseif not params.parser and not params.problem_matcher then
+      log:error("on_output_parse: one of 'parser', 'problem_matcher' is required")
+      return {}
     end
     local parser_defn = params.parser
     if params.problem_matcher then
@@ -30,7 +33,6 @@ return {
       end
     end
     if not parser_defn then
-      log:error("on_output_parse: one of 'parser', 'problem_matcher' is required")
       return {}
     end
     return {
