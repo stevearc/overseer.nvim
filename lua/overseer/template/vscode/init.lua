@@ -12,7 +12,7 @@ local function extract_params(params, str, inputs)
   if not str then
     return
   end
-  for name in string.gmatch(str, "%${input:(%a+)}") do
+  for name in string.gmatch(str, "%${input:([%w_]+)}") do
     local schema = inputs[name]
     if schema then
       if schema.type == "pickString" then
