@@ -5,6 +5,8 @@ local problem_matcher = require("overseer.template.vscode.problem_matcher")
 local variables = require("overseer.template.vscode.variables")
 local vs_util = require("overseer.template.vscode.vs_util")
 
+local LAUNCH_CONFIG_KEY = "__launch_config__ "
+
 ---@param params table
 ---@param str string
 ---@param inputs table
@@ -113,7 +115,9 @@ local function get_task_builder(defn)
     return nil
   end
   return function(params)
-    local task_opts = task_provider.get_task_opts(defn)
+    -- Pass the provider the raw task definition data and the launch.json configuration data
+    -- (if present)
+    local task_opts = task_provider.get_task_opts(defn, params[LAUNCH_CONFIG_KEY])
     local opts = vim.tbl_deep_extend("force", defn.options or {}, task_opts)
     local components = { "default_vscode" }
     local pmatcher = defn.problemMatcher
@@ -266,4 +270,5 @@ return {
   -- expose these for unit tests
   get_provider = get_provider,
   convert_vscode_task = convert_vscode_task,
+  LAUNCH_CONFIG_KEY = LAUNCH_CONFIG_KEY,
 }

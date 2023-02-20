@@ -1,4 +1,5 @@
 local constants = require("overseer.constants")
+local vscode = require("overseer.template.vscode")
 local dap = require("dap")
 local log = require("overseer.log")
 local STATUS = constants.STATUS
@@ -6,9 +7,11 @@ local TAG = constants.TAG
 local M = {}
 
 ---@param name string
+---@param config table
 ---@param cb fun(task: overseer.Task|nil, err: string|nil)
-local function get_task(name, cb)
-  local args = { autostart = false }
+local function get_task(name, config, cb)
+  -- Pass the launch.json config data into the params for the task as a special key
+  local args = { autostart = false, params = { [vscode.LAUNCH_CONFIG_KEY] = config } }
   if name == "${defaultBuildTask}" then
     args.tags = { TAG.BUILD }
   else
@@ -22,7 +25,7 @@ M.wrap_run = function(daprun)
     dap.listeners.after.event_terminated["overseer"] = function()
       if config.postDebugTask then
         log:trace("Running DAP postDebugTask %s", config.postDebugTask)
-        get_task(config.postDebugTask, function(task, err)
+        get_task(config.postDebugTask, config, function(task, err)
           if err then
             log:error("Could not run postDebugTask %s", config.postDebugTask)
           elseif task then
@@ -34,7 +37,7 @@ M.wrap_run = function(daprun)
 
     if config.preLaunchTask then
       log:trace("Running DAP preLaunchTask %s", config.preLaunchTask)
-      get_task(config.preLaunchTask, function(task, err)
+      get_task(config.preLaunchTask, config, function(task, err)
         if not task then
           log:error("Could not run preLaunchTask %s: %s", config.preLaunchTask, err)
           return

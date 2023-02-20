@@ -85,7 +85,8 @@ local function get_debug_provider(runtime)
 end
 
 ---@param runtime string
-local function get_host_start_options(runtime)
+---@param launch_config nil|table
+local function get_host_start_options(runtime, launch_config)
   local debug_provider = get_debug_provider(runtime)
   if debug_provider then
     if os.getenv(debug_provider.worker_arg_key) then
@@ -94,7 +95,7 @@ local function get_host_start_options(runtime)
     else
       return {
         env = {
-          [debug_provider.worker_arg_key] = debug_provider.get_worker_arg_value(),
+          [debug_provider.worker_arg_key] = debug_provider.get_worker_arg_value(launch_config),
         },
       }
     end
@@ -104,7 +105,7 @@ local function get_host_start_options(runtime)
   end
 end
 
-M.get_task_opts = function(defn)
+M.get_task_opts = function(defn, launch_config)
   local cmd = string.format("func %s", defn.command)
   local ret = {
     cmd = cmd,
@@ -122,7 +123,7 @@ M.get_task_opts = function(defn)
       end
     end
     if runtime then
-      local start_opts = get_host_start_options(runtime)
+      local start_opts = get_host_start_options(runtime, launch_config)
       ret = vim.tbl_deep_extend("force", ret, start_opts or {})
     else
       log:warn("Azure func task provider could not find debug provider for language %s", language)
