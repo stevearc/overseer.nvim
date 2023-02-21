@@ -168,7 +168,11 @@ M._run_template = function(params)
     name = name,
     tags = tags,
   }
-  M.run_template(opts)
+  M.run_template(opts, function(_, err)
+    if err then
+      vim.notify(err, vim.log.levels.ERROR)
+    end
+  end)
 end
 
 M._build_task = function(_params)
