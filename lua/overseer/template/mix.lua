@@ -1,4 +1,3 @@
-local files = require("overseer.files")
 local overseer = require("overseer")
 local log = require("overseer.log")
 
