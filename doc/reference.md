@@ -508,12 +508,12 @@ overseer.run_template({name = "npm watch", prompt = "always"})
 `preload_task_cache(opts, cb)` \
 Preload templates for run_template
 
-| Param | Type    | Desc                                    |     |
-| ----- | ------- | --------------------------------------- | --- |
-| opts  | `table` |                                         |     |
-|       | dir     | `string`                                |     |
-|       | ft      | `nil\|string`                           |     |
-| cb    | `nil`   | |fun Called when preloading is complete |     |
+| Param | Type         | Desc                                    |     |
+| ----- | ------------ | --------------------------------------- | --- |
+| opts  | `nil\|table` |                                         |     |
+|       | dir          | `string`                                |     |
+|       | ft           | `nil\|string`                           |     |
+| cb    | `nil`        | |fun Called when preloading is complete |     |
 
 **Note:**
 <pre>
@@ -535,11 +535,11 @@ vim.api.nvim_create_autocmd({"VimEnter", "DirChanged"}, {
 `clear_task_cache(opts)` \
 Clear cached templates for run_template
 
-| Param | Type    | Desc          |     |
-| ----- | ------- | ------------- | --- |
-| opts  | `table` |               |     |
-|       | dir     | `string`      |     |
-|       | ft      | `nil\|string` |     |
+| Param | Type         | Desc          |     |
+| ----- | ------------ | ------------- | --- |
+| opts  | `nil\|table` |               |     |
+|       | dir          | `string`      |     |
+|       | ft           | `nil\|string` |     |
 
 ### run_action(task, name)
 

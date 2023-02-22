@@ -454,7 +454,7 @@ preload_task_cache({opts}, {cb})                     *overseer.preload_task_cach
     Preload templates for run_template
 
     Parameters:
-      {opts} `table`
+      {opts} `nil|table`
           {dir} `string`
           {ft}  `nil|string`
       {cb}   `nil` |fun Called when preloading is complete
@@ -475,7 +475,7 @@ clear_task_cache({opts})                               *overseer.clear_task_cach
     Clear cached templates for run_template
 
     Parameters:
-      {opts} `table`
+      {opts} `nil|table`
           {dir} `string`
           {ft}  `nil|string`
 
