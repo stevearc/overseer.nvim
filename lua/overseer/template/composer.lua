@@ -31,7 +31,7 @@ return {
       if vim.fn.executable("composer") == 0 then
         return false, "executable composer not found"
       end
-      if get_composer_file(opts) == "" then
+      if not get_composer_file(opts) then
         return false, "No composer.json file found"
       end
       return true
