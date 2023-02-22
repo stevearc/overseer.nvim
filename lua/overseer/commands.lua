@@ -197,8 +197,17 @@ end
 
 ---@return overseer.SearchParams
 local function get_search_params()
+  -- If we have a file open, use its parent dir as the search dir.
+  -- Otherwise, use the current working directory.
+  local dir = vim.fn.getcwd()
+  if vim.bo.buftype == "" then
+    local bufname = vim.api.nvim_buf_get_name(0)
+    if bufname ~= "" then
+      dir = vim.fn.fnamemodify(bufname, ":p:h")
+    end
+  end
   return {
-    dir = vim.fn.getcwd(0),
+    dir = dir,
     filetype = vim.bo.filetype,
   }
 end

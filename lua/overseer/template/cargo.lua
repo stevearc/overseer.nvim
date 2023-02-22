@@ -30,15 +30,7 @@ local tmpl = {
 ---@param opts overseer.SearchParams
 ---@return nil|string
 local function get_cargo_dir(opts)
-  local cargo_toml
-  if opts.filetype == "rust" then
-    local parent = vim.fn.fnamemodify(vim.api.nvim_buf_get_name(0), ":p:h")
-    cargo_toml = vim.fs.find("Cargo.toml", { upward = true, type = "file", path = parent })[1]
-  end
-  if not cargo_toml then
-    cargo_toml = vim.fs.find("Cargo.toml", { upward = true, type = "file", path = opts.dir })[1]
-  end
-  return cargo_toml
+  return vim.fs.find("Cargo.toml", { upward = true, type = "file", path = opts.dir })[1]
 end
 
 return {
