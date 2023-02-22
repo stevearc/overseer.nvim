@@ -32,7 +32,7 @@ return {
       if vim.fn.executable("deno") == 0 then
         return false, "executable deno not found"
       end
-      if get_deno_file(opts) == "" then
+      if not get_deno_file(opts) then
         return false, "No deno.{json,jsonc} file found"
       end
       return true
