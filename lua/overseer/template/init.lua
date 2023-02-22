@@ -12,6 +12,7 @@ local M = {}
 ---@field name string
 ---@field module? string The name of the module this was loaded from
 ---@field condition? overseer.SearchCondition
+---@field cache_key? fun(opts: overseer.SearchParams): nil|string
 ---@field generator fun(opts: overseer.SearchParams, cb: fun(tmpls: overseer.TemplateDefinition[]))
 
 ---@class overseer.TemplateDefinition
@@ -384,9 +385,8 @@ end
 ---@field tags? string[]
 ---@field dir string
 
----@param opts? overseer.SearchParams
+---@param opts overseer.SearchParams
 M.clear_cache = function(opts)
-  opts = opts or opts
   for _, provider in ipairs(providers) do
     local cache_key = provider.cache_key(opts)
     if cache_key then
