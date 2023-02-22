@@ -27,11 +27,12 @@ M.get_selected_text = function()
 end
 
 local function get_workspace_folder()
-  local vscode_dir = vim.fn.finddir(".vscode", ".;")
-  if vscode_dir == "" then
-    return vim.fn.getcwd()
+  local vscode_dir =
+    vim.fs.find(".vscode", { upward = true, type = "directory", path = vim.fn.getcwd() })[1]
+  if vscode_dir then
+    return vim.fs.dirname(vscode_dir)
   else
-    return vim.fn.fnamemodify(vscode_dir, ":p:h:h")
+    return vim.fn.getcwd()
   end
 end
 
@@ -57,7 +58,7 @@ M.replace_vars = function(str, params)
     elseif name == "workspaceFolder" then
       return get_workspace_folder()
     elseif name == "workspaceFolderBasename" then
-      return vim.fn.fnamemodify(vim.fn.getcwd(0), ":t")
+      return vim.fs.basename(vim.fn.getcwd())
     elseif name == "file" then
       return vim.fn.expand("%:p")
     elseif name == "fileWorkspaceFolder" then

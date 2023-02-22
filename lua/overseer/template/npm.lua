@@ -22,30 +22,31 @@ local tmpl = {
     bin = { optional = true, type = "string" },
   },
   builder = function(params)
+    if params.use_yarn ~= nil then
+      vim.notify_once(
+        "[DEPRECATED] overseer npm template parameter 'use_yarn' has been deprecated in favor of 'bin'\nThis shim will be removed on 2023-06-01",
+        vim.log.levels.WARN
+      )
+    end
     local fallback = params.use_yarn and "yarn" or "npm"
     local bin = params.bin or fallback
-    local cmd = { bin }
-    if params.args then
-      cmd = vim.list_extend(cmd, params.args)
-    end
     return {
-      cmd = cmd,
+      cmd = { bin },
+      args = params.args,
       cwd = params.cwd,
     }
   end,
 }
 
+---@param opts overseer.SearchParams
 local function get_package_file(opts)
-  local filename = vim.fn.findfile("package.json", opts.dir .. ";")
-  if filename ~= "" then
-    filename = vim.fn.fnamemodify(filename, ":p")
-  end
-  return filename
+  return vim.fs.find("package.json", { upward = true, type = "file", path = opts.dir })[1]
 end
 
 local function pick_package_manager(opts)
+  local package_dir = vim.fs.dirname(get_package_file(opts))
   for mgr, lockfile in pairs(lockfiles) do
-    if files.exists(files.join(opts.dir, lockfile)) then
+    if files.exists(files.join(package_dir, lockfile)) then
       return mgr
     end
   end
@@ -58,12 +59,12 @@ return {
   end,
   condition = {
     callback = function(opts)
+      if not get_package_file(opts) then
+        return false, "No package.json file found"
+      end
       local package_manager = pick_package_manager(opts)
       if not vim.fn.executable(package_manager) then
         return false, string.format("Could not find command '%s'", package_manager)
-      end
-      if get_package_file(opts) == "" then
-        return false, "No package.json file found"
       end
       return true
     end,
@@ -89,7 +90,7 @@ return {
     -- Load tasks from workspaces
     if data.workspaces then
       for _, workspace in ipairs(data.workspaces) do
-        local workspace_path = files.join(vim.fn.fnamemodify(package, ":h"), workspace)
+        local workspace_path = files.join(vim.fs.dirname(package), workspace)
         local workspace_package_file = files.join(workspace_path, "package.json")
         local workspace_data = files.load_json_file(workspace_package_file)
         if workspace_data and workspace_data.scripts then

@@ -399,12 +399,13 @@ end
 ---@param cb fun(templates: overseer.TemplateDefinition[], report: table)
 M.list = function(opts, cb)
   initialize()
-  opts = opts or {}
   vim.validate({
     tags = { opts.tags, "t", true },
     dir = { opts.dir, "s" },
     filetype = { opts.filetype, "s", true },
   })
+  -- Make sure the search dir is an absolute path
+  opts.dir = vim.fn.fnamemodify(opts.dir, ":p")
 
   if not clear_cache_autocmd then
     clear_cache_autocmd = vim.api.nvim_create_autocmd("BufWritePost", {

@@ -231,7 +231,7 @@ return {
   end,
   condition = {
     callback = function(opts)
-      if vs_util.get_tasks_file(opts.dir) == "" then
+      if not vs_util.get_tasks_file(opts.dir) then
         return false, "No .vscode/tasks.json file found"
       end
       return true

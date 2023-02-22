@@ -11,14 +11,10 @@ local taskfiles = {
   "Taskfile.dist.yaml",
 }
 
-local find_taskfile = function(opts)
-  for _, v in ipairs(taskfiles) do
-    local fname = vim.fn.findfile(v, opts.dir .. ";")
-    if fname ~= "" then
-      return vim.fn.fnamemodify(fname, ":p")
-    end
-  end
-  return ""
+---@param opts overseer.SearchParams
+---@return nil|string
+local function find_taskfile(opts)
+  return vim.fs.find(taskfiles, { upward = true, type = "file", path = opts.dir })[1]
 end
 
 ---@type overseer.TemplateDefinition
@@ -59,7 +55,7 @@ local provider = {
       if vim.fn.executable("task") == 0 then
         return false, 'Command "task" not found'
       end
-      if find_taskfile(opts) == "" then
+      if not find_taskfile(opts) then
         return false, "No Taskfile found"
       end
       return true

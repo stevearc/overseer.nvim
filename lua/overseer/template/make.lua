@@ -92,24 +92,30 @@ local function parse_make_output(cwd, ret, cb)
   end
 end
 
+---@param opts overseer.SearchParams
+---@return nil|string
+local function get_makefile(opts)
+  return vim.fs.find("Makefile", { upward = true, type = "file", path = opts.dir })[1]
+end
+
 return {
   cache_key = function(opts)
-    return vim.fn.fnamemodify(vim.fn.findfile("Makefile", opts.dir .. ";"), ":p")
+    return get_makefile(opts)
   end,
   condition = {
     callback = function(opts)
       if vim.fn.executable("make") == 0 then
         return false, 'Command "make" not found'
       end
-      if vim.fn.findfile("Makefile", opts.dir .. ";") == "" then
+      if not get_makefile(opts) then
         return false, "No Makefile found"
       end
       return true
     end,
   },
   generator = function(opts, cb)
-    local makefile = vim.fn.findfile("Makefile", opts.dir .. ";")
-    local cwd = vim.fn.fnamemodify(makefile, ":h")
+    local makefile = get_makefile(opts)
+    local cwd = vim.fs.dirname(makefile)
     local bufnr = vim.fn.bufadd(makefile)
 
     local ret = { overseer.wrap_template(tmpl, nil, { cwd = cwd }) }

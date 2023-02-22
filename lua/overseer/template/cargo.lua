@@ -33,15 +33,12 @@ local function get_cargo_dir(opts)
   local cargo_toml
   if opts.filetype == "rust" then
     local parent = vim.fn.fnamemodify(vim.api.nvim_buf_get_name(0), ":p:h")
-    cargo_toml = vim.fn.findfile("Cargo.toml", parent .. ";")
+    cargo_toml = vim.fs.find("Cargo.toml", { upward = true, type = "file", path = parent })[1]
   end
   if not cargo_toml then
-    cargo_toml = vim.fn.findfile("Cargo.toml", opts.dir .. ";")
+    cargo_toml = vim.fs.find("Cargo.toml", { upward = true, type = "file", path = opts.dir })[1]
   end
-  if cargo_toml == "" then
-    return nil
-  end
-  return vim.fn.fnamemodify(cargo_toml, ":p:h")
+  return cargo_toml
 end
 
 return {

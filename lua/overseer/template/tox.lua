@@ -19,20 +19,27 @@ local tmpl = {
   end,
 }
 
+---@param opts overseer.SearchParams
+---@return nil|string
+local function get_toxfile(opts)
+  return vim.fs.find("tox.ini", { upward = true, type = "file", path = opts.dir })[1]
+end
+
 return {
   cache_key = function(opts)
-    return files.join(opts.dir, "tox.ini")
+    return get_toxfile(opts)
   end,
   condition = {
     callback = function(opts)
-      if not files.exists(files.join(opts.dir, "tox.ini")) then
+      if not get_toxfile(opts) then
         return false, "No tox.ini file found"
       end
       return true
     end,
   },
   generator = function(opts, cb)
-    local content = files.read_file(files.join(opts.dir, "tox.ini"))
+    local tox_file = get_toxfile(opts)
+    local content = files.read_file(tox_file)
     local targets = {}
     for line in vim.gsplit(content, "\n") do
       local envlist = line:match("^envlist%s*=%s*(.+)$")

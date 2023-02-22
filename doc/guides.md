@@ -126,7 +126,7 @@ Providers are created the same way templates are (with `overseer.register_templa
   -- Additionally, if the returned value is an absolute file path,
   -- whenever that file is written overseer will automatically clear the cache
   cache_key = function(opts)
-    return vim.fn.fnamemodify(vim.fn.findfile("Makefile", opts.dir .. ";"), ":p")
+    return vim.fs.find('Makefile', { upward = true, type = "file", path = opts.dir })[1]
   end,
 }
 ```

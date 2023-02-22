@@ -1,15 +1,21 @@
 local log = require("overseer.log")
 
+---@param opts overseer.SearchParams
+---@return nil|string
+local function get_justfile(opts)
+  return vim.fs.find("justfile", { upward = true, type = "file", path = opts.dir })[1]
+end
+
 return {
   cache_key = function(opts)
-    return vim.fn.fnamemodify(vim.fn.findfile("justfile", opts.dir .. ";"), ":p")
+    return get_justfile(opts)
   end,
   condition = {
     callback = function(opts)
       if vim.fn.executable("just") == 0 then
         return false, 'Command "just" not found'
       end
-      if vim.fn.findfile("justfile", opts.dir .. ";") == "" then
+      if not get_justfile(opts) then
         return false, "No justfile found"
       end
       return true

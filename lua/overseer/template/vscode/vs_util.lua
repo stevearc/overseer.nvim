@@ -17,12 +17,16 @@ M.get_workspace_language = function()
 end
 
 ---@param dir string
+---@return nil|string
 M.get_tasks_file = function(dir)
-  local filename = vim.fn.findfile(files.join(".vscode", "tasks.json"), dir .. ";")
-  if filename ~= "" then
-    filename = vim.fn.fnamemodify(filename, ":p")
+  local vscode_dirs =
+    vim.fs.find(".vscode", { upward = true, type = "directory", path = dir, limit = math.huge })
+  for _, vscode_dir in ipairs(vscode_dirs) do
+    local tasks_file = files.join(vscode_dir, "tasks.json")
+    if files.exists(tasks_file) then
+      return tasks_file
+    end
   end
-  return filename
 end
 
 ---@param dir string

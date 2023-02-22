@@ -30,7 +30,13 @@ end
 
 ---@return string
 M.join = function(...)
-  return table.concat({ ... }, M.sep)
+  local joined = table.concat({ ... }, M.sep)
+  if M.is_windows then
+    joined = joined:gsub("\\\\+", "\\")
+  else
+    joined = joined:gsub("//+", "/")
+  end
+  return joined
 end
 
 M.is_absolute = function(path)
@@ -132,7 +138,7 @@ M.mkdir = function(dirname, perms)
     perms = 493 -- 0755
   end
   if not M.exists(dirname) then
-    local parent = vim.fn.fnamemodify(dirname, ":h")
+    local parent = vim.fs.dirname(dirname)
     if not M.exists(parent) then
       M.mkdir(parent)
     end
@@ -143,7 +149,7 @@ end
 ---@param filename string
 ---@param contents string
 M.write_file = function(filename, contents)
-  M.mkdir(vim.fn.fnamemodify(filename, ":h"))
+  M.mkdir(vim.fn.fnamemodify(filename, ":p:h"))
   local fd = vim.loop.fs_open(filename, "w", 420) -- 0644
   vim.loop.fs_write(fd, contents)
   vim.loop.fs_close(fd)

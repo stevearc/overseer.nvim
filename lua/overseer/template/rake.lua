@@ -1,15 +1,21 @@
 local log = require("overseer.log")
 
+---@param opts overseer.SearchParams
+---@return nil|string
+local function get_rakefile(opts)
+  return vim.fs.find("Rakefile", { upward = true, type = "file", path = opts.dir })[1]
+end
+
 return {
   cache_key = function(opts)
-    return vim.fn.fnamemodify(vim.fn.findfile("Rakefile", opts.dir .. ";"), ":p")
+    return get_rakefile(opts)
   end,
   condition = {
     callback = function(opts)
       if vim.fn.executable("rake") == 0 then
         return false, 'Command "rake" not found'
       end
-      if vim.fn.findfile("Rakefile", opts.dir .. ";") == "" then
+      if not get_rakefile(opts) then
         return false, "No Rakefile found"
       end
       return true

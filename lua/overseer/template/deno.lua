@@ -20,18 +20,7 @@ local tmpl = {
 
 local function get_deno_file(opts)
   local deno_json = { "deno.json", "deno.jsonc" }
-  local filename = ""
-  for i = 1, #deno_json do
-    local results = vim.fn.findfile(deno_json[i], opts.dir .. ";")
-    if results ~= "" then
-      filename = results
-      break
-    end
-  end
-  if filename ~= "" then
-    filename = vim.fn.fnamemodify(filename, ":p")
-  end
-  return filename
+  return vim.fs.find(deno_json, { upward = true, type = "file", path = opts.dir })[1]
 end
 
 return {

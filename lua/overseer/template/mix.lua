@@ -22,13 +22,19 @@ local tmpl = {
   end,
 }
 
+---@param opts overseer.SearchParams
+---@return nil|string
+local function get_mix_file(opts)
+  return vim.fs.find("mix.exs", { upward = true, type = "file", path = opts.dir })[1]
+end
+
 return {
   cache_key = function(opts)
-    return vim.fn.fnamemodify(vim.fn.findfile("mix.exs", opts.dir .. ";"), ":p")
+    return get_mix_file(opts)
   end,
   condition = {
     callback = function(opts)
-      if not files.exists(files.join(opts.dir, "mix.exs")) then
+      if not get_mix_file(opts) then
         return false, "No mix.exs file found"
       end
       return true
