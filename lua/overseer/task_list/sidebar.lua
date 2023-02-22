@@ -96,7 +96,7 @@ function Sidebar:toggle_preview()
     row = 1,
     col = col,
     width = width,
-    height = vim.api.nvim_win_get_height(0),
+    height = vim.api.nvim_win_get_height(0) - 2,
     style = "minimal",
     noautocmd = true,
   })
