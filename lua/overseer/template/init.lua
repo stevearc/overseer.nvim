@@ -60,7 +60,7 @@ local function condition_matches(condition, tags, search, match_tags)
     return true
   end
   if condition.filetype then
-    local search_fts = vim.split(search.filetype, ".", true)
+    local search_fts = vim.split(search.filetype, ".", { plain = true })
     local any_ft_match = false
     for _, ft in util.iter_as_list(condition.filetype) do
       if vim.tbl_contains(search_fts, ft) then
@@ -395,8 +395,8 @@ M.clear_cache = function(opts)
   end
 end
 
----@param opts? overseer.SearchParams
----@param cb fun(templates: overseer.TemplateDefinition[])
+---@param opts overseer.SearchParams
+---@param cb fun(templates: overseer.TemplateDefinition[], report: table)
 M.list = function(opts, cb)
   initialize()
   opts = opts or {}

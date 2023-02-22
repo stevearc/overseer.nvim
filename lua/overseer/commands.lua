@@ -192,23 +192,31 @@ M._task_action = function(params)
 end
 
 M._clear_cache = function(_params)
-  M.clear_cache({
-    dir = vim.fn.getcwd(),
-  })
+  M.clear_cache()
 end
 
----@param opts table
+---@return overseer.SearchParams
+local function get_search_params()
+  return {
+    dir = vim.fn.getcwd(0),
+    filetype = vim.bo.filetype,
+  }
+end
+
+---@param opts nil|table
 ---    dir string
 ---    ft nil|string
----@param cb nil|fun Called when preloading is complete
+---@param cb nil|fun() Called when preloading is complete
 M.preload_cache = function(opts, cb)
-  template.list(opts, cb or function() end)
+  template.list(opts or get_search_params(), cb or function() end)
 end
 
----@param opts table
+---@param opts nil|table
 ---    dir string
 ---    ft nil|string
-M.clear_cache = template.clear_cache
+M.clear_cache = function(opts)
+  template.clear_cache(opts or get_search_params())
+end
 
 -- TEMPLATE LOADING/RUNNING
 
@@ -249,16 +257,10 @@ M.run_template = function(opts, callback)
     opts.first = opts.name or not vim.tbl_isempty(opts.tags or {})
   end
   opts.params = opts.params or {}
-  local dir = vim.fn.getcwd(0)
-  local ft = vim.api.nvim_buf_get_option(0, "filetype")
-  local search_opts = {
-    dir = dir,
-    filetype = ft,
-    tags = opts.tags,
-  }
-  opts.search = search_opts
+  local search_opts = get_search_params()
+  search_opts.tags = opts.tags
 
-  ---@param tmpl? overseer.TaskDefinition
+  ---@param tmpl? overseer.TemplateDefinition
   local function handle_tmpl(tmpl)
     if not tmpl then
       local err = "Could not find template"
@@ -367,12 +369,7 @@ M.task_action = function()
 end
 
 M.info = function(callback)
-  local dir = vim.fn.getcwd(0)
-  local ft = vim.api.nvim_buf_get_option(0, "filetype")
-  local search_opts = {
-    dir = dir,
-    filetype = ft,
-  }
+  local search_opts = get_search_params()
   local info = {
     log = {
       file = nil,

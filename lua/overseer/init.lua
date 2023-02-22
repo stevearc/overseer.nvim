@@ -415,7 +415,7 @@ M.list_tasks = lazy("task_list", "list_tasks")
 M.run_template = lazy("commands", "run_template")
 
 ---Preload templates for run_template
----@param opts table
+---@param opts nil|table
 ---    dir string
 ---    ft nil|string
 ---@param cb nil|fun Called when preloading is complete
@@ -430,7 +430,7 @@ M.run_template = lazy("commands", "run_template")
 --- })
 M.preload_task_cache = lazy("commands", "preload_cache")
 ---Clear cached templates for run_template
----@param opts table
+---@param nil|opts table
 ---    dir string
 ---    ft nil|string
 M.clear_task_cache = lazy("commands", "clear_cache")
