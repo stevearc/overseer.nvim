@@ -561,28 +561,20 @@ M.list = function(opts, cb)
 end
 
 ---@param name string
----@param opts? overseer.SearchParams
----@param cb fun(template: overseer.TemplateDefinition)
+---@param opts overseer.SearchParams
+---@param cb fun(template: nil|overseer.TemplateDefinition)
 M.get_by_name = function(name, opts, cb)
   initialize()
   local ret = registry[name]
-  if ret then
+  if ret and condition_matches(ret.condition, ret.tags, opts, false) then
     cb(ret)
     return
   end
   M.list(opts, function(templates)
     for _, tmpl in ipairs(templates) do
-      if tmpl.name == name then
+      if tmpl.name == name or (tmpl.aliases and vim.tbl_contains(tmpl.aliases, name)) then
         cb(tmpl)
         return
-      end
-      if tmpl.aliases then
-        for _, alias in ipairs(tmpl.aliases) do
-          if alias == name then
-            cb(tmpl)
-            return
-          end
-        end
       end
     end
     cb(nil)
