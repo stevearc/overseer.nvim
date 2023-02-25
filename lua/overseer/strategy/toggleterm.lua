@@ -5,6 +5,9 @@ local terminal = require("toggleterm.terminal")
 
 local ToggleTermStrategy = {}
 
+-- Name of powershell executables
+local powershell = {pwsh=1, powershell=1}
+
 ---Run tasks using the toggleterm plugin
 ---@param opts nil|table
 ---    use_shell nil|boolean load user shell before running task
@@ -67,7 +70,11 @@ function ToggleTermStrategy:start(task)
 
   local cmd = task.cmd
   if type(task.cmd) == "table" then
-    cmd = table.concat(vim.tbl_map(vim.fn.shellescape, task.cmd), " ")
+    if powershell[vim.o.shell] ~= nil then
+      cmd = table.concat(task.cmd, " ")
+    else
+      cmd = table.concat(vim.tbl_map(vim.fn.shellescape, task.cmd), " ")
+    end
   end
 
   local passed_cmd
