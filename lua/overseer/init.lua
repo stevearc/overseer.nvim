@@ -41,7 +41,7 @@ local function do_setup()
     group = aug,
     callback = function()
       local task_list = require("overseer.task_list")
-      local cmds = vim.g.session_save_commands
+      local cmds = vim.g.session_save_commands or {}
       local tasks = vim.tbl_map(function(task)
         return task:serialize()
       end, task_list.list_tasks({ bundleable = true }))
