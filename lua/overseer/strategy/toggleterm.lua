@@ -1,4 +1,5 @@
 local jobs = require("overseer.strategy._jobs")
+local shell = require("overseer.shell")
 local util = require("overseer.util")
 
 local terminal = require("toggleterm.terminal")
@@ -66,8 +67,21 @@ function ToggleTermStrategy:start(task)
   end
 
   local cmd = task.cmd
-  if type(task.cmd) == "table" then
-    cmd = table.concat(vim.tbl_map(vim.fn.shellescape, task.cmd), " ")
+  if type(cmd) == "table" then
+    local exe = shell.escape(cmd[1], "escape")
+    local args = vim.deepcopy(cmd)
+    table.remove(args, 1)
+    cmd = exe
+    if not vim.tbl_isempty(args) then
+      cmd = cmd
+        .. " "
+        .. table.concat(
+          vim.tbl_map(function(arg)
+            return shell.escape(arg, "strong")
+          end, args),
+          " "
+        )
+    end
   end
 
   local passed_cmd
