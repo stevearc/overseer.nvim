@@ -1,5 +1,6 @@
 local parser_lib = require("overseer.parser.lib")
 local log = require("overseer.log")
+local variables = require("overseer.template.vscode.variables")
 local M = {}
 
 -- Taken from https://github.com/microsoft/vscode/blob/main/src/vs/workbench/contrib/tasks/common/problemMatcher.ts#L1207
@@ -366,6 +367,9 @@ local function convert_pattern(pattern, opts)
       if full_line_key then
         item[full_line_key] = ctx.line
       end
+      if opts.file_convert and item.filename then
+        item.filename = opts.file_convert(item.filename)
+      end
     end,
   }
   local extract_pat
@@ -450,6 +454,27 @@ local function add_background(background, child)
   )
 end
 
+-- Process file name based on "fileLocation"
+-- Valid: "absolute", "relative", "autodetect", ["relative", "path value"], ["autodetect", "path value"]
+local function file_converter(file_loc)
+  local typ = type(file_loc) == 'table' and file_loc[1] or file_loc
+  assert(vim.tbl_contains({'absolute', 'relative', 'autodetect'}, typ), 'Unsupported fileLocation: ' .. typ)
+  -- TODO: passing params to replace_vars not supported yet
+  local rel_path = type(file_loc) == 'table' and variables.replace_vars(file_loc[2], {}) or vim.fn.getcwd()
+
+  return function(file)
+    if typ == 'absolute' then
+      return file
+    else -- relative/autodetect
+      local rel = vim.fn.fnamemodify(rel_path .. '/' .. file, ':p')
+      if typ == 'autodetect' and vim.fn.filereadable(rel) ~= 1 then
+        return file
+      end
+      return rel
+    end
+  end
+end
+
 M.get_parser_from_problem_matcher = function(problem_matcher)
   if not problem_matcher then
     return nil
@@ -472,19 +497,20 @@ M.get_parser_from_problem_matcher = function(problem_matcher)
   local qf_type = severity_to_type[problem_matcher.severity]
   local pattern = problem_matcher.pattern
   local background = problem_matcher.background
+  local convert = problem_matcher.fileLocation and file_converter(problem_matcher.fileLocation)
   local ret
   if vim.tbl_islist(pattern) then
     ret = { "sequence" }
     for i, v in ipairs(pattern) do
       local append = i == #pattern
-      local parse_node = convert_pattern(v, { append = append, qf_type = qf_type })
+      local parse_node = convert_pattern(v, { append = append, qf_type = qf_type, file_convert = convert })
       if not parse_node then
         return nil
       end
       table.insert(ret, parse_node)
     end
   else
-    local parse_node = convert_pattern(pattern, { qf_type = qf_type })
+    local parse_node = convert_pattern(pattern, { qf_type = qf_type, file_convert = convert  })
     if parse_node then
       ret = parse_node
     else
