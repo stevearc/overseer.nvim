@@ -42,8 +42,16 @@ M.wrap_run = function(daprun)
           log:error("Could not run preLaunchTask %s: %s", config.preLaunchTask, err)
           return
         end
+
+        -- Non-background task with problemMatcher will trigger both on_result and on_complete so use the first one
+        local done = false
         local cleanup
+
         local function on_complete(_, status)
+          if done then
+            return
+          end
+          done = true
           if status == STATUS.SUCCESS then
             daprun(config, opts)
           elseif status == STATUS.FAILURE then
@@ -57,11 +65,17 @@ M.wrap_run = function(daprun)
           end
           vim.schedule(cleanup)
         end
+
         local function on_result()
+          if done then
+            return
+          end
+          done = true
           -- We get the on_result callback from background tasks once they hit their end pattern
           daprun(config, opts)
           vim.schedule(cleanup)
         end
+
         task:subscribe("on_complete", on_complete)
         task:subscribe("on_result", on_result)
         cleanup = function()
