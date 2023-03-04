@@ -367,7 +367,6 @@ Unsupported features:
 - task types: gulp, grunt, jake
 - shell-specific quoting
 - Specifying a custom shell to use
-- `problemMatcher.fileLocation`
 - `${workspacefolder:*}` variables
 - `${config:*}` variables
 - `${command:*}` variables

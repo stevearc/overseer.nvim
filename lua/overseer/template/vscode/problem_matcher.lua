@@ -497,7 +497,6 @@ M.get_parser_from_problem_matcher = function(problem_matcher)
   end
 
   -- NOTE: we ignore matcher.owner
-  -- TODO: support matcher.fileLocation
   local qf_type = severity_to_type[problem_matcher.severity]
   local pattern = problem_matcher.pattern
   local background = problem_matcher.background
