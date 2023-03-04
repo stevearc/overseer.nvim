@@ -45,7 +45,8 @@ local function do_setup()
       local tasks = vim.tbl_map(function(task)
         return task:serialize()
       end, task_list.list_tasks({ bundleable = true }))
-      if vim.tbl_isempty(tasks) then
+      -- Abort if no tasks or if not using vim-session (no vim.g.session_save_commands)
+      if not cmds or vim.tbl_isempty(tasks) then
         return
       end
       table.insert(cmds, '" overseer.nvim')
