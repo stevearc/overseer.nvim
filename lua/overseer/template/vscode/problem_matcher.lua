@@ -457,17 +457,21 @@ end
 -- Process file name based on "fileLocation"
 -- Valid: "absolute", "relative", "autodetect", ["relative", "path value"], ["autodetect", "path value"]
 local function file_converter(file_loc)
-  local typ = type(file_loc) == 'table' and file_loc[1] or file_loc
-  assert(vim.tbl_contains({'absolute', 'relative', 'autodetect'}, typ), 'Unsupported fileLocation: ' .. typ)
+  local typ = type(file_loc) == "table" and file_loc[1] or file_loc
+  assert(
+    vim.tbl_contains({ "absolute", "relative", "autodetect" }, typ),
+    "Unsupported fileLocation: " .. typ
+  )
   -- TODO: passing params to replace_vars not supported yet
-  local rel_path = type(file_loc) == 'table' and variables.replace_vars(file_loc[2], {}) or vim.fn.getcwd()
+  local rel_path = type(file_loc) == "table" and variables.replace_vars(file_loc[2], {})
+    or vim.fn.getcwd()
 
   return function(file)
-    if typ == 'absolute' then
+    if typ == "absolute" then
       return file
     else -- relative/autodetect
-      local rel = vim.fn.fnamemodify(rel_path .. '/' .. file, ':p')
-      if typ == 'autodetect' and vim.fn.filereadable(rel) ~= 1 then
+      local rel = vim.fn.fnamemodify(rel_path .. "/" .. file, ":p")
+      if typ == "autodetect" and vim.fn.filereadable(rel) ~= 1 then
         return file
       end
       return rel
@@ -503,14 +507,15 @@ M.get_parser_from_problem_matcher = function(problem_matcher)
     ret = { "sequence" }
     for i, v in ipairs(pattern) do
       local append = i == #pattern
-      local parse_node = convert_pattern(v, { append = append, qf_type = qf_type, file_convert = convert })
+      local parse_node =
+        convert_pattern(v, { append = append, qf_type = qf_type, file_convert = convert })
       if not parse_node then
         return nil
       end
       table.insert(ret, parse_node)
     end
   else
-    local parse_node = convert_pattern(pattern, { qf_type = qf_type, file_convert = convert  })
+    local parse_node = convert_pattern(pattern, { qf_type = qf_type, file_convert = convert })
     if parse_node then
       ret = parse_node
     else
