@@ -287,6 +287,14 @@ local match_names = {
   "code",
   "message",
 }
+local function num_field(name)
+  return {
+    name,
+    function(value, ctx)
+      return tonumber(value)
+    end,
+  }
+end
 local function convert_match_name(name)
   if name == "file" then
     return "filename"
@@ -302,15 +310,15 @@ local function convert_match_name(name)
       end,
     }
   elseif name == "line" then
-    return "lnum"
+    return num_field("lnum")
   elseif name == "column" then
-    return "col"
+    return num_field("col")
   elseif name == "character" then
-    return "col"
+    return num_field("col")
   elseif name == "endLine" then
-    return "end_lnum"
+    return num_field("end_lnum")
   elseif name == "endColumn" then
-    return "end_col"
+    return num_field("end_col")
   elseif name == "severity" then
     return "type"
   elseif name == "code" then
