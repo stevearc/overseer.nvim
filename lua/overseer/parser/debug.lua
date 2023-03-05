@@ -23,8 +23,15 @@ local function load_parser()
   parser.trace(true)
   local builder = loadstring(text)
   local ok, ret = pcall(builder)
-  if ok and ret.ingest then
-    return ret
+  if ok then
+    if ret.ingest then
+      return ret
+    else
+      return nil,
+        string.format("Expected parser to have method 'ingest'. Found %s", vim.inspect(ret))
+    end
+  else
+    return nil, ret
   end
 end
 
@@ -64,8 +71,13 @@ local function render_parser(input_lnum)
   if not bufnr or not vim.api.nvim_buf_is_valid(bufnr) then
     return
   end
-  local p = load_parser()
+  local ns = vim.api.nvim_create_namespace("OverseerParser")
+  vim.api.nvim_buf_clear_namespace(bufnr, ns, 0, -1)
+  local p, err = load_parser()
   if not p then
+    vim.api.nvim_buf_set_option(bufnr, "modifiable", true)
+    vim.api.nvim_buf_set_lines(bufnr, 0, -1, true, vim.split(vim.inspect(err), "\n"))
+    vim.api.nvim_buf_set_option(bufnr, "modifiable", false)
     return
   end
   p:ingest(vim.api.nvim_buf_get_lines(input_buf, 0, input_lnum or -1, true))
@@ -95,8 +107,6 @@ local function render_parser(input_lnum)
   vim.api.nvim_buf_set_option(bufnr, "modifiable", true)
   vim.api.nvim_buf_set_lines(bufnr, 0, -1, true, lines)
   vim.api.nvim_buf_set_option(bufnr, "modifiable", false)
-  local ns = vim.api.nvim_create_namespace("OverseerParser")
-  vim.api.nvim_buf_clear_namespace(bufnr, ns, 0, -1)
   util.add_highlights(bufnr, ns, highlights)
 end
 
