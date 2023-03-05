@@ -280,6 +280,7 @@ local match_names = {
   "location",
   "line",
   "column",
+  "character",
   "endLine",
   "endColumn",
   "severity",
@@ -303,6 +304,8 @@ local function convert_match_name(name)
   elseif name == "line" then
     return "lnum"
   elseif name == "column" then
+    return "col"
+  elseif name == "character" then
     return "col"
   elseif name == "endLine" then
     return "end_lnum"
