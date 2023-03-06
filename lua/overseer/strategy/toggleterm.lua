@@ -68,20 +68,7 @@ function ToggleTermStrategy:start(task)
 
   local cmd = task.cmd
   if type(cmd) == "table" then
-    local exe = shell.escape(cmd[1], "escape")
-    local args = vim.deepcopy(cmd)
-    table.remove(args, 1)
-    cmd = exe
-    if not vim.tbl_isempty(args) then
-      cmd = cmd
-        .. " "
-        .. table.concat(
-          vim.tbl_map(function(arg)
-            return shell.escape(arg, "strong")
-          end, args),
-          " "
-        )
-    end
+    cmd = shell.escape_cmd(cmd, "strong")
   end
 
   local passed_cmd

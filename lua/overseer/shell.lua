@@ -80,7 +80,7 @@ end
 
 ---@param shell nil|string
 ---@return string
-local function normalize_shell_name(shell)
+M.normalize_shell_name = function(shell)
   if not shell then
     shell = vim.o.shell
   end
@@ -96,7 +96,7 @@ end
 ---@param shell nil|string
 ---@return overseer.ShellEscapeConfig
 local function get_config_for_shell(shell)
-  local basename = normalize_shell_name(shell)
+  local basename = M.normalize_shell_name(shell)
   if esc_configs[basename] then
     return esc_configs[basename]
   else
@@ -195,7 +195,7 @@ M.escape_cmd = function(cmd, method, shell)
   end
 
   local str_cmd = table.concat(pieces, " ")
-  local norm_shell = normalize_shell_name(shell)
+  local norm_shell = M.normalize_shell_name(shell)
   if norm_shell == "powershell" and cmd_quoted then
     str_cmd = "& " .. str_cmd
   elseif norm_shell == "cmd" and cmd_quoted and args_quoted then
