@@ -91,8 +91,8 @@ function ToggleTermStrategy:start(task)
         t:send("exit $?")
       end
     end,
-    on_stdout = function(j, d)
-      if self.chan_id ~= j then
+    on_stdout = function(_job, job_id, d)
+      if self.chan_id ~= job_id then
         return
       end
       on_stdout(d)
