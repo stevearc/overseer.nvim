@@ -157,10 +157,17 @@ local function convert_vscode_task(defn)
     desc = defn.detail,
     params = parse_params(defn),
   }
+  if not defn.type then
+    log:warn(
+      'VSCode task \'%s\' is missing type. Try setting "type": "shell"',
+      defn.label or defn.name or defn.command
+    )
+    return nil
+  end
 
   local task_builder = get_task_builder(defn)
   -- If we don't have a task builder, but the type exists, then we don't support this task type
-  if not task_builder and defn.type then
+  if not task_builder then
     log:warn("Unsupported VSCode task type '%s' for task %s", defn.type, tmpl.name)
     return nil
   end
