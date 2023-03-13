@@ -29,27 +29,27 @@ local tmpl = {
 
 ---@param opts overseer.SearchParams
 ---@return nil|string
-local function get_cargo_dir(opts)
+local function get_cargo_file(opts)
   return vim.fs.find("Cargo.toml", { upward = true, type = "file", path = opts.dir })[1]
 end
 
 return {
   cache_key = function(opts)
-    return get_cargo_dir(opts)
+    return get_cargo_file(opts)
   end,
   condition = {
     callback = function(opts)
       if vim.fn.executable("cargo") == 0 then
         return false, 'Command "cargo" not found'
       end
-      if not get_cargo_dir(opts) then
+      if not get_cargo_file(opts) then
         return false, "No Cargo.toml file found"
       end
       return true
     end,
   },
   generator = function(opts, cb)
-    local cargo_dir = get_cargo_dir(opts)
+    local cargo_dir = vim.fs.dirname(get_cargo_file(opts))
     local commands = {
       { args = { "build" }, tags = { TAG.BUILD } },
       { args = { "test" }, tags = { TAG.TEST } },
