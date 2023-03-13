@@ -217,6 +217,10 @@ return {
         return {foo = {"bar", "baz"}}
       end,
       ---@param result table A result table.
+      on_preprocess_result = function(self, task, result)
+        -- Called right before on_result. Intended for logic that needs to preprocess the result table and update it in-place.
+      end,
+      ---@param result table A result table.
       on_result = function(self, task, result)
         -- Called when a component has results to set. Usually this is after the command has completed, but certain types of tasks may wish to set a result while still running.
       end,

@@ -487,6 +487,7 @@ function Task:finalize(status)
   local results = self:dispatch("on_pre_result")
   if not vim.tbl_isempty(results) then
     self.result = vim.tbl_deep_extend("force", self.result or {}, unpack(results))
+    self:dispatch("on_preprocess_result", self.result)
     self:dispatch("on_result", self.result)
   end
   self:dispatch("on_status", self.status)
