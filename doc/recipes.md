@@ -135,5 +135,5 @@ vim.api.nvim_create_user_command("Grep", function(params)
     },
   })
   task:start()
-end, { nargs = "*", bang = true })
+end, { nargs = "*", bang = true, complete = "file" })
 ```
