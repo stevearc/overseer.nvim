@@ -34,6 +34,7 @@ end
 
 ---@param value string
 ---@param config overseer.ShellEscapeConfig
+---@return boolean
 local function needs_quote(value, config)
   local skip_next = false
   local found_quote
@@ -53,7 +54,7 @@ local function needs_quote(value, config)
       return true
     end
   end
-  return false
+  return found_quote ~= nil
 end
 
 ---@param value string
@@ -181,13 +182,18 @@ M.escape_cmd = function(cmd, method, shell)
   local cmd_quoted = false
   local args_quoted = false
   for i, v in ipairs(cmd) do
+    local arg_quote_method
+    if type(v) == "table" then
+      arg_quote_method = v.quoting
+      v = v.value
+    end
     if needs_quote(v, config) then
       if i == 1 then
         cmd_quoted = true
       else
         args_quoted = true
       end
-      local escaped = escape(v, method, config)
+      local escaped = escape(v, arg_quote_method or method, config)
       table.insert(pieces, escaped)
     else
       table.insert(pieces, v)

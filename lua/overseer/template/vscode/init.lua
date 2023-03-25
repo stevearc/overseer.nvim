@@ -54,7 +54,11 @@ local function parse_params(defn)
   extract_params(params, defn.command, input_lookup)
   if defn.args then
     for _, arg in ipairs(defn.args) do
-      extract_params(params, arg, input_lookup)
+      if type(arg) == "string" then
+        extract_params(params, arg, input_lookup)
+      else
+        extract_params(params, arg.value, input_lookup)
+      end
     end
   end
 
@@ -115,6 +119,13 @@ local function get_task_builder(defn)
     return nil
   end
   return function(params)
+    defn = vim.deepcopy(defn)
+    defn.command = variables.replace_vars(defn.command, params)
+    defn.args = variables.replace_vars(defn.args, params)
+    if defn.options then
+      defn.options.cwd = variables.replace_vars(defn.options.cwd, params)
+      defn.options.env = variables.replace_vars(defn.options.env, params)
+    end
     -- Pass the provider the raw task definition data and the launch.json configuration data
     -- (if present)
     local task_opts = task_provider.get_task_opts(defn, params[LAUNCH_CONFIG_KEY])
@@ -139,9 +150,9 @@ local function get_task_builder(defn)
 
     local task = {
       name = defn.label,
-      cmd = variables.replace_vars(opts.cmd, params),
-      cwd = variables.replace_vars(opts.cwd, params),
-      env = variables.replace_vars(opts.env, params),
+      cmd = opts.cmd,
+      cwd = opts.cwd,
+      env = opts.env,
       components = components,
     }
     return task

@@ -2,6 +2,7 @@ local component = require("overseer.component")
 local constants = require("overseer.constants")
 local form_utils = require("overseer.form.utils")
 local log = require("overseer.log")
+local shell = require("overseer.shell")
 local strategy = require("overseer.strategy")
 local task_list = require("overseer.task_list")
 local util = require("overseer.util")
@@ -78,10 +79,8 @@ function Task.new_uninitialized(opts)
   end
   if opts.args then
     if type(opts.cmd) == "string" then
-      local escaped = vim.tbl_map(function(arg)
-        return vim.fn.shellescape(arg)
-      end, opts.args)
-      opts.cmd = string.format("%s %s", opts.cmd, table.concat(escaped, " "))
+      local full_cmd = vim.list_extend({ opts.cmd }, opts.args or {})
+      opts.cmd = shell.escape_cmd(full_cmd)
     else
       opts.cmd = vim.deepcopy(opts.cmd)
       vim.list_extend(opts.cmd, opts.args)

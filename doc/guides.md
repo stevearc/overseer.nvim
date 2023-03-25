@@ -369,7 +369,6 @@ Supported features:
 Unsupported features:
 
 - task types: gulp, grunt, jake
-- shell-specific quoting
 - Specifying a custom shell to use
 - `${workspacefolder:*}` variables
 - `${config:*}` variables

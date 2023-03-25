@@ -21,7 +21,7 @@ describe("vscode", function()
       command = "ls",
       args = { "foo", { value = "bar", quoting = "escape" } },
     })
-    assert.are.same("ls 'foo' 'bar'", opts.cmd)
+    assert.are.same("ls foo bar", opts.cmd)
   end)
 
   it("strong quotes the args", function()
@@ -29,9 +29,9 @@ describe("vscode", function()
     local opts = provider.get_task_opts({
       type = "shell",
       command = "ls",
-      args = { "foo bar", "baz" },
+      args = { 'foo"bar', "baz" },
     })
-    assert.are.same("ls 'foo bar' 'baz'", opts.cmd)
+    assert.are.same("ls 'foo\"bar' baz", opts.cmd)
   end)
 
   it("interpolates variables in command, args, and opts", function()
@@ -49,7 +49,7 @@ describe("vscode", function()
     })
     local task = tmpl.builder({})
     local dir = vim.fn.getcwd(0)
-    assert.equals(string.format("%s/script 'code'", dir), task.cmd)
+    assert.equals(string.format("%s/script code", dir), task.cmd)
     assert.equals(dir, task.cwd)
     assert.are.same({ FOO = "code" }, task.env)
   end)
@@ -59,7 +59,7 @@ describe("vscode", function()
       label = "task",
       type = "shell",
       command = "echo",
-      args = { "${input:a_word}" },
+      args = { { value = "${input:a_word}", quoting = "escape" } },
       inputs = {
         {
           id = "a_word",
@@ -69,8 +69,8 @@ describe("vscode", function()
         },
       },
     })
-    local task = tmpl.builder({ a_word = "hello" })
-    assert.equals("echo 'hello'", task.cmd)
+    local task = tmpl.builder({ a_word = 'hello"world' })
+    assert.equals('echo hello\\"world', task.cmd)
   end)
 
   it("uses the task label", function()
