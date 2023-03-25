@@ -30,7 +30,13 @@ local tmpl = {
 }
 
 local function ts_parse_make_targets(parser, bufnr, cwd)
-  local query = vim.treesitter.parse_query("make", make_targets)
+  local query
+  if vim.treesitter.query.parse then
+    -- Neovim 0.9
+    query = vim.treesitter.query.parse("make", make_targets)
+  else
+    query = vim.treesitter.parse_query("make", make_targets)
+  end
   local root = parser:parse()[1]:root()
   pcall(vim.tbl_add_reverse_lookup, query.captures)
   local targets = {}
