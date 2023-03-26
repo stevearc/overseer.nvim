@@ -11,7 +11,7 @@ local function get_last_lines(bufnr, num_lines)
   while end_line > 0 and #lines < num_lines do
     local need_lines = num_lines - #lines
     lines = vim.list_extend(
-      vim.api.nvim_buf_get_lines(bufnr, end_line - need_lines, end_line, false),
+      vim.api.nvim_buf_get_lines(bufnr, math.max(0, end_line - need_lines), end_line, false),
       lines
     )
     while
