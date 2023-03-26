@@ -48,10 +48,10 @@ local utils = require("lualine.utils.utils")
 local STATUS = constants.STATUS
 
 local default_icons = {
-  [STATUS.FAILURE] = " ",
+  [STATUS.FAILURE] = "󰅚 ",
   [STATUS.CANCELED] = " ",
-  [STATUS.SUCCESS] = " ",
-  [STATUS.RUNNING] = "省",
+  [STATUS.SUCCESS] = "󰄴 ",
+  [STATUS.RUNNING] = "󰑮",
 }
 local default_no_icons = {
   [STATUS.FAILURE] = "F:",
