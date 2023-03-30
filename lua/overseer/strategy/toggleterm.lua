@@ -15,6 +15,7 @@ local ToggleTermStrategy = {}
 ---    close_on_exit nil|boolean close the terminal (if open) after task exits
 ---    open_on_start nil|boolean toggle open the terminal automatically when task starts
 ---    hidden nil|boolean cannot be toggled with normal ToggleTerm commands
+----   on_create nil|function function to execute on terminal creation
 ---@return overseer.Strategy
 function ToggleTermStrategy.new(opts)
   opts = vim.tbl_extend("keep", opts or {}, {
@@ -25,6 +26,7 @@ function ToggleTermStrategy.new(opts)
     close_on_exit = false,
     open_on_start = true,
     hidden = false,
+    on_create = nil,
   })
   if opts.dir then
     vim.notify_once(
@@ -86,6 +88,10 @@ function ToggleTermStrategy:start(task)
     close_on_exit = self.opts.close_on_exit,
     hidden = self.opts.hidden,
     on_create = function(t)
+      if self.opts.on_create then
+        self.opts.on_create(t)
+      end
+
       if self.opts.use_shell then
         t:send(cmd)
         t:send("exit $?")
