@@ -148,6 +148,9 @@ require('overseer').setup({
     -- mirrors the toggleterm "hidden" parameter, and keeps the task from
     -- being rendered in the toggleable window
     hidden = false,
+    -- command to run when the terminal is created. Combine with `use_shell`
+    -- to run a terminal command before starting the task
+    on_create = nil,
   }
 })
 ```
