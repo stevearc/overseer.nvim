@@ -844,6 +844,8 @@ toggleterm({opts}): overseer.Strategy                        *strategy.toggleter
                           when task starts
           {hidden}        `nil|boolean` cannot be toggled with normal ToggleTerm
                           commands
+          {on_create}     `nil|fun(term: table)` function to execute on terminal
+                          creation
 
 --------------------------------------------------------------------------------
 PARSERS                                                         *overseer-parsers*

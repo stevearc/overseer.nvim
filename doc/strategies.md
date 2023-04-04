@@ -80,6 +80,7 @@ Run tasks using the toggleterm plugin
 |       | close_on_exit | `nil\|boolean`                                  | close the terminal (if open) after task exits            |
 |       | open_on_start | `nil\|boolean`                                  | toggle open the terminal automatically when task starts  |
 |       | hidden        | `nil\|boolean`                                  | cannot be toggled with normal ToggleTerm commands        |
+|       | on_create     | `nil\|fun(term: table)`                         | function to execute on terminal creation                 |
 
 
 <!-- /API -->
