@@ -43,9 +43,11 @@ local function ts_parse_make_targets(parser, bufnr, cwd)
   local default_target
   for _, match in query:iter_matches(root, bufnr) do
     local name = vim.treesitter.get_node_text(match[query.captures.name], bufnr)
-    targets[name] = true
-    if not default_target and not match[query.captures.phony] then
-      default_target = name
+    if name ~= ".PHONY" then
+      targets[name] = true
+      if not default_target and not match[query.captures.phony] then
+        default_target = name
+      end
     end
   end
 
