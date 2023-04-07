@@ -6,7 +6,7 @@ Have a cool recipe to share? Open a pull request and add it to this doc!
 
 - [Restart last task](#restart-last-task)
 - [Run shell scripts in the current directory](#run-shell-scripts-in-the-current-directory)
-- [Directory-local tasks with nvim-config-local](#directory-local-tasks-with-nvim-config-local)
+- [Directory-local tasks with exrc](#directory-local-tasks-with-exrc)
 - [:Make similar to vim-dispatch](#make-similar-to-vim-dispatch)
 - [Asynchronous :Grep command](#asynchronous-grep-command)
 
@@ -61,18 +61,18 @@ return {
 }
 ```
 
-## Directory-local tasks with nvim-config-local
+## Directory-local tasks with exrc
 
-If you have [nvim-config-local](https://github.com/klen/nvim-config-local) installed, you can add directory-local tasks like so:
+You can add directory-local tasks by setting the exrc option (`vim.o.exrc = true`) and creating a file in the directory:
 
 ```lua
--- /path/to/dir/.vimrc.lua
-
+-- /path/to/dir/.nvim.lua
 require("overseer").register_template({
   name = "My project task",
   params = {},
   condition = {
     -- This makes the template only available in the current directory
+    -- In case you :cd out later
     dir = vim.fn.getcwd(),
   },
   builder = function()
