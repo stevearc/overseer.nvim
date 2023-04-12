@@ -683,4 +683,23 @@ M.hack_around_termopen_autocmd = function(prev_mode)
   end, 10)
 end
 
+---@param old_bufnr nil|integer
+---@param new_bufnr nil|integer
+M.replace_buffer_in_wins = function(old_bufnr, new_bufnr)
+  if not old_bufnr or not new_bufnr then
+    return
+  end
+  local has_stickybuf, stickybuf = pcall(require, "stickybuf")
+  -- If this task's previous buffer was open in any wins, replace it
+  for _, win in ipairs(vim.api.nvim_list_wins()) do
+    if vim.api.nvim_win_is_valid(win) and vim.api.nvim_win_get_buf(win) == old_bufnr then
+      -- If stickybuf is installed, make sure it doesn't interfere
+      if has_stickybuf then
+        stickybuf.unpin(win)
+      end
+      vim.api.nvim_win_set_buf(win, new_bufnr)
+    end
+  end
+end
+
 return M

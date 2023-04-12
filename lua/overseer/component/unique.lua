@@ -1,4 +1,5 @@
 local task_list = require("overseer.task_list")
+local util = require("overseer.util")
 return {
   desc = "Ensure that this task does not have any duplicates",
   -- Doesn't make sense for user to add this using a form.
@@ -23,6 +24,10 @@ return {
         for _, t in ipairs(tasks) do
           if t.name == task.name and t ~= task then
             if params.replace then
+              task:subscribe("on_start", function()
+                util.replace_buffer_in_wins(t:get_bufnr(), task:get_bufnr())
+                return false
+              end)
               t:dispose(true)
             else
               task:dispose(true)
