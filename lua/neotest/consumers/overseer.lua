@@ -67,8 +67,6 @@ function neotest.overseer.run_last(args)
   neotest.overseer.rerun_task_group(last_group_id)
 end
 
--- TODO also override stop and attach?
-
 neotest.overseer = setmetatable(neotest.overseer, {
   __call = function(_, client_)
     client = client_

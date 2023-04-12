@@ -110,9 +110,9 @@ local function get_strategy(spec)
     output = function()
       return output_path
     end,
-    stop = function()
+    stop = vim.schedule_wrap(function()
       task:stop()
-    end,
+    end),
     output_stream = function()
       local queue = nio.control.queue()
       task:subscribe("on_output", function(_, data)
@@ -124,12 +124,12 @@ local function get_strategy(spec)
     end,
     attach = function()
       local bufnr = task:get_bufnr()
-      if not bufnr or not vim.api.nvim_buf_is_valid(bufnr) then
+      if not bufnr or not nio.api.nvim_buf_is_valid(bufnr) then
         return
       end
       attach_win = lib.ui.float.open({
-        height = spec.strategy.height,
-        width = spec.strategy.width,
+        height = spec.strategy.height or 40,
+        width = spec.strategy.width or 120,
         buffer = bufnr,
       })
       nio.api.nvim_buf_set_keymap(bufnr, "n", "q", "", {
