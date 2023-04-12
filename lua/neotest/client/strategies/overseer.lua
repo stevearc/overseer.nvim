@@ -49,8 +49,12 @@ local function get_or_create_task(spec, output_path)
     task.cwd = spec.cwd
   else
     -- Create a new task
+    local name = "Neotest"
+    if spec.position and spec.position.name then
+      name = string.format("%s %s", name, spec.position.name)
+    end
     local opts = vim.tbl_extend("keep", spec.strategy or {}, {
-      name = "Neotest",
+      name = name,
       components = { "default_neotest" },
     })
     if type(opts.components) == "function" then
