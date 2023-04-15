@@ -1,6 +1,6 @@
-local async = require("neotest.async")
 local lib = require("neotest.lib")
 local log = require("overseer.log")
+local nio = require("nio")
 local overseer = require("overseer")
 local util = require("overseer.util")
 
@@ -49,8 +49,12 @@ local function get_or_create_task(spec, output_path)
     task.cwd = spec.cwd
   else
     -- Create a new task
+    local name = "Neotest"
+    if spec.position and spec.position.name then
+      name = string.format("%s %s", name, spec.position.name)
+    end
     local opts = vim.tbl_extend("keep", spec.strategy or {}, {
-      name = "Neotest",
+      name = name,
       components = { "default_neotest" },
     })
     if type(opts.components) == "function" then
@@ -83,17 +87,19 @@ local function get_or_create_task(spec, output_path)
   return task
 end
 
+---@param spec neotest.RunSpec
+---@return neotest.Process
 local function get_strategy(spec)
   if not overseer.component.get_alias("default_neotest") then
     overseer.component.alias("default_neotest", { "default" })
   end
 
-  local finish_cond = async.control.Condvar.new()
+  local finish_future = nio.control.future()
   local attach_win
-  local output_path = async.fn.tempname()
+  local output_path = nio.fn.tempname()
   local task = get_or_create_task(spec, output_path)
   task:subscribe("on_complete", function()
-    finish_cond:notify_all()
+    finish_future.set()
     return false
   end)
   task:start()
@@ -104,31 +110,29 @@ local function get_strategy(spec)
     output = function()
       return output_path
     end,
-    stop = function()
+    stop = vim.schedule_wrap(function()
       task:stop()
-    end,
+    end),
     output_stream = function()
-      local sender, receiver = async.control.channel.mpsc()
+      local queue = nio.control.queue()
       task:subscribe("on_output", function(_, data)
-        sender.send(table.concat(data, "\n"))
+        queue.put_nowait(table.concat(data, "\n"))
       end)
       return function()
-        return async.lib.first(function()
-          finish_cond:wait()
-        end, receiver.recv)
+        return nio.first({ finish_future.wait, queue.get })
       end
     end,
     attach = function()
       local bufnr = task:get_bufnr()
-      if not bufnr or not vim.api.nvim_buf_is_valid(bufnr) then
+      if not bufnr or not nio.api.nvim_buf_is_valid(bufnr) then
         return
       end
       attach_win = lib.ui.float.open({
-        height = spec.strategy.height,
-        width = spec.strategy.width,
+        height = spec.strategy.height or 40,
+        width = spec.strategy.width or 120,
         buffer = bufnr,
       })
-      async.api.nvim_buf_set_keymap(bufnr, "n", "q", "", {
+      nio.api.nvim_buf_set_keymap(bufnr, "n", "q", "", {
         noremap = true,
         silent = true,
         callback = function()
@@ -139,7 +143,7 @@ local function get_strategy(spec)
     end,
     result = function()
       if not task:is_complete() then
-        finish_cond:wait()
+        finish_future:wait()
       end
       if attach_win then
         vim.schedule(function()
