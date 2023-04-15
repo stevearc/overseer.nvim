@@ -25,7 +25,11 @@ M.recycle_group = function(group_id)
   tasks_by_group[group_id] = {}
 end
 
-local function get_or_create_task(spec, output_path)
+---@param spec neotest.RunSpec
+---@param context neotest.StrategyContext
+---@param output_path string
+---@return overseer.Task
+local function get_or_create_task(spec, context, output_path)
   local recycled = pool[current_group_id]
   local task
   -- Get the first non-disposed task in the recycled pool
@@ -50,8 +54,8 @@ local function get_or_create_task(spec, output_path)
   else
     -- Create a new task
     local name = "Neotest"
-    if spec.position and spec.position.name then
-      name = string.format("%s %s", name, spec.position.name)
+    if context.position and context.position.name then
+      name = string.format("%s %s", name, context.position.name)
     end
     local opts = vim.tbl_extend("keep", spec.strategy or {}, {
       name = name,
@@ -88,8 +92,9 @@ local function get_or_create_task(spec, output_path)
 end
 
 ---@param spec neotest.RunSpec
+---@param context neotest.StrategyContext
 ---@return neotest.Process
-local function get_strategy(spec)
+local function get_strategy(spec, context)
   if not overseer.component.get_alias("default_neotest") then
     overseer.component.alias("default_neotest", { "default" })
   end
@@ -97,7 +102,7 @@ local function get_strategy(spec)
   local finish_future = nio.control.future()
   local attach_win
   local output_path = nio.fn.tempname()
-  local task = get_or_create_task(spec, output_path)
+  local task = get_or_create_task(spec, context, output_path)
   task:subscribe("on_complete", function()
     finish_future.set()
     return false
