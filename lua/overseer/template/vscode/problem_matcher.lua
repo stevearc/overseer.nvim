@@ -466,11 +466,11 @@ local function add_background(background, child)
 end
 
 -- Process file name based on "fileLocation"
--- Valid: "absolute", "relative", "autodetect", ["relative", "path value"], ["autodetect", "path value"]
+-- Valid: "absolute", "relative", "autoDetect", ["relative", "path value"], ["autoDetect", "path value"]
 local function file_converter(file_loc)
   local typ = type(file_loc) == "table" and file_loc[1] or file_loc
   assert(
-    vim.tbl_contains({ "absolute", "relative", "autodetect" }, typ),
+    vim.tbl_contains({ "absolute", "relative", "autoDetect" }, typ),
     "Unsupported fileLocation: " .. typ
   )
   -- TODO: passing params to replace_vars not supported yet
@@ -480,9 +480,9 @@ local function file_converter(file_loc)
   return function(file)
     if typ == "absolute" then
       return file
-    else -- relative/autodetect
+    else -- relative/autoDetect
       local rel = vim.fn.fnamemodify(rel_path .. "/" .. file, ":p")
-      if typ == "autodetect" and vim.fn.filereadable(rel) ~= 1 then
+      if typ == "autoDetect" and vim.fn.filereadable(rel) ~= 1 then
         return file
       end
       return rel
