@@ -42,3 +42,4 @@ luac.out
 __pycache__
 .direnv
 .testenv
+doc/tags
