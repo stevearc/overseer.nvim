@@ -28,12 +28,6 @@ function ToggleTermStrategy.new(opts)
     hidden = false,
     on_create = nil,
   })
-  if opts.dir then
-    vim.notify_once(
-      "Overseer toggleterm option 'dir' is deprecated. Use the task cwd option instead.\nThis option will be removed on 2023-04-01",
-      vim.log.levels.WARN
-    )
-  end
   return setmetatable({
     bufnr = nil,
     chan_id = nil,
@@ -82,7 +76,7 @@ function ToggleTermStrategy:start(task)
     cmd = passed_cmd,
     env = task.env,
     highlights = self.opts.highlights,
-    dir = self.opts.dir or task.cwd,
+    dir = task.cwd,
     direction = self.opts.direction,
     auto_scroll = self.opts.auto_scroll,
     close_on_exit = self.opts.close_on_exit,

@@ -228,7 +228,6 @@ end
 
 ---@param opts? overseer.Config
 M.setup = function(opts)
-  local overseer = require("overseer")
   local component = require("overseer.component")
   local log = require("overseer.log")
   opts = opts or {}
@@ -244,15 +243,6 @@ M.setup = function(opts)
 
   for k, v in pairs(M.component_aliases) do
     component.alias(k, v)
-  end
-
-  -- Deprecated option
-  if newconf.pre_task_hook then
-    vim.notify_once(
-      "Overseer pre_task_hook is deprecated. Use overseer.add_template_hook\nThis option will be removed on 2023-02-01",
-      vim.log.levels.WARN
-    )
-    overseer.add_template_hook(nil, newconf.pre_task_hook)
   end
 end
 
