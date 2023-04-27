@@ -72,6 +72,18 @@ A task runner and job management plugin for Neovim
 overseer supports all the usual plugin managers
 
 <details>
+  <summary>lazy.nvim</summary>
+
+```lua
+{
+  'stevearc/overseer.nvim',
+  opts = {},
+}
+```
+
+</details>
+
+<details>
   <summary>Packer</summary>
 
 ```lua
