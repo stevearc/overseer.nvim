@@ -61,6 +61,10 @@ function TerminalStrategy:start(task)
         log:debug("Task %s exited with code %s", task.name, c)
         -- Feed one last line end to flush the output
         on_stdout({ "" })
+        -- HACK force terminal buffer to update
+        -- see https://github.com/neovim/neovim/issues/23360
+        vim.bo[self.bufnr].scrollback = vim.bo[self.bufnr].scrollback - 1
+        vim.bo[self.bufnr].scrollback = vim.bo[self.bufnr].scrollback + 1
         self.chan_id = nil
         -- If we're exiting vim, don't call the on_exit handler
         -- We manually kill processes during VimLeavePre cleanup, and we don't want to trigger user

@@ -147,6 +147,10 @@ function JobstartStrategy:start(task)
       on_stdout({ "" })
       if self.opts.use_terminal then
         pcall(vim.api.nvim_chan_send, self.term_id, string.format("\r\n[Process exited %d]\r\n", c))
+        -- HACK force terminal buffer to update
+        -- see https://github.com/neovim/neovim/issues/23360
+        vim.bo[self.bufnr].scrollback = vim.bo[self.bufnr].scrollback - 1
+        vim.bo[self.bufnr].scrollback = vim.bo[self.bufnr].scrollback + 1
       else
         vim.api.nvim_buf_set_option(self.bufnr, "modifiable", true)
         vim.api.nvim_buf_set_lines(
