@@ -55,6 +55,15 @@ M = {
       end)
     end,
   },
+  retain = {
+    desc = "Don't automatically dispose this task after complete",
+    condition = function(task)
+      return task:has_component("on_complete_dispose")
+    end,
+    run = function(task)
+      task:remove_component("on_complete_dispose")
+    end,
+  },
   ensure = {
     desc = "restart the task if it fails",
     condition = function(task)
