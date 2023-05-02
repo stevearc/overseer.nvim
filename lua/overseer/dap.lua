@@ -47,14 +47,15 @@ M.wrap_run = function(daprun)
         local done = false
         local cleanup
 
-        local function on_complete(_, status)
+        local function on_done(ok)
           if done then
             return
           end
           done = true
-          if status == STATUS.SUCCESS then
+
+          if ok then
             daprun(config, opts)
-          elseif status == STATUS.FAILURE then
+          else
             vim.notify(
               string.format(
                 "Failed to launch debugger; preLaunchTask '%s' failed",
@@ -66,14 +67,13 @@ M.wrap_run = function(daprun)
           vim.schedule(cleanup)
         end
 
+        local function on_complete(_, status)
+          on_done(status == STATUS.SUCCESS)
+        end
+
         local function on_result()
-          if done then
-            return
-          end
-          done = true
           -- We get the on_result callback from background tasks once they hit their end pattern
-          daprun(config, opts)
-          vim.schedule(cleanup)
+          on_done(task.status ~= STATUS.FAILURE)
         end
 
         task:subscribe("on_complete", on_complete)
