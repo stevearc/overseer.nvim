@@ -516,15 +516,6 @@ M.add_template_hook = lazy_pend("template", "add_hook_template")
 --- overseer.remove_template_hook(opts, hook)
 M.remove_template_hook = lazy_pend("template", "remove_hook_template")
 
----@deprecated
-M.hook_template = function(...)
-  vim.notify_once(
-    "Deprecated(overseer.hook_template): Use overseer.add_template_hook instead.\nThis function will be removed on 2023-02-01",
-    vim.log.levels.WARN
-  )
-  M.add_template_hook(...)
-end
-
 ---Directly register an overseer template
 ---@param defn overseer.TemplateDefinition|overseer.TemplateProvider
 M.register_template = lazy_pend("template", "register")

@@ -204,15 +204,6 @@ function Task:render(lines, highlights, detail)
   end
 end
 
----@deprecated
-function Task:is_serializable()
-  vim.notify_once(
-    "Deprecated(overseer): task:is_serializable is deprecated.\nThis function will be removed in 2023-02-01",
-    vim.log.levels.WARN
-  )
-  return true
-end
-
 ---Check if task should be included when saving "all" tasks to a bundle file
 ---@return boolean
 function Task:should_include_in_bundle()

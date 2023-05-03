@@ -4,14 +4,6 @@ local log = require("overseer.log")
 return {
   desc = "Restart on any buffer :write",
   params = {
-    path = {
-      deprecated = true,
-      desc = "DEPRECATED: use 'paths' instead",
-      optional = true,
-      validate = function(v)
-        return files.exists(v)
-      end,
-    },
     paths = {
       desc = "Only restart when writing files in these paths (can be directory or file)",
       type = "list",
@@ -21,15 +13,6 @@ return {
           return files.exists(v)
         end,
       },
-    },
-    dir = {
-      deprecated = true,
-      name = "directory",
-      desc = "DEPRECATED: use 'path' instead",
-      optional = true,
-      validate = function(v)
-        return files.exists(v)
-      end,
     },
     delay = {
       desc = "How long to wait (in ms) before triggering restart",
@@ -55,22 +38,7 @@ return {
   constructor = function(opts)
     vim.validate({
       delay = { opts.delay, "n" },
-      path = { opts.path, "s", true },
     })
-    if opts.dir then
-      vim.notify_once(
-        "Overseer[restart_on_save]: dir param is deprecated. Use 'path'\nThis parameter will be removed on 2023-02-01",
-        vim.log.levels.WARN
-      )
-      opts.paths = { opts.dir }
-    end
-    if opts.path then
-      vim.notify_once(
-        "Overseer[restart_on_save]: path param is deprecated. Use 'paths'\nThis parameter will be removed on 2023-02-01",
-        vim.log.levels.WARN
-      )
-      opts.paths = { opts.path }
-    end
 
     local function is_watching_file(path)
       if not opts.paths then

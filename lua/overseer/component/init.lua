@@ -79,17 +79,6 @@ local function validate_component(name, opts)
   if opts.serializable == nil then
     opts.serializable = true
   end
-  --@deprecated This check is for backwards compatibility
-  if opts.serialize == "fail" then
-    vim.notify_once(
-      string.format(
-        "Deprecated(overseer): %s.serialize = 'fail' is deprecated, please use serializable = false.\nCompatibility will be removed on 2023-02-21",
-        name
-      ),
-      vim.log.levels.WARN
-    )
-    opts.serializable = false
-  end
   if name:match("%s") then
     error("Component name cannot have whitespace")
   end
