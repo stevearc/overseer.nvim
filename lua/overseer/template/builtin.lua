@@ -11,4 +11,5 @@ return {
   "rake",
   "task",
   "composer",
+  "cargo-make",
 }
