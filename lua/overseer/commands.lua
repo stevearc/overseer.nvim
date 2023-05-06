@@ -265,7 +265,6 @@ M.run_template = function(opts, callback)
   if opts.first == nil then
     opts.first = opts.name or not vim.tbl_isempty(opts.tags or {})
   end
-  opts.params = opts.params or {}
   local search_opts = get_search_params()
   search_opts.tags = opts.tags
 
@@ -281,7 +280,14 @@ M.run_template = function(opts, callback)
       end
       return
     end
-    template.build(tmpl, opts, function(task)
+    local build_opts = {
+      prompt = opts.prompt or config.default_template_prompt,
+      params = opts.params or {},
+      cwd = opts.cwd,
+      env = opts.env,
+      search = search_opts,
+    }
+    template.build(tmpl, build_opts, function(task)
       if task then
         if opts.autostart then
           task:start()
