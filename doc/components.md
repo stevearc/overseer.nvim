@@ -97,10 +97,11 @@ Sets final task status based on exit code
 
 Parses task output and sets task result
 
-| Param           | Type     | Desc                                            |
-| --------------- | -------- | ----------------------------------------------- |
-| parser          | `opaque` | Parser definition to extract values from output |
-| problem_matcher | `opaque` | VS Code-style problem matcher                   |
+| Param              | Type     | Desc                                                                 |
+| ------------------ | -------- | -------------------------------------------------------------------- |
+| parser             | `opaque` | Parser definition to extract values from output                      |
+| problem_matcher    | `opaque` | VS Code-style problem matcher                                        |
+| relative_file_root | `string` | Relative filepaths will be joined to this root (instead of task cwd) |
 
 ## on_output_quickfix
 
@@ -108,16 +109,17 @@ Parses task output and sets task result
 
 Set all task output into the quickfix (on complete)
 
-| Param           | Type      | Default | Desc                                                                                    |
-| --------------- | --------- | ------- | --------------------------------------------------------------------------------------- |
-| close           | `boolean` | `false` | Close the quickfix on completion if no errorformat matches                              |
-| errorformat     | `string`  |         | See :help errorformat                                                                   |
-| items_only      | `boolean` | `false` | Only show lines that match the errorformat                                              |
-| open            | `boolean` | `false` | Open the quickfix on output                                                             |
-| open_height     | `integer` |         | The height of the quickfix when opened                                                  |
-| open_on_match   | `boolean` | `false` | Open the quickfix when the errorformat finds a match                                    |
-| set_diagnostics | `boolean` | `false` | Add the matching items to vim.diagnostics                                               |
-| tail            | `boolean` | `true`  | Update the quickfix with task output as it happens, instead of waiting until completion |
+| Param              | Type      | Default | Desc                                                                                    |
+| ------------------ | --------- | ------- | --------------------------------------------------------------------------------------- |
+| close              | `boolean` | `false` | Close the quickfix on completion if no errorformat matches                              |
+| errorformat        | `string`  |         | See :help errorformat                                                                   |
+| items_only         | `boolean` | `false` | Only show lines that match the errorformat                                              |
+| open               | `boolean` | `false` | Open the quickfix on output                                                             |
+| open_height        | `integer` |         | The height of the quickfix when opened                                                  |
+| open_on_match      | `boolean` | `false` | Open the quickfix when the errorformat finds a match                                    |
+| relative_file_root | `string`  |         | Relative filepaths will be joined to this root (instead of task cwd)                    |
+| set_diagnostics    | `boolean` | `false` | Add the matching items to vim.diagnostics                                               |
+| tail               | `boolean` | `true`  | Update the quickfix with task output as it happens, instead of waiting until completion |
 
 - **tail:** This may cause unexpected results for commands that produce "fancy" output using terminal escape codes (e.g. animated progress indicators)
 

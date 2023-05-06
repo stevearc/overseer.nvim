@@ -654,6 +654,8 @@ on_output_parse                                                  *on_output_pars
     Parameters:
       {parser}          `opaque` Parser definition to extract values from output
       {problem_matcher} `opaque` VS Code-style problem matcher
+      {relative_file_root} `string` Relative filepaths will be joined to this
+                        root (instead of task cwd)
 
 on_output_quickfix                                            *on_output_quickfix*
     Set all task output into the quickfix (on complete)
@@ -668,6 +670,8 @@ on_output_quickfix                                            *on_output_quickfi
       {open_height}     `integer` The height of the quickfix when opened
       {open_on_match}   `boolean` Open the quickfix when the errorformat finds a
                         match (default `false`)
+      {relative_file_root} `string` Relative filepaths will be joined to this
+                        root (instead of task cwd)
       {set_diagnostics} `boolean` Add the matching items to vim.diagnostics
                         (default `false`)
       {tail}            `boolean` Update the quickfix with task output as it
