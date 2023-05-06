@@ -16,6 +16,11 @@ return {
       type = "opaque",
       optional = true,
     },
+    relative_file_root = {
+      desc = "Relative filepaths will be joined to this root (instead of task cwd)",
+      optional = true,
+      default_from_task = true,
+    },
   },
   constructor = function(params)
     if params.parser and params.problem_matcher then
@@ -49,7 +54,7 @@ return {
             -- Ensure that all relative filenames are rooted at the task cwd, not vim's current cwd
             for _, diag in ipairs(result.diagnostics) do
               if diag.filename and not files.is_absolute(diag.filename) then
-                diag.filename = files.join(task.cwd, diag.filename)
+                diag.filename = files.join(params.relative_file_root or task.cwd, diag.filename)
               end
             end
           end

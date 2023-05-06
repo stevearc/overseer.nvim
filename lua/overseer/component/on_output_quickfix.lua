@@ -59,6 +59,11 @@ return {
         return v > 0
       end,
     },
+    relative_file_root = {
+      desc = "Relative filepaths will be joined to this root (instead of task cwd)",
+      optional = true,
+      default_from_task = true,
+    },
     close = {
       desc = "Close the quickfix on completion if no errorformat matches",
       type = "boolean",
@@ -100,7 +105,7 @@ return {
         end
         local items
         -- Run this in the context of the task cwd so that relative filenames are parsed correctly
-        util.run_in_cwd(task.cwd, function()
+        util.run_in_cwd(params.relative_file_root or task.cwd, function()
           items = vim.fn.getqflist({
             lines = lines,
             efm = params.errorformat,
@@ -153,7 +158,7 @@ return {
         local scroll_buffer = action ~= "a" or is_cursor_at_bottom(cur_qf.winid)
         -- Run this in the context of the task cwd so that relative filenames are parsed correctly
         local items
-        util.run_in_cwd(task.cwd, function()
+        util.run_in_cwd(params.relative_file_root or task.cwd, function()
           items = vim.fn.getqflist({
             lines = lines,
             efm = params.errorformat,
