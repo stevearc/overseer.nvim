@@ -105,13 +105,13 @@ return {
       }
       local roots =
         { {
-          prefix = "",
+          postfix = "",
           cwd = cargo_dir,
           priority = 55,
         } }
       if workspace_root ~= cargo_dir then
         roots[1].relative_file_root = workspace_root
-        table.insert(roots, { prefix = "(workspace) ", cwd = workspace_root })
+        table.insert(roots, { postfix = " (workspace)", cwd = workspace_root })
       end
       for _, root in ipairs(roots) do
         for _, command in ipairs(commands) do
@@ -120,7 +120,7 @@ return {
             overseer.wrap_template(
               tmpl,
               {
-                name = string.format("%scargo %s", root.prefix, table.concat(command.args, " ")),
+                name = string.format("cargo %s%s", table.concat(command.args, " "), root.postfix),
                 tags = command.tags,
                 priority = root.priority,
               },
@@ -132,7 +132,7 @@ return {
           ret,
           overseer.wrap_template(
             tmpl,
-            { name = root.prefix .. "cargo" },
+            { name = "cargo" .. root.postfix },
             { cwd = root.cwd, relative_file_root = root.relative_file_root }
           )
         )
