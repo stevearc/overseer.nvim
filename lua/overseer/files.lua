@@ -63,6 +63,10 @@ M.is_subpath = function(root, candidate)
   end
   root = M.abspath(root)
   candidate = M.abspath(candidate)
+  if M.is_windows then
+    root = root:lower()
+    candidate = candidate:lower()
+  end
   return candidate:sub(1, root:len()) == root
 end
 
