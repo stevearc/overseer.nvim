@@ -83,7 +83,7 @@ The definition of a template looks like this:
   -- Tags can be used in overseer.run_template()
   tags = {overseer.TAG.BUILD},
   params = {
-    -- See :help overseer.params
+    -- See :help overseer-params
   },
   -- Determines sort order when choosing tasks. Lower comes first.
   priority = 50,
@@ -186,7 +186,7 @@ return {
   desc = "Include a description of your component",
   -- Define parameters that can be passed in to the component
   params = {
-    -- See :help overseer.params
+    -- See :help overseer-params
   },
   -- Optional, default true. Set to false to disallow editing this component in the task editor
   editable = true,

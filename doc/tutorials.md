@@ -115,7 +115,7 @@ The next step is to display the output in a vertical split. For that, we are goi
 
 ![Screenshot from 2022-09-04 12-40-04](https://user-images.githubusercontent.com/506791/188330767-d680d200-0938-48d1-86ab-8e993745551d.png)
 
-Try changing your script to have an error, then restart the task. The output should be updated, and you should see inline diagnostics for the error (see `:help vim.diagnostics`).
+Try changing your script to have an error, then restart the task. The output should be updated, and you should see inline diagnostics for the error (see `:help vim.diagnostic`).
 
 ![Screenshot from 2022-09-04 12-41-51](https://user-images.githubusercontent.com/506791/188330827-d54af448-aedb-4652-a5f2-8d3d94e1cb31.png)
 
