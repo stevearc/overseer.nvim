@@ -58,7 +58,7 @@ local function create_overseer_window(direction, existing_win)
     end
     local last_task = task_list.list_tasks({ recent_first = true })[1]
     local outbuf = last_task and last_task:get_bufnr()
-    if not outbuf then
+    if not outbuf or not vim.api.nvim_buf_is_valid(outbuf) then
       outbuf = vim.api.nvim_create_buf(false, true)
       vim.bo[outbuf].bufhidden = "wipe"
     end

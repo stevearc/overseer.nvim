@@ -67,9 +67,33 @@ function Sidebar.new()
   return tl
 end
 
+---@return nil|integer
+function Sidebar:_get_winid()
+  if vim.api.nvim_get_current_buf() == self.bufnr then
+    return vim.api.nvim_get_current_win()
+  end
+  for _, winid in ipairs(vim.api.nvim_tabpage_list_wins(0)) do
+    if vim.api.nvim_win_is_valid(winid) and vim.api.nvim_win_get_buf(winid) == self.bufnr then
+      return winid
+    end
+  end
+  for _, winid in ipairs(vim.api.nvim_list_wins()) do
+    if vim.api.nvim_win_is_valid(winid) and vim.api.nvim_win_get_buf(winid) == self.bufnr then
+      return winid
+    end
+  end
+end
+
 ---@return nil|overseer.Task
 function Sidebar:_get_task_from_line(lnum)
-  lnum = lnum or vim.api.nvim_win_get_cursor(0)[1]
+  if not lnum then
+    local winid = self:_get_winid()
+    if not winid then
+      return nil
+    end
+    lnum = vim.api.nvim_win_get_cursor(winid)[1]
+  end
+
   for _, v in ipairs(self.task_lines) do
     if v[1] >= lnum then
       return v[2]
@@ -204,6 +228,14 @@ function Sidebar:update_preview()
     display_buf = vim.api.nvim_create_buf(false, true)
     vim.bo[display_buf].bufhidden = "wipe"
     vim.api.nvim_buf_set_lines(display_buf, 0, -1, true, { "--no task buffer--" })
+    if task then
+      -- The task hasn't started yet and doesn't have a buffer.
+      -- Add a callback to retry once the task does start
+      task:subscribe("on_start", function()
+        self:update_preview()
+        return false
+      end)
+    end
   end
 
   for _, winid in ipairs(winids) do
@@ -249,7 +281,7 @@ function Sidebar:render(tasks)
   end
   local prev_first_task = self:_get_task_from_line(1)
   local prev_first_task_id = prev_first_task and prev_first_task.id
-  local new_first_task_id = tasks[1] and tasks[1].id
+  local new_first_task_id = not vim.tbl_isempty(tasks) and tasks[#tasks].id
   local ns = vim.api.nvim_create_namespace("overseer")
   vim.api.nvim_buf_clear_namespace(self.bufnr, ns, 0, -1)
 
