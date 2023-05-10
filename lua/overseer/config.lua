@@ -20,6 +20,9 @@ local default_config = {
     min_width = { 40, 0.1 },
     -- optionally define an integer/float for the exact width of the task list
     width = nil,
+    max_height = { 20, 0.1 },
+    min_height = 8,
+    height = nil,
     -- String that separates tasks
     separator = "────────────────────────────────────────",
     -- Default direction. Can be "left" or "right"

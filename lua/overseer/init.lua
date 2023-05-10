@@ -121,7 +121,7 @@ end
 local commands = {
   {
     cmd = "OverseerOpen",
-    args = "`left/right`",
+    args = "`left/right/bottom`",
     func = "_open",
     def = {
       desc = "Open the overseer window. With `!` cursor stays in current window",
@@ -130,7 +130,7 @@ local commands = {
       complete = function(arg)
         return vim.tbl_filter(function(dir)
           return vim.startswith(dir, arg)
-        end, { "left", "right" })
+        end, { "left", "right", "bottom" })
       end,
     },
   },
@@ -143,7 +143,7 @@ local commands = {
   },
   {
     cmd = "OverseerToggle",
-    args = "`left/right`",
+    args = "`left/right/bottom`",
     func = "_toggle",
     def = {
       desc = "Toggle the overseer window. With `!` cursor stays in current window",
@@ -152,7 +152,7 @@ local commands = {
       complete = function(arg)
         return vim.tbl_filter(function(dir)
           return vim.startswith(dir, arg)
-        end, { "left", "right" })
+        end, { "left", "right", "bottom" })
       end,
     },
   },

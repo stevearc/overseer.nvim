@@ -20,6 +20,10 @@
 ---@field default_detail? 1|2|3
 ---@field max_width? number|number[]
 ---@field min_width? number|number[]
+---@field width? number
+---@field max_height? number|number[]
+---@field min_height? number|number[]
+---@field height? number
 ---@field separator? string
 ---@field direction? string
 ---@field bindings? table<string, string>

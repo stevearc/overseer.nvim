@@ -19,7 +19,18 @@ M.get_editor_width = function()
 end
 
 M.get_editor_height = function()
-  return vim.o.lines - vim.o.cmdheight
+  local editor_height = vim.o.lines - vim.o.cmdheight
+  -- Subtract 1 if tabline is visible
+  if vim.o.showtabline == 2 or (vim.o.showtabline == 1 and #vim.api.nvim_list_tabpages() > 1) then
+    editor_height = editor_height - 1
+  end
+  -- Subtract 1 if statusline is visible
+  if
+    vim.o.laststatus >= 2 or (vim.o.laststatus == 1 and #vim.api.nvim_tabpage_list_wins(0) > 1)
+  then
+    editor_height = editor_height - 1
+  end
+  return editor_height
 end
 
 local function calc_list(values, max_value, aggregator, limit)
@@ -86,7 +97,7 @@ end
 M.open_fullscreen_float = function(bufnr)
   local conf = config.task_win
   local width = M.get_editor_width() - 2 - 2 * conf.padding
-  local height = M.get_editor_height() - 2 - 2 * conf.padding
+  local height = M.get_editor_height() - 2 * conf.padding
   local row = conf.padding
   local col = conf.padding
   local winid = vim.api.nvim_open_win(bufnr, true, {

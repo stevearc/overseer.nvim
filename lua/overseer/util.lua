@@ -187,6 +187,21 @@ M.get_preview_window = function()
   end
 end
 
+---@param bufnr integer
+---@return integer[]
+M.buf_list_wins = function(bufnr)
+  if bufnr == 0 then
+    bufnr = vim.api.nvim_get_current_buf()
+  end
+  local ret = {}
+  for _, winid in ipairs(vim.api.nvim_list_wins()) do
+    if vim.api.nvim_win_is_valid(winid) and vim.api.nvim_win_get_buf(winid) == bufnr then
+      table.insert(ret, winid)
+    end
+  end
+  return ret
+end
+
 ---@param name_or_config string|table
 ---@return string
 ---@return table|nil

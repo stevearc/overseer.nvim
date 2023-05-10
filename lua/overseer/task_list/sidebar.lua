@@ -2,6 +2,7 @@ local action_util = require("overseer.action_util")
 local bindings = require("overseer.task_list.bindings")
 local binding_util = require("overseer.binding_util")
 local config = require("overseer.config")
+local layout = require("overseer.layout")
 local task_list = require("overseer.task_list")
 local util = require("overseer.util")
 
@@ -66,6 +67,7 @@ function Sidebar.new()
   return tl
 end
 
+---@return nil|overseer.Task
 function Sidebar:_get_task_from_line(lnum)
   lnum = lnum or vim.api.nvim_win_get_cursor(0)[1]
   for _, v in ipairs(self.task_lines) do
@@ -75,28 +77,65 @@ function Sidebar:_get_task_from_line(lnum)
   end
 end
 
+---@param bufnr integer
+---@param winlayout nil|any
+---@return nil|"left"|"right"|"bottom"
+local function detect_direction(bufnr, winlayout)
+  if not winlayout then
+    winlayout = vim.fn.winlayout()
+  end
+  local type = winlayout[1]
+  if type == "leaf" then
+    if vim.api.nvim_win_get_buf(winlayout[2]) == bufnr then
+      return "left"
+    else
+      return nil
+    end
+  else
+    for i, nested in ipairs(winlayout[2]) do
+      local dir = detect_direction(bufnr, nested)
+      if dir then
+        if type == "row" then
+          return i == 1 and "left" or "right"
+        else
+          return "bottom"
+        end
+      end
+    end
+  end
+end
+
 function Sidebar:toggle_preview()
   local pwin = util.get_preview_window()
   if pwin then
-    vim.cmd([[pclose]])
+    vim.cmd.pclose()
     return
   end
   local task = self:_get_task_from_line()
-  if not task or not task:get_bufnr() or not vim.api.nvim_buf_is_valid(task:get_bufnr()) then
+  local task_bufnr = task and task:get_bufnr()
+  if not task or not task_bufnr or not vim.api.nvim_buf_is_valid(task_bufnr) then
     return
   end
 
   local win_width = vim.api.nvim_win_get_width(0)
   local padding = 1
-  local width = vim.o.columns - win_width - 2 - 2 * padding
-  local col = (vim.fn.winnr() == 1 and (win_width + padding) or padding)
-  local winid = vim.api.nvim_open_win(task:get_bufnr(), false, {
+  local direction = detect_direction(self.bufnr) or "left"
+  local width = layout.get_editor_width() - 2 - 2 * padding
+  local height
+  if direction ~= "bottom" then
+    width = width - win_width
+    height = vim.api.nvim_win_get_height(0) - 2
+  else
+    height = layout.get_editor_height() - vim.api.nvim_win_get_height(0) - 1 - 2 * padding
+  end
+  local col = (direction == "left" and (win_width + padding) or padding)
+  local winid = vim.api.nvim_open_win(task_bufnr, false, {
     relative = "editor",
     border = config.task_win.border,
     row = 1,
     col = col,
     width = width,
-    height = vim.api.nvim_win_get_height(0) - 2,
+    height = height,
     style = "minimal",
     noautocmd = true,
   })
@@ -129,34 +168,49 @@ function Sidebar:change_default_detail(delta)
   task_list.update()
 end
 
+---@return integer[]
+function Sidebar:_get_output_wins()
+  local ret = {}
+  for _, winid in ipairs(util.buf_list_wins(self.bufnr)) do
+    local output_win = vim.w[winid].overseer_output_win
+    if output_win and vim.api.nvim_win_is_valid(output_win) then
+      table.insert(ret, output_win)
+    end
+  end
+  return ret
+end
+
+---@return integer[]
+function Sidebar:_get_preview_wins()
+  local ret = {}
+  local preview_win = util.get_preview_window()
+  if preview_win then
+    table.insert(ret, preview_win)
+  end
+  for _, winid in ipairs(self:_get_output_wins()) do
+    table.insert(ret, winid)
+  end
+  return ret
+end
+
 function Sidebar:update_preview()
-  local winid = util.get_preview_window()
-  if not winid then
+  local winids = self:_get_preview_wins()
+  if vim.tbl_isempty(winids) then
     return
   end
   local task = self:_get_task_from_line()
-  if not task or not task:get_bufnr() or not vim.api.nvim_buf_is_valid(task:get_bufnr()) then
-    local winbuf = vim.api.nvim_win_get_buf(winid)
-    if vim.api.nvim_buf_get_option(winbuf, "buftype") == "terminal" then
-      local scratch = vim.api.nvim_create_buf(false, true)
-      vim.api.nvim_buf_set_lines(scratch, 0, -1, true, { "--no terminal for task--" })
-      vim.api.nvim_create_autocmd("BufLeave", {
-        buffer = scratch,
-        once = true,
-        nested = true,
-        callback = function()
-          vim.api.nvim_buf_delete(scratch, {})
-        end,
-      })
-      vim.api.nvim_win_set_buf(winid, scratch)
-    end
-    return
+  local display_buf = task and task:get_bufnr()
+  if not display_buf or not vim.api.nvim_buf_is_valid(display_buf) then
+    display_buf = vim.api.nvim_create_buf(false, true)
+    vim.bo[display_buf].bufhidden = "wipe"
+    vim.api.nvim_buf_set_lines(display_buf, 0, -1, true, { "--no task buffer--" })
   end
 
-  local preview_buf = vim.api.nvim_win_get_buf(winid)
-  if preview_buf ~= task:get_bufnr() then
-    vim.api.nvim_win_set_buf(winid, task:get_bufnr())
-    util.scroll_to_end(winid)
+  for _, winid in ipairs(winids) do
+    if vim.api.nvim_win_get_buf(winid) ~= display_buf then
+      vim.api.nvim_win_set_buf(winid, display_buf)
+      util.scroll_to_end(winid)
+    end
   end
 end
 
@@ -193,6 +247,9 @@ function Sidebar:render(tasks)
   if not vim.api.nvim_buf_is_valid(self.bufnr) then
     return false
   end
+  local prev_first_task = self:_get_task_from_line(1)
+  local prev_first_task_id = prev_first_task and prev_first_task.id
+  local new_first_task_id = tasks[1] and tasks[1].id
   local ns = vim.api.nvim_create_namespace("overseer")
   vim.api.nvim_buf_clear_namespace(self.bufnr, ns, 0, -1)
 
@@ -215,6 +272,19 @@ function Sidebar:render(tasks)
   vim.api.nvim_buf_set_option(self.bufnr, "modifiable", false)
   vim.api.nvim_buf_set_option(self.bufnr, "modified", false)
   util.add_highlights(self.bufnr, ns, highlights)
+
+  if prev_first_task_id ~= new_first_task_id then
+    local output_wins = self:_get_output_wins()
+    local has_output_wins = not vim.tbl_isempty(output_wins)
+    local in_sidebar = vim.api.nvim_get_current_buf() == self.bufnr
+    local in_output_win = vim.tbl_contains(output_wins, vim.api.nvim_get_current_win())
+    if has_output_wins and not in_sidebar and not in_output_win then
+      for _, winid in ipairs(util.buf_list_wins(self.bufnr)) do
+        vim.api.nvim_win_set_cursor(winid, { 1, 0 })
+      end
+      self:update_preview()
+    end
+  end
 
   return true
 end
