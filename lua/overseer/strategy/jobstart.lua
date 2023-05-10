@@ -54,6 +54,9 @@ function JobstartStrategy:start(task)
         term_id = vim.api.nvim_open_term(self.bufnr, {
           on_input = function(_, _, _, data)
             pcall(vim.api.nvim_chan_send, self.job_id, data)
+            vim.defer_fn(function()
+              util.terminal_tail_hack(self.bufnr)
+            end, 10)
           end,
         })
       end)
@@ -68,7 +71,7 @@ function JobstartStrategy:start(task)
         end
         vim.ui.input({ prompt = prompt }, function(text)
           if text then
-            pcall(vim.fn.chansend, self.job_id, text .. "\r")
+            pcall(vim.api.nvim_chan_send, self.job_id, text .. "\r")
           end
         end)
       end
@@ -85,6 +88,9 @@ function JobstartStrategy:start(task)
     -- Update the buffer
     if self.opts.use_terminal then
       pcall(vim.api.nvim_chan_send, self.term_id, table.concat(data, "\r\n"))
+      vim.defer_fn(function()
+        util.terminal_tail_hack(self.bufnr)
+      end, 10)
     else
       -- Track which wins we will need to scroll
       local trail_wins = {}
@@ -151,6 +157,7 @@ function JobstartStrategy:start(task)
         -- see https://github.com/neovim/neovim/issues/23360
         vim.bo[self.bufnr].scrollback = vim.bo[self.bufnr].scrollback - 1
         vim.bo[self.bufnr].scrollback = vim.bo[self.bufnr].scrollback + 1
+        util.terminal_tail_hack(self.bufnr)
       else
         vim.api.nvim_buf_set_option(self.bufnr, "modifiable", true)
         vim.api.nvim_buf_set_lines(

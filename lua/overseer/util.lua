@@ -107,12 +107,89 @@ M.go_win_no_au = function(winid)
     return
   end
   local winnr = vim.api.nvim_win_get_number(winid)
-  vim.cmd(string.format("noau %dwincmd w", winnr))
+  vim.cmd.wincmd({ args = { "w" }, count = winnr, mods = { noautocmd = true } })
 end
 
 ---@param bufnr number
 M.go_buf_no_au = function(bufnr)
-  vim.cmd(string.format("noau b %d", bufnr))
+  vim.cmd.buffer({ count = bufnr, mods = { noautocmd = true } })
+end
+
+local function term_get_effective_line_count(bufnr)
+  local linecount = vim.api.nvim_buf_line_count(bufnr)
+
+  local non_blank_lines = linecount
+  for i = linecount, 1, -1 do
+    local line = vim.api.nvim_buf_get_lines(bufnr, i - 1, i, true)[1]
+    non_blank_lines = i
+    if line ~= "" then
+      break
+    end
+  end
+  return non_blank_lines
+end
+
+local _cursor_moved_autocmd
+local function create_cursormoved_tail_autocmd()
+  if _cursor_moved_autocmd then
+    return
+  end
+  _cursor_moved_autocmd = vim.api.nvim_create_autocmd("CursorMoved", {
+    callback = function(args)
+      if vim.bo[args.buf].buftype ~= "terminal" or args.buf ~= vim.api.nvim_get_current_buf() then
+        return
+      end
+      local lnum = vim.api.nvim_win_get_cursor(0)[1]
+      local linecount = vim.api.nvim_buf_line_count(0)
+      if lnum == linecount then
+        vim.w.overseer_pause_tail_for_buf = nil
+      else
+        vim.w.overseer_pause_tail_for_buf = args.buf
+      end
+    end,
+  })
+end
+
+---@param bufnr nil|integer
+M.terminal_tail_hack = function(bufnr)
+  if not bufnr or not vim.api.nvim_buf_is_valid(bufnr) then
+    return
+  end
+  local winids = M.buf_list_wins(bufnr)
+  if vim.tbl_isempty(winids) then
+    return
+  end
+  create_cursormoved_tail_autocmd()
+  local linecount = vim.api.nvim_buf_line_count(bufnr)
+
+  local non_blank_lines = term_get_effective_line_count(bufnr)
+
+  local overflow = 6
+  local editor_height = vim.o.lines
+  local current_win = vim.api.nvim_get_current_win()
+  for _, winid in ipairs(winids) do
+    local scroll_to_line
+    if winid ~= current_win and vim.w[winid].overseer_pause_tail_for_buf ~= bufnr then
+      local lnum = vim.api.nvim_win_get_cursor(winid)[1]
+      local cursor_at_top = lnum < editor_height
+      local not_much_output = linecount < editor_height + overflow
+      local num_blank = linecount - non_blank_lines
+      if num_blank < 4 then
+        scroll_to_line = linecount
+      elseif cursor_at_top and not_much_output then
+        scroll_to_line = non_blank_lines
+      end
+    end
+
+    if scroll_to_line then
+      local last_line =
+        vim.api.nvim_buf_get_lines(bufnr, scroll_to_line - 1, scroll_to_line, true)[1]
+      local scrolloff = vim.wo[winid].scrolloff
+      vim.wo[winid].scrolloff = 0
+      vim.api.nvim_win_set_cursor(winid, { scroll_to_line, vim.api.nvim_strwidth(last_line) })
+      vim.wo[winid].scrolloff = scrolloff
+    end
+  end
 end
 
 ---@param winid? number
@@ -123,23 +200,15 @@ M.scroll_to_end = function(winid)
   local last_line = vim.api.nvim_buf_get_lines(bufnr, -2, -1, true)[1]
   -- Hack: terminal buffers add a bunch of empty lines at the end. We need to ignore them so that
   -- we don't end up scrolling off the end of the useful output.
-  -- This has the unfortunate effect that we may not end up tailing the output as more arrives
-  if vim.bo[bufnr].buftype == "terminal" then
-    local half_height = math.floor(vim.api.nvim_win_get_height(winid) / 2)
-    for i = lnum, 1, -1 do
-      local prev_line = vim.api.nvim_buf_get_lines(bufnr, i - 1, i, true)[1]
-      if prev_line ~= "" then
-        -- Only scroll back if we detect a lot of padding lines, and the total real output is
-        -- small. Otherwise the padding may be legit
-        if lnum - i >= half_height and i < half_height then
-          lnum = i
-          last_line = prev_line
-        end
-        break
-      end
-    end
+  local not_much_output = lnum < vim.o.lines + 6
+  if vim.bo[bufnr].buftype == "terminal" and not_much_output then
+    lnum = term_get_effective_line_count(bufnr)
+    last_line = vim.api.nvim_buf_get_lines(bufnr, lnum - 1, lnum, true)[1]
   end
+  local scrolloff = vim.wo[winid].scrolloff
+  vim.wo[winid].scrolloff = 0
   vim.api.nvim_win_set_cursor(winid, { lnum, vim.api.nvim_strwidth(last_line) })
+  vim.wo[winid].scrolloff = scrolloff
 end
 
 ---@param bufnr number

@@ -42,6 +42,9 @@ function TerminalStrategy:start(task)
     if not vim.tbl_isempty(lines) then
       task:dispatch("on_output_lines", lines)
     end
+    vim.defer_fn(function()
+      util.terminal_tail_hack(self.bufnr)
+    end, 10)
   end
   util.run_in_fullscreen_win(self.bufnr, function()
     chan_id = vim.fn.termopen(task.cmd, {
