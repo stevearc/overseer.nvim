@@ -102,6 +102,7 @@ return {
         { args = { "update" } },
         { args = { "publish" } },
         { args = { "run" } },
+        { args = { "clippy" } },
       }
       local roots =
         { {
