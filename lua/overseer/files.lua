@@ -67,7 +67,15 @@ M.is_subpath = function(root, candidate)
     root = root:lower()
     candidate = candidate:lower()
   end
-  return candidate:sub(1, root:len()) == root
+  local prefix = candidate:sub(1, root:len())
+  if prefix ~= root then
+    return false
+  end
+
+  local candidate_starts_with_sep = candidate:find(M.sep, root:len() + 1, true) == root:len() + 1
+  local root_ends_with_sep = root:find(M.sep, root:len(), true) == root:len()
+
+  return candidate_starts_with_sep or root_ends_with_sep
 end
 
 M.get_stdpath_filename = function(stdpath, ...)
