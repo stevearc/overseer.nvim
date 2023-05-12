@@ -136,6 +136,9 @@ end
 M.close = function()
   local winid = M.get_win_id()
   if winid then
+    if winid == vim.api.nvim_get_current_win() then
+      vim.cmd.wincmd({ args = { "p" } })
+    end
     vim.api.nvim_win_close(winid, false)
   end
 end
