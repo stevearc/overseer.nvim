@@ -265,6 +265,18 @@ function Sidebar:jump(direction)
   end
 end
 
+---@param direction integer -1 for up, 1 for down
+function Sidebar:scroll_output(direction)
+  local wins = self:_get_preview_wins()
+  for _, winid in ipairs(wins) do
+    vim.api.nvim_win_call(winid, function()
+      local key =
+        vim.api.nvim_replace_termcodes(direction < 0 and "<C-u>" or "<C-d>", true, true, true)
+      vim.cmd.normal({ args = { key }, bang = true })
+    end)
+  end
+end
+
 function Sidebar:run_action(name)
   vim.validate({ name = { name, "s", true } })
   local task = self:_get_task_from_line()

@@ -31,6 +31,7 @@ local default_config = {
     -- You can add custom keymaps here as well (anything vim.keymap.set accepts)
     bindings = {
       ["?"] = "ShowHelp",
+      ["g?"] = "ShowHelp",
       ["<CR>"] = "RunAction",
       ["<C-e>"] = "Edit",
       ["o"] = "Open",
@@ -47,6 +48,8 @@ local default_config = {
       ["]"] = "IncreaseWidth",
       ["{"] = "PrevTask",
       ["}"] = "NextTask",
+      ["<C-k>"] = "ScrollOutputUp",
+      ["<C-j>"] = "ScrollOutputDown",
     },
   },
   -- See :help overseer-actions

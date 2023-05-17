@@ -91,6 +91,7 @@ OPTIONS                                                         *overseer-option
         -- You can add custom keymaps here as well (anything vim.keymap.set accepts)
         bindings = {
           ["?"] = "ShowHelp",
+          ["g?"] = "ShowHelp",
           ["<CR>"] = "RunAction",
           ["<C-e>"] = "Edit",
           ["o"] = "Open",
@@ -107,6 +108,8 @@ OPTIONS                                                         *overseer-option
           ["]"] = "IncreaseWidth",
           ["{"] = "PrevTask",
           ["}"] = "NextTask",
+          ["<C-k>"] = "ScrollOutputUp",
+          ["<C-j>"] = "ScrollOutputDown",
         },
       },
       -- See :help overseer-actions

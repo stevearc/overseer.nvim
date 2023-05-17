@@ -110,6 +110,7 @@ require("overseer").setup({
     -- You can add custom keymaps here as well (anything vim.keymap.set accepts)
     bindings = {
       ["?"] = "ShowHelp",
+      ["g?"] = "ShowHelp",
       ["<CR>"] = "RunAction",
       ["<C-e>"] = "Edit",
       ["o"] = "Open",
@@ -126,6 +127,8 @@ require("overseer").setup({
       ["]"] = "IncreaseWidth",
       ["{"] = "PrevTask",
       ["}"] = "NextTask",
+      ["<C-k>"] = "ScrollOutputUp",
+      ["<C-j>"] = "ScrollOutputDown",
     },
   },
   -- See :help overseer-actions

@@ -122,5 +122,19 @@ M = {
       sidebar:jump(1)
     end,
   },
+  {
+    desc = "Scroll up in the task output window",
+    plug = "<Plug>OverseerTask:ScrollOutputUp",
+    rhs = function(sidebar)
+      sidebar:scroll_output(-1)
+    end,
+  },
+  {
+    desc = "Scroll down in the task output window",
+    plug = "<Plug>OverseerTask:ScrollOutputDown",
+    rhs = function(sidebar)
+      sidebar:scroll_output(1)
+    end,
+  },
 }
 return M
