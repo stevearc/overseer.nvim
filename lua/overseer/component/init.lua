@@ -133,7 +133,7 @@ M.get_alias = function(name)
   return aliases[name]
 end
 
----@param comp_params table
+---@param comp_params overseer.Serialized
 ---@return string
 local function getname(comp_params)
   local name = util.split_config(comp_params)
@@ -181,6 +181,10 @@ M.params_should_replace = function(new_params, existing)
   return false
 end
 
+---@param seen table<string, boolean>
+---@param resolved overseer.Serialized[]
+---@param names overseer.Serialized[]
+---@return overseer.Serialized[]
 local function resolve(seen, resolved, names)
   for _, comp_params in ipairs(names) do
     local name = getname(comp_params)
@@ -255,8 +259,9 @@ local function instantiate(comp_params, component, default_params)
   return obj
 end
 
--- @param components is a list of component names or {name, params=}
--- @param existing is a list of instantiated components or component params
+---@param components overseer.Serialized[] A list of component names or {name, params=}
+---@param existing nil|overseer.Serialized[] A list of instantiated components or component params
+---@return overseer.Serialized[]
 M.resolve = function(components, existing)
   vim.validate({
     components = { components, "t" },

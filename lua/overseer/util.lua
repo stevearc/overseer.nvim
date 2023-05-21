@@ -271,7 +271,7 @@ M.buf_list_wins = function(bufnr)
   return ret
 end
 
----@param name_or_config string|table
+---@param name_or_config overseer.Serialized
 ---@return string
 ---@return table|nil
 M.split_config = function(name_or_config)

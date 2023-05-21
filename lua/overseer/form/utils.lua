@@ -13,6 +13,7 @@ local M = {}
 ---@field order? integer
 ---@field validate? fun(value: any): boolean
 ---@field optional? boolean
+---@field default_from_task? boolean
 
 ---@class overseer.StringParam : overseer.BaseParam
 ---@field type? "string"
