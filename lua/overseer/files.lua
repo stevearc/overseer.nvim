@@ -54,6 +54,7 @@ M.abspath = function(path)
   return path
 end
 
+--- Returns true if candidate is a subpath of root, or if they are the same path.
 ---@param root string
 ---@param candidate string
 ---@return boolean
@@ -61,19 +62,26 @@ M.is_subpath = function(root, candidate)
   if candidate == "" then
     return false
   end
-  root = M.abspath(root)
-  candidate = M.abspath(candidate)
+  root = vim.fs.normalize(M.abspath(root))
+  -- Trim trailing "/" from the root
+  if root:find("/", -1) then
+    root = root:sub(1, -2)
+  end
+  candidate = vim.fs.normalize(M.abspath(candidate))
   if M.is_windows then
     root = root:lower()
     candidate = candidate:lower()
+  end
+  if root == candidate then
+    return true
   end
   local prefix = candidate:sub(1, root:len())
   if prefix ~= root then
     return false
   end
 
-  local candidate_starts_with_sep = candidate:find(M.sep, root:len() + 1, true) == root:len() + 1
-  local root_ends_with_sep = root:find(M.sep, root:len(), true) == root:len()
+  local candidate_starts_with_sep = candidate:find("/", root:len() + 1, true) == root:len() + 1
+  local root_ends_with_sep = root:find("/", root:len(), true) == root:len()
 
   return candidate_starts_with_sep or root_ends_with_sep
 end

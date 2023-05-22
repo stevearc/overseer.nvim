@@ -44,5 +44,21 @@ describe("files", function()
     it("returns false if substring is not subpath", function()
       assert.falsy(files.is_subpath("foo.c", "foo.cpp"))
     end)
+
+    it("returns true if root has trailing / and candidate doesn't", function()
+      assert.truthy(files.is_subpath("/foo/", "/foo"))
+    end)
+
+    it("returns true if candidate has trailing / and root doesn't", function()
+      assert.truthy(files.is_subpath("/foo", "/foo/"))
+    end)
+
+    it("returns true if root and candidate are the same", function()
+      assert.truthy(files.is_subpath("/foo", "/foo"))
+    end)
+
+    it("returns true if root and candidate are the same with trailing /", function()
+      assert.truthy(files.is_subpath("/foo/", "/foo/"))
+    end)
   end)
 end)
