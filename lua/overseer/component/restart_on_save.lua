@@ -86,7 +86,7 @@ return {
             desc = string.format("Restart task %s on save", task.name),
             callback = function(params)
               -- Only care about normal files
-              if vim.api.nvim_buf_get_option(params.buf, "buftype") == "" then
+              if vim.bo[params.buf].buftype == "" then
                 local bufname = vim.api.nvim_buf_get_name(params.buf)
                 if is_watching_file(bufname) then
                   trigger_restart(task)

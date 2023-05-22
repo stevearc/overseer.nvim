@@ -70,15 +70,15 @@ local function create_overseer_window(direction, existing_win)
   end
 
   util.go_buf_no_au(bufnr)
-  vim.api.nvim_win_set_option(0, "listchars", "tab:> ")
-  vim.api.nvim_win_set_option(0, "winfixwidth", true)
-  vim.api.nvim_win_set_option(0, "winfixheight", true)
-  vim.api.nvim_win_set_option(0, "number", false)
-  vim.api.nvim_win_set_option(0, "signcolumn", "no")
-  vim.api.nvim_win_set_option(0, "foldcolumn", "0")
-  vim.api.nvim_win_set_option(0, "relativenumber", false)
-  vim.api.nvim_win_set_option(0, "wrap", false)
-  vim.api.nvim_win_set_option(0, "spell", false)
+  vim.wo.listchars = "tab:> "
+  vim.wo.winfixwidth = true
+  vim.wo.winfixheight = true
+  vim.wo.number = false
+  vim.wo.signcolumn = "no"
+  vim.wo.foldcolumn = "0"
+  vim.wo.relativenumber = false
+  vim.wo.wrap = false
+  vim.wo.spell = false
   vim.api.nvim_win_set_width(0, layout.calculate_width(nil, config.task_list))
   if direction == "bottom" then
     vim.api.nvim_win_set_height(0, layout.calculate_height(nil, config.task_list))
@@ -94,7 +94,7 @@ end
 M.get_win_id = function()
   for _, winid in ipairs(vim.api.nvim_tabpage_list_wins(0)) do
     local bufnr = vim.api.nvim_win_get_buf(winid)
-    if vim.api.nvim_buf_get_option(bufnr, "filetype") == "OverseerList" then
+    if vim.bo[bufnr].filetype == "OverseerList" then
       return winid
     end
   end

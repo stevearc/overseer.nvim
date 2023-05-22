@@ -113,9 +113,9 @@ function Editor.new(task, task_cb)
     end
   end
   local bufnr = vim.api.nvim_create_buf(false, true)
-  vim.api.nvim_buf_set_option(bufnr, "swapfile", false)
-  vim.api.nvim_buf_set_option(bufnr, "bufhidden", "wipe")
-  vim.api.nvim_buf_set_option(bufnr, "buftype", "acwrite")
+  vim.bo[bufnr].swapfile = false
+  vim.bo[bufnr].bufhidden = "wipe"
+  vim.bo[bufnr].buftype = "acwrite"
   vim.api.nvim_buf_set_name(bufnr, "Overseer task editor")
 
   local components = {}
@@ -134,7 +134,7 @@ function Editor.new(task, task_cb)
       -- TODO this is causing a lot of jumping
     end,
   })
-  vim.api.nvim_buf_set_option(bufnr, "filetype", "OverseerForm")
+  vim.bo[bufnr].filetype = "OverseerForm"
   local editor = setmetatable({
     cur_line = nil,
     task = task,

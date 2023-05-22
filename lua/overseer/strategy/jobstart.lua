@@ -63,7 +63,7 @@ function JobstartStrategy:start(task)
       self.term_id = term_id
       util.hack_around_termopen_autocmd(mode)
     else
-      vim.api.nvim_buf_set_option(self.bufnr, "modifiable", false)
+      vim.bo[self.bufnr].modifiable = false
       local function open_input()
         local prompt = vim.api.nvim_buf_get_lines(self.bufnr, -2, -1, true)[1]
         if prompt:match("^%s*$") then
@@ -105,10 +105,10 @@ function JobstartStrategy:start(task)
       local end_line = vim.api.nvim_buf_get_lines(self.bufnr, -2, -1, true)[1]
       local end_lines = vim.tbl_map(util.clean_job_line, data)
       end_lines[1] = end_line .. end_lines[1]
-      vim.api.nvim_buf_set_option(self.bufnr, "modifiable", true)
+      vim.bo[self.bufnr].modifiable = true
       vim.api.nvim_buf_set_lines(self.bufnr, -2, -1, true, end_lines)
-      vim.api.nvim_buf_set_option(self.bufnr, "modifiable", false)
-      vim.api.nvim_buf_set_option(self.bufnr, "modified", false)
+      vim.bo[self.bufnr].modifiable = false
+      vim.bo[self.bufnr].modified = false
 
       -- Scroll to end of updated windows so we can tail output
       local lnum = line_count + #end_lines - 1
@@ -159,7 +159,7 @@ function JobstartStrategy:start(task)
         vim.bo[self.bufnr].scrollback = vim.bo[self.bufnr].scrollback + 1
         util.terminal_tail_hack(self.bufnr)
       else
-        vim.api.nvim_buf_set_option(self.bufnr, "modifiable", true)
+        vim.bo[self.bufnr].modifiable = true
         vim.api.nvim_buf_set_lines(
           self.bufnr,
           -1,
@@ -167,7 +167,7 @@ function JobstartStrategy:start(task)
           true,
           { string.format("[Process exited %d]", c), "" }
         )
-        vim.api.nvim_buf_set_option(self.bufnr, "modifiable", false)
+        vim.bo[self.bufnr].modifiable = false
         vim.api.nvim_buf_set_option(self.bufnr, "modified", false)
       end
       self.job_id = nil

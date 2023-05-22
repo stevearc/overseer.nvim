@@ -133,9 +133,9 @@ M = {
     end,
     run = function(task)
       -- If we're currently in the task list, open a split in the nearest other window
-      if vim.api.nvim_buf_get_option(0, "filetype") == "OverseerList" then
+      if vim.bo.filetype == "OverseerList" then
         for _, winid in ipairs(util.get_fixed_wins()) do
-          if not vim.api.nvim_win_get_option(winid, "winfixwidth") then
+          if not vim.wo[winid].winfixwidth then
             util.go_win_no_au(winid)
             break
           end

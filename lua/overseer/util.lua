@@ -21,12 +21,12 @@ end
 
 ---@return number winid
 M.find_code_window = function()
-  if vim.api.nvim_buf_get_option(0, "buftype") == "" then
+  if vim.bo.buftype == "" then
     return vim.api.nvim_get_current_win()
   end
   for _, winid in ipairs(M.get_fixed_wins()) do
     local bufnr = vim.api.nvim_win_get_buf(winid)
-    if vim.api.nvim_buf_get_option(bufnr, "buftype") == "" then
+    if vim.bo[bufnr].buftype == "" then
       return winid
     end
   end
@@ -250,7 +250,7 @@ end
 ---@return number? winid
 M.get_preview_window = function()
   for _, winid in ipairs(vim.api.nvim_list_wins()) do
-    if vim.api.nvim_win_get_option(winid, "previewwindow") then
+    if vim.wo[winid].previewwindow then
       return winid
     end
   end
@@ -330,9 +330,9 @@ end
 ---Set the appropriate window options for a terminal buffer
 M.set_term_window_opts = function(winid)
   winid = winid or 0
-  vim.api.nvim_win_set_option(winid, "number", false)
-  vim.api.nvim_win_set_option(winid, "relativenumber", false)
-  vim.api.nvim_win_set_option(winid, "signcolumn", "no")
+  vim.wo[winid].number = false
+  vim.wo[winid].relativenumber = false
+  vim.wo[winid].signcolumn = "no"
 end
 
 ---@generic T : any

@@ -163,9 +163,9 @@ function Sidebar:toggle_preview()
     style = "minimal",
     noautocmd = true,
   })
-  vim.api.nvim_win_set_option(winid, "previewwindow", true)
+  vim.wo[winid].previewwindow = true
   for k, v in pairs(config.task_win.win_opts) do
-    vim.api.nvim_win_set_option(winid, k, v)
+    vim.wo[winid][k] = v
   end
   if winid then
     util.scroll_to_end(winid)

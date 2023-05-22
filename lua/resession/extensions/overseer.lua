@@ -24,7 +24,7 @@ M.on_load = function(data)
 end
 
 M.is_win_supported = function(winid, bufnr)
-  return vim.api.nvim_buf_get_option(bufnr, "filetype") == "OverseerList"
+  return vim.bo[bufnr].filetype == "OverseerList"
 end
 
 M.save_win = function(winid)

@@ -120,10 +120,10 @@ function OrchestratorStrategy:render_buf()
     table.insert(lines, table.concat(line, " -> "))
   end
 
-  vim.api.nvim_buf_set_option(self.bufnr, "modifiable", true)
+  vim.bo[self.bufnr].modifiable = true
   vim.api.nvim_buf_set_lines(self.bufnr, 0, -1, true, lines)
-  vim.api.nvim_buf_set_option(self.bufnr, "modifiable", false)
-  vim.api.nvim_buf_set_option(self.bufnr, "modified", false)
+  vim.bo[self.bufnr].modifiable = false
+  vim.bo[self.bufnr].modified = false
   util.add_highlights(self.bufnr, ns, highlights)
 end
 

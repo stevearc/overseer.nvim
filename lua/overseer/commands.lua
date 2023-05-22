@@ -117,9 +117,9 @@ M._info = function(params)
       style = "minimal",
     })
     vim.api.nvim_buf_set_lines(bufnr, 0, -1, true, lines)
-    vim.api.nvim_buf_set_option(bufnr, "modifiable", false)
-    vim.api.nvim_buf_set_option(bufnr, "modified", false)
-    vim.api.nvim_buf_set_option(bufnr, "bufhidden", "wipe")
+    vim.bo[bufnr].modifiable = false
+    vim.bo[bufnr].modified = false
+    vim.bo[bufnr].bufhidden = "wipe"
     vim.keymap.set("n", "q", "<cmd>close<cr>", { buffer = bufnr })
     vim.keymap.set("n", "<C-c>", "<cmd>close<cr>", { buffer = bufnr })
     vim.api.nvim_create_autocmd("BufLeave", {
@@ -344,7 +344,7 @@ end
 
 ---@param name string Name of action to run
 M.quick_action = function(name)
-  if vim.api.nvim_buf_get_option(0, "filetype") == "OverseerList" then
+  if vim.bo.filetype == "OverseerList" then
     local sb = sidebar.get_or_create()
     sb:run_action(name)
     return
