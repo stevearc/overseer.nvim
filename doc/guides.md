@@ -7,6 +7,7 @@
   - [Template providers](#template-providers)
 - [Actions](#actions)
 - [Custom components](#custom-components)
+  - [Component aliases](#component-aliases)
   - [Task result](#task-result)
 - [Customizing built-in tasks](#customizing-built-in-tasks)
 - [Parsing output](#parsing-output)
@@ -173,7 +174,7 @@ overseer.setup({
 
 ## Custom components
 
-When components are passed to a task (either from a template or a component alias), they can be specified as either a raw string (e.g. `"on_complete_dispose"`) or a table with configuration parameters (e.g. `{"on_complete_dispose", timeout = 10}`).
+When components are passed as an argument, they can be specified as either a raw string (e.g. `"on_complete_dispose"`) or a table with configuration parameters (e.g. `{"on_complete_dispose", timeout = 10}`).
 
 Components are lazy-loaded via requiring in the `overseer.component` namespace. For example, the `timeout` component is loaded from `lua/overseer/component/timeout.lua`. It is _recommended_ that for plugins or personal use, you namespace your own components behind an additional directory. For example, place your component in `lua/overseer/component/myplugin/mycomponent.lua`, and reference it as `myplugin.mycomponent`.
 
@@ -190,7 +191,7 @@ return {
   },
   -- Optional, default true. Set to false to disallow editing this component in the task editor
   editable = true,
-  -- When false, don't serialize this component when saving a task to disk
+  -- Optional, default true. When false, don't serialize this component when saving a task to disk
   serializable = true,
   -- The params passed in will match the params defined above
   constructor = function(params)
@@ -263,6 +264,25 @@ return {
     }
   end,
 }
+```
+
+### Component aliases
+
+A component alias is just a simple string you can use as a component that resolves to a list of components. These are configured via the [component_aliases](./reference.md#setup-options) option in `setup()`. The two built-in aliases are `default`, which is used for all tasks when no components are specified, and `default_vscode` which is the same but for tasks specifically from the VS Code task integration. You can define and use your own component aliases using the same format. Aliases _can_ include other aliases; for example the `default_vscode` alias includes the `default` alias in addition to some other components.
+
+**NOTE**: When components are added to a task, it will be a no-op if the component already exists on the task. This is meaningful if you intend to change the parameters on a component that is in the `default` alias. As a best practice, always list any component aliases _after_ specific components.
+
+```lua
+local task = require("overseer").new_task({
+    cmd = "g++ " . vim.fn.expand("%"),
+    components = {
+        -- Add on_complete_notify first with a customized 'statuses' parameter
+        { "on_complete_notify", statuses = { "SUCCESS" } },
+        -- The default group also adds on_complete_notify,
+        -- but since it appears second it will be ignored.
+        "default"
+    }
+})
 ```
 
 ### Task result

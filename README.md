@@ -173,6 +173,7 @@ If you want to define custom tasks for your project, I'd recommend starting with
   - [Template providers](doc/guides.md#template-providers)
 - [Actions](doc/guides.md#actions)
 - [Custom components](doc/guides.md#custom-components)
+  - [Component aliases](doc/guides.md#component-aliases)
   - [Task result](doc/guides.md#task-result)
 - [Customizing built-in tasks](doc/guides.md#customizing-built-in-tasks)
 - [Parsing output](doc/guides.md#parsing-output)
