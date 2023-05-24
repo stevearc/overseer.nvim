@@ -12,6 +12,7 @@ from nvim_doc_tools import (
     Vimdoc,
     VimdocSection,
     dedent,
+    convert_markdown_to_vimdoc,
     format_md_table,
     generate_md_toc,
     indent,
@@ -23,7 +24,6 @@ from nvim_doc_tools import (
     replace_section,
     wrap,
 )
-from nvim_doc_tools.markdown import MD_LINK_PAT
 from nvim_doc_tools.vimdoc import format_vimdoc_params
 
 HERE = os.path.dirname(__file__)
@@ -377,7 +377,7 @@ def get_options_vimdoc() -> "VimdocSection":
     section = VimdocSection("options", "overseer-options")
     config_file = os.path.join(ROOT, "lua", "overseer", "config.lua")
     opt_lines = read_section(config_file, r"^local default_config =", r"^}$")
-    lines = ["\n", ">\n", '    require("overseer").setup({\n']
+    lines = ["\n", ">lua\n", '    require("overseer").setup({\n']
     lines.extend(indent(opt_lines, 4))
     lines.extend(["    })\n", "<\n"])
     section.body = lines
@@ -480,40 +480,6 @@ def convert_md_link(match):
         return f"|{dest[1:]}|"
     else:
         return text
-
-
-def convert_markdown_to_vimdoc(lines: List[str]) -> List[str]:
-    while lines[0] == "\n":
-        lines.pop(0)
-    while lines[-1] == "\n":
-        lines.pop()
-    i = 0
-    code_block = False
-    while i < len(lines):
-        line = lines[i]
-        if line.startswith("```"):
-            code_block = not code_block
-            if code_block:
-                lines[i] = ">\n"
-            else:
-                lines[i] = "<\n"
-        else:
-            if code_block:
-                lines[i] = 4 * " " + line
-            else:
-                line = MD_LINK_PAT.sub(convert_md_link, line)
-                line = MD_BOLD_PAT.sub(lambda x: x[1], line)
-                line = MD_LINE_BREAK_PAT.sub("", line)
-
-                if len(line) > 80:
-                    new_lines = wrap(line)
-                    lines[i : i + 1] = new_lines
-                    i += len(new_lines)
-                    continue
-                else:
-                    lines[i] = line
-        i += 1
-    return lines
 
 
 def convert_md_section(

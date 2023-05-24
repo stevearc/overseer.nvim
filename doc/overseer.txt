@@ -3,15 +3,15 @@
 --------------------------------------------------------------------------------
 CONTENTS                                                       *overseer-contents*
 
-  1. Commands..............................................|overseer-commands|
-  2. Options................................................|overseer-options|
-  3. Highlights..........................................|overseer-highlights|
-  4. Api........................................................|overseer-api|
-  5. Components..........................................|overseer-components|
-  6. Strategies..........................................|overseer-strategies|
-  7. Parsers................................................|overseer-parsers|
-  8. Parameters..............................................|overseer-params|
-  9. Actions................................................|overseer-actions|
+  1. Commands                                              |overseer-commands|
+  2. Options                                                |overseer-options|
+  3. Highlights                                          |overseer-highlights|
+  4. Api                                                        |overseer-api|
+  5. Components                                          |overseer-components|
+  6. Strategies                                          |overseer-strategies|
+  7. Parsers                                                |overseer-parsers|
+  8. Parameters                                              |overseer-params|
+  9. Actions                                                |overseer-actions|
 
 --------------------------------------------------------------------------------
 COMMANDS                                                       *overseer-commands*
@@ -58,7 +58,7 @@ OverseerClearCache                                           *:OverseerClearCach
 --------------------------------------------------------------------------------
 OPTIONS                                                         *overseer-options*
 
->
+>lua
     require("overseer").setup({
       -- Default task strategy
       strategy = "terminal",
@@ -319,7 +319,7 @@ new_task({opts}): overseer.Task                                *overseer.new_tas
           {components} `nil|overseer.Serialized[]` List of components to attach.
                        Defaults to `{"default"}`
 
-    Examples: >
+    Examples: >lua
       local task = overseer.new_task({
         cmd = {'./build.sh'},
         args = {'all'},
@@ -433,7 +433,7 @@ run_template({opts}, {callback})                           *overseer.run_templat
          never     Never show prompt (error if required param missing)
       The default is controlled by the default_template_prompt config option.
 
-    Examples: >
+    Examples: >lua
       -- Run the task named "make all"
       -- equivalent to :OverseerRun make all
       overseer.run_template({name = "make all"})
@@ -469,7 +469,7 @@ preload_task_cache({opts}, {cb})                     *overseer.preload_task_cach
       Typically this would be done to prevent a long wait time for :OverseerRun when using a slow
       template provider.
 
-    Examples: >
+    Examples: >lua
       -- Automatically preload templates for the current directory
       vim.api.nvim_create_autocmd({"VimEnter", "DirChanged"}, {
         local cwd = vim.v.cwd or vim.fn.getcwd()
@@ -506,7 +506,7 @@ wrap_template({base}, {override}, {default_params}): overseer.TemplateDefinition
       This is typically used for a TemplateProvider, to define the task a single time and generate
       multiple templates based on the available args.
 
-    Examples: >
+    Examples: >lua
       local tmpl = {
         params = {
           args = { type = 'list', delimiter = ' ' }
@@ -542,7 +542,7 @@ add_template_hook({opts}, {hook})                     *overseer.add_template_hoo
                      directories
       {hook} `fun(task_defn: overseer.TaskDefinition, util: overseer.TaskUtil)`
 
-    Examples: >
+    Examples: >lua
       -- Add on_output_quickfix component to all "cargo" templates
       overseer.add_template_hook({ module = "^cargo$" }, function(task_defn, util)
         util.add_component(task_defn, { "on_output_quickfix", open = true })
@@ -566,7 +566,7 @@ remove_template_hook({opts}, {hook})               *overseer.remove_template_hoo
       {opts} `nil|overseer.HookOptions` Same as for add_template_hook
       {hook} `fun(task_defn: overseer.TaskDefinition, util: overseer.TaskUtil)`
 
-    Examples: >
+    Examples: >lua
       local opts = {module = "cargo"}
       local hook = function(task_defn, util)
         util.add_component(task_defn, { "on_output_quickfix", open = true })
@@ -588,7 +588,7 @@ load_template({name})                                     *overseer.load_templat
     Parameters:
       {name} `string`
 
-    Examples: >
+    Examples: >lua
       -- This will load the template in lua/overseer/template/mytask.lua
       overseer.load_template('mytask')
 <
@@ -812,7 +812,7 @@ orchestrator({opts}): overseer.Strategy                    *strategy.orchestrato
           {tasks} `table` A list of task definitions to run. Can include sub-
                   lists that will be run in parallel
 
-    Examples: >
+    Examples: >lua
       overseer.new_task({
         name = "Build and serve app",
         strategy = {
@@ -1183,7 +1183,7 @@ PARAMETERS                                                       *overseer-param
 Parameters are a schema-defined set of options. They are used by both components
 and templates to expose customization options.
 
->
+>lua
     local params = {
       my_var = {
         type = "string",
@@ -1205,7 +1205,7 @@ and templates to expose customization options.
 
 The following types are available:
 
->
+>lua
     {
       type = "string"
     }
@@ -1249,7 +1249,7 @@ Browse the set of built-in actions at lua/overseer/task_list/actions.lua
 You can define your own or disable any of the built-in actions in the call to
 setup():
 
->
+>lua
     overseer.setup({
       actions = {
         ["My custom action"] = {
