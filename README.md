@@ -27,6 +27,7 @@ A task runner and job management plugin for Neovim
   - [FAQ](doc/explanation.md#faq)
 - [Third-party integrations](#third-party-integrations)
   - [Lualine](doc/third_party.md#lualine)
+  - [Heirline](doc/third_party.md#heirline)
   - [Neotest](doc/third_party.md#neotest)
   - [DAP](doc/third_party.md#dap)
   - [ToggleTerm](doc/third_party.md#toggleterm)
@@ -194,6 +195,7 @@ If you want to define custom tasks for your project, I'd recommend starting with
 ## Third-party integrations
 
 - [Lualine](doc/third_party.md#lualine)
+- [Heirline](doc/third_party.md#heirline)
 - [Neotest](doc/third_party.md#neotest)
 - [DAP](doc/third_party.md#dap)
 - [ToggleTerm](doc/third_party.md#toggleterm)
