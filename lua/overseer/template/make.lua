@@ -77,12 +77,14 @@ local function parse_make_output(cwd, ret, cb)
         elseif parsing then
           if line:match("^[^%.#%s]") and prev_line:find("# Not a target") ~= 1 then
             local idx = line:find(":")
-            local target = line:sub(1, idx - 1)
-            local override = { name = string.format("make %s", target) }
-            table.insert(
-              ret,
-              overseer.wrap_template(tmpl, override, { args = { target }, cwd = cwd })
-            )
+            if idx then
+              local target = line:sub(1, idx - 1)
+              local override = { name = string.format("make %s", target) }
+              table.insert(
+                ret,
+                overseer.wrap_template(tmpl, override, { args = { target }, cwd = cwd })
+              )
+            end
           end
         end
         prev_line = line
