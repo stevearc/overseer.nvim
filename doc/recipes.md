@@ -90,9 +90,14 @@ The venerable vim-dispatch provides several commands, but the main `:Make` comma
 
 ```lua
 vim.api.nvim_create_user_command("Make", function(params)
+  local args = vim.fn.expandcmd(params.args)
+  -- Insert args at the '$*' in the makeprg
+  local cmd, num_subs = vim.o.makeprg:gsub("%$%*", args)
+  if num_subs == 0 then
+    cmd = cmd .. " " .. args
+  end
   local task = require("overseer").new_task({
-    cmd = vim.split(vim.o.makeprg, "%s+"),
-    args = params.fargs,
+    cmd = cmd,
     components = {
       { "on_output_quickfix", open = not params.bang, open_height = 8 },
       "default",
@@ -100,7 +105,7 @@ vim.api.nvim_create_user_command("Make", function(params)
   })
   task:start()
 end, {
-  desc = "",
+  desc = "Run your makeprg as an Overseer task",
   nargs = "*",
   bang = true,
 })
@@ -120,7 +125,6 @@ vim.api.nvim_create_user_command("Grep", function(params)
   end
   local task = overseer.new_task({
     cmd = cmd,
-    name = "grep " .. args,
     components = {
       {
         "on_output_quickfix",
