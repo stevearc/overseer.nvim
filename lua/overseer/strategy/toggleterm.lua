@@ -12,7 +12,8 @@ local ToggleTermStrategy = {}
 ---    direction nil|"vertical"|"horizontal"|"tab"|"float"
 ---    highlights nil|table map to a highlight group name and a table of it's values
 ---    auto_scroll nil|boolean automatically scroll to the bottom on task output
----    close_on_exit nil|boolean close the terminal (if open) after task exits
+---    close_on_exit "never"|"always"|"success" close the terminal (if open) after task exits
+---    quit_on_exit nil|boolean close the terminal window (if open) after task exits
 ---    open_on_start nil|boolean toggle open the terminal automatically when task starts
 ---    hidden nil|boolean cannot be toggled with normal ToggleTerm commands
 ---    on_create nil|fun(term: table) function to execute on terminal creation
@@ -24,6 +25,7 @@ function ToggleTermStrategy.new(opts)
     highlights = nil,
     auto_scroll = nil,
     close_on_exit = false,
+    quit_on_exit = "never",
     open_on_start = true,
     hidden = false,
     on_create = nil,
@@ -97,7 +99,7 @@ function ToggleTermStrategy:start(task)
       end
       on_stdout(d)
     end,
-    on_exit = function(_, j, c)
+    on_exit = function(t, j, c)
       jobs.unregister(j)
       if self.chan_id ~= j then
         return
@@ -107,6 +109,12 @@ function ToggleTermStrategy:start(task)
       self.chan_id = nil
       if vim.v.exiting == vim.NIL then
         task:on_exit(c)
+      end
+
+      local close = self.opts.quit_on_exit == "always"
+      close = close or (self.opts.quit_on_exit == "success" and c == 0)
+      if close then
+        t:close()
       end
     end,
   })
