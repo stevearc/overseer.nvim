@@ -111,7 +111,7 @@ M.open_fullscreen_float = function(bufnr)
     style = "minimal",
   })
   for k, v in pairs(conf.win_opts) do
-    vim.wo[winid][k] = v
+    vim.api.nvim_set_option_value(k, v, { scope = "local", win = winid })
   end
   vim.api.nvim_create_autocmd("WinLeave", {
     desc = "Close float on WinLeave",

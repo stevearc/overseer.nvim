@@ -264,10 +264,10 @@ M.open_form_win = function(bufnr, opts)
   winopt.style = "minimal"
   local winid = vim.api.nvim_open_win(bufnr, true, winopt)
   -- Explicitly set these so the "conceal" option will work for string params
-  vim.wo[winid].conceallevel = 1
-  vim.wo[winid].concealcursor = "nic"
+  vim.api.nvim_set_option_value("conceallevel", 1, { scope = "local", win = winid })
+  vim.api.nvim_set_option_value("concealcursor", "nic", { scope = "local", win = winid })
   for k, v in pairs(config.form.win_opts) do
-    vim.wo[winid][k] = v
+    vim.api.nvim_set_option_value(k, v, { scope = "local", win = winid })
   end
 
   local function set_layout()

@@ -21,16 +21,21 @@ local function watch_for_win_closed()
   })
 end
 
+local min_win_opts = {
+  number = false,
+  relativenumber = false,
+  cursorline = false,
+  cursorcolumn = false,
+  foldcolumn = "0",
+  signcolumn = "no",
+  spell = false,
+  list = false,
+}
 ---@param winid integer
 local function set_minimal_win_opts(winid)
-  vim.wo[winid].number = false
-  vim.wo[winid].relativenumber = false
-  vim.wo[winid].cursorline = false
-  vim.wo[winid].cursorcolumn = false
-  vim.wo[winid].foldcolumn = "0"
-  vim.wo[winid].signcolumn = "no"
-  vim.wo[winid].spell = false
-  vim.wo[winid].list = false
+  for k, v in pairs(min_win_opts) do
+    vim.api.nvim_set_option_value(k, v, { scope = "local", win = winid })
+  end
 end
 
 ---@param direction "left"|"right"|"bottom"
@@ -70,15 +75,20 @@ local function create_overseer_window(direction, existing_win)
   end
 
   util.go_buf_no_au(bufnr)
-  vim.wo.listchars = "tab:> "
-  vim.wo.winfixwidth = true
-  vim.wo.winfixheight = true
-  vim.wo.number = false
-  vim.wo.signcolumn = "no"
-  vim.wo.foldcolumn = "0"
-  vim.wo.relativenumber = false
-  vim.wo.wrap = false
-  vim.wo.spell = false
+  local default_opts = {
+    listchars = "tab:> ",
+    winfixwidth = true,
+    winfixheight = true,
+    number = false,
+    signcolumn = "no",
+    foldcolumn = "0",
+    relativenumber = false,
+    wrap = false,
+    spell = false,
+  }
+  for k, v in pairs(default_opts) do
+    vim.api.nvim_set_option_value(k, v, { scope = "local", win = 0 })
+  end
   vim.api.nvim_win_set_width(0, layout.calculate_width(nil, config.task_list))
   if direction == "bottom" then
     vim.api.nvim_win_set_height(0, layout.calculate_height(nil, config.task_list))

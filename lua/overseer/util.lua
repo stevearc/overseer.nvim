@@ -184,10 +184,10 @@ M.terminal_tail_hack = function(bufnr)
     if scroll_to_line then
       local last_line =
         vim.api.nvim_buf_get_lines(bufnr, scroll_to_line - 1, scroll_to_line, true)[1]
-      local scrolloff = vim.wo[winid].scrolloff
-      vim.wo[winid].scrolloff = 0
+      local scrolloff = vim.api.nvim_get_option_value("scrolloff", { scope = "local", win = winid })
+      vim.api.nvim_set_option_value("scrolloff", 0, { scope = "local", win = winid })
       vim.api.nvim_win_set_cursor(winid, { scroll_to_line, vim.api.nvim_strwidth(last_line) })
-      vim.wo[winid].scrolloff = scrolloff
+      vim.api.nvim_set_option_value("scrolloff", scrolloff, { scope = "local", win = winid })
     end
   end
 end
@@ -205,10 +205,10 @@ M.scroll_to_end = function(winid)
     lnum = term_get_effective_line_count(bufnr)
     last_line = vim.api.nvim_buf_get_lines(bufnr, lnum - 1, lnum, true)[1]
   end
-  local scrolloff = vim.wo[winid].scrolloff
-  vim.wo[winid].scrolloff = 0
+  local scrolloff = vim.api.nvim_get_option_value("scrolloff", { scope = "local", win = winid })
+  vim.api.nvim_set_option_value("scrolloff", 0, { scope = "local", win = winid })
   vim.api.nvim_win_set_cursor(winid, { lnum, vim.api.nvim_strwidth(last_line) })
-  vim.wo[winid].scrolloff = scrolloff
+  vim.api.nvim_set_option_value("scrolloff", scrolloff, { scope = "local", win = winid })
 end
 
 ---@param bufnr number
@@ -330,9 +330,9 @@ end
 ---Set the appropriate window options for a terminal buffer
 M.set_term_window_opts = function(winid)
   winid = winid or 0
-  vim.wo[winid].number = false
-  vim.wo[winid].relativenumber = false
-  vim.wo[winid].signcolumn = "no"
+  vim.api.nvim_set_option_value("number", false, { scope = "local", win = winid })
+  vim.api.nvim_set_option_value("relativenumber", false, { scope = "local", win = winid })
+  vim.api.nvim_set_option_value("signcolumn", "no", { scope = "local", win = winid })
 end
 
 ---@generic T : any

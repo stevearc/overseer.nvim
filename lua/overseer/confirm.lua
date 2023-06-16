@@ -134,7 +134,7 @@ return function(opts, callback)
     row = math.floor((layout.get_editor_height() - height) / 2),
   })
   for k, v in pairs(config.confirm.win_opts) do
-    vim.wo[winid][k] = v
+    vim.api.nvim_set_option_value(k, v, { scope = "local", win = winid })
   end
 
   vim.api.nvim_create_autocmd("BufLeave", {
