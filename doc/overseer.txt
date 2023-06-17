@@ -850,8 +850,10 @@ toggleterm({opts}): overseer.Strategy                        *strategy.toggleter
                           of it's values
           {auto_scroll}   `nil|boolean` automatically scroll to the bottom on
                           task output
-          {close_on_exit} `nil|boolean` close the terminal (if open) after task
-                          exits
+          {close_on_exit} `nil|boolean` close the terminal and delete terminal
+                          buffer (if open) after task exits
+          {quit_on_exit}  `"never"|"always"|"success"` close the terminal window
+                          (if open) after task exits
           {open_on_start} `nil|boolean` toggle open the terminal automatically
                           when task starts
           {hidden}        `nil|boolean` cannot be toggled with normal ToggleTerm

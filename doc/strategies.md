@@ -70,17 +70,18 @@ Strategy used for unit testing
 `toggleterm(opts): overseer.Strategy` \
 Run tasks using the toggleterm plugin
 
-| Param | Type          | Desc                                            |                                                          |
-| ----- | ------------- | ----------------------------------------------- | -------------------------------------------------------- |
-| opts  | `nil\|table`  |                                                 |                                                          |
-|       | use_shell     | `nil\|boolean`                                  | load user shell before running task                      |
-|       | direction     | `nil\|"vertical"\|"horizontal"\|"tab"\|"float"` |                                                          |
-|       | highlights    | `nil\|table`                                    | map to a highlight group name and a table of it's values |
-|       | auto_scroll   | `nil\|boolean`                                  | automatically scroll to the bottom on task output        |
-|       | close_on_exit | `nil\|boolean`                                  | close the terminal (if open) after task exits            |
-|       | open_on_start | `nil\|boolean`                                  | toggle open the terminal automatically when task starts  |
-|       | hidden        | `nil\|boolean`                                  | cannot be toggled with normal ToggleTerm commands        |
-|       | on_create     | `nil\|fun(term: table)`                         | function to execute on terminal creation                 |
+| Param | Type          | Desc                                            |                                                                          |
+| ----- | ------------- | ----------------------------------------------- | ------------------------------------------------------------------------ |
+| opts  | `nil\|table`  |                                                 |                                                                          |
+|       | use_shell     | `nil\|boolean`                                  | load user shell before running task                                      |
+|       | direction     | `nil\|"vertical"\|"horizontal"\|"tab"\|"float"` |                                                                          |
+|       | highlights    | `nil\|table`                                    | map to a highlight group name and a table of it's values                 |
+|       | auto_scroll   | `nil\|boolean`                                  | automatically scroll to the bottom on task output                        |
+|       | close_on_exit | `nil\|boolean`                                  | close the terminal and delete terminal buffer (if open) after task exits |
+|       | quit_on_exit  | `"never"\|"always"\|"success"`                  | close the terminal window (if open) after task exits                     |
+|       | open_on_start | `nil\|boolean`                                  | toggle open the terminal automatically when task starts                  |
+|       | hidden        | `nil\|boolean`                                  | cannot be toggled with normal ToggleTerm commands                        |
+|       | on_create     | `nil\|fun(term: table)`                         | function to execute on terminal creation                                 |
 
 
 <!-- /API -->
