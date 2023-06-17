@@ -51,6 +51,12 @@ return {
       type = "boolean",
       default = false,
     },
+    open_on_exit = {
+      desc = "Open the quickfix when the command exits",
+      type = "enum",
+      choices = { "never", "failure", "always" },
+      default = "never",
+    },
     open_height = {
       desc = "The height of the quickfix when opened",
       type = "integer",
@@ -93,6 +99,13 @@ return {
       on_reset = function(self, task)
         self.qf_id = 0
         self.qf_opened = false
+      end,
+      on_exit = function(self, _, code)
+        local open = params.open_on_exit == "always"
+        open = open or (params.open_on_exit == "failure" and code ~= 0)
+        if open then
+          copen(self, params.open_height)
+        end
       end,
       on_pre_result = function(self, task)
         local lines = vim.api.nvim_buf_get_lines(task:get_bufnr(), 0, -1, true)
