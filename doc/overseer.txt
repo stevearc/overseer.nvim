@@ -674,6 +674,8 @@ on_output_quickfix                                            *on_output_quickfi
                         (default `false`)
       {open}            `boolean` Open the quickfix on output (default `false`)
       {open_height}     `integer` The height of the quickfix when opened
+      {open_on_exit}    `enum` Open the quickfix when the command exits (default
+                        `"never"`) (choices: `"never"|"failure"|"always"`)
       {open_on_match}   `boolean` Open the quickfix when the errorformat finds a
                         match (default `false`)
       {relative_file_root} `string` Relative filepaths will be joined to this
