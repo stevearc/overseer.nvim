@@ -32,6 +32,7 @@ function ToggleTermStrategy.new(opts)
     bufnr = nil,
     chan_id = nil,
     opts = opts,
+    term = nil,
   }, { __index = ToggleTermStrategy })
 end
 
@@ -41,6 +42,9 @@ function ToggleTermStrategy:reset()
   if self.chan_id then
     vim.fn.jobstop(self.chan_id)
     self.chan_id = nil
+  end
+  if self.term then
+    self.term:close()
   end
 end
 
@@ -72,7 +76,7 @@ function ToggleTermStrategy:start(task)
     passed_cmd = cmd
   end
 
-  local term = terminal.Terminal:new({
+  self.term = terminal.Terminal:new({
     cmd = passed_cmd,
     env = task.env,
     highlights = self.opts.highlights,
@@ -112,13 +116,13 @@ function ToggleTermStrategy:start(task)
   })
 
   if self.opts.open_on_start then
-    term:toggle()
+    self.term:toggle()
   else
-    term:spawn()
+    self.term:spawn()
   end
 
-  chan_id = term.job_id
-  self.bufnr = term.bufnr
+  chan_id = self.term.job_id
+  self.bufnr = self.term.bufnr
 
   util.hack_around_termopen_autocmd(mode)
 
