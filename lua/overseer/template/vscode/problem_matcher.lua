@@ -6,8 +6,8 @@ local M = {}
 -- Taken from https://github.com/microsoft/vscode/blob/main/src/vs/workbench/contrib/tasks/common/problemMatcher.ts#L1207
 local default_patterns = {
   ["$msCompile"] = {
-    regexp = "^(?:\\s+\\d+>)?(\\S.*)\\((\\d+|\\d+,\\d+|\\d+,\\d+,\\d+,\\d+)\\)\\s*:\\s+(error|warning|info)\\s+(\\w+\\d+)\\s*:\\s*(.*)$",
-    vim_regexp = "\\v^%(\\s+\\d+>)?(\\S.*)\\((\\d+|\\d+,\\d+|\\d+,\\d+,\\d+,\\d+)\\)\\s*:\\s+(error|warning|info)\\s+(\\w+\\d+)\\s*:\\s*(.*)$",
+    regexp = "^(?:\\s(\\d+>)?(\\S.*)\\((\\d+|\\d+,\\d+|\\d+,\\d+,\\d+,\\d+)\\)\\s*:\\s+((?:fatal +)?error|warning|info)\\s+(\\w+\\d+)\\s*:\\s*(.*)$",
+    vim_regexp = "\\v^%(\\s*\\d+>)?(\\S.*)\\((\\d+|\\d+,\\d+|\\d+,\\d+,\\d+,\\d+)\\)\\s*:\\s+(%(fatal +)?error|warning|info)\\s+(\\w+\\d+)\\s*:\\s*(.*)$",
     kind = "location",
     file = 1,
     location = 2,
