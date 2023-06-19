@@ -214,8 +214,16 @@ Problem matchers:
 
 <!-- problem_matchers -->
 
+- `$eslint-compact`
+- `$eslint-stylish`
 - `$gcc`
+- `$go`
+- `$gulp-tsc`
+- `$jshint`
+- `$jshint-stylish`
+- `$lessCompile`
 - `$lessc`
+- `$msCompile`
 - `$node-sass`
 - `$nvcc`
 - `$tsc`
