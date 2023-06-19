@@ -145,6 +145,48 @@ local default_patterns = {
 }
 
 local default_matchers = {
+  -- from https://github.com/microsoft/vscode/blob/448ec31cb2d4c65a1ca7845b322d61d5d542d8b1/src/vs/workbench/contrib/tasks/common/problemMatcher.ts#L1924-L2007
+  ["$msCompile"] = {
+    owner = "msCompile",
+    source = "cpp",
+    pattern = "$msCompile",
+  },
+  ["$lessCompile"] = {
+    owner = "lessCompile",
+    deprecated = true,
+    source = "less",
+    pattern = "$lessCompile",
+  },
+  ["$gulp-tsc"] = {
+    owner = "typescript",
+    source = "ts",
+    pattern = "$gulp-tsc",
+  },
+  ["$jshint"] = {
+    owner = "jshint",
+    source = "jshint",
+    pattern = "$jshint",
+  },
+  ["$jshint-stylish"] = {
+    owner = "jshint",
+    source = "jshint",
+    pattern = "$jshint-stylish",
+  },
+  ["$eslint-compact"] = {
+    owner = "eslint",
+    source = "eslint",
+    pattern = "$eslint-compact",
+  },
+  ["$eslint-stylish"] = {
+    owner = "eslint",
+    source = "eslint",
+    pattern = "$eslint-stylish",
+  },
+  ["$go"] = {
+    owner = "go",
+    source = "go",
+    pattern = "$go",
+  },
   -- from https://github.com/microsoft/vscode/blob/main/extensions/typescript-language-features/package.json#L1396
   ["$tsc"] = {
     owner = "typescript",
