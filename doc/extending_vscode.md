@@ -25,18 +25,6 @@ M.get_task_opts = function(defn)
   }
 end
 
--- You can
-M.problem_patterns = {
-  mypat = {
-    -- Note that the regexp is a vim-flavored regex with "very magic" enabled (:help magic)
-    regexp = "^\\s*(.*):(\\d+) (.+)$",
-    kind = "location",
-    file = 1,
-    line = 2,
-    message = 3,
-  }
-}
-
 return M
 ```
 
@@ -55,10 +43,12 @@ M.get_task_opts = function(defn)
 end
 
 M.problem_patterns = {
-  -- This will provide the problem matcher pattern '$mypat'
-  mypat = {
+  -- This will provide the problem matcher pattern '$my-pat'
+  ["$my-pat"] = {
     -- Note that the regexp is a vim-flavored regex with "very magic" enabled (:help magic)
     regexp = "^\\s*(.*):(\\d+) (.+)$",
+    -- You can alternately specify an explicit vim-flavored regex
+    vim_regexp = "\\v^\\s*(.*):(\\d+) (.+)$",
     kind = "location",
     file = 1,
     line = 2,
@@ -67,10 +57,10 @@ M.problem_patterns = {
 }
 
 M.problem_matchers = {
-  -- This will provide the problem matcher '$mymatch'
-  mymatch = {
+  -- This will provide the problem matcher '$my-match'
+  ["$my-match"] = {
     fileLocation = { "relative", "${cwd}" },
-    pattern = "$mypat",
+    pattern = "$my-pat",
   }
 }
 
