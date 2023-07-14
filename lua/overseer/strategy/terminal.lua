@@ -32,6 +32,7 @@ end
 ---@param task overseer.Task
 function TerminalStrategy:start(task)
   self.bufnr = vim.api.nvim_create_buf(false, true)
+  vim.b[self.bufnr].overseer_task = task.id
   local chan_id
   local mode = vim.api.nvim_get_mode().mode
   local stdout_iter = util.get_stdout_line_iter()

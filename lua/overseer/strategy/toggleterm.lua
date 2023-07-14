@@ -131,6 +131,7 @@ function ToggleTermStrategy:start(task)
 
   chan_id = self.term.job_id
   self.bufnr = self.term.bufnr
+  vim.b[self.bufnr].overseer_task = task.id
 
   util.hack_around_termopen_autocmd(mode)
 
