@@ -97,12 +97,14 @@ return {
         { args = { "test" }, tags = { TAG.TEST } },
         { args = { "check" } },
         { args = { "doc" } },
+        { args = { "doc", "--open" } },
         { args = { "clean" } },
         { args = { "bench" } },
         { args = { "update" } },
         { args = { "publish" } },
         { args = { "run" } },
         { args = { "clippy" } },
+        { args = { "fmt" } },
       }
       local roots =
         { {
