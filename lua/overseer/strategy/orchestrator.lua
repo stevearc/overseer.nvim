@@ -205,8 +205,8 @@ function OrchestratorStrategy:start(task)
             name = name,
             autostart = false,
             params = params,
-            cwd = self.task.cwd,
-            env = self.task.env,
+            cwd = params and params.cwd or self.task.cwd,
+            env = params and params.env or self.task.env,
           },
           vim.schedule_wrap(function(new_task, err)
             if not new_task then
