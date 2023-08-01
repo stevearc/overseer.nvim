@@ -265,7 +265,7 @@ local default_matchers = {
     fileLocation = { "autoDetect", "${cwd}" },
     pattern = {
       regexp = "^(.*?) =(\\d+):(\\d*):?\\s+(?:fatal\\s+)?(warning|error):\\s+(.*)$",
-      vim_regexp = "\\v^([^:]*):(\\d+):(\\d*):?\\s+%(fatal\\s+)?(warning|error):\\s+(.*)$",
+      vim_regexp = "\\v^(.{-}):(\\d+):(\\d*):?\\s+%(fatal\\s+)?(warning|error):\\s+(.*)$",
       file = 1,
       line = 2,
       column = 3,
