@@ -3,7 +3,6 @@ local config = require("overseer.config")
 local files = require("overseer.files")
 local form_utils = require("overseer.form.utils")
 local log = require("overseer.log")
-local Task = require("overseer.task")
 local form = require("overseer.form")
 local util = require("overseer.util")
 local M = {}
@@ -73,17 +72,18 @@ local function condition_matches(condition, tags, search, match_tags)
     end
   end
 
-  if condition.dir then
-    if type(condition.dir) == "string" then
-      if not files.is_subpath(condition.dir, search.dir) then
+  local dir = condition.dir
+  if dir then
+    if type(dir) == "string" then
+      if not files.is_subpath(dir, search.dir) then
         return false, string.format("Not in dir %s", condition.dir)
       end
     elseif
-      not util.list_any(condition.dir, function(d)
+      not util.list_any(dir, function(d)
         return files.is_subpath(d, search.dir)
       end)
     then
-      return false, string.format("Not in dirs %s", table.concat(condition.dir, ", "))
+      return false, string.format("Not in dirs %s", table.concat(dir, ", "))
     end
   end
 
@@ -231,26 +231,20 @@ function task_util.has_component(task_defn, name)
 end
 
 ---@param tmpl overseer.TemplateDefinition
+---@param search overseer.SearchParams
 ---@param params table
----@param opts overseer.TemplateBuildOpts
----@return overseer.Task
-local function build_task(tmpl, opts, params)
+---@return overseer.TaskDefinition
+local function build_task_args(tmpl, search, params)
   local task_defn = tmpl.builder(params)
   task_defn.components = component.resolve(task_defn.components or { "default" })
 
   for _, hook in ipairs(hooks) do
-    if hook_matches(hook.opts, opts.search, tmpl.name, tmpl.module) then
+    if hook_matches(hook.opts, search, tmpl.name, tmpl.module) then
       hook.hook(task_defn, task_util)
     end
   end
-  if opts.cwd then
-    task_defn.cwd = opts.cwd
-  end
-  if task_defn.env or opts.env then
-    task_defn.env = vim.tbl_deep_extend("force", task_defn.env or {}, opts.env or {})
-  end
-  local task = Task.new(task_defn)
-  return task
+
+  return task_defn
 end
 
 ---@class overseer.HookOptions : overseer.SearchCondition
@@ -342,28 +336,25 @@ M._should_prompt = function(prompt, param_schema, params)
 end
 
 ---@class overseer.TemplateBuildOpts
----@field prompt "always"|"never"|"allow"|"missing"|"avoid"
+---@field prompt? "always"|"never"|"allow"|"missing"|"avoid"
 ---@field params table
----@field cwd? string
----@field env? table<string, string>
 ---@field search overseer.SearchParams
 
 ---@param tmpl overseer.TemplateDefinition
 ---@param opts overseer.TemplateBuildOpts
----@param callback fun(task: overseer.Task|nil, err: string|nil)
-M.build = function(tmpl, opts, callback)
+---@param callback fun(task: overseer.TaskDefinition|nil, err: string|nil)
+M.build_task_args = function(tmpl, opts, callback)
   vim.validate({
-    prompt = { opts.prompt, "s" },
+    prompt = { opts.prompt, "s", true },
     params = { opts.params, "t" },
-    cwd = { opts.cwd, "s", true },
-    env = { opts.env, "t", true },
   })
+  opts.prompt = opts.prompt or config.default_template_prompt
   local show_prompt, err = M._should_prompt(opts.prompt, tmpl.params, opts.params)
   if err then
     return callback(nil, err)
   end
   if not show_prompt then
-    callback(build_task(tmpl, opts, opts.params))
+    callback(build_task_args(tmpl, opts.search, opts.params))
     return
   end
 
@@ -373,7 +364,7 @@ M.build = function(tmpl, opts, callback)
   end
   form.open(tmpl.name, schema, opts.params, function(final_params)
     if final_params then
-      callback(build_task(tmpl, opts, final_params))
+      callback(build_task_args(tmpl, opts.search, final_params))
     else
       callback()
     end

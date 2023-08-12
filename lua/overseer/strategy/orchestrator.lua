@@ -1,9 +1,10 @@
 -- This is a run strategy for "meta" tasks. This task itself will not perform
 -- any jobs, but will instead wrap and manage a collection of other tasks.
-local commands = require("overseer.commands")
 local constants = require("overseer.constants")
 local log = require("overseer.log")
+local Task = require("overseer.task")
 local task_list = require("overseer.task_list")
+local template = require("overseer.template")
 local util = require("overseer.util")
 local STATUS = constants.STATUS
 
@@ -192,38 +193,55 @@ function OrchestratorStrategy:start(task)
     end
     return vim.tbl_count(self.tasks[idx]) == vim.tbl_count(self.task_defns[idx])
   end
+  local search = {
+    dir = self.task.cwd,
+  }
   for i, section in ipairs(self.task_defns) do
     self.tasks[i] = self.tasks[i] or {}
     for j, def in ipairs(section) do
       local task_idx = { i, j }
       local name, params = util.split_config(def)
+      params = params or {}
       local subtask = self.tasks[i][j] and task_list.get(self.tasks[i][j])
       if not subtask or subtask:is_disposed() then
         self.tasks[i][j] = -1
-        commands.run_template(
-          {
-            name = name,
-            autostart = false,
+        template.get_by_name(name, search, function(tmpl)
+          if not tmpl then
+            log:error("Orchestrator could not find task '%s'", name)
+            self.task:finalize(STATUS.FAILURE)
+            return
+          end
+          local build_opts = {
+            search = search,
             params = params,
-            cwd = params and params.cwd or self.task.cwd,
-            env = params and params.env or self.task.env,
-          },
-          vim.schedule_wrap(function(new_task, err)
-            if not new_task then
-              log:error("Orchestrator could not start task '%s': %s", name, err)
-              self.task:finalize(STATUS.FAILURE)
-              return
-            end
-            new_task:add_component("orchestrator.on_status_broadcast")
-            -- Don't include child tasks when saving to bundle. We will re-create them when the
-            -- orchestration task is loaded.
-            new_task:set_include_in_bundle(false)
-            self.tasks[task_idx[1]][task_idx[2]] = new_task.id
-            if section_complete(1) then
-              self:start_next()
-            end
-          end)
-        )
+          }
+          template.build_task_args(
+            tmpl,
+            build_opts,
+            vim.schedule_wrap(function(task_defn)
+              if not task_defn then
+                log:warn("Canceled building task '%s'", name)
+                self.task:finalize(STATUS.FAILURE)
+                return
+              end
+              if params.cwd then
+                task_defn.cwd = params.cwd
+              end
+              if task_defn.env or params.env then
+                task_defn.env = vim.tbl_deep_extend("force", task_defn.env or {}, params.env or {})
+              end
+              local new_task = Task.new(task_defn)
+              new_task:add_component("orchestrator.on_status_broadcast")
+              -- Don't include child tasks when saving to bundle. We will re-create them when the
+              -- orchestration task is loaded.
+              new_task:set_include_in_bundle(false)
+              self.tasks[task_idx[1]][task_idx[2]] = new_task.id
+              if section_complete(1) then
+                self:start_next()
+              end
+            end)
+          )
+        end)
       end
     end
   end

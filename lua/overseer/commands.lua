@@ -263,7 +263,7 @@ M.run_template = function(opts, callback)
     callback = { callback, "f", true },
   })
   if opts.first == nil then
-    opts.first = opts.name or not vim.tbl_isempty(opts.tags or {})
+    opts.first = opts.name ~= nil or not vim.tbl_isempty(opts.tags or {})
   end
   local search_opts = get_search_params()
   search_opts.tags = opts.tags
@@ -281,14 +281,20 @@ M.run_template = function(opts, callback)
       return
     end
     local build_opts = {
-      prompt = opts.prompt or config.default_template_prompt,
+      prompt = opts.prompt,
       params = opts.params or {},
-      cwd = opts.cwd,
-      env = opts.env,
       search = search_opts,
     }
-    template.build(tmpl, build_opts, function(task)
-      if task then
+    template.build_task_args(tmpl, build_opts, function(task_defn)
+      local task = nil
+      if task_defn then
+        if opts.cwd then
+          task_defn.cwd = opts.cwd
+        end
+        if task_defn.env or opts.env then
+          task_defn.env = vim.tbl_deep_extend("force", task_defn.env or {}, opts.env or {})
+        end
+        task = Task.new(task_defn)
         if opts.autostart then
           task:start()
         end
@@ -342,7 +348,7 @@ M.build_task = function()
   end)
 end
 
----@param name string Name of action to run
+---@param name? string Name of action to run
 M.quick_action = function(name)
   if vim.bo.filetype == "OverseerList" then
     local sb = sidebar.get_or_create()
