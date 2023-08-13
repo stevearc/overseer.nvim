@@ -4,7 +4,7 @@ local overseer = require("overseer")
 local util = require("overseer.util")
 local TAG = constants.TAG
 
----@type overseer.TemplateDefinition
+---@type overseer.TemplateFileDefinition
 local tmpl = {
   priority = 60,
   params = {
@@ -82,7 +82,7 @@ return {
     end,
   },
   generator = function(opts, cb)
-    local cargo_dir = vim.fs.dirname(get_cargo_file(opts))
+    local cargo_dir = vim.fs.dirname(assert(get_cargo_file(opts)))
     local ret = {}
 
     get_workspace_root(cargo_dir, function(err, workspace_root)

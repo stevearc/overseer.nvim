@@ -115,7 +115,7 @@ local function default_postprocess_field(value, opts)
   end
 end
 
----@param pattern string|fun()
+---@param pattern string|fun(line: string)
 ---@param regex boolean
 ---@param fields string[]
 ---@return fun(line: string): nil|table

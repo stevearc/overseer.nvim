@@ -32,7 +32,8 @@ local function copen(self, height)
   return cur_qf.winid == 0
 end
 
-return {
+---@type overseer.ComponentFileDefinition
+local comp = {
   desc = "Set all task output into the quickfix (on complete)",
   params = {
     errorformat = {
@@ -211,3 +212,5 @@ return {
     return comp
   end,
 }
+
+return comp

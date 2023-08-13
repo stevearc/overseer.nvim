@@ -370,7 +370,8 @@ local function convert_pattern(pattern, opts)
   local full_line_key
   local max_arg = 0
   for _, v in ipairs(match_names) do
-    local i = pattern[v]
+    ---@type integer
+    local i = pattern[v] ---@diagnostic disable-line: assign-type-mismatch
     if not i then
       i = 0
     end
@@ -481,8 +482,8 @@ local function add_background(background, child)
     return child
   end
   return parser_lib.watcher_output(
-    pattern_to_test(background.beginsPattern),
-    pattern_to_test(background.endsPattern),
+    assert(pattern_to_test(background.beginsPattern)),
+    assert(pattern_to_test(background.endsPattern)),
     child,
     {
       active_on_start = background.activeOnStart,
@@ -523,7 +524,9 @@ M.get_parser_from_problem_matcher = function(problem_matcher)
     local background
     local children = {}
     for _, v in ipairs(problem_matcher) do
-      vim.list_extend(children, M.get_parser_from_problem_matcher(v))
+      local parser = M.get_parser_from_problem_matcher(v)
+      assert(parser, "Failed to create overseer parser from VS Code problem matcher")
+      vim.list_extend(children, parser)
       if v.background then
         background = v.background
       end

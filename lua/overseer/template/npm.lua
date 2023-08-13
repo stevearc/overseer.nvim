@@ -7,7 +7,7 @@ local lockfiles = {
   yarn = "yarn.lock",
 }
 
----@type overseer.TemplateDefinition
+---@type overseer.TemplateFileDefinition
 local tmpl = {
   priority = 60,
   params = {

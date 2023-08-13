@@ -1,7 +1,8 @@
 local files = require("overseer.files")
 local log = require("overseer.log")
 
-return {
+---@type overseer.ComponentFileDefinition
+local comp = {
   desc = "Restart on any buffer :write",
   params = {
     paths = {
@@ -96,7 +97,7 @@ return {
           })
         elseif opts.mode == "uv" then
           for _, path in ipairs(opts.paths) do
-            local fs_event = vim.loop.new_fs_event()
+            local fs_event = assert(vim.loop.new_fs_event())
             fs_event:start(
               path,
               { recursive = true },
@@ -139,3 +140,5 @@ return {
     }
   end,
 }
+
+return comp

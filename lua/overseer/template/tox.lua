@@ -38,8 +38,8 @@ return {
     end,
   },
   generator = function(opts, cb)
-    local tox_file = get_toxfile(opts)
-    local content = files.read_file(tox_file)
+    local tox_file = assert(get_toxfile(opts))
+    local content = assert(files.read_file(tox_file))
     local targets = {}
     for line in vim.gsplit(content, "\n") do
       local envlist = line:match("^envlist%s*=%s*(.+)$")

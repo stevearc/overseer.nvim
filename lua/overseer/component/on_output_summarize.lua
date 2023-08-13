@@ -25,7 +25,8 @@ local function get_last_lines(bufnr, num_lines)
   return lines
 end
 
-return {
+---@type overseer.ComponentFileDefinition
+local comp = {
   desc = "Summarize task output in the task list",
   params = {
     max_lines = {
@@ -79,3 +80,5 @@ return {
     }
   end,
 }
+
+return comp

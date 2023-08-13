@@ -65,6 +65,7 @@ function ExtractJson:ingest(line, ctx)
     self.done = parser.STATUS.FAILURE
     return parser.STATUS.FAILURE
   end
+  assert(result)
 
   for k, v in pairs(result) do
     item[k] = v

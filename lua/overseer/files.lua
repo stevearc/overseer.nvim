@@ -106,8 +106,8 @@ M.read_file = function(filepath)
   if not M.exists(filepath) then
     return nil
   end
-  local fd = vim.loop.fs_open(filepath, "r", 420) -- 0644
-  local stat = vim.loop.fs_fstat(fd)
+  local fd = assert(vim.loop.fs_open(filepath, "r", 420)) -- 0644
+  local stat = assert(vim.loop.fs_fstat(fd))
   local content = vim.loop.fs_read(fd, stat.size)
   vim.loop.fs_close(fd)
   return content
@@ -136,7 +136,9 @@ end
 ---@param dir string
 ---@return string[]
 M.list_files = function(dir)
+  ---@diagnostic disable-next-line: param-type-mismatch
   local fd = vim.loop.fs_opendir(dir, nil, 32)
+  ---@diagnostic disable-next-line: param-type-mismatch
   local entries = vim.loop.fs_readdir(fd)
   local ret = {}
   while entries do
@@ -145,8 +147,10 @@ M.list_files = function(dir)
         table.insert(ret, entry.name)
       end
     end
+    ---@diagnostic disable-next-line: param-type-mismatch
     entries = vim.loop.fs_readdir(fd)
   end
+  ---@diagnostic disable-next-line: param-type-mismatch
   vim.loop.fs_closedir(fd)
   return ret
 end
@@ -170,7 +174,7 @@ end
 ---@param contents string
 M.write_file = function(filename, contents)
   M.mkdir(vim.fn.fnamemodify(filename, ":p:h"))
-  local fd = vim.loop.fs_open(filename, "w", 420) -- 0644
+  local fd = assert(vim.loop.fs_open(filename, "w", 420)) -- 0644
   vim.loop.fs_write(fd, contents)
   vim.loop.fs_close(fd)
 end
@@ -186,7 +190,9 @@ end
 ---@param filename string
 ---@param obj any
 M.write_json_file = function(filename, obj)
-  M.write_file(filename, vim.json.encode(obj))
+  ---@type string
+  local serialized = vim.json.encode(obj) ---@diagnostic disable-line: assign-type-mismatch
+  M.write_file(filename, serialized)
 end
 
 return M

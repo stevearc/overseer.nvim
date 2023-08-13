@@ -3,7 +3,8 @@ local log = require("overseer.log")
 local task_list = require("overseer.task_list")
 local STATUS = constants.STATUS
 
-return {
+---@type overseer.ComponentFileDefinition
+local comp = {
   desc = "Run another task on status change",
   params = {
     task_id = {
@@ -38,3 +39,5 @@ return {
     }
   end,
 }
+
+return comp

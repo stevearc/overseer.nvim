@@ -132,6 +132,7 @@ local function validate_type(schema, value)
     return true
   else
     log:warn("Unknown param type '%s'", ptype)
+    return false
   end
 end
 

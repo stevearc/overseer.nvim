@@ -1,4 +1,7 @@
 ---@mod overseer
+
+---@diagnostic disable: undefined-doc-param
+
 local M = {}
 
 local setup_callbacks = {}
@@ -50,8 +53,10 @@ local function do_setup()
         return
       end
       table.insert(cmds, '" overseer.nvim')
+      ---@type string
+      local data = vim.json.encode(tasks) ---@diagnostic disable-line: assign-type-mismatch
       -- For some reason, vim.json.encode encodes / as \/.
-      local data = string.gsub(vim.json.encode(tasks), "\\/", "/")
+      data = string.gsub(data, "\\/", "/")
       data = string.gsub(data, "'", "\\'")
       table.insert(cmds, string.format("lua require('overseer')._start_tasks('%s')", data))
       vim.g.session_save_commands = cmds
@@ -419,7 +424,7 @@ M.run_template = lazy("commands", "run_template")
 ---@param opts nil|table
 ---    dir string
 ---    ft nil|string
----@param cb nil|fun Called when preloading is complete
+---@param cb nil|fun() Called when preloading is complete
 ---@note
 --- Typically this would be done to prevent a long wait time for :OverseerRun when using a slow
 --- template provider.
@@ -442,10 +447,10 @@ M.clear_task_cache = lazy("commands", "clear_cache")
 M.run_action = lazy("action_util", "run_task_action")
 
 ---Create a new template by overriding fields on another
----@param base overseer.TemplateDefinition The base template definition to wrap
+---@param base overseer.TemplateFileDefinition The base template definition to wrap
 ---@param override nil|table<string, any> Override any fields on the base
 ---@param default_params nil|table<string, any> Provide default values for any parameters on the base
----@return overseer.TemplateDefinition
+---@return overseer.TemplateFileDefinition
 ---@note
 --- This is typically used for a TemplateProvider, to define the task a single time and generate
 --- multiple templates based on the available args.
@@ -471,7 +476,8 @@ M.run_action = lazy("action_util", "run_task_action")
 M.wrap_template = function(base, override, default_params)
   override = override or {}
   if default_params then
-    override.params = vim.deepcopy(base.params)
+    ---@diagnostic disable-next-line: undefined-field
+    override.params = vim.deepcopy(base.params or {})
     for k, v in pairs(default_params) do
       override.params[k].default = v
       override.params[k].optional = true
@@ -541,6 +547,7 @@ M._start_tasks = function(str)
   end
   timer_active = true
   vim.defer_fn(function()
+    ---@type any
     local data = vim.json.decode(str)
     for _, params in ipairs(data) do
       local task = M.new_task(params)

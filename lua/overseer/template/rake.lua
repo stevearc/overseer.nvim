@@ -6,7 +6,8 @@ local function get_rakefile(opts)
   return vim.fs.find("Rakefile", { upward = true, type = "file", path = opts.dir })[1]
 end
 
-return {
+---@type overseer.TemplateFileProvider
+local provider = {
   cache_key = function(opts)
     return get_rakefile(opts)
   end,
@@ -88,3 +89,5 @@ return {
     end
   end,
 }
+
+return provider

@@ -82,7 +82,7 @@ M = {
       return not task:has_component("restart_on_save")
     end,
     run = function(task)
-      local comp = component.get("restart_on_save")
+      local comp = assert(component.get("restart_on_save"))
       local schema = vim.deepcopy(comp.params)
       form.open("Restart task when files are written", schema, {
         paths = { vim.fn.getcwd() },

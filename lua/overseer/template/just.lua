@@ -6,7 +6,8 @@ local function get_justfile(opts)
   return vim.fs.find("justfile", { upward = true, type = "file", path = opts.dir })[1]
 end
 
-return {
+---@type overseer.TemplateFileProvider
+local tmpl = {
   cache_key = function(opts)
     return get_justfile(opts)
   end,
@@ -34,6 +35,7 @@ return {
           cb(ret)
           return
         end
+        assert(data)
         for k, recipe in pairs(data.recipes) do
           if recipe.private then
             goto continue
@@ -92,3 +94,5 @@ return {
     end
   end,
 }
+
+return tmpl

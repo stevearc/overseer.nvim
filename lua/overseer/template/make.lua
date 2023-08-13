@@ -12,6 +12,7 @@ local make_targets = [[
 )
 ]]
 
+---@type overseer.TemplateFileDefinition
 local tmpl = {
   name = "make",
   priority = 60,
@@ -35,16 +36,20 @@ local function ts_parse_make_targets(parser, bufnr, cwd)
     -- Neovim 0.9
     query = vim.treesitter.query.parse("make", make_targets)
   else
+    ---@diagnostic disable-next-line: undefined-field
     query = vim.treesitter.parse_query("make", make_targets)
   end
   local root = parser:parse()[1]:root()
   pcall(vim.tbl_add_reverse_lookup, query.captures)
   local targets = {}
   local default_target
+  ---@diagnostic disable-next-line: missing-parameter
   for _, match in query:iter_matches(root, bufnr) do
+    ---@diagnostic disable-next-line: undefined-field
     local name = vim.treesitter.get_node_text(match[query.captures.name], bufnr)
     if name ~= ".PHONY" then
       targets[name] = true
+      ---@diagnostic disable-next-line: undefined-field
       if not default_target and not match[query.captures.phony] then
         default_target = name
       end
@@ -108,7 +113,8 @@ local function get_makefile(opts)
   return vim.fs.find("Makefile", { upward = true, type = "file", path = opts.dir })[1]
 end
 
-return {
+---@type overseer.TemplateFileProvider
+local provider = {
   cache_key = function(opts)
     return get_makefile(opts)
   end,
@@ -124,7 +130,7 @@ return {
     end,
   },
   generator = function(opts, cb)
-    local makefile = get_makefile(opts)
+    local makefile = assert(get_makefile(opts))
     local cwd = vim.fs.dirname(makefile)
     local bufnr = vim.fn.bufadd(makefile)
 
@@ -139,3 +145,4 @@ return {
     end
   end,
 }
+return provider

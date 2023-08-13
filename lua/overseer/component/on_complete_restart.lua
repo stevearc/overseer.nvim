@@ -3,7 +3,8 @@ local util = require("overseer.util")
 
 local STATUS = constants.STATUS
 
-return {
+---@type overseer.ComponentFileDefinition
+local comp = {
   desc = "Restart task when it completes",
   params = {
     statuses = {
@@ -43,3 +44,4 @@ return {
     }
   end,
 }
+return comp

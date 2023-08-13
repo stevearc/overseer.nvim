@@ -3,7 +3,8 @@ local util = require("overseer.util")
 
 local timer
 
-return {
+---@type overseer.ComponentFileDefinition
+local comp = {
   desc = "Display the run duration",
   params = {
     detail_level = {
@@ -25,7 +26,7 @@ return {
       end,
       on_start = function(self)
         if not timer then
-          timer = vim.loop.new_timer()
+          timer = assert(vim.loop.new_timer())
           timer:start(
             1000,
             1000,
@@ -49,3 +50,5 @@ return {
     }
   end,
 }
+
+return comp

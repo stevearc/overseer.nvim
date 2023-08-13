@@ -5,8 +5,11 @@ local M = {}
 
 local debug = false
 local next_id = 1
+---@type table<integer, overseer.ParserStatus[]>
 local trace = {}
 
+---@param id integer
+---@param action overseer.ParserStatus
 local function add_trace(id, action)
   if not trace[id] then
     trace[id] = { action }
@@ -17,7 +20,7 @@ end
 
 ---@class overseer.Parser
 ---@field reset fun(self: overseer.Parser)
----@field ingest fun(self: overseer.Parser, lines: string[])
+---@field ingest fun(self: overseer.Parser, lines: string[]): overseer.ParserStatus
 ---@field subscribe fun(self: overseer.Parser, event: string, callback: fun(key: string, value: any))
 ---@field unsubscribe fun(self: overseer.Parser, event: string, callback: fun(key: string, value: any))
 ---@field get_result fun(self: overseer.Parser): table
@@ -66,7 +69,7 @@ setmetatable(M, {
   end,
 })
 
----@alias overseer.ParserStatus "RUNNING"|"SUCCESS"|"FAILURE"
+---@alias overseer.ParserStatus "RESET"|"RUNNING"|"SUCCESS"|"FAILURE"
 
 M.STATUS = Enum.new({
   "RUNNING",
@@ -287,7 +290,7 @@ M.trace = function(enabled)
   debug = enabled
 end
 
----@return boolean
+---@return table<integer, overseer.ParserStatus[]>
 M.get_trace = function()
   return trace
 end

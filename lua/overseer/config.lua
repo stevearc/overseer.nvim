@@ -1,4 +1,3 @@
----@type overseer.Config
 local default_config = {
   -- Default task strategy
   strategy = "terminal",

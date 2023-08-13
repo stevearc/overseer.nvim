@@ -32,7 +32,7 @@ end
 ---@param dir string
 ---@return table
 M.load_tasks_file = function(dir)
-  return files.load_json_file(M.get_tasks_file(dir))
+  return files.load_json_file(assert(M.get_tasks_file(dir)))
 end
 
 return M

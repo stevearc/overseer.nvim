@@ -21,7 +21,7 @@ local function load_parser()
   local lines = vim.api.nvim_buf_get_lines(bufnr, 0, -1, true)
   local text = table.concat(lines, "\n")
   parser.trace(true)
-  local builder = loadstring(text)
+  local builder = assert(loadstring(text))
   local ok, ret = pcall(builder)
   if ok then
     if ret.ingest then

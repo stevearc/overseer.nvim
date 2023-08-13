@@ -7,15 +7,16 @@ local form = require("overseer.form")
 local util = require("overseer.util")
 local M = {}
 
----@class overseer.TemplateProvider
----@field name string
+---@class overseer.TemplateFileProvider
 ---@field module? string The name of the module this was loaded from
 ---@field condition? overseer.SearchCondition
 ---@field cache_key? fun(opts: overseer.SearchParams): nil|string
 ---@field generator fun(opts: overseer.SearchParams, cb: fun(tmpls: overseer.TemplateDefinition[]))
 
----@class overseer.TemplateDefinition
+---@class overseer.TemplateProvider : overseer.TemplateFileProvider
 ---@field name string
+
+---@class overseer.TemplateFileDefinition
 ---@field module? string The name of the module this was loaded from
 ---@field aliases? string[]
 ---@field desc? string
@@ -24,6 +25,9 @@ local M = {}
 ---@field priority? number
 ---@field condition? overseer.SearchCondition
 ---@field builder fun(params: table): overseer.TaskDefinition
+
+---@class overseer.TemplateDefinition : overseer.TemplateFileDefinition
+---@field name string
 
 ---@class overseer.SearchCondition
 ---@field filetype? string|string[]
@@ -285,9 +289,11 @@ end
 ---@param defn overseer.TemplateDefinition|overseer.TemplateProvider
 M.register = function(defn)
   if defn.generator then
+    ---@cast defn overseer.TemplateProvider
     validate_template_provider(defn)
     table.insert(providers, defn)
   else
+    ---@cast defn overseer.TemplateDefinition
     validate_template_definition(defn)
     registry[defn.name] = defn
   end

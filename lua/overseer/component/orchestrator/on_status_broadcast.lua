@@ -1,4 +1,5 @@
-return {
+---@type overseer.ComponentFileDefinition
+local comp = {
   desc = "Broadcast this task when the status changes",
   -- We don't allow customization of event name or params now because it's not
   -- needed. If another need arises, we can add it then.
@@ -11,3 +12,5 @@ return {
     }
   end,
 }
+
+return comp

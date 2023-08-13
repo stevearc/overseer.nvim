@@ -2,7 +2,7 @@ local M = {}
 
 ---Create a list of nodes that will parse repeating "watch" command output (e.g. tsc --watch)
 ---@param start_pat string|table Pattern or {opts, pattern} table that matches when we should start extracting
----@param end_pat string Pattern or {opts, pattern} table that matches when we should finish extracting
+---@param end_pat string|table Pattern or {opts, pattern} table that matches when we should finish extracting
 ---@param opts table
 ---    wrap boolean If true, wrap the resulting parser in a loop->sequence
 ---    active_on_start boolean When false, require start_pat to match before parsing errors

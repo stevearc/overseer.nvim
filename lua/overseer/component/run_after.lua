@@ -4,7 +4,8 @@ local task_list = require("overseer.task_list")
 local util = require("overseer.util")
 local STATUS = constants.STATUS
 
-return {
+---@type overseer.ComponentFileDefinition
+local comp = {
   desc = "Run other tasks after this task completes",
   params = {
     task_names = {
@@ -90,3 +91,5 @@ return {
     }
   end,
 }
+
+return comp

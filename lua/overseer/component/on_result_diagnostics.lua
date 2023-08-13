@@ -1,7 +1,8 @@
 local util = require("overseer.util")
 
 -- Looks for a result value of 'diagnostics' that is a list of quickfix items
-return {
+---@type overseer.ComponentFileDefinition
+local comp = {
   desc = "If task result contains diagnostics, display them",
   params = {
     virtual_text = {
@@ -88,3 +89,5 @@ return {
     }
   end,
 }
+
+return comp

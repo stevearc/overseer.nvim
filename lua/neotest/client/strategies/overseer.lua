@@ -57,7 +57,11 @@ local function get_or_create_task(spec, context, output_path)
     if context.position and context.position.name then
       name = string.format("%s %s", name, context.position.name)
     end
-    local opts = vim.tbl_extend("keep", spec.strategy or {}, {
+    local strategy = spec.strategy
+    if type(strategy) == "function" then
+      strategy = strategy(spec, context)
+    end
+    local opts = vim.tbl_extend("keep", strategy or {}, {
       name = name,
       components = { "default_neotest" },
     })

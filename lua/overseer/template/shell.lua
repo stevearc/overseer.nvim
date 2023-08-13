@@ -1,4 +1,4 @@
----@type overseer.TemplateDefinition
+---@type overseer.TemplateFileDefinition
 local tmpl = {
   name = "shell",
   params = {

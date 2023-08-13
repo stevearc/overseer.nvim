@@ -89,12 +89,12 @@ local function get_telescope_new_component(options)
         description = component.stringify_alias(item)
       end
       if description then
-        ordinal = ordinal .. " " .. comp.desc
+        ordinal = ordinal .. " " .. description
       end
       return {
         display = make_display,
         ordinal = ordinal,
-        desc = comp.desc,
+        desc = description,
         value = item,
       }
     end,
@@ -296,7 +296,7 @@ function Editor:render()
   end
 
   for _, params in ipairs(self.components) do
-    local comp = component.get(params[1])
+    local comp = assert(component.get(params[1]))
     local line = comp.name
     table.insert(highlights, { "OverseerComponent", #lines + 1, 0, string.len(comp.name) })
     if comp.desc then
@@ -308,15 +308,17 @@ function Editor:render()
     self.line_to_comp[#lines] = { comp, nil }
 
     local schema = comp.params
-    for k, param_schema in pairs(schema) do
-      local value = params[k]
-      table.insert(lines, form_utils.render_field(param_schema, "  ", k, value))
-      if form_utils.validate_field(param_schema, value) then
-        table.insert(highlights, { "OverseerField", #lines, 0, 2 + string.len(k) })
-      else
-        table.insert(highlights, { "DiagnosticError", #lines, 0, 2 + string.len(k) })
+    if schema then
+      for k, param_schema in pairs(schema) do
+        local value = params[k]
+        table.insert(lines, form_utils.render_field(param_schema, "  ", k, value))
+        if form_utils.validate_field(param_schema, value) then
+          table.insert(highlights, { "OverseerField", #lines, 0, 2 + string.len(k) })
+        else
+          table.insert(highlights, { "DiagnosticError", #lines, 0, 2 + string.len(k) })
+        end
+        self.line_to_comp[#lines] = { comp, k }
       end
-      self.line_to_comp[#lines] = { comp, k }
     end
   end
   if self.cur_line and vim.api.nvim_get_mode().mode == "i" then
@@ -381,10 +383,16 @@ function Editor:add_new_component(insert_position)
       local alias = component.get_alias(result)
       if alias then
         for i, v in ipairs(component.resolve({ result }, self.components)) do
-          table.insert(self.components, insert_position - 1 + i, component.create_params(v))
+          local compdef
+          if type(v) == "string" then
+            compdef = component.create_default_params(v)
+          else
+            compdef = vim.tbl_deep_extend("force", component.create_default_params(v[1]), v)
+          end
+          table.insert(self.components, insert_position - 1 + i, compdef)
         end
       else
-        local params = component.create_params(result)
+        local params = component.create_default_params(result)
         table.insert(self.components, insert_position, params)
       end
     end
@@ -446,7 +454,7 @@ function Editor:parse()
           if not comp_map[comp_name] then
             -- This is a new component we need to insert
             last_idx = last_idx + 1
-            local params = component.create_params(comp_name)
+            local params = component.create_default_params(comp_name)
             comp_map[comp_name] = params
             comp_idx[comp_name] = last_idx
             table.insert(self.components, last_idx, params)
@@ -479,13 +487,15 @@ function Editor:submit()
     return
   end
   for _, params in ipairs(self.components) do
-    local comp = component.get(params[1])
+    local comp = assert(component.get(params[1]))
 
     local schema = comp.params
-    for k, param_schema in pairs(schema) do
-      local value = params[k]
-      if not form_utils.validate_field(param_schema, value) then
-        return
+    if schema then
+      for k, param_schema in pairs(schema) do
+        local value = params[k]
+        if not form_utils.validate_field(param_schema, value) then
+          return
+        end
       end
     end
   end

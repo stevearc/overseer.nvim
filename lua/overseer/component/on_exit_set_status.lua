@@ -1,7 +1,8 @@
 local constants = require("overseer.constants")
 local STATUS = constants.STATUS
 
-return {
+---@type overseer.ComponentFileDefinition
+local comp = {
   desc = "Sets final task status based on exit code",
   params = {
     success_codes = {
@@ -24,3 +25,4 @@ return {
     }
   end,
 }
+return comp

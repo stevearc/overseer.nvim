@@ -1,4 +1,5 @@
-return {
+---@type overseer.ComponentFileDefinition
+local comp = {
   desc = "Listens for task status broadcasts and updates orchestration tasks",
   params = {},
   constructor = function()
@@ -11,3 +12,5 @@ return {
     }
   end,
 }
+
+return comp

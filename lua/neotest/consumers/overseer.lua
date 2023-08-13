@@ -71,6 +71,7 @@ neotest.overseer = setmetatable(neotest.overseer, {
   __call = function(_, client_)
     client = client_
     neotest.run = require("neotest.consumers.run")(client)
+    ---@diagnostic disable-next-line: undefined-field
     if not config.overseer or config.overseer.force_default ~= false then
       require("neotest").run = neotest.overseer
     end

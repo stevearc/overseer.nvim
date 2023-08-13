@@ -75,7 +75,8 @@ end
 M.decode_json = function(content)
   local ok, data = pcall(vim.json.decode, content, { luanil = { object = true } })
   while not ok do
-    local char = data:match("invalid token at character (%d+)$")
+    local err = assert(data)
+    local char = err:match("invalid token at character (%d+)$")
     if char then
       local to_end, newline = get_to_line_end(content, char)
       if to_end:match("^//") then
@@ -84,8 +85,8 @@ M.decode_json = function(content)
       end
     end
 
-    char = data:match("Expected object key string but found [^%s]+ at character (%d+)$")
-    char = char or data:match("Expected value but found T_ARR_END at character (%d+)")
+    char = err:match("Expected object key string but found [^%s]+ at character (%d+)$")
+    char = char or err:match("Expected value but found T_ARR_END at character (%d+)")
     if char then
       local comma_idx = str_rfind(content, char, ",")
       if comma_idx then
@@ -94,7 +95,7 @@ M.decode_json = function(content)
       end
     end
 
-    error(data)
+    error(err)
     ::continue::
     ok, data = pcall(vim.json.decode, content, { luanil = { object = true } })
   end
@@ -528,6 +529,7 @@ M.iter_as_list = function(list_or_obj)
       end
     end
   else
+    ---@diagnostic disable-next-line: redundant-return-value
     return ipairs(list_or_obj)
   end
 end
@@ -621,15 +623,15 @@ M.find_success_color = function()
   return "DiagnosticInfo"
 end
 
----@param func fun(any)
----@param opts? {reset_timer_on_call: nil|boolean, delay: nil|integer|fun(any): integer}
+---@param func fun(...: any)
+---@param opts? {reset_timer_on_call: nil|boolean, delay: nil|integer|fun(...: any): integer}
 M.debounce = function(func, opts)
   vim.validate({
     func = { func, "f" },
     opts = { opts, "t", true },
   })
   opts = opts or {}
-  opts.delay = opts.delay or 300
+  local delay = opts.delay or 300
   local timer = nil
   return function(...)
     if timer then
@@ -641,11 +643,10 @@ M.debounce = function(func, opts)
       end
     end
     local args = { ... }
-    local delay = opts.delay
     if type(delay) == "function" then
       delay = delay(unpack(args))
     end
-    timer = vim.loop.new_timer()
+    timer = assert(vim.loop.new_timer())
     timer:start(delay, 0, function()
       timer:close()
       timer = nil

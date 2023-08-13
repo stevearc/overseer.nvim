@@ -1,7 +1,7 @@
 local constants = require("overseer.constants")
 local STATUS = constants.STATUS
 
----@type overseer.ComponentDefinition
+---@type overseer.ComponentFileDefinition
 local comp = {
   desc = "After task is completed, dispose it after a timeout",
   params = {

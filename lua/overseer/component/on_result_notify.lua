@@ -3,7 +3,8 @@ local Notifier = require("overseer.notifier")
 local util = require("overseer.util")
 local STATUS = constants.STATUS
 
-return {
+---@type overseer.ComponentFileDefinition
+local comp = {
   desc = "vim.notify when task receives results",
   long_desc = "Normally you will want to use on_complete_notify. If you have a long-running watch task (e.g. `tsc --watch`) that produces new results periodically, then this is the component you want.",
   params = {
@@ -49,3 +50,5 @@ return {
     }
   end,
 }
+
+return comp

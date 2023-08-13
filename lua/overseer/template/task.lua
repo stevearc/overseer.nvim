@@ -75,6 +75,7 @@ local provider = {
           cb(ret)
           return
         end
+        assert(data)
         for _, target in ipairs(data.tasks) do
           ---@type overseer.TemplateDefinition
           local override = {

@@ -78,17 +78,23 @@ function Task.new_uninitialized(opts)
     opts.components = { "default" }
   end
   if opts.args then
-    if type(opts.cmd) == "string" then
-      local full_cmd = vim.list_extend({ opts.cmd }, opts.args or {})
+    local cmd = opts.cmd
+    if type(cmd) == "string" then
+      local full_cmd = vim.list_extend({ cmd }, opts.args or {})
       opts.cmd = shell.escape_cmd(full_cmd)
     else
-      opts.cmd = vim.deepcopy(opts.cmd)
-      vim.list_extend(opts.cmd, opts.args)
+      cmd = vim.deepcopy(cmd)
+      opts.cmd = vim.list_extend(cmd, opts.args)
     end
   end
   local name = opts.name
   if not name then
-    name = type(opts.cmd) == "table" and table.concat(opts.cmd, " ") or opts.cmd
+    local cmd = opts.cmd
+    if type(cmd) == "string" then
+      name = cmd
+    else
+      name = table.concat(cmd, " ")
+    end
   end
   name = name:gsub("\n", " ")
   -- Build the instance data for the task
@@ -153,7 +159,13 @@ function Task:render(lines, highlights, detail)
   end
 
   if detail > 1 and self.cmd then
-    local cmd_str = type(self.cmd) == "string" and self.cmd or table.concat(self.cmd, " ")
+    local cmd = self.cmd
+    local cmd_str
+    if type(cmd) == "string" then
+      cmd_str = cmd
+    else
+      cmd_str = table.concat(cmd, " ")
+    end
     table.insert(lines, cmd_str)
   end
 
@@ -168,7 +180,7 @@ function Task:render(lines, highlights, detail)
         table.insert(lines, comp.name)
       end
 
-      local comp_def = component.get(comp.name)
+      local comp_def = assert(component.get(comp.name))
       for k, v in pairs(comp.params) do
         if k ~= 1 then
           table.insert(lines, form_utils.render_field(comp_def.params[k], "  ", k, v))
@@ -571,7 +583,7 @@ function Task:restart(force_stop)
     end
   end
 
-  self:reset(false)
+  self:reset()
   self:start()
   return true
 end

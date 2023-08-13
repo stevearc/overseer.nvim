@@ -1,4 +1,4 @@
----@type overseer.ComponentDefinition
+---@type overseer.ComponentFileDefinition
 local comp = {
   desc = "Cancel task if it exceeds a timeout",
   params = {

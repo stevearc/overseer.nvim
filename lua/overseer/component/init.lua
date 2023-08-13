@@ -8,8 +8,7 @@ local M = {}
 ---The canonical naming scheme is as follows:
 ---`<event>_*` means "triggers <event> under some condition"
 ---`on_<event>_*` means "does something when <event> is fired
----@class overseer.ComponentDefinition
----@field name? string
+---@class overseer.ComponentFileDefinition
 ---@field desc string
 ---@field long_desc? string
 ---@field params? overseer.Params
@@ -17,6 +16,9 @@ local M = {}
 ---@field serializable? boolean
 ---@field constructor fun(params: table): overseer.ComponentSkeleton
 ---@field deprecated_message? string
+
+---@class overseer.ComponentDefinition : overseer.ComponentFileDefinition
+---@field name string
 
 ---The intermediate form of a component returned by the constructor
 ---@class overseer.ComponentSkeleton
@@ -76,32 +78,34 @@ local function validate_component(name, opts)
     editable = { opts.editable, "b", true },
     serializable = { opts.serializable, "b", true },
   })
-  if opts.serializable == nil then
-    opts.serializable = true
+  ---@type overseer.Component
+  local comp = vim.deepcopy(opts) ---@diagnostic disable-line: assign-type-mismatch
+  if comp.serializable == nil then
+    comp.serializable = true
   end
   if name:match("%s") then
     error("Component name cannot have whitespace")
   end
-  opts._type = "OverseerComponent"
-  if opts.params then
-    form_utils.validate_params(opts.params)
-    for _, param in pairs(opts.params) do
+  comp._type = "OverseerComponent"
+  if comp.params then
+    form_utils.validate_params(comp.params)
+    for _, param in pairs(comp.params) do
       -- Default editable = false if any types are opaque
-      if param.type == "opaque" and opts.editable == nil then
-        opts.editable = false
+      if param.type == "opaque" and comp.editable == nil then
+        comp.editable = false
       end
     end
   else
-    opts.params = {}
+    comp.params = {}
   end
-  if opts.editable == nil then
-    opts.editable = true
+  if comp.editable == nil then
+    comp.editable = true
   end
-  opts.name = name
+  comp.name = name
   if opts.deprecated_message then
     log:warn("Overseer component %s is deprecated: %s", name, opts.deprecated_message)
   end
-  return opts
+  return comp
 end
 
 ---@param name string
@@ -201,25 +205,30 @@ local function resolve(seen, resolved, names)
   return resolved
 end
 
+---@param params table
+---@param schema? table
+---@param ignore_errors? boolean
 local function validate_params(params, schema, ignore_errors)
-  for name, opts in pairs(schema) do
-    local value = params[name]
-    if value == nil then
-      if opts.default ~= nil then
-        params[name] = opts.default
-      elseif not opts.optional then
-        if not ignore_errors then
-          error(string.format("Component '%s' requires param '%s'", getname(params), name))
+  if schema then
+    for name, opts in pairs(schema) do
+      local value = params[name]
+      if value == nil then
+        if opts.default ~= nil then
+          params[name] = opts.default
+        elseif not opts.optional then
+          if not ignore_errors then
+            error(string.format("Component '%s' requires param '%s'", getname(params), name))
+          end
         end
-      end
-    elseif not form_utils.validate_field(opts, value) then
-      if not ignore_errors then
-        error(string.format("Component '%s' param '%s' is invalid", getname(params), name))
+      elseif not form_utils.validate_field(opts, value) then
+        if not ignore_errors then
+          error(string.format("Component '%s' param '%s' is invalid", getname(params), name))
+        end
       end
     end
   end
   for name in pairs(params) do
-    if type(name) == "string" and schema[name] == nil then
+    if type(name) == "string" and (not schema or schema[name] == nil) then
       log:warn("Component '%s' passed unknown param '%s'", getname(params), name)
       params[name] = nil
     end
@@ -228,8 +237,8 @@ end
 
 ---@param name string
 ---@return table
-M.create_params = function(name)
-  local comp = M.get(name)
+M.create_default_params = function(name)
+  local comp = assert(M.get(name))
   local params = { name }
   validate_params(params, comp.params, true)
   return params
@@ -251,6 +260,7 @@ local function instantiate(comp_params, component, default_params)
     end
   end
   validate_params(comp_params, component.params)
+  ---@type overseer.Component
   obj = component.constructor(comp_params)
   obj.name = getname(comp_params)
   obj.params = comp_params
@@ -326,7 +336,7 @@ end
 M.get_all_descriptions = function()
   local ret = {}
   for _, name in ipairs(builtin_components) do
-    local defn = M.get(name)
+    local defn = assert(M.get(name))
     table.insert(ret, {
       name = name,
       desc = defn.desc,

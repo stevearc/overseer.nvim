@@ -50,7 +50,7 @@ local function system_notify(message, level)
 end
 
 ---@param message string
----@param level string
+---@param level integer
 function Notifier:notify(message, level)
   vim.notify(message, level)
   if self.system == "always" or (self.system == "unfocused" and not self.focused) then

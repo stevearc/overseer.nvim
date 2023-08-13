@@ -514,12 +514,12 @@ overseer.run_template({name = "npm watch", prompt = "always"})
 `preload_task_cache(opts, cb)` \
 Preload templates for run_template
 
-| Param | Type         | Desc                                    |     |
-| ----- | ------------ | --------------------------------------- | --- |
-| opts  | `nil\|table` |                                         |     |
-|       | dir          | `string`                                |     |
-|       | ft           | `nil\|string`                           |     |
-| cb    | `nil`        | |fun Called when preloading is complete |     |
+| Param | Type         | Desc                               |     |
+| ----- | ------------ | ---------------------------------- | --- |
+| opts  | `nil\|table` |                                    |     |
+|       | dir          | `string`                           |     |
+|       | ft           | `nil\|string`                      |     |
+| cb    | `nil\|fun()` | Called when preloading is complete |     |
 
 **Note:**
 <pre>
@@ -559,14 +559,14 @@ Run an action on a task
 
 ### wrap_template(base, override, default_params)
 
-`wrap_template(base, override, default_params): overseer.TemplateDefinition` \
+`wrap_template(base, override, default_params): overseer.TemplateFileDefinition` \
 Create a new template by overriding fields on another
 
-| Param          | Type                          | Desc                                                  |
-| -------------- | ----------------------------- | ----------------------------------------------------- |
-| base           | `overseer.TemplateDefinition` | The base template definition to wrap                  |
-| override       | `nil\|table<string, any>`     | Override any fields on the base                       |
-| default_params | `nil\|table<string, any>`     | Provide default values for any parameters on the base |
+| Param          | Type                              | Desc                                                  |
+| -------------- | --------------------------------- | ----------------------------------------------------- |
+| base           | `overseer.TemplateFileDefinition` | The base template definition to wrap                  |
+| override       | `nil\|table<string, any>`         | Override any fields on the base                       |
+| default_params | `nil\|table<string, any>`         | Provide default values for any parameters on the base |
 
 **Note:**
 <pre>

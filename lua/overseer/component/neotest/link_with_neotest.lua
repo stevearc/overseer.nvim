@@ -1,6 +1,7 @@
 local neotest = require("neotest")
 
-return {
+---@type overseer.ComponentFileDefinition
+local comp = {
   desc = "Link task to neotest runs",
   params = {},
   editable = false,
@@ -21,3 +22,5 @@ return {
     }
   end,
 }
+
+return comp

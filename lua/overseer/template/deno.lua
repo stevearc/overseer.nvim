@@ -1,7 +1,7 @@
 local files = require("overseer.files")
 local overseer = require("overseer")
 
----@type overseer.TemplateDefinition
+---@type overseer.TemplateFileDefinition
 local tmpl = {
   priority = 60,
   params = {
