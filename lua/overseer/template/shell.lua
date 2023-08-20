@@ -7,6 +7,8 @@ local tmpl = {
     cwd = { type = "string", optional = true, order = 4 },
     env = { type = "opaque", optional = true },
     metadata = { type = "opaque", optional = true },
+    components = { type = "opaque", optional = true },
+    strategy = { type = "opaque", optional = true },
     expand_cmd = {
       desc = "Run expandcmd() on command before execution",
       type = "boolean",
@@ -23,6 +25,8 @@ local tmpl = {
       cwd = params.cwd,
       name = params.name,
       metadata = params.metadata,
+      components = params.components,
+      strategy = params.strategy,
     }
   end,
 }
