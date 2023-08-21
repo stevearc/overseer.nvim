@@ -63,7 +63,8 @@ def update_config_options():
 def params_sort_key(item):
     name, param = item
     is_optional = param.get("optional", "default" in param)
-    return (is_optional, name)
+    order = param.get("order", 0)
+    return (order, is_optional, name)
 
 
 def update_components_md():

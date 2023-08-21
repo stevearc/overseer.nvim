@@ -3,6 +3,10 @@ local log = require("overseer.log")
 local M = {}
 
 M.get_selected_text = function()
+  local mode = vim.api.nvim_get_mode().mode
+  if not vim.startswith(mode:lower(), "v") then
+    return ""
+  end
   local _, start_lnum, start_col, _ = unpack(vim.fn.getpos("v"))
   local _, end_lnum, end_col, _, _ = unpack(vim.fn.getcurpos())
   local swapped = false
@@ -36,25 +40,47 @@ local function get_workspace_folder()
   end
 end
 
+---@return table
+M.precalculate_vars = function()
+  return {
+    workspaceFolder = get_workspace_folder(),
+    workspaceFolderBasename = vim.fs.basename(vim.fn.getcwd()),
+    file = vim.fn.expand("%:p"),
+    fileWorkspaceFolder = get_workspace_folder(),
+    relativeFile = vim.fn.expand("%:."),
+    relativeFileDirname = vim.fn.expand("%:.:h"),
+    fileBasename = vim.fn.expand("%:t"),
+    fileBasenameNoExtension = vim.fn.expand("%:t:r"),
+    fileDirname = vim.fn.expand("%:p:h"),
+    fileExtname = vim.fn.expand("%:e"),
+    lineNumber = vim.api.nvim_win_get_cursor(0)[1],
+    selectedText = M.get_selected_text(),
+  }
+end
+
 ---@param str string|table|nil
 ---@param params table
-M.replace_vars = function(str, params)
+---@param precalculated_vars? table
+M.replace_vars = function(str, params, precalculated_vars)
   if not str then
     return nil
   end
   if type(str) == "table" then
     local ret = {}
     for k, substr in pairs(str) do
-      ret[k] = M.replace_vars(substr, params)
+      ret[k] = M.replace_vars(substr, params, precalculated_vars)
     end
     return ret
   end
   return str:gsub("%${([^}:]+):?([^}]*)}", function(name, arg)
+    if precalculated_vars and precalculated_vars[name] then
+      return precalculated_vars[name]
+    end
     -- TODO does not support ${workspacefolder:VALUE}
     -- TODO does not support ${config:VALUE}
     -- TODO does not support ${command:VALUE}
     if name == "userHome" then
-      return os.getenv("HOME")
+      return assert(vim.loop.os_homedir())
     elseif name == "workspaceFolder" then
       return get_workspace_folder()
     elseif name == "workspaceFolderBasename" then

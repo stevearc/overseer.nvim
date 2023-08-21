@@ -113,18 +113,20 @@ local function get_provider(type)
   end
 end
 
-local function get_task_builder(defn)
+---@param defn table
+---@param precalculated_vars table
+local function get_task_builder(defn, precalculated_vars)
   local task_provider = get_provider(defn.type)
   if not task_provider then
     return nil
   end
   return function(params)
     defn = vim.deepcopy(defn)
-    defn.command = variables.replace_vars(defn.command, params)
-    defn.args = variables.replace_vars(defn.args, params)
+    defn.command = variables.replace_vars(defn.command, params, precalculated_vars)
+    defn.args = variables.replace_vars(defn.args, params, precalculated_vars)
     if defn.options then
-      defn.options.cwd = variables.replace_vars(defn.options.cwd, params)
-      defn.options.env = variables.replace_vars(defn.options.env, params)
+      defn.options.cwd = variables.replace_vars(defn.options.cwd, params, precalculated_vars)
+      defn.options.env = variables.replace_vars(defn.options.env, params, precalculated_vars)
     end
     -- Pass the provider the raw task definition data and the launch.json configuration data
     -- (if present)
@@ -156,7 +158,9 @@ local function get_task_builder(defn)
   end
 end
 
-local function convert_vscode_task(defn)
+---@param defn table
+---@param precalculated_vars table
+local function convert_vscode_task(defn, precalculated_vars)
   local alias = string.format("%s: %s", defn.type, defn.command)
   local tmpl = {
     name = defn.label or alias,
@@ -166,7 +170,7 @@ local function convert_vscode_task(defn)
     params = parse_params(defn),
   }
 
-  local task_builder = get_task_builder(defn)
+  local task_builder = get_task_builder(defn, precalculated_vars)
   -- If we don't have a task builder, but the type exists, then we don't support this task type
   if not task_builder and defn.type then
     log:warn("Unsupported VSCode task type '%s' for task %s", defn.type, tmpl.name)
@@ -267,10 +271,11 @@ return {
       global_defaults = vim.tbl_deep_extend("force", global_defaults, content[os_key])
     end
     local ret = {}
+    local precalculated_vars = variables.precalculate_vars()
     for _, task in ipairs(content.tasks) do
       local defn = vim.tbl_deep_extend("force", global_defaults, task)
       defn = vim.tbl_deep_extend("force", defn, task[os_key] or {})
-      local tmpl = convert_vscode_task(defn)
+      local tmpl = convert_vscode_task(defn, precalculated_vars)
       if tmpl then
         table.insert(ret, tmpl)
       end

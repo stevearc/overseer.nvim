@@ -493,14 +493,15 @@ end
 
 -- Process file name based on "fileLocation"
 -- Valid: "absolute", "relative", "autoDetect", ["relative", "path value"], ["autoDetect", "path value"]
-local function file_converter(file_loc)
+local function file_converter(file_loc, precalculated_vars)
   local typ = type(file_loc) == "table" and file_loc[1] or file_loc
   assert(
     vim.tbl_contains({ "absolute", "relative", "autoDetect" }, typ),
     "Unsupported fileLocation: " .. typ
   )
   -- TODO: passing params to replace_vars not supported yet
-  local rel_path = type(file_loc) == "table" and variables.replace_vars(file_loc[2], {})
+  local rel_path = type(file_loc) == "table"
+      and variables.replace_vars(file_loc[2], {}, precalculated_vars)
     or vim.fn.getcwd()
 
   return function(file)
@@ -516,7 +517,9 @@ local function file_converter(file_loc)
   end
 end
 
-M.get_parser_from_problem_matcher = function(problem_matcher)
+---@param problem_matcher table
+---@param precalculated_vars? table
+M.get_parser_from_problem_matcher = function(problem_matcher, precalculated_vars)
   if not problem_matcher then
     return nil
   end
@@ -524,7 +527,7 @@ M.get_parser_from_problem_matcher = function(problem_matcher)
     local background
     local children = {}
     for _, v in ipairs(problem_matcher) do
-      local parser = M.get_parser_from_problem_matcher(v)
+      local parser = M.get_parser_from_problem_matcher(v, precalculated_vars)
       assert(parser, "Failed to create overseer parser from VS Code problem matcher")
       vim.list_extend(children, parser)
       if v.background then
@@ -539,7 +542,8 @@ M.get_parser_from_problem_matcher = function(problem_matcher)
   local qf_type = severity_to_type[problem_matcher.severity]
   local pattern = problem_matcher.pattern
   local background = problem_matcher.background
-  local convert = problem_matcher.fileLocation and file_converter(problem_matcher.fileLocation)
+  local convert = problem_matcher.fileLocation
+    and file_converter(problem_matcher.fileLocation, precalculated_vars)
   local ret
   if vim.tbl_islist(pattern) then
     ret = { "sequence" }

@@ -320,6 +320,7 @@ local function simplify_param(param)
     subtype = param.subtype and simplify_param(param.subtype),
     deprecated = param.deprecated,
     choices = param.choices,
+    order = param.order,
   }
 end
 
