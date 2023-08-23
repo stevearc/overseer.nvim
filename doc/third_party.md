@@ -172,6 +172,14 @@ require("neotest").setup({
 
 If you have both overseer and [nvim-dap](https://github.com/mfussenegger/nvim-dap) installed, overseer will automatically run the `preLaunchTask` and `postDebugTask` when present in a debug configuration.
 
+I also recommend that you configure nvim-dap to use overseer's json decoder, since it supports JSON5 (comments and trailing commas)
+
+```lua
+require("dap.ext.vscode").json_decode = require("overseer.json").decode
+```
+
+A note about lazy loading: make sure you load nvim-dap before overseer because overseer will attempt to patch nvim-dap inside `overseer.setup()`.
+
 ## ToggleTerm
 
 If you use [toggleterm](https://github.com/akinsho/toggleterm.nvim), you can use the built-in "toggleterm" strategy to allow your tasks to be in a terminal buffer owned by toggleterm. You can use your existing toggleterm keybinds to pull up long-running tasks started with overseer. You can set it up with defaults using:
