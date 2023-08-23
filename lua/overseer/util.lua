@@ -437,7 +437,7 @@ M.get_stdout_line_iter = function()
           pending = pending .. M.clean_job_line(chunk)
         end
       else
-        if data[1] ~= "" then
+        if not (data[1] == "" and i == 2) then
           table.insert(ret, pending)
         end
         pending = M.clean_job_line(chunk)
