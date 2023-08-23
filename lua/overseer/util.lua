@@ -424,6 +424,7 @@ M.clean_job_line = function(str)
   return M.remove_ansi(str:gsub("\r$", ""))
 end
 
+---@return fun(data: string[]): string[]
 M.get_stdout_line_iter = function()
   local pending = ""
   return function(data)
@@ -444,15 +445,6 @@ M.get_stdout_line_iter = function()
       end
     end
     return ret
-  end
-end
-
-M.pwrap = function(fn)
-  return function(...)
-    local ok, err = pcall(fn, ...)
-    if not ok then
-      vim.api.nvim_err_writeln(err)
-    end
   end
 end
 
@@ -561,14 +553,6 @@ M.set_bufenter_callback = function(bufnr, key, callback)
     once = true,
     nested = true,
   })
-end
-
-M.run_once_buf_loaded = function(bufnr, key, callback)
-  if vim.api.nvim_buf_is_loaded(bufnr) then
-    callback(bufnr)
-  else
-    M.set_bufenter_callback(bufnr, key, callback)
-  end
 end
 
 M.get_group_attr = function(group, what)
