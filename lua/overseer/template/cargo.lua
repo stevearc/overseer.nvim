@@ -1,7 +1,7 @@
 local constants = require("overseer.constants")
+local json = require("overseer.json")
 local log = require("overseer.log")
 local overseer = require("overseer")
-local util = require("overseer.util")
 local TAG = constants.TAG
 
 ---@type overseer.TemplateFileDefinition
@@ -47,7 +47,7 @@ local function get_workspace_root(cwd, cb)
     cwd = cwd,
     stdout_buffered = true,
     on_stdout = function(j, output)
-      local ok, data = pcall(util.decode_json, table.concat(output, ""))
+      local ok, data = pcall(json.decode, table.concat(output, ""))
       if ok then
         if data.workspace_root then
           cb(nil, data.workspace_root)

@@ -1,4 +1,3 @@
-local util = require("overseer.util")
 local M = {}
 
 ---@type boolean
@@ -127,9 +126,10 @@ end
 ---@param filepath string
 ---@return any?
 M.load_json_file = function(filepath)
+  local json = require("overseer.json")
   local content = M.read_file(filepath)
   if content then
-    return util.decode_json(content)
+    return json.decode(content)
   end
 end
 
