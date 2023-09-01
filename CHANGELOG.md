@@ -1,5 +1,25 @@
 # Changelog
 
+## [1.1.0](https://github.com/stevearc/overseer.nvim/compare/v1.0.0...v1.1.0) (2023-09-01)
+
+
+### Features
+
+* add additional commands to cargo ([#172](https://github.com/stevearc/overseer.nvim/issues/172)) ([514a5e1](https://github.com/stevearc/overseer.nvim/commit/514a5e1af18b490721836fa19b62ca60761e5b59))
+* add buffer-local variable linking buffers to task ID ([#169](https://github.com/stevearc/overseer.nvim/issues/169)) ([4d046a1](https://github.com/stevearc/overseer.nvim/commit/4d046a116c80db4300a66a58288a6b75b5a8c54f))
+
+
+### Bug Fixes
+
+* chunk lost when parsing output from stdout ([#185](https://github.com/stevearc/overseer.nvim/issues/185)) ([d4118da](https://github.com/stevearc/overseer.nvim/commit/d4118da29d8cdba81661854ac4be14175e2f8de5))
+* gcc problem matcher regular expression on windows ([#178](https://github.com/stevearc/overseer.nvim/issues/178)) ([4f8ea34](https://github.com/stevearc/overseer.nvim/commit/4f8ea3487cbbea8f6b477a6af13c6c6e2f7ff6fd))
+* invalid highlight group for neovim 0.8 ([b44fd57](https://github.com/stevearc/overseer.nvim/commit/b44fd57d1ba47a48e843393bdc0198cacb2a6859))
+* orchestrator strategy can set cwd for individual tasks ([#174](https://github.com/stevearc/overseer.nvim/issues/174)) ([16ac26a](https://github.com/stevearc/overseer.nvim/commit/16ac26aebef2468fda76de2b913bb6b76193932f))
+* orchestrator tasks clobber cwd set by builder function ([#180](https://github.com/stevearc/overseer.nvim/issues/180)) ([cdee07c](https://github.com/stevearc/overseer.nvim/commit/cdee07c73d257e7aaa8d2bb4cac238c4c1b103c9))
+* precalculate VS Code task variables ([#181](https://github.com/stevearc/overseer.nvim/issues/181)) ([020f63d](https://github.com/stevearc/overseer.nvim/commit/020f63d4cb97f54b61caa533ad9d176c543ef0ab))
+* shell task accepts components and strategy params ([#182](https://github.com/stevearc/overseer.nvim/issues/182)) ([18c06d3](https://github.com/stevearc/overseer.nvim/commit/18c06d3d9bd9ea376240e34ae60f3da76f1aa5f9))
+* type errors and annotations ([667dc5f](https://github.com/stevearc/overseer.nvim/commit/667dc5f0048d299fc41c13c8c3b5ef2cb2909a4d))
+
 ## 1.0.0 (2023-06-27)
 
 
