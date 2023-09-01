@@ -501,7 +501,10 @@ M.get_hl_foreground = function(group)
     return vim.api.nvim_get_hl(0, { name = group }).fg
   else
     ---@diagnostic disable-next-line: undefined-field
-    return vim.api.nvim_get_hl_by_name(group, true).foreground
+    local ok, data = pcall(vim.api.nvim_get_hl_by_name, group, true)
+    if ok then
+      return data.foreground
+    end
   end
 end
 
@@ -520,7 +523,6 @@ M.find_success_color = function()
     return "DiagnosticOk"
   end
   local candidates = {
-    "DiagnosticOk",
     "Constant",
     "Keyword",
     "Special",
