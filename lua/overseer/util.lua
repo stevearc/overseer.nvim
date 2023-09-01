@@ -78,8 +78,12 @@ local function create_cursormoved_tail_autocmd()
       local lnum = vim.api.nvim_win_get_cursor(0)[1]
       local linecount = vim.api.nvim_buf_line_count(0)
       if lnum == linecount then
+        -- TODO remove after https://github.com/folke/neodev.nvim/pull/163 lands
+        ---@diagnostic disable-next-line: inject-field
         vim.w.overseer_pause_tail_for_buf = nil
       else
+        -- TODO remove after https://github.com/folke/neodev.nvim/pull/163 lands
+        ---@diagnostic disable-next-line: inject-field
         vim.w.overseer_pause_tail_for_buf = args.buf
       end
     end,
@@ -496,6 +500,7 @@ M.get_hl_foreground = function(group)
   if vim.fn.has("nvim-0.9") == 1 then
     return vim.api.nvim_get_hl(0, { name = group }).fg
   else
+    ---@diagnostic disable-next-line: undefined-field
     return vim.api.nvim_get_hl_by_name(group, true).foreground
   end
 end

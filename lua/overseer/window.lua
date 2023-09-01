@@ -70,6 +70,8 @@ local function create_overseer_window(direction, existing_win)
     util.go_buf_no_au(outbuf)
     set_minimal_win_opts(0)
     util.go_win_no_au(winid)
+    -- TODO remove after https://github.com/folke/neodev.nvim/pull/163 lands
+    ---@diagnostic disable-next-line: inject-field
     vim.w.overseer_output_win = output_win
     watch_for_win_closed()
   end

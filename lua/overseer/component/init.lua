@@ -43,6 +43,7 @@ local M = {}
 ---@field params table
 ---@field desc? string
 ---@field serializable boolean
+---@field editable boolean
 
 local registry = {}
 local aliases = {}
@@ -86,7 +87,6 @@ local function validate_component(name, opts)
   if name:match("%s") then
     error("Component name cannot have whitespace")
   end
-  comp._type = "OverseerComponent"
   if comp.params then
     form_utils.validate_params(comp.params)
     for _, param in pairs(comp.params) do
