@@ -511,7 +511,11 @@ end
 
 -- Attempts to find a green color from the current colorscheme
 M.find_success_color = function()
+  if vim.fn.has("nvim-0.9") == 1 then
+    return "DiagnosticOk"
+  end
   local candidates = {
+    "DiagnosticOk",
     "Constant",
     "Keyword",
     "Special",
