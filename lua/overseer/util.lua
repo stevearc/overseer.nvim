@@ -490,22 +490,27 @@ M.set_bufenter_callback = function(bufnr, key, callback)
   })
 end
 
-M.get_group_attr = function(group, what)
-  local id = vim.fn.synIDtrans(vim.fn.hlID(group))
-  return vim.fn.synIDattr(id, what, "gui")
+---@param group string
+---@return nil|integer
+M.get_hl_foreground = function(group)
+  if vim.fn.has("nvim-0.9") == 1 then
+    return vim.api.nvim_get_hl(0, { name = group }).fg
+  else
+    return vim.api.nvim_get_hl_by_name(group, true).foreground
+  end
 end
 
-M.get_group_fg = function(group)
-  local attr = M.get_group_attr(group, "fg#")
-  if attr == "" or string.find(attr, "#") ~= 1 then
-    return nil
-  end
-  return attr
+---@param color integer
+---@return number[]
+M.color_to_rgb = function(color)
+  local r = bit.band(bit.rshift(color, 16), 0xff)
+  local g = bit.band(bit.rshift(color, 8), 0xff)
+  local b = bit.band(color, 0xff)
+  return { r / 255.0, g / 255.0, b / 255.0 }
 end
 
 -- Attempts to find a green color from the current colorscheme
 M.find_success_color = function()
-  local hsluv = require("overseer.hsluv")
   local candidates = {
     "Constant",
     "Keyword",
@@ -523,20 +528,18 @@ M.find_success_color = function()
   local best_grp
   local best
   for _, grp in ipairs(candidates) do
-    local fg = M.get_group_fg(grp)
+    local fg = M.get_hl_foreground(grp)
     if fg then
-      local rgb = hsluv.hex_to_rgb(fg)
+      local rgb = M.color_to_rgb(fg)
       -- Super simple "green" detection heuristic: g - r - b
       local score = rgb[2] - rgb[1] - rgb[3]
-      if score > -0.5 then
-        if not best or score > best then
-          best_grp = grp
-          best = score
-        end
+      if not best or score > best then
+        best_grp = grp
+        best = score
       end
     end
   end
-  if best_grp then
+  if best_grp and best > -0.5 then
     return best_grp
   end
   return "DiagnosticInfo"
