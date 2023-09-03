@@ -90,14 +90,13 @@ The venerable vim-dispatch provides several commands, but the main `:Make` comma
 
 ```lua
 vim.api.nvim_create_user_command("Make", function(params)
-  local args = vim.fn.expandcmd(params.args)
   -- Insert args at the '$*' in the makeprg
-  local cmd, num_subs = vim.o.makeprg:gsub("%$%*", args)
+  local cmd, num_subs = vim.o.makeprg:gsub("%$%*", params.args)
   if num_subs == 0 then
-    cmd = cmd .. " " .. args
+    cmd = cmd .. " " .. params.args
   end
   local task = require("overseer").new_task({
-    cmd = cmd,
+    cmd = vim.fn.expandcmd(cmd),
     components = {
       { "on_output_quickfix", open = not params.bang, open_height = 8 },
       "default",
@@ -117,14 +116,13 @@ We can run `:grep` asynchronously, similar to what we did with `:make` in the ex
 
 ```lua
 vim.api.nvim_create_user_command("Grep", function(params)
-  local args = vim.fn.expandcmd(params.args)
   -- Insert args at the '$*' in the grepprg
-  local cmd, num_subs = vim.o.grepprg:gsub("%$%*", args)
+  local cmd, num_subs = vim.o.grepprg:gsub("%$%*", params.args)
   if num_subs == 0 then
-    cmd = cmd .. " " .. args
+    cmd = cmd .. " " .. params.args
   end
   local task = overseer.new_task({
-    cmd = cmd,
+    cmd = vim.fn.expandcmd(cmd),
     components = {
       {
         "on_output_quickfix",
