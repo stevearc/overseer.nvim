@@ -241,18 +241,19 @@ end
 
 return {
   cache_key = function(opts)
-    return vs_util.get_tasks_file(opts.dir)
+    return vs_util.get_tasks_file(vim.fn.getcwd(), opts.dir)
   end,
   condition = {
     callback = function(opts)
-      if not vs_util.get_tasks_file(opts.dir) then
+      if not vs_util.get_tasks_file(vim.fn.getcwd(), opts.dir) then
         return false, "No .vscode/tasks.json file found"
       end
       return true
     end,
   },
   generator = function(opts, cb)
-    local content = vs_util.load_tasks_file(opts.dir)
+    local tasks_file = vs_util.get_tasks_file(vim.fn.getcwd(), opts.dir)
+    local content = vs_util.load_tasks_file(assert(tasks_file))
     local global_defaults = {}
     for k, v in pairs(content) do
       if k ~= "version" and k ~= "tasks" then
