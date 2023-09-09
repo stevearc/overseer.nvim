@@ -24,7 +24,10 @@ local function get_bundle_previewer()
       }
     end,
     teardown = function(self)
-      vim.api.nvim_buf_delete(self.state.bufnr, { force = true })
+      local bufnr = self.state and self.state.bufnr
+      if bufnr then
+        pcall(vim.api.nvim_buf_delete, bufnr, { force = true })
+      end
     end,
     preview_fn = function(self, entry, status)
       local ns = vim.api.nvim_create_namespace("overseer")
