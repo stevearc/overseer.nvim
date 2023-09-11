@@ -178,7 +178,20 @@ I also recommend that you configure nvim-dap to use overseer's json decoder, sin
 require("dap.ext.vscode").json_decode = require("overseer.json").decode
 ```
 
-A note about lazy loading: make sure you load nvim-dap before overseer because overseer will attempt to patch nvim-dap inside `overseer.setup()`.
+A note about lazy loading: make sure you load nvim-dap before overseer because overseer will attempt
+to patch nvim-dap inside `overseer.setup()`. Alternatively, you can disable the automatic support
+
+```lua
+require("overseer").setup({
+  dap = false,
+})
+```
+
+And enable the integration manually later, such as when nvim-dap is loaded
+
+```lua
+require("overseer").patch_dap(true)
+```
 
 ## ToggleTerm
 
