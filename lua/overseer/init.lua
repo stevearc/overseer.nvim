@@ -253,8 +253,9 @@ local function create_commands()
 end
 
 ---Add support for preLaunchTask/postDebugTask to nvim-dap
+---@private
 ---@param enabled boolean
-local function patch_dap(enabled)
+M.patch_dap = function(enabled)
   local ok, dap = pcall(require, "dap")
   if not ok then
     return
@@ -293,7 +294,7 @@ M.setup = function(opts)
   end
   opts = opts or {}
   create_commands()
-  patch_dap(opts.dap ~= false)
+  M.patch_dap(opts.dap ~= false)
   pending_opts = opts
   if initialized then
     do_setup()
