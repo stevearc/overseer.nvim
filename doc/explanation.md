@@ -17,25 +17,38 @@
 
 ### Tasks
 
-Tasks represent a single command that is run. They appear in the [task list](#task-list), where you can manage them (start/stop/restart/edit/open terminal). You can create them directly, either with `:OverseerBuild` or via the API `require('overseer.task').new()`.
+Tasks represent a single command that is run. They appear in the [task list](#task-list), where you
+can manage them (start/stop/restart/edit/open terminal). You can create them directly, either with
+`:OverseerBuild` or via the API `require('overseer.task').new()`.
 
-Most of the time, however, you will find it most convenient to create them using [templates](#templates).
+Most of the time, however, you will find it most convenient to create them using
+[templates](#templates).
 
 ### Components
 
-Tasks are built using an [entity component system](https://en.wikipedia.org/wiki/Entity_component_system). By itself, all a task does is run a command in a terminal. Components are used to add more functionality. There are components to display a summary of the output in the [task list](#task-list), to show a notification when the task finishes running, and to set the task results into neovim diagnostics.
+Tasks are built using an [entity component
+system](https://en.wikipedia.org/wiki/Entity_component_system). By itself, all a task does is run a
+command in a terminal. Components are used to add more functionality. There are components to
+display a summary of the output in the [task list](#task-list), to show a notification when the task
+finishes running, and to set the task results into neovim diagnostics.
 
-Components are designed to be easy to remove, customize, or replace. If you want to customize some aspect or behavior of a task, it's likely that it will be done through components.
+Components are designed to be easy to remove, customize, or replace. If you want to customize some
+aspect or behavior of a task, it's likely that it will be done through components.
 
-See [custom components](guides.md#custom-components) for how to customize them or define your own, and [components](components.md) for a list of built-in components.
+See [custom components](guides.md#custom-components) for how to customize them or define your own,
+and [components](components.md) for a list of built-in components.
 
-**Note**: both tasks and components are designed to be serializable. They avoid putting things like functions in their constructors, and as a result can easily be serialized and saved to disk.
+**Note**: both tasks and components are designed to be serializable. They avoid putting things like
+functions in their constructors, and as a result can easily be serialized and saved to disk.
 
 ### Templates
 
-Templates provide a way to construct a task, along with other metadata that aid in selecting and starting that task. They are the primary way to define tasks for overseer, and they are what appears when you use the command `:OverseerRun`.
+Templates provide a way to construct a task, along with other metadata that aid in selecting and
+starting that task. They are the primary way to define tasks for overseer, and they are what appears
+when you use the command `:OverseerRun`.
 
-When you want to add custom tasks that you can run, templates are the way to go. See [custom tasks](guides.md#custom-tasks) for more.
+When you want to add custom tasks that you can run, templates are the way to go. See [custom
+tasks](guides.md#custom-tasks) for more.
 
 ## Task list
 
@@ -73,7 +86,10 @@ submit your changes.
 
 ## Alternatives
 
-There are several other job/task plugins in the neovim ecosystem. To me, the main differentiating features that overseer offers are **unparalleled extensibility** and the **most complete support for VS Code's `tasks.json`** format. If you're still shopping around, these are the others that I'm aware of:
+There are several other job/task plugins in the neovim ecosystem. To me, the main differentiating
+features that overseer offers are **unparalleled extensibility** and the **most complete support for
+VS Code's `tasks.json`** format. If you're still shopping around, these are the others that I'm
+aware of:
 
 - [asynctasks.vim](https://github.com/skywind3000/asynctasks.vim) - Modern Task System for Project Building, Testing and Deploying
 - [vim-dispatch](https://github.com/tpope/vim-dispatch) - Asynchronous build and test dispatcher
@@ -88,11 +104,18 @@ There are several other job/task plugins in the neovim ecosystem. To me, the mai
 
 **Q: Why do my tasks disappear after a while?**
 
-The default behavior is for completed tasks to get _disposed_ after a 5 minute timeout. This frees their resources and removes them from the task list. You can change this by editing the `component_aliases` definition to tweak the timeout (`{"on_complete_dispose", timeout = 900}`), only dispose succeeded/failed tasks (`{"on_complete_dispose", statuses = {"SUCCESS"}}`), or delete the "on_complete_dispose" component entirely. In that case, tasks will stick around until manually disposed.
+The default behavior is for completed tasks to get _disposed_ after a 5 minute timeout. This frees
+their resources and removes them from the task list. You can change this by editing the
+`component_aliases` definition to tweak the timeout (`{"on_complete_dispose", timeout = 900}`), only
+dispose succeeded/failed tasks (`{"on_complete_dispose", statuses = {"SUCCESS"}}`), or delete the
+"on_complete_dispose" component entirely. In that case, tasks will stick around until manually
+disposed.
 
 **Q: How can I debug when something goes wrong?**
 
-The `overseer.log` file can be found at `:echo stdpath('log')` or `:echo stdpath('cache')`. If you need, you can crank up the detail of the logs by adjusting the level:
+Run `:OverseerInfo` to view the available tasks and information about why certain tasks are not
+available. It will also show you the location of the log file. If you need, you can crank up the
+detail of the logs by adjusting the level:
 
 ```lua
 overseer.setup({
@@ -108,4 +131,7 @@ overseer.setup({
 
 **Q: Can I use this to asynchronously lint my files on save?**
 
-You absolutely can. All the pieces are here to build something like ALE, it just needs the configs for different lint tools. Personally, I think that the existing plugin ecosystem has solved this sufficiently well and I don't see a value add from building _another_ on top of overseer. I'm using [null-ls](https://github.com/jose-elias-alvarez/null-ls.nvim) in my own config and think it's great.
+You absolutely can. All the pieces are here to build something like ALE, it just needs the configs
+for different lint tools. Personally, I think that the existing plugin ecosystem has solved this
+sufficiently well and I don't see a value add from building _another_ on top of overseer. I'm using
+[nvim-lint](https://github.com/mfussenegger/nvim-lint) in my own config and think it's great.
