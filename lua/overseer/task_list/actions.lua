@@ -204,6 +204,15 @@ M = {
       vim.cmd("botright copen")
     end,
   },
+  ["clear output"] = {
+    desc = "clear the output terminal",
+    condition = function(task)
+      return task.strategy.name == "jobstart" and task.strategy.term_id
+    end,
+    run = function(task)
+      pcall(vim.api.nvim_chan_send, task.strategy.term_id, "\027[H\027[2J")
+    end,
+  },
 }
 
 return M
