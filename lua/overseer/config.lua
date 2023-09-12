@@ -135,6 +135,11 @@ local default_config = {
       winblend = 10,
     },
   },
+  -- Configuration for mapping help floating windows
+  help_win = {
+    border = "rounded",
+    win_opts = {},
+  },
   -- Aliases for bundles of components. Redefine the builtins, or create your own.
   component_aliases = {
     -- Most tasks are initialized with the default components

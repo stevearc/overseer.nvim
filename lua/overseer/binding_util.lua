@@ -1,5 +1,6 @@
 local layout = require("overseer.layout")
 local util = require("overseer.util")
+local config = require("overseer.config")
 local M = {}
 
 M.create_plug_bindings = function(bufnr, plug_bindings, ...)
@@ -111,15 +112,19 @@ M.show_bindings = function(prefix)
 
   local width = layout.calculate_width(max_line + 1, { min_width = 20 })
   local height = layout.calculate_height(#lines, { min_height = 10 })
-  vim.api.nvim_open_win(bufnr, true, {
+  local win = vim.api.nvim_open_win(bufnr, true, {
     relative = "editor",
     row = math.floor((layout.get_editor_height() - height) / 2),
     col = math.floor((layout.get_editor_width() - width) / 2),
     width = width,
     height = height,
     style = "minimal",
-    border = "rounded",
+    border = config.help_win.border,
+    zindex = config.help_win.zindex,
   })
+  for opt, value in pairs(config.help_win.win_opts or {}) do
+    vim.api.nvim_win_set_option(win, opt, value)
+  end
 end
 
 return M
