@@ -1,5 +1,20 @@
 # Changelog
 
+## [1.2.0](https://github.com/stevearc/overseer.nvim/compare/v1.1.0...v1.2.0) (2023-09-13)
+
+
+### Features
+
+* allow configuration of help float ([#194](https://github.com/stevearc/overseer.nvim/issues/194)) ([3555359](https://github.com/stevearc/overseer.nvim/commit/3555359e1778068eca01e78ac56b91f66257f551))
+
+
+### Bug Fixes
+
+* expose the patch_dap method ([c1ef281](https://github.com/stevearc/overseer.nvim/commit/c1ef281a078d2f815ec669f4b1af358d5624ccda))
+* guard teardown in task bundle selector ([#192](https://github.com/stevearc/overseer.nvim/issues/192)) ([c6ec203](https://github.com/stevearc/overseer.nvim/commit/c6ec203ddbdfe352e54cbc577f5db911dbb7db55))
+* resession extension only saves data if any tasks present ([8a83090](https://github.com/stevearc/overseer.nvim/commit/8a830905c10d929033aa0fefa318fb6d9e18f5b8))
+* search for VS Code tasks in cwd first ([#188](https://github.com/stevearc/overseer.nvim/issues/188)) ([b1cd700](https://github.com/stevearc/overseer.nvim/commit/b1cd7007b78d636b93f13eac27069bb007147f04))
+
 ## [1.1.0](https://github.com/stevearc/overseer.nvim/compare/v1.0.0...v1.1.0) (2023-09-01)
 
 
