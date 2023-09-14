@@ -5,6 +5,7 @@ local lockfiles = {
   npm = "package-lock.json",
   pnpm = "pnpm-lock.yaml",
   yarn = "yarn.lock",
+  bun = "bun.lockb",
 }
 
 local function pick_package_manager()
