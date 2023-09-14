@@ -3,7 +3,11 @@ local log = require("overseer.log")
 ---@param opts overseer.SearchParams
 ---@return nil|string
 local function get_justfile(opts)
-  return vim.fs.find("justfile", { upward = true, type = "file", path = opts.dir })[1]
+  local is_justfile = function(name)
+    name = name:lower()
+    return name == "justfile" or name == ".justfile"
+  end
+  return vim.fs.find(is_justfile, { upward = true, type = "file", path = opts.dir })[1]
 end
 
 ---@type overseer.TemplateFileProvider
