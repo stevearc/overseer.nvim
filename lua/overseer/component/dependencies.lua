@@ -45,6 +45,8 @@ return {
               -- We will re-create them when this task runs again
               new_task:set_include_in_bundle(false)
               new_task:start()
+              -- Ensure this task is marked as more recent than its dependencies
+              task_list.touch_task(task)
             end)
             started_any = true
             if params.sequential then

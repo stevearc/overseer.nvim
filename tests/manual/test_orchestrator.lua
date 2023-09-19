@@ -18,7 +18,7 @@ local task = overseer.new_task({
           cmd = "echo checking nose cone && sleep 1 && echo checking fins && sleep 1 && echo checking heat shield && sleep 1 && echo checking payload && sleep 1 && echo checklist passed!",
         },
       },
-      { "shell", name = "Launch", cmd = "echo FWOOOOSH && sleep 2 && echo we\\'re in space" },
+      { "shell", name = "Launch", cmd = [[echo FWOOOOSH && sleep 2 && echo "we're in space"]] },
     },
   },
 })

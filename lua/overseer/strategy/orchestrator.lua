@@ -239,6 +239,8 @@ function OrchestratorStrategy:start(task)
               if section_complete(1) then
                 self:start_next()
               end
+              -- Ensure the orchestrator task is sorted more recent than all children
+              task_list.touch_task(task)
             end)
           )
         end)
