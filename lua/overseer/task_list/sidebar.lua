@@ -300,14 +300,39 @@ function Sidebar:render(tasks)
   local lines = {}
   local highlights = {}
   self.task_lines = {}
+  local subtask_prefix = "▐ "
   -- Iterate backwards so we show most recent tasks first
   for i = #tasks, 1, -1 do
     local task = tasks[i]
     local detail = self.task_detail[task.id] or self.default_detail
+    local start_idx = #lines + 1
+    local hl_start_idx = #highlights + 1
     task:render(lines, highlights, detail)
+
+    -- Indent subtasks
+    if task.parent_id then
+      for j = start_idx, #lines do
+        lines[j] = subtask_prefix .. lines[j]
+      end
+      for j = hl_start_idx, #highlights do
+        local hl = highlights[j]
+        hl[3] = hl[3] + subtask_prefix:len()
+        if hl[4] ~= -1 then
+          hl[4] = hl[4] + subtask_prefix:len()
+        end
+        highlights[j] = hl
+      end
+      for j = start_idx, #lines do
+        table.insert(highlights, { "OverseerTaskBorder", j, 0, subtask_prefix:len() })
+      end
+    end
     table.insert(self.task_lines, { #lines, task })
     if i > 1 then
-      table.insert(lines, config.task_list.separator)
+      if tasks[i - 1].parent_id then
+        table.insert(lines, subtask_prefix .. vim.fn.strcharpart(config.task_list.separator, 2))
+      else
+        table.insert(lines, config.task_list.separator)
+      end
       table.insert(highlights, { "OverseerTaskBorder", #lines, 0, -1 })
     end
   end

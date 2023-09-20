@@ -18,13 +18,14 @@ local STATUS = constants.STATUS
 ---@field cmd string|string[]
 ---@field cwd string
 ---@field env? table<string, string>
----@field strategy_defn nil|string|table
+---@field strategy_defn? string|table
 ---@field strategy? overseer.Strategy
 ---@field name string
----@field bufnr number|nil
----@field exit_code number|nil
+---@field private bufnr? number
+---@field exit_code? number
 ---@field components overseer.Component[]
----@field _subscribers table<string, function[]>
+---@field parent_id? integer ID of parent task. Used only to visually group tasks in the task list
+---@field private _subscribers table<string, function[]>
 local Task = {}
 
 local next_id = 1
@@ -40,7 +41,7 @@ Task.params = {
   },
 }
 
----@class overseer.TaskDefinition
+---@class (exact) overseer.TaskDefinition
 ---@field cmd string|string[]
 ---@field args? string[]
 ---@field name? string

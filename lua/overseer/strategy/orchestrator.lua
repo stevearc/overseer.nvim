@@ -231,6 +231,7 @@ function OrchestratorStrategy:start(task)
                 task_defn.env = vim.tbl_deep_extend("force", task_defn.env or {}, params.env or {})
               end
               local new_task = Task.new(task_defn)
+              new_task.parent_id = task.id
               new_task:add_component("orchestrator.on_status_broadcast")
               -- Don't include child tasks when saving to bundle. We will re-create them when the
               -- orchestration task is loaded.

@@ -22,6 +22,21 @@ end
 
 M.rerender = rerender
 
+local function group_parents_and_children()
+  local order = {}
+  for i, task in ipairs(tasks) do
+    order[task.id] = i
+  end
+  for _, task in ipairs(tasks) do
+    if task.parent_id then
+      order[task.id] = order[task.parent_id] - 0.5
+    end
+  end
+  table.sort(tasks, function(a, b)
+    return order[a.id] < order[b.id]
+  end)
+end
+
 M.update = function(task)
   if not task then
     rerender()
@@ -33,6 +48,7 @@ M.update = function(task)
   if not lookup[task.id] then
     lookup[task.id] = task
     table.insert(tasks, task)
+    group_parents_and_children()
   end
   rerender()
 end
@@ -46,6 +62,7 @@ M.touch_task = function(task)
   end)
   table.remove(tasks, idx)
   table.insert(tasks, task)
+  group_parents_and_children()
   rerender()
 end
 
