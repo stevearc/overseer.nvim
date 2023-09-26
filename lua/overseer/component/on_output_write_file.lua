@@ -9,6 +9,8 @@ local comp = {
   constructor = function(params)
     return {
       on_init = function(self)
+        local pardir = vim.fs.dirname(params.filename)
+        vim.fn.mkdir(pardir, "p")
         self.output_file = assert(io.open(params.filename, "w"))
       end,
       on_reset = function(self)
