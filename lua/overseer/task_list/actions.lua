@@ -160,6 +160,19 @@ M = {
       util.scroll_to_end(0)
     end,
   },
+  ["open tab"] = {
+    desc = "open terminal in a new tab",
+    condition = function(task)
+      local bufnr = task:get_bufnr()
+      return bufnr and vim.api.nvim_buf_is_valid(bufnr)
+    end,
+    run = function(task)
+      vim.cmd.tabnew()
+      util.set_term_window_opts()
+      vim.api.nvim_win_set_buf(0, task:get_bufnr())
+      util.scroll_to_end(0)
+    end,
+  },
   ["set quickfix diagnostics"] = {
     desc = "put the diagnostics results into quickfix",
     condition = function(task)
