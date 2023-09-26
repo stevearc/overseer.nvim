@@ -103,7 +103,7 @@ function JobstartStrategy:start(task)
           end
         end
       end
-      local end_line = vim.api.nvim_buf_get_lines(self.bufnr, -2, -1, true)[1]
+      local end_line = vim.api.nvim_buf_get_lines(self.bufnr, -2, -1, true)[1] or ""
       local end_lines = vim.tbl_map(util.clean_job_line, data)
       end_lines[1] = end_line .. end_lines[1]
       vim.bo[self.bufnr].modifiable = true
