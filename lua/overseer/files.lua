@@ -40,7 +40,7 @@ end
 
 M.is_absolute = function(path)
   if M.is_windows then
-    return path:lower():match("^%w:")
+    return path:lower():match("^%a:")
   else
     return vim.startswith(path, "/")
   end
