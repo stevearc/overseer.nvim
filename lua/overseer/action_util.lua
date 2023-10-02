@@ -30,7 +30,7 @@ M.run_action = function(opts, ...)
     pre_action = { opts.post_action, "f", true },
     post_action = { opts.post_action, "f", true },
   })
-  local args = util.pack(...)
+  local args = vim.F.pack_len(...)
   local viable = {}
   local longest_name = 1
   for k, action in pairs(opts.actions) do
@@ -76,13 +76,13 @@ M.run_action = function(opts, ...)
     end,
   }, function(action)
     if action then
-      if action.condition == nil or action.condition(unpack(args)) then
-        action.run(unpack(args))
+      if action.condition == nil or action.condition(vim.F.unpack_len(args)) then
+        action.run(vim.F.unpack_len(args))
       else
         log:warn("Can no longer perform action '%s' on task", action.name)
       end
       if opts.post_action then
-        opts.post_action(unpack(args))
+        opts.post_action(vim.F.unpack_len(args))
       end
     end
   end)

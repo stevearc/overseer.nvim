@@ -4,12 +4,12 @@ local config = require("overseer.config")
 local M = {}
 
 M.create_plug_bindings = function(bufnr, plug_bindings, ...)
-  local args = util.pack(...)
+  local args = vim.F.pack_len(...)
   for _, binding in ipairs(plug_bindings) do
     local rhs = binding.rhs
     if type(binding.rhs) == "function" then
       rhs = function()
-        binding.rhs(unpack(args))
+        binding.rhs(vim.F.unpack_len(args))
       end
     end
     vim.keymap.set("", binding.plug, rhs, { buffer = bufnr, desc = binding.desc })

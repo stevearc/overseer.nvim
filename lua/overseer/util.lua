@@ -465,10 +465,6 @@ M.iter_as_list = function(list_or_obj)
   end
 end
 
-M.pack = function(...)
-  return { n = select("#", ...), ... }
-end
-
 local bufenter_callbacks = {}
 M.set_bufenter_callback = function(bufnr, key, callback)
   local cbs = bufenter_callbacks[bufnr]

@@ -1,5 +1,4 @@
 local parser = require("overseer.parser")
-local util = require("overseer.util")
 local parser_util = require("overseer.parser.util")
 local Sequence = {
   desc = "Run the child nodes sequentially",
@@ -48,7 +47,7 @@ function Sequence.new(opts, ...)
   local children
   if parser_util.is_parser(opts) then
     -- No opts, children passed in as args
-    children = util.pack(opts, ...)
+    children = vim.F.pack_len(opts, ...)
     opts = {}
   elseif parser_util.tbl_is_parser_list(opts) then
     -- No opts, children are passed in as a list
@@ -64,7 +63,7 @@ function Sequence.new(opts, ...)
     end
     if not children then
       -- children are passed in as args
-      children = util.pack(...)
+      children = vim.F.pack_len(...)
     end
   end
   vim.validate({

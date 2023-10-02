@@ -1,5 +1,4 @@
 local files = require("overseer.files")
-local util = require("overseer.util")
 local LogHandler = {}
 
 local levels = vim.deepcopy(vim.log.levels)
@@ -28,7 +27,7 @@ function LogHandler:log(level, msg, ...)
 end
 
 local function default_formatter(level, msg, ...)
-  local args = util.pack(...)
+  local args = vim.F.pack_len(...)
   for i = 1, args.n do
     local v = args[i]
     if type(v) == "table" then
@@ -37,7 +36,7 @@ local function default_formatter(level, msg, ...)
       args[i] = "nil"
     end
   end
-  local ok, text = pcall(string.format, msg, unpack(args))
+  local ok, text = pcall(string.format, msg, vim.F.unpack_len(args))
   if ok then
     local str_level = levels[level]
     return string.format("[%s] %s", str_level, text)

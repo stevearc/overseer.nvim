@@ -1,5 +1,4 @@
 local parser = require("overseer.parser")
-local util = require("overseer.util")
 local parser_util = require("overseer.parser.util")
 local Parallel = {
   desc = "Run the child nodes in parallel",
@@ -43,10 +42,10 @@ local Parallel = {
 function Parallel.new(opts, ...)
   local children
   if parser_util.is_parser(opts) then
-    children = util.pack(opts, ...)
+    children = vim.F.pack_len(opts, ...)
     opts = {}
   else
-    children = util.pack(...)
+    children = vim.F.pack_len(...)
   end
   vim.validate({
     break_on_first_failure = { opts.break_on_first_failure, "b", true },
