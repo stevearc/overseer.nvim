@@ -256,6 +256,9 @@ end
 ---@private
 ---@param enabled boolean
 M.patch_dap = function(enabled)
+  if not enabled and not package.loaded.dap then
+    return
+  end
   local ok, dap = pcall(require, "dap")
   if not ok then
     return
