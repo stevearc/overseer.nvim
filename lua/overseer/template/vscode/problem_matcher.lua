@@ -529,7 +529,12 @@ M.get_parser_from_problem_matcher = function(problem_matcher, precalculated_vars
     for _, v in ipairs(problem_matcher) do
       local parser = M.get_parser_from_problem_matcher(v, precalculated_vars)
       assert(parser, "Failed to create overseer parser from VS Code problem matcher")
-      vim.list_extend(children, parser)
+      local is_parser = type(parser[1]) == "string"
+      if is_parser then
+        table.insert(children, parser)
+      else
+        vim.list_extend(children, parser)
+      end
       if v.background then
         background = v.background
       end
