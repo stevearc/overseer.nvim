@@ -136,5 +136,12 @@ M = {
       sidebar:scroll_output(1)
     end,
   },
+  {
+    desc = "Close window",
+    plug = "<Plug>OverseerTask:Close",
+    rhs = function()
+      vim.cmd("close")
+    end,
+  },
 }
 return M
