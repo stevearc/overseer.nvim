@@ -19,8 +19,13 @@ end
 
 M.get_task_opts = function(defn)
   local bin = pick_package_manager()
+  local cmd = { bin, defn.script }
+  if bin == "npm" then
+    -- npm runs scripts with `npm run`
+    table.insert(cmd, 2, "run")
+  end
   return {
-    cmd = { bin, defn.script },
+    cmd = cmd,
   }
 end
 
