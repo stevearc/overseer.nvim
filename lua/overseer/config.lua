@@ -49,6 +49,7 @@ local default_config = {
       ["}"] = "NextTask",
       ["<C-k>"] = "ScrollOutputUp",
       ["<C-j>"] = "ScrollOutputDown",
+      ["q"] = "Close",
     },
   },
   -- See :help overseer-actions

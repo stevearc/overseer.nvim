@@ -129,6 +129,7 @@ require("overseer").setup({
       ["}"] = "NextTask",
       ["<C-k>"] = "ScrollOutputUp",
       ["<C-j>"] = "ScrollOutputDown",
+      ["q"] = "Close",
     },
   },
   -- See :help overseer-actions
