@@ -336,6 +336,13 @@ function Sidebar:render(tasks)
       table.insert(highlights, { "OverseerTaskBorder", #lines, 0, -1 })
     end
   end
+  local sidebar_winid = self:_get_winid()
+  local view
+  if sidebar_winid then
+    vim.api.nvim_win_call(sidebar_winid, function()
+      view = vim.fn.winsaveview()
+    end)
+  end
   vim.api.nvim_buf_set_option(self.bufnr, "modifiable", true)
   vim.api.nvim_buf_set_lines(self.bufnr, 0, -1, true, lines)
   vim.api.nvim_buf_set_option(self.bufnr, "modifiable", false)
@@ -353,6 +360,11 @@ function Sidebar:render(tasks)
       end
       self:update_preview()
     end
+  end
+  if sidebar_winid and view then
+    vim.api.nvim_win_call(sidebar_winid, function()
+      vim.fn.winrestview(view)
+    end)
   end
 
   return true
