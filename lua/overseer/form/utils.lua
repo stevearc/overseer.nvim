@@ -43,6 +43,11 @@ local M = {}
 ---@field default? string
 ---@field choices string[]
 
+---@class overseer.NamedEnumParam : overseer.BaseParam
+---@field type? "namedEnum"
+---@field default? string
+---@field choices? table<string, string>
+
 ---@class overseer.OpaqueParam : overseer.BaseParam
 ---@field type? "opaque"
 ---@field default? any
@@ -89,6 +94,18 @@ M.render_value = function(schema, value)
   end
   if schema.type == "opaque" then
     return "<opaque>"
+  elseif schema.type == "namedEnum" then
+    local label
+    for k, v in pairs(schema.choices) do
+      if v == value then
+        label = k
+        break
+      end
+    end
+    if label ~= nil then
+      return label .. " (value: " .. value .. ")"
+    end
+    return value
   elseif type(value) == "table" then
     local rendered_values = {}
     for _, v in ipairs(value) do
@@ -120,6 +137,8 @@ local function validate_type(schema, value)
     return true
   elseif ptype == "enum" then
     return vim.tbl_contains(schema.choices, value)
+  elseif ptype == "namedEnum" then
+    return vim.tbl_contains(vim.tbl_values(schema.choices), value)
   elseif ptype == "list" then
     return type(value) == "table" and vim.tbl_islist(value)
   elseif ptype == "number" then
@@ -195,6 +214,17 @@ M.parse_value = function(schema, value)
       if v == value then
         return true, v
       elseif v:lower():match(key) then
+        best = v
+      end
+    end
+    return best ~= nil, best
+  elseif schema.type == "namedEnum" then
+    local key = "^" .. value:lower()
+    local best
+    for k, v in pairs(schema.choices) do
+      if k == value then
+        return true, v
+      elseif k:lower():match(key) then
         best = v
       end
     end

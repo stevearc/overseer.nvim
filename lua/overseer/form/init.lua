@@ -319,7 +319,8 @@ function Builder:on_cursor_move()
         end
         local completion_schema = schema.subtype and schema.subtype or schema
         local choices = completion_schema.type == "boolean" and { "true", "false" }
-          or completion_schema.choices
+            or completion_schema.type == "namedEnum" and vim.tbl_keys(completion_schema.choices)
+            or completion_schema.choices
         vim.api.nvim_buf_set_var(0, "overseer_choices", choices)
       end
 
@@ -332,8 +333,8 @@ function Builder:on_cursor_move()
 
       local group = "OverseerField"
       if
-        (self.fields_ever_focused[name] or self.ever_submitted)
-        and not form_utils.validate_field(self.schema[name], self.params[name])
+          (self.fields_ever_focused[name] or self.ever_submitted)
+          and not form_utils.validate_field(self.schema[name], self.params[name])
       then
         group = "DiagnosticError"
       end
