@@ -4,7 +4,7 @@ local log = require("overseer.log")
 local util = require("overseer.util")
 local M = {}
 
----@alias overseer.Param overseer.StringParam|overseer.BoolParam|overseer.NumberParam|overseer.IntParam|overseer.ListParam|overseer.EnumParam|overseer.OpaqueParam
+---@alias overseer.Param overseer.StringParam|overseer.BoolParam|overseer.NumberParam|overseer.IntParam|overseer.ListParam|overseer.EnumParam|overseer.NamedEnumParam|overseer.OpaqueParam
 
 ---@class overseer.BaseParam
 ---@field name? string
@@ -29,27 +29,27 @@ local M = {}
 ---@field default? number
 
 ---@class overseer.IntParam : overseer.BaseParam
----@field type? "integer"
+---@field type "integer"
 ---@field default? number
 
 ---@class overseer.ListParam : overseer.BaseParam
----@field type? "list"
+---@field type "list"
 ---@field subtype? overseer.Param
 ---@field delimiter? string
 ---@field default? table
 
 ---@class overseer.EnumParam : overseer.BaseParam
----@field type? "enum"
+---@field type "enum"
 ---@field default? string
 ---@field choices string[]
 
 ---@class overseer.NamedEnumParam : overseer.BaseParam
----@field type? "namedEnum"
+---@field type "namedEnum"
 ---@field default? string
 ---@field choices? table<string, string>
 
 ---@class overseer.OpaqueParam : overseer.BaseParam
----@field type? "opaque"
+---@field type "opaque"
 ---@field default? any
 
 local default_schema = {
@@ -218,6 +218,7 @@ M.parse_value = function(schema, value)
   elseif schema.type == "namedEnum" then
     local key = "^" .. value:lower()
     local best
+    ---@cast schema overseer.NamedEnumParam
     for k, v in pairs(schema.choices) do
       if k == value then
         return true, v

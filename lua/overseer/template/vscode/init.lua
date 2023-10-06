@@ -25,7 +25,7 @@ local function extract_params(params, str, inputs)
           if type(v) == "table" then
             choiceType = "namedEnum"
             -- NOTE: There is an assumption that labels are unique
-            -- VSCode does not seem to require that, but it's too much of a hastle to deal with it
+            -- VSCode does not seem to require that, but it's too much of a hassle to deal with it
             choices[v.label] = v.value
           else
             choiceType = "enum"
@@ -128,7 +128,7 @@ end
 local registered_providers = {}
 local function get_provider(type)
   local ok, task_provider =
-      pcall(require, string.format("overseer.template.vscode.provider.%s", type))
+    pcall(require, string.format("overseer.template.vscode.provider.%s", type))
   if ok then
     if not registered_providers[type] then
       register_provider(task_provider)
