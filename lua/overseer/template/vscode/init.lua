@@ -35,9 +35,8 @@ local function extract_params(params, str, inputs)
           if paramType == nil or choiceType == paramType then
             paramType = choiceType
           else
-            -- Mixed types of choices, invalid
-            -- TODO report error
-            return
+            log.error("VS Code task input %s mixes labeled and unlabeled options", name)
+            break
           end
         end
 
