@@ -1,5 +1,29 @@
 # Changelog
 
+## [1.3.0](https://github.com/stevearc/overseer.nvim/compare/v1.2.0...v1.3.0) (2023-10-06)
+
+
+### Features
+
+* add close task list keybinding ([#215](https://github.com/stevearc/overseer.nvim/issues/215)) ([0c72f52](https://github.com/stevearc/overseer.nvim/commit/0c72f52eaed32a8317fad6de2a5a30018d4a8f83))
+* basic bun support ([#196](https://github.com/stevearc/overseer.nvim/issues/196)) ([1bd4ae6](https://github.com/stevearc/overseer.nvim/commit/1bd4ae6fb6945fefa98b9ce9b2c34fc1d09da252))
+* namedEnum parameter type ([#217](https://github.com/stevearc/overseer.nvim/issues/217)) ([c14d9f3](https://github.com/stevearc/overseer.nvim/commit/c14d9f330f8c397d5cff528992607af278dd814e))
+* new action to open task buffer in new tab ([ff6e5c5](https://github.com/stevearc/overseer.nvim/commit/ff6e5c5342b2ec70e105e1c3fc9841884f02f560))
+* visually group subtasks in sidebar ([6fe36fc](https://github.com/stevearc/overseer.nvim/commit/6fe36fc338fbeaf35b0f801c25f7f231c431a64b))
+
+
+### Bug Fixes
+
+* concatenate nil ([#209](https://github.com/stevearc/overseer.nvim/issues/209)) ([8065976](https://github.com/stevearc/overseer.nvim/commit/8065976876cea89d0b99ffef4d997b930296f0e8))
+* ignore case when searching for "justfile", support hidden files ([#198](https://github.com/stevearc/overseer.nvim/issues/198)) ([2749d88](https://github.com/stevearc/overseer.nvim/commit/2749d8893a069a0020eba3ddbc26f1624a57d7b3))
+* is_absolute function on windows ([ae0c54c](https://github.com/stevearc/overseer.nvim/commit/ae0c54c325d2018775049bdd1cd76403015d0b90))
+* lazy-load dap when patching ([#213](https://github.com/stevearc/overseer.nvim/issues/213)) ([b24a027](https://github.com/stevearc/overseer.nvim/commit/b24a027af87160bfe78a599942a57ab21ffcbdf9))
+* npm task type for VS Code tasks ([#211](https://github.com/stevearc/overseer.nvim/issues/211)) ([dbc7bcf](https://github.com/stevearc/overseer.nvim/commit/dbc7bcf8c064ec892d99af6ac462fcaeda59da4a))
+* on_output_write_file creates parent dir if necessary ([b24e90d](https://github.com/stevearc/overseer.nvim/commit/b24e90dabd15ad26f067ea84d6a02e16245cd9c8))
+* parent tasks sort to top above dependencies ([#199](https://github.com/stevearc/overseer.nvim/issues/199)) ([4e654e1](https://github.com/stevearc/overseer.nvim/commit/4e654e18e5eae34c7f1d684f5a97e3a77e796a2b))
+* save and restore sidebar window view ([#216](https://github.com/stevearc/overseer.nvim/issues/216)) ([3258e2a](https://github.com/stevearc/overseer.nvim/commit/3258e2a83bb09daee660bf849e9a0d85356992e7))
+* VSCode problem matcher conversion to parser ([#211](https://github.com/stevearc/overseer.nvim/issues/211)) ([83a22c0](https://github.com/stevearc/overseer.nvim/commit/83a22c02caf79e5f671d1614001ed1c4dc63ddab))
+
 ## [1.2.0](https://github.com/stevearc/overseer.nvim/compare/v1.1.0...v1.2.0) (2023-09-13)
 
 
