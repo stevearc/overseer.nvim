@@ -40,21 +40,9 @@ local function extract_params(params, str, inputs)
           end
         end
 
-        local default
-        if paramType == "enum" then
-          default = schema.default
-        else
-          for k, v in pairs(choices) do
-            if v == schema.default then
-              default = k
-              break
-            end
-          end
-        end
-
         params[name] = {
           desc = schema.desc,
-          default = default,
+          default = schema.default,
           type = paramType,
           choices = choices,
         }
