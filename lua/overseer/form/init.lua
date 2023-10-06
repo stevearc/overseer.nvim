@@ -312,13 +312,24 @@ function Builder:on_cursor_move()
           cur[2] = name_end
         end
         local schema = self.schema[name]
+        local vtext = {}
+        if schema.type == "namedEnum" then
+          local value = schema.choices[text]
+          if value then
+            table.insert(vtext, { string.format("[%s] ", value), "Comment" })
+          end
+        end
         if schema.desc then
+          table.insert(vtext, { schema.desc, "Comment" })
+        end
+        if not vim.tbl_isempty(vtext) then
           vim.api.nvim_buf_set_extmark(self.bufnr, ns, cur[1] - 1, 0, {
-            virt_text = { { schema.desc, "Comment" } },
+            virt_text = vtext,
           })
         end
         local completion_schema = schema.subtype and schema.subtype or schema
-        local choices = completion_schema.type == "boolean" and { "true", "false" }
+        local choices = (completion_schema.type == "boolean" and { "true", "false" })
+          or (completion_schema.type == "namedEnum" and vim.tbl_keys(completion_schema.choices))
           or completion_schema.choices
         vim.api.nvim_buf_set_var(0, "overseer_choices", choices)
       end

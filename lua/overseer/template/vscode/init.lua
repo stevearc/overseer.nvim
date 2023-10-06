@@ -19,17 +19,31 @@ local function extract_params(params, str, inputs)
     if schema then
       if schema.type == "pickString" then
         local choices = {}
+        local paramType = nil
         for _, v in ipairs(schema.options) do
+          local choiceType
           if type(v) == "table" then
-            table.insert(choices, v.value)
+            choiceType = "namedEnum"
+            -- NOTE: There is an assumption that labels are unique
+            -- VSCode does not seem to require that, but it's too much of a hassle to deal with it
+            choices[v.label] = v.value
           else
+            choiceType = "enum"
             table.insert(choices, v)
           end
+
+          if paramType == nil or choiceType == paramType then
+            paramType = choiceType
+          else
+            log.error("VS Code task input %s mixes labeled and unlabeled options", name)
+            break
+          end
         end
+
         params[name] = {
           desc = schema.desc,
           default = schema.default,
-          type = "enum",
+          type = paramType,
           choices = choices,
         }
       elseif schema.type == "promptString" then
