@@ -102,10 +102,7 @@ M.render_value = function(schema, value)
         break
       end
     end
-    if label ~= nil then
-      return label .. " (value: " .. value .. ")"
-    end
-    return value
+    return label or value
   elseif type(value) == "table" then
     local rendered_values = {}
     for _, v in ipairs(value) do
