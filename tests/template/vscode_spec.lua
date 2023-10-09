@@ -1,10 +1,10 @@
 require("plenary.async").tests.add_to_env()
-local overseer = require("overseer")
 local constants = require("overseer.constants")
 local files = require("overseer.files")
+local overseer = require("overseer")
 local parser = require("overseer.parser")
-local vscode = require("overseer.template.vscode")
 local problem_matcher = require("overseer.template.vscode.problem_matcher")
+local vscode = require("overseer.template.vscode")
 
 describe("vscode", function()
   it("parses process command and args", function()

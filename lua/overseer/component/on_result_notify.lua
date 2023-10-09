@@ -1,5 +1,5 @@
-local constants = require("overseer.constants")
 local Notifier = require("overseer.notifier")
+local constants = require("overseer.constants")
 local util = require("overseer.util")
 local STATUS = constants.STATUS
 

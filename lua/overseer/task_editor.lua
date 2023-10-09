@@ -1,8 +1,8 @@
+local Task = require("overseer.task")
 local binding_util = require("overseer.binding_util")
 local component = require("overseer.component")
 local config = require("overseer.config")
 local form_utils = require("overseer.form.utils")
-local Task = require("overseer.task")
 local util = require("overseer.util")
 local M = {}
 

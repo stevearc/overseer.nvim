@@ -1,6 +1,6 @@
+local config = require("overseer.config")
 local layout = require("overseer.layout")
 local util = require("overseer.util")
-local config = require("overseer.config")
 local M = {}
 
 M.create_plug_bindings = function(bufnr, plug_bindings, ...)

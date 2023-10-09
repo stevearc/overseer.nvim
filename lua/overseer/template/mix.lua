@@ -1,5 +1,5 @@
-local overseer = require("overseer")
 local log = require("overseer.log")
+local overseer = require("overseer")
 
 ---@type overseer.TemplateFileDefinition
 local tmpl = {

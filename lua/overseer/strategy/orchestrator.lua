@@ -1,8 +1,8 @@
 -- This is a run strategy for "meta" tasks. This task itself will not perform
 -- any jobs, but will instead wrap and manage a collection of other tasks.
+local Task = require("overseer.task")
 local constants = require("overseer.constants")
 local log = require("overseer.log")
-local Task = require("overseer.task")
 local task_list = require("overseer.task_list")
 local template = require("overseer.template")
 local util = require("overseer.util")

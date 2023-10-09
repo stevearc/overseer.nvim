@@ -1,6 +1,6 @@
 local action_util = require("overseer.action_util")
-local bindings = require("overseer.task_list.bindings")
 local binding_util = require("overseer.binding_util")
+local bindings = require("overseer.task_list.bindings")
 local config = require("overseer.config")
 local layout = require("overseer.layout")
 local task_list = require("overseer.task_list")

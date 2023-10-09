@@ -1,5 +1,5 @@
-local parser_lib = require("overseer.parser.lib")
 local log = require("overseer.log")
+local parser_lib = require("overseer.parser.lib")
 local variables = require("overseer.template.vscode.variables")
 local M = {}
 

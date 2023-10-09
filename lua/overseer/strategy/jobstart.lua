@@ -1,5 +1,5 @@
-local log = require("overseer.log")
 local jobs = require("overseer.strategy._jobs")
+local log = require("overseer.log")
 local util = require("overseer.util")
 
 ---@class overseer.JobstartStrategy : overseer.Strategy

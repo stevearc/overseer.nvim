@@ -3,8 +3,8 @@ local constants = require("overseer.constants")
 local form = require("overseer.form")
 local layout = require("overseer.layout")
 local task_bundle = require("overseer.task_bundle")
-local task_list = require("overseer.task_list")
 local task_editor = require("overseer.task_editor")
+local task_list = require("overseer.task_list")
 local util = require("overseer.util")
 local STATUS = constants.STATUS
 

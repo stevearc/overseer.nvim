@@ -1,9 +1,9 @@
 local component = require("overseer.component")
 local config = require("overseer.config")
 local files = require("overseer.files")
+local form = require("overseer.form")
 local form_utils = require("overseer.form.utils")
 local log = require("overseer.log")
-local form = require("overseer.form")
 local util = require("overseer.util")
 local M = {}
 

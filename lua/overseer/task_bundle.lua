@@ -1,8 +1,8 @@
+local Task = require("overseer.task")
 local config = require("overseer.config")
 local confirm = require("overseer.confirm")
 local files = require("overseer.files")
 local log = require("overseer.log")
-local Task = require("overseer.task")
 local task_list = require("overseer.task_list")
 local M = {}
 
