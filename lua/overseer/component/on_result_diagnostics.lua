@@ -1,5 +1,16 @@
 local util = require("overseer.util")
 
+local type_to_severity = {
+  e = vim.diagnostic.severity.ERROR,
+  E = vim.diagnostic.severity.ERROR,
+  w = vim.diagnostic.severity.WARN,
+  W = vim.diagnostic.severity.WARN,
+  n = vim.diagnostic.severity.INFO,
+  N = vim.diagnostic.severity.INFO,
+  i = vim.diagnostic.severity.INFO,
+  I = vim.diagnostic.severity.INFO,
+}
+
 -- Looks for a result value of 'diagnostics' that is a list of quickfix items
 ---@type overseer.ComponentFileDefinition
 local comp = {
@@ -55,8 +66,7 @@ local comp = {
           for _, item in ipairs(items) do
             table.insert(diagnostics, {
               message = item.text,
-              severity = item.type == "W" and vim.diagnostic.severity.WARN
-                or vim.diagnostic.severity.ERROR,
+              severity = type_to_severity[item.type] or vim.diagnostic.severity.ERROR,
               lnum = (item.lnum or 1) - 1,
               end_lnum = item.end_lnum and (item.end_lnum - 1),
               col = item.col or 0,
