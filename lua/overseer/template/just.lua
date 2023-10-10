@@ -7,7 +7,7 @@ local function get_justfile(opts)
     name = name:lower()
     return name == "justfile" or name == ".justfile"
   end
-  return vim.fs.find(is_justfile, { upward = true, type = "file", path = opts.dir })[1]
+  return vim.fs.find(is_justfile, { upward = true, path = opts.dir })[1]
 end
 
 ---@type overseer.TemplateFileProvider
