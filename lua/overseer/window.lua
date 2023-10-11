@@ -151,6 +151,10 @@ M.close = function()
     if winid == vim.api.nvim_get_current_win() then
       vim.cmd.wincmd({ args = { "p" } })
     end
+    -- The sidebar is the last open window. Open a new window.
+    if winid == vim.api.nvim_get_current_win() then
+      vim.cmd.new()
+    end
     vim.api.nvim_win_close(winid, false)
   end
 end
