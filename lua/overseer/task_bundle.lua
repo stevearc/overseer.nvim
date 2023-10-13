@@ -197,7 +197,7 @@ M.save_task_bundle = function(name, tasks, opts)
       prompt = "Task bundle name:",
       completion = "customlist,overseer#task_bundle_completelist",
     }, function(selected)
-      if selected then
+      if selected and selected ~= "" then
         M.save_task_bundle(selected, tasks)
       end
     end)
