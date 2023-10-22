@@ -145,6 +145,18 @@ M.toggle = function(opts)
   end
 end
 
+---@param winid integer
+---@return boolean
+local function is_overseer_window(winid)
+  local bufnr = vim.api.nvim_win_get_buf(winid)
+  if vim.bo[bufnr].filetype == "OverseerList" then
+    return true
+  elseif vim.b[bufnr].overseer_task then
+    return true
+  end
+  return false
+end
+
 M.close = function()
   local winid = M.get_win_id()
   if winid then
@@ -152,7 +164,9 @@ M.close = function()
       vim.cmd.wincmd({ args = { "p" } })
     end
     -- The sidebar is the last open window. Open a new window.
-    if winid == vim.api.nvim_get_current_win() then
+    local winids = vim.api.nvim_tabpage_list_wins(0)
+    local overseer_wins = vim.tbl_filter(is_overseer_window, winids)
+    if #winids == #overseer_wins then
       vim.cmd.new()
     end
     vim.api.nvim_win_close(winid, false)

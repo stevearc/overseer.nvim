@@ -227,6 +227,7 @@ function Sidebar:update_preview()
   if not display_buf or not vim.api.nvim_buf_is_valid(display_buf) then
     display_buf = vim.api.nvim_create_buf(false, true)
     vim.bo[display_buf].bufhidden = "wipe"
+    vim.b[display_buf].overseer_task = -1
     vim.api.nvim_buf_set_lines(display_buf, 0, -1, true, { "--no task buffer--" })
     if task then
       -- The task hasn't started yet and doesn't have a buffer.
