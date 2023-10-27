@@ -58,7 +58,7 @@ return {
     end
 
     for s in vim.gsplit(data, "\n", { plain = true }) do
-      local _, _, task_name = string.find(s, "^%[tasks%.(%a+)%]$")
+      local _, _, task_name = string.find(s, "^%[tasks%.(.+)%]$")
       if task_name ~= nil then
         table.insert(
           ret,
