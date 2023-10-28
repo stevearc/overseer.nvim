@@ -64,7 +64,7 @@ return {
         return false, "No package.json file found"
       end
       local package_manager = pick_package_manager(opts)
-      if not vim.fn.executable(package_manager) then
+      if vim.fn.executable(package_manager) == 0 then
         return false, string.format("Could not find command '%s'", package_manager)
       end
       return true
