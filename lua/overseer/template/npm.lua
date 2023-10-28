@@ -82,7 +82,7 @@ return {
           overseer.wrap_template(
             tmpl,
             { name = string.format("%s %s", bin, k) },
-            { args = { "run", k }, bin = bin }
+            { args = { "run", k }, bin = bin, cwd = vim.fs.dirname(package) }
           )
         )
       end
