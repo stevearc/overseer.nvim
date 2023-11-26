@@ -734,6 +734,8 @@ on_result_diagnostics_quickfix                    *on_result_diagnostics_quickfi
                     diagnostics (default `false`)
       {set_empty_results} `boolean` If true, overwrite the current quickfix even
                     if there are no diagnostics (default `false`)
+      {keep_focus}  `boolean` If true, keep the current window focused when
+                    opening the quickfix (default false)
       {use_loclist} `boolean` If true, use the loclist instead of quickfix
                     (default `false`)
 

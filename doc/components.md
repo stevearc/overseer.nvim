@@ -171,6 +171,7 @@ If task result contains diagnostics, add them to the quickfix
 | close             | `boolean` | `false` | If true, close the quickfix when there are no diagnostics                |
 | open              | `boolean` | `false` | If true, open the quickfix when there are diagnostics                    |
 | set_empty_results | `boolean` | `false` | If true, overwrite the current quickfix even if there are no diagnostics |
+| keep_focus        | `boolean` | `false` | If true, keep the current window focused when opening the quickfix       |
 | use_loclist       | `boolean` | `false` | If true, use the loclist instead of quickfix                             |
 
 ## on_result_notify
