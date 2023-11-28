@@ -470,6 +470,7 @@ M.run_action = lazy("action_util", "run_task_action")
 ---   }
 --- }
 --- local template_provider = {
+---   name = "Some provider",
 ---   generator = function(opts, cb)
 ---     cb({
 ---       overseer.wrap_template(tmpl, nil, { args = { 'all' } }),

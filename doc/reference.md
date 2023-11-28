@@ -594,6 +594,7 @@ local tmpl = {
   }
 }
 local template_provider = {
+  name = "Some provider",
   generator = function(opts, cb)
     cb({
       overseer.wrap_template(tmpl, nil, { args = { 'all' } }),
