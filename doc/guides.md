@@ -114,8 +114,6 @@ Providers are created the same way templates are (with `overseer.register_templa
 
 ```lua
 {
-  -- Name of the provider
-  name = "Some provider",
   generator = function(search, cb)
     -- Pass a list of templates to the callback
     -- See the built-in providers for make or npm for an example
