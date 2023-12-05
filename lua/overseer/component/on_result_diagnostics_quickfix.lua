@@ -23,11 +23,6 @@ local comp = {
       type = "boolean",
       default = false,
     },
-    keep_focus = {
-      desc = "If true, keep the current window focused when opening the quickfix",
-      type = "boolean",
-      default = false,
-    },
   },
   constructor = function(params)
     return {
@@ -73,9 +68,7 @@ local comp = {
         elseif params.open then
           local winid = vim.api.nvim_get_current_win()
           vim.cmd(conf.open_cmd)
-          if params.keep_focus then
-            vim.api.nvim_set_current_win(winid)
-          end
+          vim.api.nvim_set_current_win(winid)
         end
       end,
     }
