@@ -66,7 +66,9 @@ local comp = {
             vim.cmd(conf.close_cmd)
           end
         elseif params.open then
+          local winid = vim.api.nvim_get_current_win()
           vim.cmd(conf.open_cmd)
+          vim.api.nvim_set_current_win(winid)
         end
       end,
     }
