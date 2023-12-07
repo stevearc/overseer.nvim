@@ -14,25 +14,11 @@ local tmpl = {
   params = {
     args = { optional = true, type = "list", delimiter = " " },
     cwd = { optional = true },
-    use_yarn = {
-      deprecated = true,
-      desc = "DEPRECATED: use 'bin' instead",
-      optional = true,
-      type = "boolean",
-    },
     bin = { optional = true, type = "string" },
   },
   builder = function(params)
-    if params.use_yarn ~= nil then
-      vim.notify_once(
-        "[DEPRECATED] overseer npm template parameter 'use_yarn' has been deprecated in favor of 'bin'\nThis shim will be removed on 2023-06-01",
-        vim.log.levels.WARN
-      )
-    end
-    local fallback = params.use_yarn and "yarn" or "npm"
-    local bin = params.bin or fallback
     return {
-      cmd = { bin },
+      cmd = { params.bin },
       args = params.args,
       cwd = params.cwd,
     }
