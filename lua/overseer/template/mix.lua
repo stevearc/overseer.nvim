@@ -40,12 +40,15 @@ return {
     end,
   },
   generator = function(opts, cb)
+    -- mix will not return all the tasks unless you invoke it in the  mix.exs folder
+    local mix_folder =
+      vim.fs.dirname(vim.fs.find("mix.exs", { upward = true, type = "file", path = opts.dir })[1])
     local ret = {}
     local jid = vim.fn.jobstart({
       "mix",
       "help",
     }, {
-      cwd = opts.dir,
+      cwd = mix_folder,
       stdout_buffered = true,
       on_stdout = vim.schedule_wrap(function(j, output)
         for _, line in ipairs(output) do
