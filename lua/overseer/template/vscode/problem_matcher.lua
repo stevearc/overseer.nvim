@@ -401,7 +401,7 @@ local function convert_pattern(pattern, opts)
       if not item.type then
         item.type = opts.qf_type
       end
-      if full_line_key then
+      if full_line_key and not ctx.default_values[full_line_key] then
         item[full_line_key] = ctx.line
       end
       if opts.file_convert and item.filename then
