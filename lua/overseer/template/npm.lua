@@ -26,12 +26,48 @@ local tmpl = {
 }
 
 ---@param opts overseer.SearchParams
-local function get_package_file(opts)
-  return vim.fs.find("package.json", { upward = true, type = "file", path = opts.dir })[1]
+local function get_candidate_package_files(opts)
+  -- Some projects have package.json files in subfolders, which are not the main project package.json file,
+  -- but rather some submodule marker. This seems prevalent in react-native projects. See this for instance:
+  -- https://stackoverflow.com/questions/51701191/react-native-has-something-to-use-local-folders-as-package-name-what-is-it-ca
+  -- To cover that case, we search for package.json files starting from the current file folder, up to the
+  -- working directory
+  local matches = vim.fs.find("package.json", {
+    upward = true,
+    type = "file",
+    path = opts.dir,
+    stop = vim.fn.getcwd() .. "/..",
+    limit = math.huge,
+  })
+  if #matches > 0 then
+    return matches
+  end
+  -- we couldn't find any match up to the working directory.
+  -- let's now search for any possible single match without
+  -- limiting ourselves to the working directory.
+  return vim.fs.find("package.json", {
+    upward = true,
+    type = "file",
+    path = vim.fn.getcwd(),
+  })
 end
 
-local function pick_package_manager(opts)
-  local package_dir = vim.fs.dirname(get_package_file(opts))
+---@param opts overseer.SearchParams
+---@return string|nil
+local function get_package_file(opts)
+  local candidate_packages = get_candidate_package_files(opts)
+  -- go through candidate package files from closest to the file to least close
+  for _, package in ipairs(candidate_packages) do
+    local data = files.load_json_file(package)
+    if data.scripts or data.workspaces then
+      return package
+    end
+  end
+  return nil
+end
+
+local function pick_package_manager(package_file)
+  local package_dir = vim.fs.dirname(package_file)
   for mgr, lockfile in pairs(lockfiles) do
     if files.exists(files.join(package_dir, lockfile)) then
       return mgr
@@ -46,10 +82,11 @@ return {
   end,
   condition = {
     callback = function(opts)
-      if not get_package_file(opts) then
+      local package_file = get_package_file(opts)
+      if not package_file then
         return false, "No package.json file found"
       end
-      local package_manager = pick_package_manager(opts)
+      local package_manager = pick_package_manager(package_file)
       if vim.fn.executable(package_manager) == 0 then
         return false, string.format("Could not find command '%s'", package_manager)
       end
@@ -58,7 +95,11 @@ return {
   },
   generator = function(opts, cb)
     local package = get_package_file(opts)
-    local bin = pick_package_manager(opts)
+    if not package then
+      cb({})
+      return
+    end
+    local bin = pick_package_manager(package)
     local data = files.load_json_file(package)
     local ret = {}
     if data.scripts then
