@@ -626,9 +626,8 @@ end
 ---@param bufnr nil|integer
 ---@param callback fun()
 M.run_in_fullscreen_win = function(bufnr, callback)
-  if not bufnr then
-    bufnr = vim.api.nvim_create_buf(false, true)
-    vim.api.nvim_buf_set_option(bufnr, "bufhidden", "wipe")
+  if not bufnr or bufnr == 0 then
+    bufnr = vim.api.nvim_get_current_buf()
   end
   local winid = vim.api.nvim_open_win(bufnr, false, {
     relative = "editor",
