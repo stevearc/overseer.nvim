@@ -244,6 +244,8 @@ require("overseer").setup({
     save_task_opts = {
       bundleable = true,
     },
+    -- Autostart tasks when they are loaded from a bundle
+    autostart_on_load = true,
   },
   -- A list of components to preload on setup.
   -- Only matters if you want them to show up in the task editor.
