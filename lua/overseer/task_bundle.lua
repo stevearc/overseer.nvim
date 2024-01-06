@@ -73,14 +73,14 @@ end
 ---@param name nil|string
 ---@param opts nil|table
 ---    ignore_missing nil|boolean When true, don't notify if bundle doesn't exist
----    autostart nil|boolean When true, start the tasks after loading (default true)
+---    autostart nil|boolean When true, start the tasks after loading (default to config.bundles.autostart_on_load)
 M.load_task_bundle = function(name, opts)
   vim.validate({
     name = { name, "s", true },
     opts = { opts, "t", true },
   })
   opts = vim.tbl_deep_extend("keep", opts or {}, {
-    autostart = true,
+    autostart = config.bundles.autostart_on_load,
   })
   if name then
     local filepath = files.join(get_bundle_dir(), string.format("%s.bundle.json", name))

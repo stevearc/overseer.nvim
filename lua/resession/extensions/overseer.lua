@@ -20,9 +20,12 @@ end
 
 M.on_load = function(data)
   local overseer = require("overseer")
+  local config = require("overseer.config")
   for _, params in ipairs(data) do
     local task = overseer.new_task(params)
-    task:start()
+    if config.bundles.autostart_on_load then
+      task:start()
+    end
   end
 end
 
