@@ -52,16 +52,14 @@ local clear_cache_autocmd
 
 local hooks = {}
 
----@param condition? overseer.SearchCondition
----@param tags? string[]
----@param search overseer.SearchParams
----@param match_tags boolean
----@return boolean
----@return nil|string
+---@param condition? overseer.SearchCondition Template conditions
+---@param tags? string[] Template tags
+---@param search overseer.SearchParams Search parameters
+---@param match_tags boolean Require that tags match
+---@return boolean match
+---@return nil|string reason
 local function condition_matches(condition, tags, search, match_tags)
-  if not condition then
-    return true
-  end
+  condition = condition or {}
   if condition.filetype then
     local search_fts = vim.split(search.filetype, ".", { plain = true })
     local any_ft_match = false
