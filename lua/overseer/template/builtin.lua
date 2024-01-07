@@ -6,6 +6,7 @@ return {
   "shell",
   "tox",
   "vscode",
+  "mage",
   "mix",
   "deno",
   "rake",

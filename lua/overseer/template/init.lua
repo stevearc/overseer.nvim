@@ -408,6 +408,10 @@ M.list = function(opts, cb)
       callback = function(params)
         local filename = vim.api.nvim_buf_get_name(params.buf)
         cached_provider_results[filename] = nil
+
+        -- Also clear the cache of the parent directory
+        local dirname = vim.fs.dirname(filename)
+        cached_provider_results[dirname] = nil
       end,
     })
   end
