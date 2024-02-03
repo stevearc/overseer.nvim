@@ -382,7 +382,7 @@ Supported features:
 - [Built-in library](parsers.md#built-in-problem-matchers) of problem matchers and patterns (e.g. `$tsc` and `$jshint-stylish`)
 - [Compound tasks](https://code.visualstudio.com/docs/editor/tasks#_compound-tasks) (including `dependsOrder = sequence`)
 - [Background tasks](https://code.visualstudio.com/docs/editor/tasks#_background-watching-tasks)
-- `group` (sets template tag; supports `BUILD`, `TEST`, and `CLEAN`) and `isDefault` (sets priority)
+- `group` (sets template tag; supports `BUILD`, `RUN`, `TEST`, and `CLEAN`) and `isDefault` (sets priority)
 - [Operating system specific properties](https://code.visualstudio.com/docs/editor/tasks#_operating-system-specific-properties)
 - Integration with [launch.json](https://code.visualstudio.com/docs/editor/debugging#_launchjson-attributes) (see [DAP](third_party.md#dap))
 

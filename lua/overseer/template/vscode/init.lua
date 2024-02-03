@@ -91,8 +91,9 @@ local function parse_params(defn)
 end
 
 local group_to_tag = {
-  test = constants.TAG.TEST,
   build = constants.TAG.BUILD,
+  run = constants.TAG.RUN,
+  test = constants.TAG.TEST,
   clean = constants.TAG.CLEAN,
 }
 
