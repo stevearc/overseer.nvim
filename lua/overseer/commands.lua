@@ -401,8 +401,10 @@ M.info = function(callback)
       providers = {},
     },
   }
-  local log_levels = vim.deepcopy(vim.log.levels)
-  vim.tbl_add_reverse_lookup(log_levels)
+  local levels_reverse = {}
+  for k, v in pairs(vim.log.levels) do
+    levels_reverse[v] = k
+  end
   for _, log_conf in ipairs(config.log) do
     if log_conf.type == "file" then
       local ok, stdpath = pcall(vim.fn.stdpath, "log")
@@ -411,7 +413,7 @@ M.info = function(callback)
       end
       info.log = {
         file = files.join(stdpath, log_conf.filename),
-        level = log_levels[log_conf.level],
+        level = levels_reverse[log_conf.level],
       }
       break
     end

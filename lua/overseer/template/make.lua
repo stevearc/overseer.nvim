@@ -40,17 +40,18 @@ local function ts_parse_make_targets(parser, bufnr, cwd)
     query = vim.treesitter.parse_query("make", make_targets)
   end
   local root = parser:parse()[1]:root()
-  pcall(vim.tbl_add_reverse_lookup, query.captures)
+  local captures = {}
+  for k, v in pairs(query.captures) do
+    captures[v] = k
+  end
   local targets = {}
   local default_target
   ---@diagnostic disable-next-line: missing-parameter
   for _, match in query:iter_matches(root, bufnr) do
-    ---@diagnostic disable-next-line: undefined-field
-    local name = vim.treesitter.get_node_text(match[query.captures.name], bufnr)
+    local name = vim.treesitter.get_node_text(match[captures.name], bufnr)
     if name ~= ".PHONY" then
       targets[name] = true
-      ---@diagnostic disable-next-line: undefined-field
-      if not default_target and not match[query.captures.phony] then
+      if not default_target and not match[captures.phony] then
         default_target = name
       end
     end

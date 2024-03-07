@@ -1,8 +1,10 @@
 local files = require("overseer.files")
 local LogHandler = {}
 
-local levels = vim.deepcopy(vim.log.levels)
-vim.tbl_add_reverse_lookup(levels)
+local levels_reverse = {}
+for k, v in pairs(vim.log.levels) do
+  levels_reverse[v] = k
+end
 
 function LogHandler.new(opts)
   vim.validate({
@@ -38,7 +40,7 @@ local function default_formatter(level, msg, ...)
   end
   local ok, text = pcall(string.format, msg, vim.F.unpack_len(args))
   if ok then
-    local str_level = levels[level]
+    local str_level = levels_reverse[level]
     return string.format("[%s] %s", str_level, text)
   else
     return string.format("[ERROR] error formatting log line: '%s' args %s", msg, vim.inspect(args))
