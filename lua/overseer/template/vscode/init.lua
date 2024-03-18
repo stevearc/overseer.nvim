@@ -246,6 +246,9 @@ local function convert_vscode_task(defn, precalculated_vars)
     )
     return nil
   end
+  if defn.hide then
+    tmpl.hide = true
+  end
 
   -- NOTE: we ignore defn.presentation
   -- NOTE: we intentionally do nothing with defn.runOptions.

@@ -314,6 +314,7 @@ M.run_template = function(opts, callback)
       elseif #templates == 1 or opts.first then
         handle_tmpl(templates[1])
       else
+        templates = vim.tbl_filter(function(tmpl) return not tmpl.hide end, templates)
         vim.ui.select(templates, {
           prompt = "Task template:",
           kind = "overseer_template",
