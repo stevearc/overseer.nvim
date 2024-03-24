@@ -25,6 +25,7 @@ local M = {}
 ---@field priority? number
 ---@field condition? overseer.SearchCondition
 ---@field builder fun(params: table): overseer.TaskDefinition
+---@field hide? boolean Hide from the template list
 
 ---@class overseer.TemplateDefinition : overseer.TemplateFileDefinition
 ---@field name string
