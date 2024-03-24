@@ -309,7 +309,10 @@ M.run_template = function(opts, callback)
     template.get_by_name(opts.name, search_opts, handle_tmpl)
   else
     template.list(search_opts, function(templates)
-      templates = vim.tbl_filter(function(tmpl) return not tmpl.hide end, templates)
+      templates = vim.tbl_filter(function(tmpl)
+        return not tmpl.hide
+      end, templates)
+
       if #templates == 0 then
         log:error("Could not find any matching task templates for opts %s", opts)
       elseif #templates == 1 or opts.first then
