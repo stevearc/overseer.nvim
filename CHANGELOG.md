@@ -1,5 +1,25 @@
 # Changelog
 
+## [1.4.0](https://github.com/stevearc/overseer.nvim/compare/v1.3.1...v1.4.0) (2024-03-24)
+
+
+### Features
+
+* add a new "run" tag to tasks ([#263](https://github.com/stevearc/overseer.nvim/issues/263)) ([792aeb6](https://github.com/stevearc/overseer.nvim/commit/792aeb6d834a11585ea5d667e3e3f05bc6aa4ecc))
+* add config option to disable autostart when loading tasks ([#245](https://github.com/stevearc/overseer.nvim/issues/245)) ([de07357](https://github.com/stevearc/overseer.nvim/commit/de0735710f386acccf4489b86f95d7956d1973ec))
+* add mage template provider ([#253](https://github.com/stevearc/overseer.nvim/issues/253)) ([68a2d34](https://github.com/stevearc/overseer.nvim/commit/68a2d344cea4a2e11acfb5690dc8ecd1a1ec0ce0))
+* support for vscode's "hide" option ([#272](https://github.com/stevearc/overseer.nvim/issues/272)) ([b04b0b1](https://github.com/stevearc/overseer.nvim/commit/b04b0b105c07b4f02b3073ea3a98d6eca90bf152))
+
+
+### Bug Fixes
+
+* eslint and jshint problem matcher patterns ([#260](https://github.com/stevearc/overseer.nvim/issues/260)) ([4855aef](https://github.com/stevearc/overseer.nvim/commit/4855aefcf335bbac71eea9c6a888958fb1ed1e1a))
+* if fetching task by tags, ignore tasks with no tags ([#252](https://github.com/stevearc/overseer.nvim/issues/252)) ([d3f9a02](https://github.com/stevearc/overseer.nvim/commit/d3f9a0205640bda1fb68b5011b427ec4e70f9616))
+* **npm:** smarter package.json file detection ([#250](https://github.com/stevearc/overseer.nvim/issues/250)) ([facb48f](https://github.com/stevearc/overseer.nvim/commit/facb48fbd768c47d75d8be9f44ec948bbe4a6064))
+* problem matcher uses message from non-loop pattern ([#247](https://github.com/stevearc/overseer.nvim/issues/247)) ([93cf38a](https://github.com/stevearc/overseer.nvim/commit/93cf38a3e9914a18a7cf6032c6a19f87a22db3c9))
+* remove calls to deprecated tbl_add_reverse_lookup ([b72f6d2](https://github.com/stevearc/overseer.nvim/commit/b72f6d23ce47ccd427be2341f389c63448278f17))
+* run_in_cwd runs in current buffer by default ([e532dbb](https://github.com/stevearc/overseer.nvim/commit/e532dbbe0b3fe27eb485d3868c2afb552449f232))
+
 ## [1.3.1](https://github.com/stevearc/overseer.nvim/compare/v1.3.0...v1.3.1) (2023-12-23)
 
 
