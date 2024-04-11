@@ -51,7 +51,7 @@ local default_icons = {
   [STATUS.FAILURE] = "󰅚 ",
   [STATUS.CANCELED] = " ",
   [STATUS.SUCCESS] = "󰄴 ",
-  [STATUS.RUNNING] = "󰑮",
+  [STATUS.RUNNING] = "󰑮 ",
 }
 local default_no_icons = {
   [STATUS.FAILURE] = "F:",
