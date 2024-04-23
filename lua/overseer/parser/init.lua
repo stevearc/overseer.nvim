@@ -1,6 +1,7 @@
 -- Utilities for parsing lines of output
 local Enum = require("overseer.enum")
 local util = require("overseer.util")
+local islist = vim.islist or vim.tbl_islist
 local M = {}
 
 local debug = false
@@ -278,7 +279,7 @@ M.new = function(config)
   vim.validate({
     config = { config, "t" },
   })
-  if vim.tbl_islist(config) or M.util.is_parser(config) then
+  if islist(config) or M.util.is_parser(config) then
     return ListParser.new(config)
   else
     return MapParser.new(config)

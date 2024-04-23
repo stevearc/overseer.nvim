@@ -5,6 +5,7 @@ local form = require("overseer.form")
 local form_utils = require("overseer.form.utils")
 local log = require("overseer.log")
 local util = require("overseer.util")
+local islist = vim.islist or vim.tbl_islist
 local M = {}
 
 ---@class overseer.TemplateFileProvider
@@ -145,7 +146,7 @@ M.load_template = function(name)
   end
   -- If this module was just a list of names, then it's an alias for a
   -- collection of templates
-  if vim.tbl_islist(defn) then
+  if islist(defn) then
     for _, v in ipairs(defn) do
       M.load_template(v)
     end

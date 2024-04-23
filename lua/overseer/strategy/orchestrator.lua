@@ -7,6 +7,7 @@ local task_list = require("overseer.task_list")
 local template = require("overseer.template")
 local util = require("overseer.util")
 local STATUS = constants.STATUS
+local islist = vim.islist or vim.tbl_islist
 
 ---@param tasks table
 ---@param cb fun(task: overseer.Task)
@@ -57,7 +58,7 @@ function OrchestratorStrategy.new(opts)
   -- Convert it to each entry being a list of task definitions.
   local task_defns = {}
   for i, v in ipairs(opts.tasks) do
-    if type(v) == "table" and vim.tbl_islist(v) then
+    if type(v) == "table" and islist(v) then
       task_defns[i] = v
     else
       task_defns[i] = { v }

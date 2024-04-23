@@ -1,4 +1,5 @@
 local util = require("overseer.util")
+local islist = vim.islist or vim.tbl_islist
 local M = {}
 
 M.append_item = function(append, line, ctx)
@@ -52,13 +53,13 @@ M.is_parser = function(data)
   if type(data) ~= "table" then
     return false
   end
-  return data.ingest or (vim.tbl_islist(data) and type(data[1]) == "string")
+  return data.ingest or (islist(data) and type(data[1]) == "string")
 end
 
 ---@param list any
 ---@return boolean
 M.tbl_is_parser_list = function(list)
-  if not vim.tbl_islist(list) then
+  if not islist(list) then
     return false
   end
   return util.list_all(list, M.is_parser)

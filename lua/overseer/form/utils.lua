@@ -2,6 +2,7 @@ local config = require("overseer.config")
 local layout = require("overseer.layout")
 local log = require("overseer.log")
 local util = require("overseer.util")
+local islist = vim.islist or vim.tbl_islist
 local M = {}
 
 ---@alias overseer.Param overseer.StringParam|overseer.BoolParam|overseer.NumberParam|overseer.IntParam|overseer.ListParam|overseer.EnumParam|overseer.NamedEnumParam|overseer.OpaqueParam
@@ -137,7 +138,7 @@ local function validate_type(schema, value)
   elseif ptype == "namedEnum" then
     return vim.tbl_contains(vim.tbl_values(schema.choices), value)
   elseif ptype == "list" then
-    return type(value) == "table" and vim.tbl_islist(value)
+    return type(value) == "table" and islist(value)
   elseif ptype == "number" then
     return type(value) == "number"
   elseif ptype == "integer" then

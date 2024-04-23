@@ -1,6 +1,7 @@
 local log = require("overseer.log")
 local parser_lib = require("overseer.parser.lib")
 local variables = require("overseer.template.vscode.variables")
+local islist = vim.islist or vim.tbl_islist
 local M = {}
 
 -- Taken from https://github.com/microsoft/vscode/blob/main/src/vs/workbench/contrib/tasks/common/problemMatcher.ts#L1207
@@ -429,7 +430,7 @@ M.resolve_problem_matcher = function(problem_matcher)
       log:error("Could not find problem matcher '%s'", problem_matcher)
     end
     return M.resolve_problem_matcher(pm)
-  elseif vim.tbl_islist(problem_matcher) then
+  elseif islist(problem_matcher) then
     local children = {}
     for _, v in ipairs(problem_matcher) do
       local pm = M.resolve_problem_matcher(v)
@@ -515,7 +516,7 @@ M.get_parser_from_problem_matcher = function(problem_matcher, precalculated_vars
   if not problem_matcher then
     return nil
   end
-  if vim.tbl_islist(problem_matcher) then
+  if islist(problem_matcher) then
     local background
     local children = {}
     for _, v in ipairs(problem_matcher) do
@@ -551,7 +552,7 @@ M.get_parser_from_problem_matcher = function(problem_matcher, precalculated_vars
     end
   end
 
-  if vim.tbl_islist(pattern) then
+  if islist(pattern) then
     ret = { "sequence" }
     for i, v in ipairs(pattern) do
       local append = i == #pattern
