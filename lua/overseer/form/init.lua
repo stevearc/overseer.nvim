@@ -271,7 +271,8 @@ function Builder:render()
     end
   end
   if self.cur_line and vim.api.nvim_get_mode().mode == "i" then
-    local lnum, line = unpack(self.cur_line)
+    local lnum = self.cur_line[1]
+    local line = self.cur_line[2]
     lines[lnum] = line
   end
   vim.api.nvim_buf_set_lines(self.bufnr, 0, -1, true, lines)
