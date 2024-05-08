@@ -17,7 +17,7 @@
 ---@field default_template_prompt? "always"|"missing"|"allow"|"avoid"|"never"
 ---@field template_timeout? integer
 ---@field template_cache_threshold? integer
----@field log table[]
+---@field log? table[]
 
 ---@class overseer.ConfigTaskList
 ---@field default_detail? 1|2|3
