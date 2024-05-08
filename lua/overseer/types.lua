@@ -10,10 +10,13 @@
 ---@field task_editor? table
 ---@field confirm? overseer.ConfigFloatWin
 ---@field task_win? overseer.ConfigTaskWin
+---@field help_win? overseer.ConfigFloatWin
 ---@field component_aliases? table<string, overseer.Serialized[]>
----@field pre_task_hook? fun(task_defn: overseer.TaskDefinition, util: overseer.TaskUtil)
+---@field bundles? overseer.ConfigBundles
 ---@field preload_components? string[]
----@field default_template_prompt "always"|"missing"|"allow"|"never"
+---@field default_template_prompt? "always"|"missing"|"allow"|"avoid"|"never"
+---@field template_timeout? integer
+---@field template_cache_threshold? integer
 ---@field log table[]
 
 ---@class overseer.ConfigTaskList
@@ -41,5 +44,9 @@
 ---@field border? string|table
 ---@field padding? integer
 ---@field win_opts? table<string, any>
+
+---@class overseer.ConfigBundles
+---@field save_task_opts? table TODO
+---@field autostart_on_load? boolean
 
 ---@alias overseer.Serialized string|table
