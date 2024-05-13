@@ -120,9 +120,11 @@ Providers are created the same way templates are (with `overseer.register_templa
     cb({...})
   end,
   -- Optional. Same as template.condition
-  condition = function(search)
-    return true
-  end,
+  condition = {
+    callback = function(search)
+      return true
+    end,
+  },
   -- Optional. Overrides the default cache key of `opts.dir`
   -- Additionally, if the returned value is an absolute file path,
   -- whenever that file is written overseer will automatically clear the cache
