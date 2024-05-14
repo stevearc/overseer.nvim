@@ -69,7 +69,7 @@ local default_config = {
     height = nil,
     -- Set any window options here (e.g. winhighlight)
     win_opts = {
-      winblend = 10,
+      winblend = 0,
     },
   },
   task_launcher = {
@@ -123,7 +123,7 @@ local default_config = {
     height = nil,
     -- Set any window options here (e.g. winhighlight)
     win_opts = {
-      winblend = 10,
+      winblend = 0,
     },
   },
   -- Configuration for task floating windows
@@ -133,7 +133,7 @@ local default_config = {
     border = "rounded",
     -- Set any window options here (e.g. winhighlight)
     win_opts = {
-      winblend = 10,
+      winblend = 0,
     },
   },
   -- Configuration for mapping help floating windows
