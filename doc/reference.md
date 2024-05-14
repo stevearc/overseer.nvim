@@ -149,7 +149,7 @@ require("overseer").setup({
     height = nil,
     -- Set any window options here (e.g. winhighlight)
     win_opts = {
-      winblend = 10,
+      winblend = 0,
     },
   },
   task_launcher = {
@@ -203,7 +203,7 @@ require("overseer").setup({
     height = nil,
     -- Set any window options here (e.g. winhighlight)
     win_opts = {
-      winblend = 10,
+      winblend = 0,
     },
   },
   -- Configuration for task floating windows
@@ -213,7 +213,7 @@ require("overseer").setup({
     border = "rounded",
     -- Set any window options here (e.g. winhighlight)
     win_opts = {
-      winblend = 10,
+      winblend = 0,
     },
   },
   -- Configuration for mapping help floating windows
