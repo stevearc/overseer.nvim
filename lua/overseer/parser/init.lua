@@ -1,6 +1,7 @@
 -- Utilities for parsing lines of output
 local Enum = require("overseer.enum")
 local util = require("overseer.util")
+---@diagnostic disable-next-line: deprecated
 local islist = vim.islist or vim.tbl_islist
 local M = {}
 

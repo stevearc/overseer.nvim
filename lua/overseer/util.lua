@@ -496,7 +496,7 @@ M.get_hl_foreground = function(group)
   if vim.fn.has("nvim-0.9") == 1 then
     return vim.api.nvim_get_hl(0, { name = group }).fg
   else
-    ---@diagnostic disable-next-line: undefined-field
+    ---@diagnostic disable-next-line: undefined-field, deprecated
     local ok, data = pcall(vim.api.nvim_get_hl_by_name, group, true)
     if ok then
       return data.foreground
@@ -672,7 +672,7 @@ end
 M.soft_delete_buf = function(bufnr)
   if bufnr and vim.api.nvim_buf_is_valid(bufnr) then
     if M.is_bufnr_visible(bufnr) then
-      vim.api.nvim_buf_set_option(bufnr, "bufhidden", "wipe")
+      vim.bo[bufnr].bufhidden = "wipe"
     else
       vim.api.nvim_buf_delete(bufnr, { force = true })
     end

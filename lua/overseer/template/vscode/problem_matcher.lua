@@ -1,6 +1,7 @@
 local log = require("overseer.log")
 local parser_lib = require("overseer.parser.lib")
 local variables = require("overseer.template.vscode.variables")
+---@diagnostic disable-next-line: deprecated
 local islist = vim.islist or vim.tbl_islist
 local M = {}
 

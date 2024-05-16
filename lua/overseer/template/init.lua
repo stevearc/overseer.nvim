@@ -5,6 +5,7 @@ local form = require("overseer.form")
 local form_utils = require("overseer.form.utils")
 local log = require("overseer.log")
 local util = require("overseer.util")
+---@diagnostic disable-next-line: deprecated
 local islist = vim.islist or vim.tbl_islist
 local M = {}
 

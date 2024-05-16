@@ -7,6 +7,7 @@ local task_list = require("overseer.task_list")
 local template = require("overseer.template")
 local util = require("overseer.util")
 local STATUS = constants.STATUS
+---@diagnostic disable-next-line: deprecated
 local islist = vim.islist or vim.tbl_islist
 
 ---@param tasks table
