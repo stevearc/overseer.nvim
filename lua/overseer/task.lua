@@ -42,15 +42,15 @@ Task.params = {
 }
 
 ---@class (exact) overseer.TaskDefinition
----@field cmd string|string[]
----@field args? string[]
----@field name? string
----@field cwd? string
----@field env? table<string, string>
----@field strategy? overseer.Serialized
----@field metadata? table
+---@field cmd string|string[] Command to run. If it's a string it is run in the shell; a table is run directly
+---@field args? string[] Arguments to pass to the command
+---@field name? string Name of the task. Defaults to the cmd
+---@field cwd? string Working directory to run in
+---@field env? table<string, string> Additional environment variables
+---@field strategy? overseer.Serialized Definition for a run Strategy
+---@field metadata? table Arbitrary metadata for your own use
 ---@field default_component_params? table<string, any> Default values for component params
----@field components? overseer.Serialized[]
+---@field components? overseer.Serialized[] List of components to attach. Defaults to `{"default"}`
 
 ---Create an uninitialized Task with no ID that will not be run
 ---This is used by the Task previewer (loading task bundles) so that we can use

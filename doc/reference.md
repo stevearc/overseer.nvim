@@ -361,7 +361,7 @@ Create a new Task
 |       | env                       | `nil\|table<string, string>` | Additional environment variables                                                 |
 |       | strategy                  | `nil\|overseer.Serialized`   | Definition for a run Strategy                                                    |
 |       | metadata                  | `nil\|table`                 | Arbitrary metadata for your own use                                              |
-|       | default_component_params  | `nil\|table`                 | Default values for component params                                              |
+|       | default_component_params  | `nil\|table<string, any>`    | Default values for component params                                              |
 |       | components                | `nil\|overseer.Serialized[]` | List of components to attach. Defaults to `{"default"}`                          |
 
 **Examples:**
@@ -379,11 +379,12 @@ task:start()
 `toggle(opts)` \
 Open or close the task list
 
-| Param | Type                       | Desc                   |                                                |
-| ----- | -------------------------- | ---------------------- | ---------------------------------------------- |
-| opts  | `overseer.WindowOpts\|nil` |                        |                                                |
-|       | enter                      | `boolean\|nil`         | If false, stay in current window. Default true |
-|       | direction                  | `nil\|"left"\|"right"` | Which direction to open the task list          |
+| Param | Type                       | Desc                             |                                                          |
+| ----- | -------------------------- | -------------------------------- | -------------------------------------------------------- |
+| opts  | `nil\|overseer.WindowOpts` |                                  |                                                          |
+|       | enter                      | `nil\|boolean`                   |                                                          |
+|       | direction                  | `nil\|"left"\|"right"\|"bottom"` |                                                          |
+|       | winid                      | `nil\|integer`                   | Use this existing window instead of opening a new window |
 
 ### open(opts)
 
@@ -392,7 +393,7 @@ Open the task list
 
 | Param | Type                       | Desc                   |                                                |
 | ----- | -------------------------- | ---------------------- | ---------------------------------------------- |
-| opts  | `overseer.WindowOpts\|nil` |                        |                                                |
+| opts  | `nil\|overseer.WindowOpts` |                        |                                                |
 |       | enter                      | `boolean\|nil`         | If false, stay in current window. Default true |
 |       | direction                  | `nil\|"left"\|"right"` | Which direction to open the task list          |
 
@@ -454,8 +455,8 @@ List all tasks
 
 | Param | Type                         | Desc                                      |                                                     |
 | ----- | ---------------------------- | ----------------------------------------- | --------------------------------------------------- |
-| opts  | `overseer.ListTaskOpts\|nil` |                                           |                                                     |
-|       | unique                       | `boolean\|nil`                            | Deduplicates non-running tasks by name              |
+| opts  | `nil\|overseer.ListTaskOpts` |                                           |                                                     |
+|       | unique                       | `nil\|boolean`                            | Deduplicates non-running tasks by name              |
 |       | name                         | `nil\|string\|string[]`                   | Only list tasks with this name or names             |
 |       | name_not                     | `nil\|boolean`                            | Invert the name search (tasks *without* that name)  |
 |       | status                       | `nil\|overseer.Status\|overseer.Status[]` | Only list tasks with this status or statuses        |
@@ -571,11 +572,20 @@ Run an action on a task
 `wrap_template(base, override, default_params): overseer.TemplateFileDefinition` \
 Create a new template by overriding fields on another
 
-| Param          | Type                              | Desc                                                  |
-| -------------- | --------------------------------- | ----------------------------------------------------- |
-| base           | `overseer.TemplateFileDefinition` | The base template definition to wrap                  |
-| override       | `nil\|table<string, any>`         | Override any fields on the base                       |
-| default_params | `nil\|table<string, any>`         | Provide default values for any parameters on the base |
+| Param          | Type                              | Desc                                                  |                                             |
+| -------------- | --------------------------------- | ----------------------------------------------------- | ------------------------------------------- |
+| base           | `overseer.TemplateFileDefinition` | The base template definition to wrap                  |                                             |
+|                | module                            | `nil\|string`                                         | The name of the module this was loaded from |
+|                | aliases                           | `nil\|string[]`                                       |                                             |
+|                | desc                              | `nil\|string`                                         |                                             |
+|                | tags                              | `nil\|string[]`                                       |                                             |
+|                | params                            | `nil\|overseer.Params`                                |                                             |
+|                | priority                          | `nil\|number`                                         |                                             |
+|                | condition                         | `nil\|overseer.SearchCondition`                       |                                             |
+|                | builder                           | `fun(params: table): overseer.TaskDefinition`         |                                             |
+|                | hide                              | `nil\|boolean`                                        | Hide from the template list                 |
+| override       | `nil\|table<string, any>`         | Override any fields on the base                       |                                             |
+| default_params | `nil\|table<string, any>`         | Provide default values for any parameters on the base |                                             |
 
 **Note:**
 <pre>
@@ -643,10 +653,12 @@ end)
 `remove_template_hook(opts, hook)` \
 Remove a hook that was added with add_template_hook
 
-| Param | Type                                                               | Desc                          |
-| ----- | ------------------------------------------------------------------ | ----------------------------- |
-| opts  | `nil\|overseer.HookOptions`                                        | Same as for add_template_hook |
-| hook  | `fun(task_defn: overseer.TaskDefinition, util: overseer.TaskUtil)` |                               |
+| Param | Type                                                               | Desc                          |     |
+| ----- | ------------------------------------------------------------------ | ----------------------------- | --- |
+| opts  | `nil\|overseer.HookOptions`                                        | Same as for add_template_hook |     |
+|       | module                                                             | `nil\|string`                 |     |
+|       | name                                                               | `nil\|string`                 |     |
+| hook  | `fun(task_defn: overseer.TaskDefinition, util: overseer.TaskUtil)` |                               |     |
 
 **Examples:**
 ```lua

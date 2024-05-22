@@ -1,3 +1,4 @@
+import copy
 import json
 import os
 import re
@@ -9,18 +10,19 @@ from typing import Any, Dict, Iterable, List, Optional, Tuple
 from nvim_doc_tools import (
     LuaFunc,
     LuaParam,
+    LuaTypes,
     Vimdoc,
     VimdocSection,
-    dedent,
     convert_markdown_to_vimdoc,
+    dedent,
     format_md_table,
     generate_md_toc,
     indent,
     leftright,
-    parse_functions,
+    parse_directory,
     read_section,
-    render_md_api,
-    render_vimdoc_api,
+    render_md_api2,
+    render_vimdoc_api2,
     replace_section,
     wrap,
 )
@@ -88,7 +90,7 @@ def update_components_md():
             rows = []
             has_default = False
             for k, param in sorted(comp["params"].items(), key=params_sort_key):
-                if param.get('deprecated'):
+                if param.get("deprecated"):
                     continue
                 typestr = param["type"]
                 if "subtype" in param:
@@ -99,8 +101,12 @@ def update_components_md():
                     "Type": f"`{typestr}`",
                     "Desc": param.get("desc", ""),
                 }
-                if param['type'] == 'enum':
-                    row['Desc'] += " (`" + r'\|'.join([json.dumps(c) for c in param['choices']]) + "`)"
+                if param["type"] == "enum":
+                    row["Desc"] += (
+                        " (`"
+                        + r"\|".join([json.dumps(c) for c in param["choices"]])
+                        + "`)"
+                    )
                 if param.get("default") is not None:
                     row["Default"] = "`" + json.dumps(param["default"]) + "`"
                     required = False
@@ -334,23 +340,32 @@ def update_highlights_md():
 
 
 @lru_cache(maxsize=100)
+def parse_lua() -> LuaTypes:
+    types = parse_directory(os.path.join(ROOT, "lua"))
+    print(types.classes.keys())
+    return types
+
+
 def get_strategy_funcs() -> List[LuaFunc]:
     strategy_dir = os.path.join(ROOT, "lua", "overseer", "strategy")
+    types = parse_lua()
     new_funcs = []
     for fname in sorted(os.listdir(strategy_dir)):
         if fname.startswith("_") or not fname.endswith(".lua") or fname == "init.lua":
             continue
-        funcs = parse_functions(os.path.join(strategy_dir, fname))
+        funcs = types.files["overseer/strategy/" + fname].functions
         for func in funcs:
             if func.name.endswith(".new"):
+                func = copy.copy(func)
                 func.name = os.path.splitext(fname)[0]
                 new_funcs.append(func)
     return new_funcs
 
 
 def update_strategies_md():
+    types = parse_lua()
     new_funcs = get_strategy_funcs()
-    lines = ["\n"] + render_md_api(new_funcs, level=2) + ["\n"]
+    lines = ["\n"] + render_md_api2(new_funcs, types, level=2) + ["\n"]
     replace_section(
         os.path.join(DOC, "strategies.md"),
         r"^<!-- API -->$",
@@ -413,7 +428,7 @@ def get_components_vimdoc() -> "VimdocSection":
             section.body.append(4 * " " + "Parameters:\n")
             lua_params = []
             for k, param in sorted(comp["params"].items(), key=params_sort_key):
-                if param.get('deprecated'):
+                if param.get("deprecated"):
                     continue
                 typestr = param["type"]
                 if "subtype" in param:
@@ -426,12 +441,16 @@ def get_components_vimdoc() -> "VimdocSection":
                     required = False
                 if "long_desc" in param:
                     desc = desc + " " + param["long_desc"]
-                if param['type'] == 'enum':
-                    desc += " (choices: `" + '|'.join([json.dumps(c) for c in param['choices']]) + "`)"
+                if param["type"] == "enum":
+                    desc += (
+                        " (choices: `"
+                        + "|".join([json.dumps(c) for c in param["choices"]])
+                        + "`)"
+                    )
                 if required:
                     name = "*" + name
                 lua_params.append(LuaParam(name, typestr, desc))
-            section.body.extend(format_vimdoc_params(lua_params, 6))
+            section.body.extend(format_vimdoc_params(lua_params, parse_lua(), 6))
         section.body.append("\n")
     return section
 
@@ -439,7 +458,7 @@ def get_components_vimdoc() -> "VimdocSection":
 def get_strategies_vimdoc() -> "VimdocSection":
     section = VimdocSection("Strategies", "overseer-strategies", ["\n"])
     new_funcs = get_strategy_funcs()
-    section.body += render_vimdoc_api("strategy", new_funcs)
+    section.body += render_vimdoc_api2("strategy", new_funcs, parse_lua())
     return section
 
 
@@ -458,7 +477,7 @@ def get_parsers_vimdoc() -> "VimdocSection":
             params.append(LuaParam(arg["name"], arg["type"], get_desc(arg), subparams))
         if params:
             section.body.extend(["\n", "    Parameters:\n"])
-            section.body.extend(format_vimdoc_params(params, 6))
+            section.body.extend(format_vimdoc_params(params, parse_lua(), 6))
         if "examples" in parser:
             for example in parser["examples"]:
                 section.body.extend(["\n", "    Examples:\n"])
@@ -498,13 +517,16 @@ def convert_md_section(
 
 def generate_vimdoc():
     doc = Vimdoc("overseer.txt", "overseer")
-    funcs = parse_functions(os.path.join(ROOT, "lua", "overseer", "init.lua"))
+    types = parse_lua()
+    funcs = types.files["overseer/init.lua"].functions
     doc.sections.extend(
         [
             get_commands_vimdoc(),
             get_options_vimdoc(),
             get_highlights_vimdoc(),
-            VimdocSection("API", "overseer-api", render_vimdoc_api("overseer", funcs)),
+            VimdocSection(
+                "API", "overseer-api", render_vimdoc_api2("overseer", funcs, types)
+            ),
             get_components_vimdoc(),
             get_strategies_vimdoc(),
             get_parsers_vimdoc(),
@@ -531,8 +553,9 @@ def generate_vimdoc():
 
 
 def update_md_api():
-    funcs = parse_functions(os.path.join(ROOT, "lua", "overseer", "init.lua"))
-    lines = ["\n"] + render_md_api(funcs) + ["\n"]
+    types = parse_lua()
+    funcs = types.files["overseer/init.lua"].functions
+    lines = ["\n"] + render_md_api2(funcs, types) + ["\n"]
     replace_section(
         os.path.join(DOC, "reference.md"),
         r"^<!-- API -->$",

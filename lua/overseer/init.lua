@@ -316,15 +316,6 @@ end
 
 ---Create a new Task
 ---@param opts overseer.TaskDefinition
----    cmd string|string[] Command to run. If it's a string it is run in the shell; a table is run directly
----    args nil|string[] Arguments to pass to the command
----    name nil|string Name of the task. Defaults to the cmd
----    cwd nil|string Working directory to run in
----    env nil|table<string, string> Additional environment variables
----    strategy nil|overseer.Serialized Definition for a run Strategy
----    metadata nil|table Arbitrary metadata for your own use
----    default_component_params nil|table Default values for component params
----    components nil|overseer.Serialized[] List of components to attach. Defaults to `{"default"}`
 ---@return overseer.Task
 ---@example
 --- local task = overseer.new_task({
@@ -336,12 +327,10 @@ end
 M.new_task = lazy("task", "new")
 
 ---Open or close the task list
----@param opts overseer.WindowOpts|nil
----    enter boolean|nil If false, stay in current window. Default true
----    direction nil|"left"|"right" Which direction to open the task list
+---@param opts nil|overseer.WindowOpts
 M.toggle = lazy("window", "toggle")
 ---Open the task list
----@param opts overseer.WindowOpts|nil
+---@param opts nil|overseer.WindowOpts
 ---    enter boolean|nil If false, stay in current window. Default true
 ---    direction nil|"left"|"right" Which direction to open the task list
 M.open = lazy("window", "open")
@@ -369,28 +358,12 @@ M.save_task_bundle = lazy("task_bundle", "save_task_bundle")
 M.delete_task_bundle = lazy("task_bundle", "delete_task_bundle")
 
 ---List all tasks
----@param opts overseer.ListTaskOpts|nil
----    unique boolean|nil Deduplicates non-running tasks by name
----    name nil|string|string[] Only list tasks with this name or names
----    name_not nil|boolean Invert the name search (tasks *without* that name)
----    status nil|overseer.Status|overseer.Status[] Only list tasks with this status or statuses
----    status_not nil|boolean Invert the status search
----    recent_first nil|boolean The most recent tasks are first in the list
----    bundleable nil|boolean Only list tasks that should be included in a bundle
----    filter nil|fun(task: overseer.Task): boolean
+---@param opts nil|overseer.ListTaskOpts
 ---@return overseer.Task[]
 M.list_tasks = lazy("task_list", "list_tasks")
 
 ---Run a task from a template
 ---@param opts overseer.TemplateRunOpts
----    name nil|string The name of the template to run
----    tags nil|string[] List of tags used to filter when searching for template
----    autostart nil|boolean When true, start the task after creating it (default true)
----    first nil|boolean When true, take first result and never show the task picker. Default behavior will auto-set this based on presence of name and tags
----    prompt nil|"always"|"missing"|"allow"|"avoid"|"never" Controls when to prompt user for parameter input
----    params nil|table Parameters to pass to template
----    cwd nil|string Working directory for the task
----    env nil|table<string, string> Additional environment variables for the task
 ---@param callback nil|fun(task: overseer.Task|nil, err: string|nil)
 ---@note
 --- The prompt option will control when the user is presented a popup dialog to input template

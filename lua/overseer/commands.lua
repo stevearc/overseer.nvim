@@ -243,8 +243,8 @@ end
 ---@field first? boolean When true, take first result and never show the task picker. Default behavior will auto-set this based on presence of name and tags
 ---@field prompt? "always"|"missing"|"allow"|"avoid"|"never" Controls when to prompt user for parameter input
 ---@field params? table Parameters to pass to template
----@field cwd? string
----@field env? table<string, string>
+---@field cwd? string Working directory for the task
+---@field env? table<string, string> Additional environment variables for the task
 
 ---@param opts overseer.TemplateRunOpts
 ---@param callback? fun(task: overseer.Task|nil, err: string|nil)
