@@ -76,7 +76,7 @@ overseer supports all the usual plugin managers
   <summary>lazy.nvim</summary>
 
 ```lua
-{
+return {
   'stevearc/overseer.nvim',
   opts = {},
 }
