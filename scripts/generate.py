@@ -342,7 +342,6 @@ def update_highlights_md():
 @lru_cache(maxsize=100)
 def parse_lua() -> LuaTypes:
     types = parse_directory(os.path.join(ROOT, "lua"))
-    print(types.classes.keys())
     return types
 
 
