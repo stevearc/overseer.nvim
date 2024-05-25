@@ -27,6 +27,8 @@ local template = {
     target = { optional = false, type = "string", desc = "target" },
     ---@type overseer.ListParam
     args = { optional = true, type = "list", delimiter = " " },
+    ---@type overseer.StringParam
+    cwd = { optional = true },
   },
   builder = function(params)
     local cmd = { "task" }
@@ -35,7 +37,10 @@ local template = {
     end
 
     ---@type overseer.TaskDefinition
-    local task = { cmd = cmd }
+    local task = {
+      cmd = cmd,
+      cwd = params.cwd,
+    }
 
     if params.args then
       task.args = vim.list_extend({ "--" }, params.args)
@@ -85,7 +90,10 @@ local provider = {
           if target.name == "default" then
             override.priority = 55
           end
-          table.insert(ret, overseer.wrap_template(template, override, { target = target.name }))
+          table.insert(
+            ret,
+            overseer.wrap_template(template, override, { target = target.name, cwd = opts.dir })
+          )
         end
         cb(ret)
       end),
