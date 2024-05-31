@@ -329,11 +329,7 @@ function Sidebar:render(tasks)
     end
     table.insert(self.task_lines, { #lines, task })
     if i > 1 then
-      if tasks[i - 1].parent_id then
-        table.insert(lines, subtask_prefix .. vim.fn.strcharpart(config.task_list.separator, 2))
-      else
-        table.insert(lines, config.task_list.separator)
-      end
+      table.insert(lines, subtask_prefix .. vim.fn.strcharpart(config.task_list.separator, 2))
       table.insert(highlights, { "OverseerTaskBorder", #lines, 0, -1 })
     end
   end
