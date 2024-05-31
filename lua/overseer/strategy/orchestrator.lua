@@ -1,6 +1,7 @@
 -- This is a run strategy for "meta" tasks. This task itself will not perform
 -- any jobs, but will instead wrap and manage a collection of other tasks.
 local Task = require("overseer.task")
+local config = require("overseer.config")
 local constants = require("overseer.constants")
 local log = require("overseer.log")
 local task_list = require("overseer.task_list")
@@ -242,8 +243,10 @@ function OrchestratorStrategy:start(task)
               if section_complete(1) then
                 self:start_next()
               end
-              -- Ensure the orchestrator task is sorted more recent than all children
-              task_list.touch_task(task)
+              if config.task_list.group_position == "top" then
+                -- Ensure the orchestrator task is sorted more recent than all children
+                task_list.touch_task(task)
+              end
             end)
           )
         end)

@@ -1,3 +1,4 @@
+local config = require("overseer.config")
 local util = require("overseer.util")
 local M = {}
 
@@ -48,7 +49,9 @@ M.update = function(task)
   if not lookup[task.id] then
     lookup[task.id] = task
     table.insert(tasks, task)
-    group_parents_and_children()
+    if config.task_list.group_position == "top" then
+      group_parents_and_children()
+    end
   end
   rerender()
 end
@@ -62,7 +65,9 @@ M.touch_task = function(task)
   end)
   table.remove(tasks, idx)
   table.insert(tasks, task)
-  group_parents_and_children()
+  if config.task_list.group_position == "top" then
+    group_parents_and_children()
+  end
   rerender()
 end
 
