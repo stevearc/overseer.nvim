@@ -254,8 +254,19 @@ end
 
 ---Add support for preLaunchTask/postDebugTask to nvim-dap
 ---@private
+---@deprecated
 ---@param enabled boolean
 M.patch_dap = function(enabled)
+  M.enable_dap(enabled)
+end
+
+---Add support for preLaunchTask/postDebugTask to nvim-dap
+---This is enabled by default when you call overseer.setup() unless you set `dap = false`
+---@param enabled boolean
+M.enable_dap = function(enabled)
+  if enabled == nil then
+    enabled = true
+  end
   if not enabled and not package.loaded.dap then
     return
   end
@@ -263,26 +274,18 @@ M.patch_dap = function(enabled)
   if not ok then
     return
   end
-  if type(dap.run) == "table" then
-    if not enabled then
-      dap.run = dap.run.original
+  if enabled then
+    dap.listeners.on_config.overseer = require("overseer.dap").listener
+
+    -- If the user has not overridden the DAP json decoder, use ours since it supports JSON5
+    local vscode = require("dap.ext.vscode")
+    if vscode.json_decode == vim.json.decode then
+      vscode.json_decode = require("overseer.json").decode
     end
-    return
-  elseif not enabled then
-    return
+  else
+    dap.listeners.on_config.overseer = nil
+    dap.listeners.after.event_terminated.overseer = nil
   end
-  local daprun = dap.run
-  dap.run = setmetatable({
-    wrapper = nil,
-    original = daprun,
-  }, {
-    __call = function(self, config, opts)
-      if not self.wrapper then
-        self.wrapper = require("overseer.dap").wrap_run(daprun)
-      end
-      self.wrapper(config, opts)
-    end,
-  })
 end
 
 ---Initialize overseer
@@ -297,7 +300,7 @@ M.setup = function(opts)
   end
   opts = opts or {}
   create_commands()
-  M.patch_dap(opts.dap ~= false)
+  M.enable_dap(opts.dap)
   pending_opts = opts
   if initialized then
     do_setup()

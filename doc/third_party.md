@@ -30,22 +30,24 @@ Or with options:
 ```lua
 require("lualine").setup({
   sections = {
-    lualine_x = { {
-      "overseer",
-      label = '',     -- Prefix for task counts
-      colored = true, -- Color the task icons and counts
-      symbols = {
-        [overseer.STATUS.FAILURE] = "F:",
-        [overseer.STATUS.CANCELED] = "C:",
-        [overseer.STATUS.SUCCESS] = "S:",
-        [overseer.STATUS.RUNNING] = "R:",
+    lualine_x = {
+      {
+        "overseer",
+        label = "", -- Prefix for task counts
+        colored = true, -- Color the task icons and counts
+        symbols = {
+          [overseer.STATUS.FAILURE] = "F:",
+          [overseer.STATUS.CANCELED] = "C:",
+          [overseer.STATUS.SUCCESS] = "S:",
+          [overseer.STATUS.RUNNING] = "R:",
+        },
+        unique = false, -- Unique-ify non-running task count by name
+        name = nil, -- List of task names to search for
+        name_not = false, -- When true, invert the name search
+        status = nil, -- List of task statuses to display
+        status_not = false, -- When true, invert the status search
       },
-      unique = false,     -- Unique-ify non-running task count by name
-      name = nil,         -- List of task names to search for
-      name_not = false,   -- When true, invert the name search
-      status = nil,       -- List of task statuses to display
-      status_not = false, -- When true, invert the status search
-    } },
+    },
   },
 })
 ```
@@ -109,7 +111,7 @@ local Overseer = {
 To run all neotest processes using overseer, add it as a custom consumer:
 
 ```lua
-require('neotest').setup({
+require("neotest").setup({
   consumers = {
     overseer = require("neotest.consumers.overseer"),
   },
@@ -119,7 +121,7 @@ require('neotest').setup({
 This will automatically hook `neotest.run` and force it to use overseer to run tests wherever possible. If you would instead like to only use the overseer consumer explicitly, you can disable the monkey patching:
 
 ```lua
-require('neotest').setup({
+require("neotest").setup({
   consumers = {
     overseer = require("neotest.consumers.overseer"),
   },
@@ -137,7 +139,7 @@ neotest.overseer.run({})
 You can customize the default components of neotest tasks by setting the `default_neotest` component alias (when unset it maps to `default`).
 
 ```lua
-require('overseer').setup({
+require("overseer").setup({
   component_aliases = {
     default_neotest = {
       "on_output_summarize",
@@ -145,7 +147,7 @@ require('overseer').setup({
       "on_complete_notify",
       "on_complete_dispose",
     },
-  }
+  },
 })
 ```
 
@@ -170,16 +172,9 @@ require("neotest").setup({
 
 ## DAP
 
-If you have both overseer and [nvim-dap](https://github.com/mfussenegger/nvim-dap) installed, overseer will automatically run the `preLaunchTask` and `postDebugTask` when present in a debug configuration.
+If you have both overseer and [nvim-dap](https://github.com/mfussenegger/nvim-dap) installed, overseer will automatically run the `preLaunchTask` and `postDebugTask` when present in a debug configuration. No special configuration or action is needed.
 
-I also recommend that you configure nvim-dap to use overseer's json decoder, since it supports JSON5 (comments and trailing commas)
-
-```lua
-require("dap.ext.vscode").json_decode = require("overseer.json").decode
-```
-
-A note about lazy loading: make sure you load nvim-dap before overseer because overseer will attempt
-to patch nvim-dap inside `overseer.setup()`. Alternatively, you can disable the automatic support
+For lazy-loading, you may wish to avoid loading `nvim-dap` when overseer is loaded. If so, you can disable DAP support initially:
 
 ```lua
 require("overseer").setup({
@@ -187,10 +182,10 @@ require("overseer").setup({
 })
 ```
 
-And enable the integration manually later, such as when nvim-dap is loaded
+And enable the integration manually later, such as when `nvim-dap` is loaded:
 
 ```lua
-require("overseer").patch_dap(true)
+require("overseer").enable_dap()
 ```
 
 ## ToggleTerm
@@ -198,7 +193,7 @@ require("overseer").patch_dap(true)
 If you use [toggleterm](https://github.com/akinsho/toggleterm.nvim), you can use the built-in "toggleterm" strategy to allow your tasks to be in a terminal buffer owned by toggleterm. You can use your existing toggleterm keybinds to pull up long-running tasks started with overseer. You can set it up with defaults using:
 
 ```lua
-require('overseer').setup({
+require("overseer").setup({
   strategy = "toggleterm",
 })
 ```
@@ -206,7 +201,7 @@ require('overseer').setup({
 You can also configure the behavior a bit more:
 
 ```lua
-require('overseer').setup({
+require("overseer").setup({
   strategy = {
     "toggleterm",
     -- load your default shell before starting the task
@@ -233,7 +228,7 @@ require('overseer').setup({
     -- command to run when the terminal is created. Combine with `use_shell`
     -- to run a terminal command before starting the task
     on_create = nil,
-  }
+  },
 })
 ```
 
@@ -246,12 +241,12 @@ More documentation on this strategy can be found [here](strategies.md#toggleterm
 Overseer has built-in support for [resession.nvim](https://github.com/stevearc/resession.nvim).
 
 ```lua
-require('resession').setup({
+require("resession").setup({
   extensions = {
     overseer = {
       -- customize here
-    }
-  }
+    },
+  },
 })
 ```
 
@@ -288,7 +283,7 @@ require("auto-session").setup({
       for _, task in ipairs(overseer.list_tasks({})) do
         task:dispose(true)
       end
-    end
+    end,
   },
   post_restore_cmds = {
     function()
