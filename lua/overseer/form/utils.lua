@@ -355,7 +355,7 @@ M.open_form_win = function(bufnr, opts)
     })
   )
 
-  vim.api.nvim_buf_set_option(bufnr, "omnifunc", "v:lua.overseer_form_omnifunc")
+  vim.bo[bufnr].omnifunc = "v:lua.overseer_form_omnifunc"
   -- Configure nvim-cmp if installed
   local has_cmp, cmp = pcall(require, "cmp")
   if has_cmp then

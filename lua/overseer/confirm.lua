@@ -23,10 +23,10 @@ return function(opts, callback)
   end
 
   local bufnr = vim.api.nvim_create_buf(false, true)
-  vim.api.nvim_buf_set_option(bufnr, "buftype", "nofile")
-  vim.api.nvim_buf_set_option(bufnr, "bufhidden", "wipe")
-  vim.api.nvim_buf_set_option(bufnr, "buflisted", false)
-  vim.api.nvim_buf_set_option(bufnr, "swapfile", false)
+  vim.bo[bufnr].buftype = "nofile"
+  vim.bo[bufnr].bufhidden = "wipe"
+  vim.bo[bufnr].buflisted = false
+  vim.bo[bufnr].swapfile = false
   local winid
 
   local function choose(idx)
@@ -143,5 +143,5 @@ return function(opts, callback)
     once = true,
     nested = true,
   })
-  vim.api.nvim_buf_set_option(bufnr, "modifiable", false)
+  vim.bo[bufnr].modifiable = false
 end

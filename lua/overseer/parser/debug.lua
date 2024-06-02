@@ -75,9 +75,9 @@ local function render_parser(input_lnum)
   vim.api.nvim_buf_clear_namespace(bufnr, ns, 0, -1)
   local p, err = load_parser()
   if not p then
-    vim.api.nvim_buf_set_option(bufnr, "modifiable", true)
+    vim.bo[bufnr].modifiable = true
     vim.api.nvim_buf_set_lines(bufnr, 0, -1, true, vim.split(vim.inspect(err), "\n"))
-    vim.api.nvim_buf_set_option(bufnr, "modifiable", false)
+    vim.bo[bufnr].modifiable = false
     return
   end
   p:ingest(vim.api.nvim_buf_get_lines(input_buf, 0, input_lnum or -1, true))
@@ -104,9 +104,9 @@ local function render_parser(input_lnum)
   local results = p:get_result()
   vim.list_extend(lines, vim.split(vim.inspect(results), "\n"))
 
-  vim.api.nvim_buf_set_option(bufnr, "modifiable", true)
+  vim.bo[bufnr].modifiable = true
   vim.api.nvim_buf_set_lines(bufnr, 0, -1, true, lines)
-  vim.api.nvim_buf_set_option(bufnr, "modifiable", false)
+  vim.bo[bufnr].modifiable = false
   util.add_highlights(bufnr, ns, highlights)
 end
 
@@ -147,8 +147,8 @@ local function create_output_buf(bufnr)
     vim.api.nvim_win_set_buf(0, bufnr)
   end
   output_buf = bufnr
-  vim.api.nvim_buf_set_option(bufnr, "bufhidden", "wipe")
-  vim.api.nvim_buf_set_option(bufnr, "modifiable", false)
+  vim.bo[bufnr].bufhidden = "wipe"
+  vim.bo[bufnr].modifiable = false
 end
 
 local function create_input_buf()

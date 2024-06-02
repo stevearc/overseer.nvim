@@ -70,8 +70,6 @@ local function create_overseer_window(direction, existing_win)
     util.go_buf_no_au(outbuf)
     set_minimal_win_opts(0)
     util.go_win_no_au(winid)
-    -- TODO remove after https://github.com/folke/neodev.nvim/pull/163 lands
-    ---@diagnostic disable-next-line: inject-field
     vim.w.overseer_output_win = output_win
     watch_for_win_closed()
   end
@@ -97,7 +95,7 @@ local function create_overseer_window(direction, existing_win)
   end
   -- Set the filetype only after we enter the buffer so that FileType autocmds
   -- behave properly
-  vim.api.nvim_buf_set_option(bufnr, "filetype", "OverseerList")
+  vim.bo[bufnr].filetype = "OverseerList"
 
   util.go_win_no_au(my_winid)
   return winid

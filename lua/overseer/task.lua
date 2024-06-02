@@ -563,7 +563,7 @@ function Task:dispose(force)
   task_list.remove(self)
   if bufnr and vim.api.nvim_buf_is_valid(bufnr) then
     if bufnr_visible then
-      vim.api.nvim_buf_set_option(bufnr, "bufhidden", "wipe")
+      vim.bo[bufnr].bufhidden = "wipe"
     else
       vim.api.nvim_buf_delete(bufnr, { force = true })
     end
@@ -636,7 +636,7 @@ function Task:start()
   self:dispatch("on_start")
   local bufnr = self.strategy:get_bufnr()
   if bufnr then
-    vim.api.nvim_buf_set_option(bufnr, "buflisted", false)
+    vim.bo[bufnr].buflisted = false
   end
 
   util.replace_buffer_in_wins(self.prev_bufnr, bufnr)

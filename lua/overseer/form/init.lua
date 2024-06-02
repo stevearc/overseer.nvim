@@ -97,9 +97,9 @@ function Builder.new(title, schema, params, callback)
   end
 
   local bufnr = vim.api.nvim_create_buf(false, true)
-  vim.api.nvim_buf_set_option(bufnr, "swapfile", false)
-  vim.api.nvim_buf_set_option(bufnr, "bufhidden", "wipe")
-  vim.api.nvim_buf_set_option(bufnr, "buftype", "acwrite")
+  vim.bo[bufnr].swapfile = false
+  vim.bo[bufnr].bufhidden = "wipe"
+  vim.bo[bufnr].buftype = "acwrite"
   vim.api.nvim_buf_set_name(bufnr, "Overseer task builder")
 
   local autocmds = {}
@@ -134,7 +134,7 @@ function Builder.new(title, schema, params, callback)
       end,
     })
   )
-  vim.api.nvim_buf_set_option(bufnr, "filetype", "OverseerForm")
+  vim.bo[bufnr].filetype = "OverseerForm"
 
   builder = setmetatable({
     disable_close_on_leave = false,

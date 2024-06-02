@@ -35,11 +35,11 @@ function Sidebar.new()
   local bufnr = vim.api.nvim_create_buf(false, true)
 
   -- Set buffer options
-  vim.api.nvim_buf_set_option(bufnr, "buftype", "nofile")
-  vim.api.nvim_buf_set_option(bufnr, "bufhidden", "hide")
-  vim.api.nvim_buf_set_option(bufnr, "buflisted", false)
-  vim.api.nvim_buf_set_option(bufnr, "swapfile", false)
-  vim.api.nvim_buf_set_option(bufnr, "modifiable", false)
+  vim.bo[bufnr].buftype = "nofile"
+  vim.bo[bufnr].bufhidden = "hide"
+  vim.bo[bufnr].buflisted = false
+  vim.bo[bufnr].swapfile = false
+  vim.bo[bufnr].modifiable = false
 
   local tl = setmetatable({
     bufnr = bufnr,
@@ -344,10 +344,10 @@ function Sidebar:render(tasks)
       view = vim.fn.winsaveview()
     end)
   end
-  vim.api.nvim_buf_set_option(self.bufnr, "modifiable", true)
+  vim.bo[self.bufnr].modifiable = true
   vim.api.nvim_buf_set_lines(self.bufnr, 0, -1, true, lines)
-  vim.api.nvim_buf_set_option(self.bufnr, "modifiable", false)
-  vim.api.nvim_buf_set_option(self.bufnr, "modified", false)
+  vim.bo[self.bufnr].modifiable = false
+  vim.bo[self.bufnr].modified = false
   util.add_highlights(self.bufnr, ns, highlights)
 
   if prev_first_task_id ~= new_first_task_id then
