@@ -262,7 +262,7 @@ end
 
 ---Add support for preLaunchTask/postDebugTask to nvim-dap
 ---This is enabled by default when you call overseer.setup() unless you set `dap = false`
----@param enabled boolean
+---@param enabled? boolean
 M.enable_dap = function(enabled)
   if enabled == nil then
     enabled = true
