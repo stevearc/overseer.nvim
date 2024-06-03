@@ -83,10 +83,13 @@ M = {
     end,
     run = function(task)
       local comp = assert(component.get("restart_on_save"))
-      local schema = vim.deepcopy(comp.params)
+      local schema = vim.deepcopy(assert(comp.params))
       form.open("Restart task when files are written", schema, {
         paths = { vim.fn.getcwd() },
       }, function(params)
+        if not params then
+          return
+        end
         params[1] = "restart_on_save"
         task:set_component(params)
         task_list.update(task)

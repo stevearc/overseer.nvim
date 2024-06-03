@@ -420,6 +420,11 @@ function Builder:confirm()
   end
 end
 
+---@generic T: table
+---@param title string
+---@param schema table
+---@param params T
+---@param callback fun(params: nil|T)
 M.open = function(title, schema, params, callback)
   form_utils.validate_params(schema)
   if vim.tbl_isempty(schema) then
