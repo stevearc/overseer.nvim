@@ -32,7 +32,7 @@ function NilStrategy:stop() end
 
 function NilStrategy:dispose() end
 
----@param name_or_config string|table
+---@param name_or_config? string|table
 ---@return overseer.Strategy
 M.load = function(name_or_config)
   if not name_or_config then

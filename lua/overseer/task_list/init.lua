@@ -4,6 +4,7 @@ local M = {}
 local tasks = {}
 local lookup = {}
 
+---@return integer
 M.get_or_create_bufnr = function()
   local sidebar, created = require("overseer.task_list.sidebar").get_or_create()
   if created then
@@ -12,15 +13,9 @@ M.get_or_create_bufnr = function()
   return sidebar.bufnr
 end
 
-local function rerender()
-  local sidebar = require("overseer.task_list.sidebar")
-  local sb = sidebar.get()
-  if sb then
-    sb:render(tasks)
-  end
+M.rerender = function()
+  vim.api.nvim_exec_autocmds("User", { pattern = "OverseerListUpdate", modeline = false })
 end
-
-M.rerender = rerender
 
 local function group_parents_and_children()
   local order = {}
@@ -37,9 +32,10 @@ local function group_parents_and_children()
   end)
 end
 
+---@param task? overseer.Task
 M.update = function(task)
   if not task then
-    rerender()
+    M.rerender()
     return
   end
   if task:is_disposed() then
@@ -50,9 +46,10 @@ M.update = function(task)
     table.insert(tasks, task)
     group_parents_and_children()
   end
-  rerender()
+  M.rerender()
 end
 
+---@param task overseer.Task
 M.touch_task = function(task)
   if not lookup[task.id] then
     return
@@ -63,9 +60,10 @@ M.touch_task = function(task)
   table.remove(tasks, idx)
   table.insert(tasks, task)
   group_parents_and_children()
-  rerender()
+  M.rerender()
 end
 
+---@param task overseer.Task
 M.remove = function(task)
   lookup[task.id] = nil
   for i, t in ipairs(tasks) do
@@ -74,7 +72,7 @@ M.remove = function(task)
       break
     end
   end
-  rerender()
+  M.rerender()
 end
 
 ---@param id number
