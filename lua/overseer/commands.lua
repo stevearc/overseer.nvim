@@ -380,14 +380,18 @@ M.task_action = function()
     return
   end
 
-  vim.ui.select(tasks, {
+  local task_summaries = vim.tbl_map(function(task)
+    return { name = task.name, id = task.id }
+  end, tasks)
+  vim.ui.select(task_summaries, {
     prompt = "Select task",
     kind = "overseer_task",
     format_item = function(task)
       return task.name
     end,
-  }, function(task)
-    if task then
+  }, function(task_summary)
+    if task_summary then
+      local task = assert(task_list.get(task_summary.id))
       action_util.run_task_action(task)
     end
   end)
