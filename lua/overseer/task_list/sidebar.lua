@@ -217,6 +217,24 @@ function Sidebar:_get_preview_wins()
   return ret
 end
 
+---@param winid number
+---@param bufnr number
+---@param window_opts vim.wo
+function Sidebar:_update_window_buf(winid, bufnr, window_opts)
+  if vim.api.nvim_win_get_buf(winid) ~= bufnr then
+    vim.api.nvim_win_set_buf(winid, bufnr)
+    -- The documentation of `vim.api.nvim_win_set_buf` states that it will
+    -- "Set the current buffer in a window, without side effects", but
+    -- unfortunately, some window options are not kept when a "new" buffer is
+    -- set to the window. For instance, the `winhighlight` and the experimental
+    -- `statuscolumn` options may change with a new buffer, therefore, to make
+    -- the appearance of the window consistent, we re-apply its window options
+    -- when switching its current buffer.
+    util.set_window_opts(window_opts, winid)
+    util.scroll_to_end(winid)
+  end
+end
+
 function Sidebar:update_preview()
   local winids = self:_get_preview_wins()
   if vim.tbl_isempty(winids) then
@@ -240,9 +258,12 @@ function Sidebar:update_preview()
   end
 
   for _, winid in ipairs(winids) do
-    if vim.api.nvim_win_get_buf(winid) ~= display_buf then
-      vim.api.nvim_win_set_buf(winid, display_buf)
-      util.scroll_to_end(winid)
+    -- We need to use different window options between the floating preview
+    -- window and the output one
+    if vim.wo[winid].previewwindow then
+      self:_update_window_buf(winid, display_buf, config.task_win.win_opts)
+    else
+      self:_update_window_buf(winid, display_buf, config.task_list.output.win_opts)
     end
   end
 end

@@ -26,6 +26,20 @@ local default_config = {
     separator = "────────────────────────────────────────",
     -- Default direction. Can be "left", "right", or "bottom"
     direction = "left",
+    -- You can set window options (see `:help vim.wo`) to be used when creating
+    -- the Task List window, these are the defaults used:
+    win_opts = {
+      listchars = "tab:> ",
+      winfixwidth = true,
+      winfixheight = true,
+      number = false,
+      relativenumber = false,
+      foldcolumn = "0",
+      signcolumn = "no",
+      statuscolumn = "",
+      wrap = false,
+      spell = false,
+    },
     -- Set keymap to false to remove default behavior
     -- You can add custom keymaps here as well (anything vim.keymap.set accepts)
     bindings = {
@@ -50,6 +64,24 @@ local default_config = {
       ["<C-k>"] = "ScrollOutputUp",
       ["<C-j>"] = "ScrollOutputDown",
       ["q"] = "Close",
+    },
+    -- When the Task List is positioned at the bottom, it will show its output
+    -- window on the right side of the split. The next configuration table
+    -- tweaks options for such window
+    output = {
+      -- You can set window options (see `:help vim.wo`) to be used when
+      -- creating the Task List Output window, these are the defaults used:
+      win_opts = {
+        number = false,
+        relativenumber = false,
+        cursorline = false,
+        cursorcolumn = false,
+        foldcolumn = "0",
+        signcolumn = "no",
+        statuscolumn = "",
+        spell = false,
+        list = false,
+      },
     },
   },
   -- See :help overseer-actions
