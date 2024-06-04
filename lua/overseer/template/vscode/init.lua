@@ -204,7 +204,6 @@ local function get_task_builder(defn, precalculated_vars)
         "on_output_parse",
         problem_matcher = pmatcher,
       })
-      table.insert(components, "on_result_diagnostics")
     end
     if defn.isBackground then
       table.insert(components, "on_complete_restart")
