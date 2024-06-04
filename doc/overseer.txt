@@ -210,7 +210,7 @@ OPTIONS                                                         *overseer-option
           "on_output_summarize",
           "on_exit_set_status",
           "on_complete_notify",
-          "on_complete_dispose",
+          { "on_complete_dispose", require_view = { "SUCCESS", "FAILURE" } },
         },
         -- Tasks from tasks.json use these components
         default_vscode = {
@@ -644,10 +644,12 @@ on_complete_dispose                                          *on_complete_dispos
     After task is completed, dispose it after a timeout
 
     Parameters:
-      {statuses} `list[enum]` Tasks with one of these statuses will be disposed
-                 (default `["SUCCESS", "FAILURE", "CANCELED"]`)
-      {timeout}  `number` Time to wait (in seconds) before disposing (default
-                 `300`)
+      {require_view} `list[enum]` Tasks with these statuses must be viewed
+                     before they will be disposed (default `[]`)
+      {statuses}     `list[enum]` Tasks with one of these statuses will be
+                     disposed (default `["SUCCESS", "FAILURE", "CANCELED"]`)
+      {timeout}      `number` Time to wait (in seconds) before disposing
+                     (default `300`)
 
 on_complete_notify                                            *on_complete_notify*
     vim.notify when task is completed

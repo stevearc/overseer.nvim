@@ -53,10 +53,11 @@ Display the run duration
 
 After task is completed, dispose it after a timeout
 
-| Param    | Type         | Default                              | Desc                                              |
-| -------- | ------------ | ------------------------------------ | ------------------------------------------------- |
-| statuses | `list[enum]` | `["SUCCESS", "FAILURE", "CANCELED"]` | Tasks with one of these statuses will be disposed |
-| timeout  | `number`     | `300`                                | Time to wait (in seconds) before disposing        |
+| Param        | Type         | Default                              | Desc                                                                  |
+| ------------ | ------------ | ------------------------------------ | --------------------------------------------------------------------- |
+| require_view | `list[enum]` | `[]`                                 | Tasks with these statuses must be viewed before they will be disposed |
+| statuses     | `list[enum]` | `["SUCCESS", "FAILURE", "CANCELED"]` | Tasks with one of these statuses will be disposed                     |
+| timeout      | `number`     | `300`                                | Time to wait (in seconds) before disposing                            |
 
 ## on_complete_notify
 
