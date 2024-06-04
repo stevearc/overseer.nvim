@@ -5,28 +5,41 @@
       "type": "process",
       "label": "(vscode) test",
       "group": "test",
-      "command": "./run_tests.sh"
+      "command": "./run_tests.sh",
+      "presentation": {
+        "reveal": "silent"
+      }
     },
     {
       "type": "shell",
       "label": "(vscode) sleep",
       "group": "test",
       "command": "sleep",
-      "args": ["10"]
+      "args": [
+        "10"
+      ]
     },
     {
       "type": "process",
       "label": "(vscode) test file",
       "group": "test",
       "command": "./run_tests.sh",
-      "args": ["${file}"]
+      "args": [
+        "${file}"
+      ],
+      "presentation": {
+        "reveal": "always"
+      }
     },
     {
       "type": "process",
       "label": "(vscode) prompt input",
       "group": "test",
       "command": "echo",
-      "args": ["${input:word}", "${input:position}"]
+      "args": [
+        "${input:word}",
+        "${input:position}"
+      ]
     },
     {
       "type": "process",
@@ -48,18 +61,27 @@
     },
     {
       "label": "(vscode) compound parallel",
-      "dependsOn": ["(vscode) test", "(vscode) sleep"]
+      "dependsOn": [
+        "(vscode) test",
+        "(vscode) sleep"
+      ]
     },
     {
       "label": "(vscode) compound sequence",
-      "dependsOn": ["(vscode) sleep", "(vscode) test", "(vscode) prompt input"],
+      "dependsOn": [
+        "(vscode) sleep",
+        "(vscode) test",
+        "(vscode) prompt input"
+      ],
       "dependsOrder": "sequence"
     },
     {
       "type": "shell",
       "label": "(vscode) create/move/delete",
       "command": "rm",
-      "args": ["vscode_moved_test_file.txt"],
+      "args": [
+        "vscode_moved_test_file.txt"
+      ],
       "dependsOn": "(vscode) move"
     },
     {
@@ -75,7 +97,11 @@
     },
     {
       "label": "Build/Test/Serve pipeline",
-      "dependsOn": ["make build", "run tests", "run webserver"],
+      "dependsOn": [
+        "make build",
+        "run tests",
+        "run webserver"
+      ],
       "dependsOrder": "sequence"
     },
     {
@@ -104,7 +130,11 @@
       "id": "position",
       "description": "This is a position",
       "type": "pickString",
-      "options": ["first", "second", "third"]
+      "options": [
+        "first",
+        "second",
+        "third"
+      ]
     }
   ]
 }

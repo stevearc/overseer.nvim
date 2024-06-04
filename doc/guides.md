@@ -168,9 +168,9 @@ overseer.setup({
   -- worth mapping it directly if you use it often.
   task_list = {
     bindings = {
-      ['P'] = '<CMD>OverseerQuickAction My custom action<CR>',
-    }
-  }
+      ["P"] = "<CMD>OverseerQuickAction My custom action<CR>",
+    },
+  },
 })
 ```
 
@@ -217,7 +217,7 @@ return {
       on_pre_result = function(self, task)
         -- Called when the task is finalizing.
         -- Return a map-like table value here to merge it into the task result.
-        return {foo = {"bar", "baz"}}
+        return { foo = { "bar", "baz" } }
       end,
       ---@param result table A result table.
       on_preprocess_result = function(self, task, result)
@@ -261,7 +261,7 @@ return {
         -- Called from the task list. This can be used to display information there.
         table.insert(lines, "Here is a line of output")
         -- The format is {highlight_group, lnum, col_start, col_end}
-        table.insert(highlights, {'Title', #lines, 0, -1})
+        table.insert(highlights, { "Title", #lines, 0, -1 })
       end,
     }
   end,
@@ -335,13 +335,17 @@ You can of course create your own components to parse output leveraging the `on_
 There are currently two ways to get tasks to run sequentially. The first is by using the [dependencies](components.md#dependencies) component. For example, if you wanted to create a `npm serve` task that runs `npm build` first, you could create it like so:
 
 ```lua
-overseer.run_template({name = 'npm serve', autostart = false}, function(task)
+overseer.run_template({ name = "npm serve", autostart = false }, function(task)
   if task then
-    task:add_component({'dependencies', task_names = {
-      'npm build',
-      -- You can also pass in params to the task
-      {'shell', cmd = 'sleep 10'},
-    }, sequential = true})
+    task:add_component({
+      "dependencies",
+      task_names = {
+        "npm build",
+        -- You can also pass in params to the task
+        { "shell", cmd = "sleep 10" },
+      },
+      sequential = true,
+    })
     task:start()
   end
 end)
@@ -356,11 +360,11 @@ local task = overseer.new_task({
     "orchestrator",
     tasks = {
       "make clean", -- Step 1: clean
-      {             -- Step 2: build js and css in parallel
-         "npm build",
+      { -- Step 2: build js and css in parallel
+        "npm build",
         { "shell", cmd = "lessc styles.less styles.css" },
       },
-      "npm serve",  -- Step 3: serve
+      "npm serve", -- Step 3: serve
     },
   },
 })
@@ -387,6 +391,7 @@ Supported features:
 - `group` (sets template tag; supports `BUILD`, `RUN`, `TEST`, and `CLEAN`) and `isDefault` (sets priority)
 - [Operating system specific properties](https://code.visualstudio.com/docs/editor/tasks#_operating-system-specific-properties)
 - Integration with [launch.json](https://code.visualstudio.com/docs/editor/debugging#_launchjson-attributes) (see [DAP](third_party.md#dap))
+- [Output behavior](https://code.visualstudio.com/docs/editor/tasks#_output-behavior) (with some tweaked defaults)
 
 Unsupported features:
 
@@ -396,6 +401,5 @@ Unsupported features:
 - `${config:*}` variables
 - `${command:*}` variables
 - The `${defaultBuildTask}` variable
-- Custom problem matcher patterns may fail due to differences between JS and vim regex (notably vim regex doesn't support non-capturing groups `(?:.*)` or character classes inside of brackets `[\d\s]`). Most built-in matchers have already been translated.
-- [Output behavior](https://code.visualstudio.com/docs/editor/tasks#_output-behavior) (probably not going to support this)
+- Custom problem matcher patterns may fail due to differences between JS and vim regex (notably vim regex uses a different syntax for non-capturing groups `(?:.*)` and doesn't support character classes inside of brackets `[\d\s]`). Built-in matchers have already been translated.
 - [Run behavior](https://code.visualstudio.com/docs/editor/tasks#_run-behavior) (probably not going to support this)
