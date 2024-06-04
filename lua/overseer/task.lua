@@ -1,4 +1,5 @@
 local component = require("overseer.component")
+local config = require("overseer.config")
 local constants = require("overseer.constants")
 local form_utils = require("overseer.form.utils")
 local layout = require("overseer.layout")
@@ -19,13 +20,13 @@ local STATUS = constants.STATUS
 ---@field cmd string|string[]
 ---@field cwd string
 ---@field env? table<string, string>
----@field strategy_defn? string|table
----@field strategy? overseer.Strategy
+---@field strategy_defn string|table
+---@field strategy overseer.Strategy
 ---@field name string
----@field private bufnr? number
 ---@field exit_code? number
 ---@field components overseer.Component[]
 ---@field parent_id? integer ID of parent task. Used only to visually group tasks in the task list
+---@field private prev_bufnr? integer
 ---@field private _subscribers table<string, function[]>
 local Task = {}
 
@@ -99,6 +100,11 @@ function Task.new_uninitialized(opts)
     end
   end
   name = name:gsub("\n", " ")
+
+  if not opts.strategy then
+    opts.strategy = config.strategy
+  end
+
   -- Build the instance data for the task
   local data = {
     result = nil,
@@ -114,7 +120,6 @@ function Task.new_uninitialized(opts)
     strategy_defn = opts.strategy,
     strategy = strategy.load(opts.strategy),
     name = name,
-    bufnr = nil,
     exit_code = nil,
     prev_bufnr = nil,
     components = {},
@@ -132,6 +137,10 @@ function Task.new(opts)
   task.id = next_id
   next_id = next_id + 1
   task:dispatch("on_init")
+  local bufnr = task:get_bufnr()
+  if bufnr then
+    vim.b[bufnr].overseer_task = task.id
+  end
   return task
 end
 
@@ -594,7 +603,7 @@ function Task:dispose(force)
     log:debug("Not disposing task %s: has %d references", self.name, self._references)
     return false
   end
-  local bufnr = self.strategy:get_bufnr()
+  local bufnr = self:get_bufnr()
   local bufnr_visible = util.is_bufnr_visible(bufnr)
   if not force then
     -- Can't dispose if the strategy bufnr is open
@@ -695,6 +704,7 @@ function Task:start()
   local bufnr = self.strategy:get_bufnr()
   if bufnr then
     vim.bo[bufnr].buflisted = false
+    vim.b[bufnr].overseer_task = self.id
   end
 
   util.replace_buffer_in_wins(self.prev_bufnr, bufnr)

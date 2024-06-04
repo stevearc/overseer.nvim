@@ -47,7 +47,6 @@ end
 function JobstartStrategy:start(task)
   if not self.bufnr then
     self.bufnr = vim.api.nvim_create_buf(false, true)
-    vim.b[self.bufnr].overseer_task = task.id
     if self.opts.use_terminal then
       local mode = vim.api.nvim_get_mode().mode
       local term_id

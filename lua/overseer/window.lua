@@ -1,42 +1,9 @@
+local TaskView = require("overseer.task_view")
 local config = require("overseer.config")
 local layout = require("overseer.layout")
 local task_list = require("overseer.task_list")
 local util = require("overseer.util")
 local M = {}
-
-local _winclosed_autocmd
-local function watch_for_win_closed()
-  if _winclosed_autocmd then
-    return
-  end
-  _winclosed_autocmd = vim.api.nvim_create_autocmd("WinClosed", {
-    desc = "Close overseer output window when task list is closed",
-    callback = function(args)
-      local winid = tonumber(args.match)
-      local output_win = vim.w[winid].overseer_output_win
-      if output_win and vim.api.nvim_win_is_valid(output_win) then
-        vim.api.nvim_win_close(output_win, true)
-      end
-    end,
-  })
-end
-
-local min_win_opts = {
-  number = false,
-  relativenumber = false,
-  cursorline = false,
-  cursorcolumn = false,
-  foldcolumn = "0",
-  signcolumn = "no",
-  spell = false,
-  list = false,
-}
----@param winid integer
-local function set_minimal_win_opts(winid)
-  for k, v in pairs(min_win_opts) do
-    vim.api.nvim_set_option_value(k, v, { scope = "local", win = winid })
-  end
-end
 
 ---@param direction "left"|"right"|"bottom"
 ---@param existing_win integer
@@ -56,22 +23,14 @@ local function create_overseer_window(direction, existing_win)
 
   -- create the output window if we're opening on the bottom
   if direction == "bottom" then
-    local output_win = vim.w.overseer_output_win
-    if not output_win or not vim.api.nvim_win_is_valid(output_win) then
-      vim.cmd.split({ mods = { vertical = true, noautocmd = true, split = "belowright" } })
-      output_win = vim.api.nvim_get_current_win()
-    end
-    local last_task = task_list.list_tasks({ recent_first = true })[1]
-    local outbuf = last_task and last_task:get_bufnr()
-    if not outbuf or not vim.api.nvim_buf_is_valid(outbuf) then
-      outbuf = vim.api.nvim_create_buf(false, true)
-      vim.bo[outbuf].bufhidden = "wipe"
-    end
-    util.go_buf_no_au(outbuf)
-    set_minimal_win_opts(0)
+    vim.cmd.split({ mods = { vertical = true, noautocmd = true, split = "belowright" } })
+    TaskView.new(0, {
+      close_on_list_close = true,
+      select = function(self, tasks, task_under_cursor)
+        return task_under_cursor or tasks[1]
+      end,
+    })
     util.go_win_no_au(winid)
-    vim.w.overseer_output_win = output_win
-    watch_for_win_closed()
   end
 
   util.go_buf_no_au(bufnr)
@@ -115,9 +74,10 @@ M.is_open = function()
 end
 
 ---@class overseer.WindowOpts
----@field enter nil|boolean
----@field direction nil|"left"|"right"|"bottom"
----@field winid nil|integer Use this existing window instead of opening a new window
+---@field enter? boolean
+---@field direction? "left"|"right"|"bottom"
+---@field winid? integer Use this existing window instead of opening a new window
+---@field focus_task_id? integer After opening, focus this task
 
 ---@param opts? overseer.WindowOpts
 M.open = function(opts)
@@ -128,9 +88,23 @@ M.open = function(opts)
   local winid = M.get_win_id()
   if winid == nil then
     winid = create_overseer_window(opts.direction, opts.winid)
+    vim.api.nvim_create_autocmd("WinClosed", {
+      desc = "Watch for Overseer task list window close",
+      pattern = tostring(winid),
+      nested = true,
+      once = true,
+      callback = function()
+        vim.api.nvim_exec_autocmds("User", { pattern = "OverseerListClose", modeline = false })
+      end,
+    })
   end
   if opts.enter then
     vim.api.nvim_set_current_win(winid)
+  end
+  if opts.focus_task_id then
+    local sidebar = require("overseer.task_list.sidebar")
+    local sb = sidebar.get_or_create()
+    sb:focus_task_id(opts.focus_task_id)
   end
 end
 

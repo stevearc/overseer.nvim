@@ -41,6 +41,7 @@
   - [on_result_diagnostics](components.md#on_result_diagnostics)
   - [on_result_diagnostics_quickfix](components.md#on_result_diagnostics_quickfix)
   - [on_result_notify](components.md#on_result_notify)
+  - [open_output](components.md#open_output)
   - [restart_on_save](components.md#restart_on_save)
   - [run_after](components.md#run_after)
   - [timeout](components.md#timeout)
@@ -385,6 +386,7 @@ Open or close the task list
 |       | enter                      | `nil\|boolean`                   |                                                          |
 |       | direction                  | `nil\|"left"\|"right"\|"bottom"` |                                                          |
 |       | winid                      | `nil\|integer`                   | Use this existing window instead of opening a new window |
+|       | focus_task_id              | `nil\|integer`                   | After opening, focus this task                           |
 
 ### open(opts)
 
@@ -721,6 +723,7 @@ Open a tab with windows laid out for debugging a parser
 - [on_result_diagnostics](components.md#on_result_diagnostics)
 - [on_result_diagnostics_quickfix](components.md#on_result_diagnostics_quickfix)
 - [on_result_notify](components.md#on_result_notify)
+- [open_output](components.md#open_output)
 - [restart_on_save](components.md#restart_on_save)
 - [run_after](components.md#run_after)
 - [timeout](components.md#timeout)

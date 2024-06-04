@@ -341,10 +341,11 @@ toggle({opts})                                                   *overseer.toggl
 
     Parameters:
       {opts} `nil|overseer.WindowOpts`
-          {enter}     `nil|boolean`
-          {direction} `nil|"left"|"right"|"bottom"`
-          {winid}     `nil|integer` Use this existing window instead of opening
-                      a new window
+          {enter}         `nil|boolean`
+          {direction}     `nil|"left"|"right"|"bottom"`
+          {winid}         `nil|integer` Use this existing window instead of
+                          opening a new window
+          {focus_task_id} `nil|integer` After opening, focus this task
 
 open({opts})                                                       *overseer.open*
     Open the task list
@@ -771,6 +772,25 @@ on_result_notify                                                *on_result_notif
                   infer_status_from_diagnostics = true
       {system}    `enum` When to send a system notification (default `"never"`)
                   (choices: `"always"|"never"|"unfocused"`)
+
+open_output                                                          *open_output*
+    Open task output
+
+    Parameters:
+      {direction}   `enum` Where to open the task output (default `"dock"`) The
+                    'dock' option will open the output docked to the bottom next
+                    to the task list. (choices:
+                    `"dock"|"float"|"tab"|"vertical"|"horizontal"`)
+      {focus}       `boolean` Focus the output window when it is opened (default
+                    `false`)
+      {on_complete} `enum` Open the output when the task completes (default
+                    `"always"`) (choices:
+                    `"always"|"never"|"success"|"failure"`)
+      {on_result}   `enum` Open the output when the task produces a result
+                    (default `"never"`) (choices:
+                    `"always"|"never"|"if_diagnostics"`)
+      {on_start}    `boolean` Open the output when the task starts (default
+                    `false`)
 
 restart_on_save                                                  *restart_on_save*
     Restart on any buffer :write

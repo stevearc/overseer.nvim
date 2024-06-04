@@ -1,4 +1,4 @@
----@class overseer.Config
+---@class (exact) overseer.Config
 ---@field strategy? string Default task strategy
 ---@field templates? string[] Template modules to load
 ---@field auto_detect_success_color? boolean
@@ -19,7 +19,7 @@
 ---@field template_cache_threshold? integer Cache template provider results if the provider takes longer than this to run. Time is in ms. Set to 0 to disable caching.
 ---@field log? table[]
 
----@class overseer.ConfigTaskList
+---@class (exact) overseer.ConfigTaskList
 ---@field default_detail? 1|2|3 Default detail level for tasks. Can be 1-3.
 ---@field max_width? number|number[] Width dimensions can be integers or a float between 0 and 1 (e.g. 0.4 for 40%). min_width and max_width can be a single value or a list of mixed integer/float types. max_width = {100, 0.2} means "the lesser of 100 columns or 20% of total"
 ---@field min_width? number|number[] min_width = {40, 0.1} means "the greater of 40 columns or 10% of total"
@@ -31,7 +31,7 @@
 ---@field direction? string Default direction. Can be "left", "right", or "bottom"
 ---@field bindings? table<string, string> Set keymap to false to remove default behavior
 
----@class overseer.ConfigFloatWin
+---@class (exact) overseer.ConfigFloatWin
 ---@field border? string|table
 ---@field zindex? integer
 ---@field min_width? number|number[]
@@ -40,12 +40,12 @@
 ---@field max_height? number|number[]
 ---@field win_opts? table<string, any>
 
----@class overseer.ConfigTaskWin
+---@class (exact) overseer.ConfigTaskWin
 ---@field border? string|table
 ---@field padding? integer
 ---@field win_opts? table<string, any>
 
----@class overseer.ConfigBundles
+---@class (exact) overseer.ConfigBundles
 ---@field save_task_opts? table When saving a bundle with OverseerSaveBundle or save_task_bundle(), filter the tasks with these options (passed to list_tasks())
 ---@field autostart_on_load? boolean Autostart tasks when they are loaded from a bundle
 
