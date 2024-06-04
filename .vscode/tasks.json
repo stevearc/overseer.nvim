@@ -46,6 +46,9 @@
       "label": "(vscode) background",
       "command": "./tests/fake_background_task.sh",
       "isBackground": true,
+      "presentation": {
+        "revealProblems": "onProblem",
+      },
       "problemMatcher": {
         "pattern": {
           "regexp": "^([^:]+):(\\d+)",

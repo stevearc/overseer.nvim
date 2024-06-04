@@ -14,6 +14,7 @@
 - [on_output_write_file](#on_output_write_file)
 - [on_result_diagnostics](#on_result_diagnostics)
 - [on_result_diagnostics_quickfix](#on_result_diagnostics_quickfix)
+- [on_result_diagnostics_trouble](#on_result_diagnostics_trouble)
 - [on_result_notify](#on_result_notify)
 - [open_output](#open_output)
 - [restart_on_save](#restart_on_save)
@@ -173,6 +174,17 @@ If task result contains diagnostics, add them to the quickfix
 | open              | `boolean` | `false` | If true, open the quickfix when there are diagnostics                    |
 | set_empty_results | `boolean` | `false` | If true, overwrite the current quickfix even if there are no diagnostics |
 | use_loclist       | `boolean` | `false` | If true, use the loclist instead of quickfix                             |
+
+## on_result_diagnostics_trouble
+
+[on_result_diagnostics_trouble.lua](../lua/overseer/component/on_result_diagnostics_trouble.lua)
+
+If task result contains diagnostics, open trouble.nvim
+
+| Param | Type           | Default | Desc                                                 |
+| ----- | -------------- | ------- | ---------------------------------------------------- |
+| args  | `list[string]` |         | Arguments passed to 'Trouble diagnostics open'       |
+| close | `boolean`      | `false` | If true, close Trouble when there are no diagnostics |
 
 ## on_result_notify
 

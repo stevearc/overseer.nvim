@@ -153,7 +153,16 @@ local function get_presentation_components(defn)
   local reveal_problems = presentation.revealProblems or "never"
   -- Another departure from VSCode behavior: treat revealProblems="always" the same as "onProblem".
   if reveal_problems == "always" or reveal_problems == "onProblem" then
-    table.insert(ret, { "on_result_diagnostics_quickfix", open = true })
+    local has_trouble = pcall(require, "trouble")
+    if has_trouble then
+      table.insert(ret, { "on_result_diagnostics_trouble" })
+    else
+      table.insert(ret, { "on_result_diagnostics_quickfix", open = true })
+    end
+  elseif defn.problemMatcher then
+    -- If there's no revealProblems but there is a problemMatcher, set the results in the quickfix
+    -- anyway (just don't auto open it)
+    table.insert(ret, "on_result_diagnostics_quickfix")
   end
 
   -- NOTE: we are not yet making use of:
@@ -195,6 +204,7 @@ local function get_task_builder(defn, precalculated_vars)
         "on_output_parse",
         problem_matcher = pmatcher,
       })
+      table.insert(components, "on_result_diagnostics")
     end
     if defn.isBackground then
       table.insert(components, "on_complete_restart")

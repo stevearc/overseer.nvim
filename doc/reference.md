@@ -40,6 +40,7 @@
   - [on_output_write_file](components.md#on_output_write_file)
   - [on_result_diagnostics](components.md#on_result_diagnostics)
   - [on_result_diagnostics_quickfix](components.md#on_result_diagnostics_quickfix)
+  - [on_result_diagnostics_trouble](components.md#on_result_diagnostics_trouble)
   - [on_result_notify](components.md#on_result_notify)
   - [open_output](components.md#open_output)
   - [restart_on_save](components.md#restart_on_save)
@@ -235,8 +236,6 @@ require("overseer").setup({
     -- Tasks from tasks.json use these components
     default_vscode = {
       "default",
-      "on_result_diagnostics",
-      "on_result_diagnostics_quickfix",
     },
   },
   bundles = {
@@ -722,6 +721,7 @@ Open a tab with windows laid out for debugging a parser
 - [on_output_write_file](components.md#on_output_write_file)
 - [on_result_diagnostics](components.md#on_result_diagnostics)
 - [on_result_diagnostics_quickfix](components.md#on_result_diagnostics_quickfix)
+- [on_result_diagnostics_trouble](components.md#on_result_diagnostics_trouble)
 - [on_result_notify](components.md#on_result_notify)
 - [open_output](components.md#open_output)
 - [restart_on_save](components.md#restart_on_save)

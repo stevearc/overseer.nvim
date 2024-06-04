@@ -215,8 +215,6 @@ OPTIONS                                                         *overseer-option
         -- Tasks from tasks.json use these components
         default_vscode = {
           "default",
-          "on_result_diagnostics",
-          "on_result_diagnostics_quickfix",
         },
       },
       bundles = {
@@ -756,6 +754,14 @@ on_result_diagnostics_quickfix                    *on_result_diagnostics_quickfi
                     if there are no diagnostics (default `false`)
       {use_loclist} `boolean` If true, use the loclist instead of quickfix
                     (default `false`)
+
+on_result_diagnostics_trouble                      *on_result_diagnostics_trouble*
+    If task result contains diagnostics, open trouble.nvim
+
+    Parameters:
+      {args}  `list[string]` Arguments passed to 'Trouble diagnostics open'
+      {close} `boolean` If true, close Trouble when there are no diagnostics
+              (default `false`)
 
 on_result_notify                                                *on_result_notify*
     vim.notify when task receives results
@@ -1330,9 +1336,9 @@ setup():
       -- worth mapping it directly if you use it often.
       task_list = {
         bindings = {
-          ['P'] = '<CMD>OverseerQuickAction My custom action<CR>',
-        }
-      }
+          ["P"] = "<CMD>OverseerQuickAction My custom action<CR>",
+        },
+      },
     })
 <
 

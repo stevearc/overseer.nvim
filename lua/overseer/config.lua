@@ -154,8 +154,6 @@ local default_config = {
     -- Tasks from tasks.json use these components
     default_vscode = {
       "default",
-      "on_result_diagnostics",
-      "on_result_diagnostics_quickfix",
     },
   },
   bundles = {
