@@ -581,7 +581,7 @@ Create a new template by overriding fields on another
 |                | aliases                           | `nil\|string[]`                                       |                                             |
 |                | desc                              | `nil\|string`                                         |                                             |
 |                | tags                              | `nil\|string[]`                                       |                                             |
-|                | params                            | `nil\|overseer.Params`                                |                                             |
+|                | params                            | `nil\|overseer.Params\|fun(): overseer.Params`        |                                             |
 |                | priority                          | `nil\|number`                                         |                                             |
 |                | condition                         | `nil\|overseer.SearchCondition`                       |                                             |
 |                | builder                           | `fun(params: table): overseer.TaskDefinition`         |                                             |
@@ -824,4 +824,28 @@ The following types are available:
   -- and not templates (which usually prompt the user for their parameters)
   type = "opaque"
 }
+```
+
+Templates can define params to be a function, to dynamically generate the params.
+
+```lua
+require("overseer").register_template({
+  name = "Git checkout",
+  params = function()
+    local stdout = vim.system({ "git", "branch", "--format=%(refname:short)" }):wait().stdout
+    local branches = vim.split(stdout, "\n", { trimempty = true })
+    return {
+      branch = {
+        desc = "Branch to checkout",
+        type = "enum",
+        choices = branches,
+      },
+    }
+  end,
+  builder = function(params)
+    return {
+      cmd = { "git", "checkout", params.branch },
+    }
+  end,
+})
 ```

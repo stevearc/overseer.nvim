@@ -462,11 +462,22 @@ M.run_action = lazy("action_util", "run_task_action")
 M.wrap_template = function(base, override, default_params)
   override = override or {}
   if default_params then
-    ---@diagnostic disable-next-line: undefined-field
-    override.params = vim.deepcopy(base.params or {})
-    for k, v in pairs(default_params) do
-      override.params[k].default = v
-      override.params[k].optional = true
+    local base_params = base.params
+    if type(base_params) == "function" then
+      override.params = function()
+        local params = base_params()
+        for k, v in pairs(default_params) do
+          params[k].default = v
+          params[k].optional = true
+        end
+        return params
+      end
+    else
+      override.params = vim.deepcopy(base_params or {})
+      for k, v in pairs(default_params) do
+        override.params[k].default = v
+        override.params[k].optional = true
+      end
     end
   end
   return setmetatable(override, { __index = base })
