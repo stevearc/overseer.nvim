@@ -147,6 +147,15 @@ M.scroll_to_end = function(winid)
   vim.api.nvim_set_option_value("scrolloff", scrolloff, { scope = "local", win = winid })
 end
 
+---@param win_opts vim.wo
+---@param winid? number
+M.set_window_opts = function(win_opts, winid)
+  winid = winid or 0
+  for k, v in pairs(win_opts) do
+    vim.api.nvim_set_option_value(k, v, { scope = "local", win = winid })
+  end
+end
+
 ---@param bufnr number
 ---@param ns number
 ---@param highlights table
@@ -265,10 +274,12 @@ end
 
 ---Set the appropriate window options for a terminal buffer
 M.set_term_window_opts = function(winid)
-  winid = winid or 0
-  vim.api.nvim_set_option_value("number", false, { scope = "local", win = winid })
-  vim.api.nvim_set_option_value("relativenumber", false, { scope = "local", win = winid })
-  vim.api.nvim_set_option_value("signcolumn", "no", { scope = "local", win = winid })
+  M.set_window_opts({
+    number = false,
+    relativenumber = false,
+    signcolumn = "no",
+    statuscolumn = "",
+  }, winid)
 end
 
 ---@generic T : any

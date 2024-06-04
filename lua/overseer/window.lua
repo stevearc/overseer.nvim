@@ -21,23 +21,6 @@ local function watch_for_win_closed()
   })
 end
 
-local min_win_opts = {
-  number = false,
-  relativenumber = false,
-  cursorline = false,
-  cursorcolumn = false,
-  foldcolumn = "0",
-  signcolumn = "no",
-  spell = false,
-  list = false,
-}
----@param winid integer
-local function set_minimal_win_opts(winid)
-  for k, v in pairs(min_win_opts) do
-    vim.api.nvim_set_option_value(k, v, { scope = "local", win = winid })
-  end
-end
-
 ---@param direction "left"|"right"|"bottom"
 ---@param existing_win integer
 local function create_overseer_window(direction, existing_win)
@@ -68,34 +51,21 @@ local function create_overseer_window(direction, existing_win)
       vim.bo[outbuf].bufhidden = "wipe"
     end
     util.go_buf_no_au(outbuf)
-    set_minimal_win_opts(0)
+    util.set_window_opts(config.task_list.output.win_opts, 0)
     util.go_win_no_au(winid)
     vim.w.overseer_output_win = output_win
     watch_for_win_closed()
   end
 
   util.go_buf_no_au(bufnr)
-  local default_opts = {
-    listchars = "tab:> ",
-    winfixwidth = true,
-    winfixheight = true,
-    number = false,
-    signcolumn = "no",
-    foldcolumn = "0",
-    relativenumber = false,
-    wrap = false,
-    spell = false,
-  }
-  for k, v in pairs(default_opts) do
-    vim.api.nvim_set_option_value(k, v, { scope = "local", win = 0 })
-  end
+  util.set_window_opts(config.task_list.win_opts, 0)
   vim.api.nvim_win_set_width(0, layout.calculate_width(nil, config.task_list))
   if direction == "bottom" then
     vim.api.nvim_win_set_height(0, layout.calculate_height(nil, config.task_list))
   end
   -- Set the filetype only after we enter the buffer so that FileType autocmds
   -- behave properly
-  vim.bo[bufnr].filetype = "OverseerList"
+  vim.api.nvim_set_option_value("filetype", "OverseerList", { buf = bufnr })
 
   util.go_win_no_au(my_winid)
   return winid
