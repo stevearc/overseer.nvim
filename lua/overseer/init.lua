@@ -274,6 +274,11 @@ M.enable_dap = function(enabled)
   if not ok then
     return
   end
+  if not dap.listeners.on_config then
+    local log = require("overseer.log")
+    log:warn("overseer requires a newer version of nvim-dap to enable DAP integration")
+    return
+  end
   if enabled then
     dap.listeners.on_config.overseer = require("overseer.dap").listener
 
