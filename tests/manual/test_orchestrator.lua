@@ -11,7 +11,7 @@ local task = overseer.new_task({
         cmd = "echo mining ore && sleep 2 && echo bribing gremlins && sleep 2 && echo assembled!",
       },
       {
-        { "shell", name = "Fuel rocket", cmd = "echo fueling && sleep 2 && echo tanked up!" },
+        { name = "Fuel rocket", cmd = "echo fueling && sleep 2 && echo tanked up!" },
         {
           "shell",
           name = "Preflight checklist",

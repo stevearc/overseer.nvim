@@ -45,7 +45,7 @@ overseer.new_task({
       "make clean", -- Step 1: clean
       {             -- Step 2: build js and css in parallel
          "npm build",
-        { "shell", cmd = "lessc styles.less styles.css" },
+        { cmd = {"lessc", "styles.less", "styles.css"} },
       },
       "npm serve",  -- Step 3: serve
     },

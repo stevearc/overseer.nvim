@@ -603,6 +603,8 @@ M.format_duration = function(duration)
   return time
 end
 
+---@param name_or_config string|table
+---@param cb fun(task: nil|overseer.Task)
 M.run_template_or_task = function(name_or_config, cb)
   if type(name_or_config) == "table" and name_or_config[1] == nil then
     -- This is a raw task params table

@@ -25,7 +25,7 @@ end
 
 ---@class overseer.OrchestratorStrategy : overseer.Strategy
 ---@field bufnr integer
----@field task_defns overseer.Serialized[][]
+---@field task_defns table[][]
 ---@field tasks integer[][]
 local OrchestratorStrategy = {}
 
@@ -42,7 +42,7 @@ local OrchestratorStrategy = {}
 ---       "make clean", -- Step 1: clean
 ---       {             -- Step 2: build js and css in parallel
 ---          "npm build",
----         { "shell", cmd = "lessc styles.less styles.css" },
+---         { cmd = {"lessc", "styles.less", "styles.css"} },
 ---       },
 ---       "npm serve",  -- Step 3: serve
 ---     },
@@ -59,7 +59,7 @@ function OrchestratorStrategy.new(opts)
   -- Convert it to each entry being a list of task definitions.
   local task_defns = {}
   for i, v in ipairs(opts.tasks) do
-    if type(v) == "table" and islist(v) then
+    if type(v) == "table" and islist(v) and type(v[1]) == "table" then
       task_defns[i] = v
     else
       task_defns[i] = { v }
@@ -183,74 +183,96 @@ function OrchestratorStrategy:start_next()
   self:render_buf()
 end
 
+---@private
+---@param defn table
+---@param i integer First index into the tasks table
+---@param j integer Second index into the tasks table
+function OrchestratorStrategy:build_task(defn, i, j)
+  local search = {
+    dir = self.task.cwd,
+  }
+  self.tasks[i][j] = -1
+
+  ---@param task overseer.Task
+  local function finalize_subtask(task)
+    task.parent_id = self.task.id
+    task:add_component("orchestrator.on_status_broadcast")
+    -- Don't include child tasks when saving to bundle. We will re-create them when the
+    -- orchestration task is loaded.
+    task:set_include_in_bundle(false)
+    self.tasks[i][j] = task.id
+    if self:section_complete(1) then
+      self:start_next()
+    end
+    -- Ensure the orchestrator task is sorted more recent than all children
+    task_list.touch_task(self.task)
+  end
+
+  if type(defn) == "table" and defn[1] == nil then
+    local task = require("overseer").new_task(defn)
+    finalize_subtask(task)
+    return
+  end
+
+  local name, params = util.split_config(defn)
+  params = params or {}
+  template.get_by_name(name, search, function(tmpl)
+    if not tmpl then
+      log:error("Orchestrator could not find task '%s'", name)
+      self.task:finalize(STATUS.FAILURE)
+      return
+    end
+    local build_opts = {
+      search = search,
+      params = params,
+    }
+    template.build_task_args(
+      tmpl,
+      build_opts,
+      vim.schedule_wrap(function(task_defn)
+        if not task_defn then
+          log:warn("Canceled building task '%s'", name)
+          self.task:finalize(STATUS.FAILURE)
+          return
+        end
+        if params.cwd then
+          task_defn.cwd = params.cwd
+        end
+        if task_defn.env or params.env then
+          task_defn.env = vim.tbl_deep_extend("force", task_defn.env or {}, params.env or {})
+        end
+        local new_task = Task.new(task_defn)
+        finalize_subtask(new_task)
+      end)
+    )
+  end)
+end
+
+---@private
+---@param idx integer
+function OrchestratorStrategy:section_complete(idx)
+  for _, v in ipairs(self.tasks[idx]) do
+    if v == -1 then
+      return false
+    end
+  end
+  return vim.tbl_count(self.tasks[idx]) == vim.tbl_count(self.task_defns[idx])
+end
+
 ---@param task overseer.Task
 function OrchestratorStrategy:start(task)
   self.task = task
   task:add_component("orchestrator.on_broadcast_update_orchestrator")
-  local function section_complete(idx)
-    for _, v in ipairs(self.tasks[idx]) do
-      if v == -1 then
-        return false
-      end
-    end
-    return vim.tbl_count(self.tasks[idx]) == vim.tbl_count(self.task_defns[idx])
-  end
-  local search = {
-    dir = self.task.cwd,
-  }
   for i, section in ipairs(self.task_defns) do
     self.tasks[i] = self.tasks[i] or {}
     for j, def in ipairs(section) do
-      local task_idx = { i, j }
-      local name, params = util.split_config(def)
-      params = params or {}
       local subtask = self.tasks[i][j] and task_list.get(self.tasks[i][j])
       if not subtask or subtask:is_disposed() then
-        self.tasks[i][j] = -1
-        template.get_by_name(name, search, function(tmpl)
-          if not tmpl then
-            log:error("Orchestrator could not find task '%s'", name)
-            self.task:finalize(STATUS.FAILURE)
-            return
-          end
-          local build_opts = {
-            search = search,
-            params = params,
-          }
-          template.build_task_args(
-            tmpl,
-            build_opts,
-            vim.schedule_wrap(function(task_defn)
-              if not task_defn then
-                log:warn("Canceled building task '%s'", name)
-                self.task:finalize(STATUS.FAILURE)
-                return
-              end
-              if params.cwd then
-                task_defn.cwd = params.cwd
-              end
-              if task_defn.env or params.env then
-                task_defn.env = vim.tbl_deep_extend("force", task_defn.env or {}, params.env or {})
-              end
-              local new_task = Task.new(task_defn)
-              new_task.parent_id = task.id
-              new_task:add_component("orchestrator.on_status_broadcast")
-              -- Don't include child tasks when saving to bundle. We will re-create them when the
-              -- orchestration task is loaded.
-              new_task:set_include_in_bundle(false)
-              self.tasks[task_idx[1]][task_idx[2]] = new_task.id
-              if section_complete(1) then
-                self:start_next()
-              end
-              -- Ensure the orchestrator task is sorted more recent than all children
-              task_list.touch_task(task)
-            end)
-          )
-        end)
+        self:build_task(def, i, j)
       end
     end
   end
-  if section_complete(1) then
+  if self:section_complete(1) then
     self:start_next()
   end
 end
