@@ -138,7 +138,7 @@ function Task.new(opts)
   next_id = next_id + 1
   task:dispatch("on_init")
   local bufnr = task:get_bufnr()
-  if bufnr and vim.api.nvim_buf_is_valid(bufnr) then
+  if bufnr then
     vim.b[bufnr].overseer_task = task.id
   end
   return task
@@ -603,7 +603,7 @@ function Task:dispose(force)
     log:debug("Not disposing task %s: has %d references", self.name, self._references)
     return false
   end
-  local bufnr = self.strategy:get_bufnr()
+  local bufnr = self:get_bufnr()
   local bufnr_visible = util.is_bufnr_visible(bufnr)
   if not force then
     -- Can't dispose if the strategy bufnr is open

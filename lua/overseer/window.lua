@@ -74,9 +74,10 @@ M.is_open = function()
 end
 
 ---@class overseer.WindowOpts
----@field enter nil|boolean
----@field direction nil|"left"|"right"|"bottom"
----@field winid nil|integer Use this existing window instead of opening a new window
+---@field enter? boolean
+---@field direction? "left"|"right"|"bottom"
+---@field winid? integer Use this existing window instead of opening a new window
+---@field focus_task_id? integer After opening, focus this task
 
 ---@param opts? overseer.WindowOpts
 M.open = function(opts)
@@ -99,6 +100,11 @@ M.open = function(opts)
   end
   if opts.enter then
     vim.api.nvim_set_current_win(winid)
+  end
+  if opts.focus_task_id then
+    local sidebar = require("overseer.task_list.sidebar")
+    local sb = sidebar.get_or_create()
+    sb:focus_task_id(opts.focus_task_id)
   end
 end
 

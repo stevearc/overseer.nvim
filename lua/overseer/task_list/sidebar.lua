@@ -134,6 +134,24 @@ function Sidebar:_get_task_from_line(lnum)
   end
 end
 
+---@param task_id integer
+function Sidebar:focus_task_id(task_id)
+  local winid = self:_get_winid()
+  if not winid then
+    return
+  end
+  local lnum = 1
+  for _, v in ipairs(self.task_lines) do
+    local lines, task = v[1], v[2]
+    if task.id == task_id then
+      vim.api.nvim_win_set_cursor(winid, { lnum, 0 })
+      self:_set_task_focused(task_id)
+      return
+    end
+    lnum = lnum + lines
+  end
+end
+
 ---@param bufnr integer
 ---@param winlayout nil|any
 ---@return nil|"left"|"right"|"bottom"

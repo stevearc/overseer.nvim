@@ -15,6 +15,7 @@
 - [on_result_diagnostics](#on_result_diagnostics)
 - [on_result_diagnostics_quickfix](#on_result_diagnostics_quickfix)
 - [on_result_notify](#on_result_notify)
+- [open_output](#open_output)
 - [restart_on_save](#restart_on_save)
 - [run_after](#run_after)
 - [timeout](#timeout)
@@ -189,6 +190,22 @@ Normally you will want to use on_complete_notify. If you have a long-running wat
 | system                        | `enum`    | `"never"` | When to send a system notification (`"always"\|"never"\|"unfocused"`)         |
 
 - **on_change:** This only works when infer_status_from_diagnostics = true
+
+## open_output
+
+[open_output.lua](../lua/overseer/component/open_output.lua)
+
+Open task output
+
+| Param       | Type      | Default    | Desc                                                                                    |
+| ----------- | --------- | ---------- | --------------------------------------------------------------------------------------- |
+| direction   | `enum`    | `"dock"`   | Where to open the task output (`"dock"\|"float"\|"tab"\|"vertical"\|"horizontal"`)      |
+| focus       | `boolean` | `false`    | Focus the output window when it is opened                                               |
+| on_complete | `enum`    | `"always"` | Open the output when the task completes (`"always"\|"never"\|"success"\|"failure"`)     |
+| on_result   | `enum`    | `"never"`  | Open the output when the task produces a result (`"always"\|"never"\|"if_diagnostics"`) |
+| on_start    | `boolean` | `false`    | Open the output when the task starts                                                    |
+
+- **direction:** The 'dock' option will open the output docked to the bottom next to the task list.
 
 ## restart_on_save
 

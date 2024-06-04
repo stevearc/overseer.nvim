@@ -62,6 +62,7 @@ local builtin_components = {
   "on_result_diagnostics",
   "on_result_diagnostics_quickfix",
   "on_result_notify",
+  "open_output",
   "restart_on_save",
   "run_after",
   "timeout",
