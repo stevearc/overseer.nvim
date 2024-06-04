@@ -236,6 +236,7 @@ require("overseer").setup({
     -- Tasks from tasks.json use these components
     default_vscode = {
       "default",
+      "on_result_diagnostics",
     },
   },
   bundles = {
