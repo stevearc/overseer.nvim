@@ -143,5 +143,12 @@ M = {
       vim.cmd("close")
     end,
   },
+  {
+    desc = "Dispose task",
+    plug = "<Plug>OverseerTask:Dispose",
+    rhs = function(sidebar)
+      sidebar:run_action("dispose")
+    end,
+  },
 }
 return M
