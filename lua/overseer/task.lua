@@ -1,6 +1,7 @@
 local component = require("overseer.component")
 local constants = require("overseer.constants")
 local form_utils = require("overseer.form.utils")
+local layout = require("overseer.layout")
 local log = require("overseer.log")
 local shell = require("overseer.shell")
 local strategy = require("overseer.strategy")
@@ -410,7 +411,64 @@ end
 
 ---@return number|nil
 function Task:get_bufnr()
-  return self.strategy:get_bufnr()
+  local bufnr = self.strategy:get_bufnr()
+  if bufnr and vim.api.nvim_buf_is_valid(bufnr) then
+    return bufnr
+  end
+end
+
+---@param direction? "float"|"tab"|"vertical"|"horizontal"
+function Task:open_output(direction)
+  local bufnr = self:get_bufnr()
+  if not bufnr then
+    return
+  end
+
+  -- Toggleterm itself needs to handle these operations.
+  -- TODO: maybe we should build a formal abstraction that handles this, instead of relying on a
+  -- gross if statement here.
+  if self.strategy.name == "toggleterm" and direction then
+    ---@diagnostic disable-next-line: undefined-field
+    local term = self.strategy.term
+    if not term then
+      return
+    end
+    term:open(nil, direction)
+    return
+  end
+
+  if direction == "float" then
+    local winid = layout.open_fullscreen_float(bufnr)
+    util.scroll_to_end(winid)
+  elseif direction == "tab" then
+    vim.cmd.tabnew()
+    util.set_term_window_opts()
+    vim.api.nvim_win_set_buf(0, bufnr)
+    util.scroll_to_end(0)
+  elseif direction == "vertical" then
+    vim.cmd.vsplit()
+    util.set_term_window_opts()
+    vim.api.nvim_win_set_buf(0, bufnr)
+    util.scroll_to_end(0)
+  elseif direction == "horizontal" then
+    -- If we're currently in the task list, open a split in the nearest other window
+    if vim.bo.filetype == "OverseerList" then
+      for _, winid in ipairs(util.get_fixed_wins()) do
+        if not vim.wo[winid].winfixwidth then
+          util.go_win_no_au(winid)
+          break
+        end
+      end
+    end
+    vim.cmd.split()
+    util.set_term_window_opts()
+    vim.api.nvim_win_set_buf(0, bufnr)
+    util.scroll_to_end(0)
+  else
+    vim.cmd.normal({ args = { "m'" }, bang = true })
+    vim.api.nvim_win_set_buf(0, bufnr)
+    util.scroll_to_end(0)
+  end
 end
 
 function Task:reset()

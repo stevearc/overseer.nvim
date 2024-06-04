@@ -1,7 +1,6 @@
 local component = require("overseer.component")
 local constants = require("overseer.constants")
 local form = require("overseer.form")
-local layout = require("overseer.layout")
 local task_bundle = require("overseer.task_bundle")
 local task_editor = require("overseer.task_editor")
 local task_list = require("overseer.task_list")
@@ -108,72 +107,46 @@ M = {
   ["open float"] = {
     desc = "open terminal in a floating window",
     condition = function(task)
-      local bufnr = task:get_bufnr()
-      return bufnr and vim.api.nvim_buf_is_valid(bufnr)
+      return task:get_bufnr()
     end,
     run = function(task)
-      local winid = layout.open_fullscreen_float(task:get_bufnr())
-      util.scroll_to_end(winid)
+      task:open_output("float")
     end,
   },
   open = {
     desc = "open terminal in the current window",
     condition = function(task)
-      local bufnr = task:get_bufnr()
-      return bufnr and vim.api.nvim_buf_is_valid(bufnr)
+      return task:get_bufnr()
     end,
     run = function(task)
-      vim.cmd([[normal! m']])
-      vim.api.nvim_win_set_buf(0, task:get_bufnr())
-      util.scroll_to_end(0)
+      task:open_output()
     end,
   },
   ["open hsplit"] = {
     desc = "open terminal in a horizontal split",
     condition = function(task)
-      local bufnr = task:get_bufnr()
-      return bufnr and vim.api.nvim_buf_is_valid(bufnr)
+      return task:get_bufnr()
     end,
     run = function(task)
-      -- If we're currently in the task list, open a split in the nearest other window
-      if vim.bo.filetype == "OverseerList" then
-        for _, winid in ipairs(util.get_fixed_wins()) do
-          if not vim.wo[winid].winfixwidth then
-            util.go_win_no_au(winid)
-            break
-          end
-        end
-      end
-      vim.cmd([[split]])
-      util.set_term_window_opts()
-      vim.api.nvim_win_set_buf(0, task:get_bufnr())
-      util.scroll_to_end(0)
+      task:open_output("horizontal")
     end,
   },
   ["open vsplit"] = {
     desc = "open terminal in a vertical split",
     condition = function(task)
-      local bufnr = task:get_bufnr()
-      return bufnr and vim.api.nvim_buf_is_valid(bufnr)
+      return task:get_bufnr()
     end,
     run = function(task)
-      vim.cmd([[vsplit]])
-      util.set_term_window_opts()
-      vim.api.nvim_win_set_buf(0, task:get_bufnr())
-      util.scroll_to_end(0)
+      task:open_output("vertical")
     end,
   },
   ["open tab"] = {
     desc = "open terminal in a new tab",
     condition = function(task)
-      local bufnr = task:get_bufnr()
-      return bufnr and vim.api.nvim_buf_is_valid(bufnr)
+      return task:get_bufnr()
     end,
     run = function(task)
-      vim.cmd.tabnew()
-      util.set_term_window_opts()
-      vim.api.nvim_win_set_buf(0, task:get_bufnr())
-      util.scroll_to_end(0)
+      task:open_output("tab")
     end,
   },
   ["set quickfix diagnostics"] = {

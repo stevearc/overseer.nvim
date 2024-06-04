@@ -874,7 +874,7 @@ toggleterm({opts}): overseer.Strategy                        *strategy.toggleter
     Run tasks using the toggleterm plugin
 
     Parameters:
-      {opts} `nil|table`
+      {opts} `nil|overseeer.ToggleTermStrategyOpts`
           {use_shell}     `nil|boolean` load user shell before running task
           {direction}     `nil|"vertical"|"horizontal"|"tab"|"float"`
           {highlights}    `nil|table` map to a highlight group name and a table
@@ -883,8 +883,8 @@ toggleterm({opts}): overseer.Strategy                        *strategy.toggleter
                           task output
           {close_on_exit} `nil|boolean` close the terminal and delete terminal
                           buffer (if open) after task exits
-          {quit_on_exit}  `"never"|"always"|"success"` close the terminal window
-                          (if open) after task exits
+          {quit_on_exit}  `nil|"never"|"always"|"success"` close the terminal
+                          window (if open) after task exits
           {open_on_start} `nil|boolean` toggle open the terminal automatically
                           when task starts
           {hidden}        `nil|boolean` cannot be toggled with normal ToggleTerm
