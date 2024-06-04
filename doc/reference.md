@@ -105,7 +105,7 @@ require("overseer").setup({
     -- String that separates tasks
     separator = "────────────────────────────────────────",
     -- Default direction. Can be "left", "right", or "bottom"
-    direction = "left",
+    direction = "bottom",
     -- Set keymap to false to remove default behavior
     -- You can add custom keymaps here as well (anything vim.keymap.set accepts)
     bindings = {
