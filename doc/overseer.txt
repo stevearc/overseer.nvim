@@ -621,6 +621,23 @@ load_template({name})                                     *overseer.load_templat
 debug_parser()                                             *overseer.debug_parser*
     Open a tab with windows laid out for debugging a parser
 
+
+register_alias({name}, {components})                     *overseer.register_alias*
+    Register a new component alias.
+
+    Parameters:
+      {name}       `string`
+      {components} `overseer.Serialized[]`
+
+    Note:
+      This is intended to be used by plugin authors that wish to build on top of overseer. They do not
+      have control over the call to overseer.setup(), so this provides an alternative method of
+      setting a component alias that they can then use when creating tasks.
+
+    Examples: >lua
+      require("overseer").register_alias("my_plugin", { "default", "on_output_quickfix" })
+<
+
 --------------------------------------------------------------------------------
 COMPONENTS                                                   *overseer-components*
 

@@ -238,6 +238,7 @@ If you want to define custom tasks for your project, I'd recommend starting with
   - [register_template(defn)](doc/reference.md#register_templatedefn)
   - [load_template(name)](doc/reference.md#load_templatename)
   - [debug_parser()](doc/reference.md#debug_parser)
+  - [register_alias(name, components)](doc/reference.md#register_aliasname-components)
 - [Components](doc/reference.md#components)
 - [Strategies](doc/reference.md#strategies)
 - [Parsers](doc/reference.md#parsers)

@@ -49,4 +49,4 @@
 ---@field save_task_opts? table When saving a bundle with OverseerSaveBundle or save_task_bundle(), filter the tasks with these options (passed to list_tasks())
 ---@field autostart_on_load? boolean Autostart tasks when they are loaded from a bundle
 
----@alias overseer.Serialized string|table
+---@alias overseer.Serialized string|{[1]: string, [string]: any}

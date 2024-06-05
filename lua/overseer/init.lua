@@ -532,6 +532,17 @@ M.load_template = lazy_pend("template", "load_template")
 ---Open a tab with windows laid out for debugging a parser
 M.debug_parser = lazy("parser.debug", "start_debug_session")
 
+---Register a new component alias.
+---@param name string
+---@param components overseer.Serialized[]
+---@note
+--- This is intended to be used by plugin authors that wish to build on top of overseer. They do not
+--- have control over the call to overseer.setup(), so this provides an alternative method of
+--- setting a component alias that they can then use when creating tasks.
+---@example
+--- require("overseer").register_alias("my_plugin", { "default", "on_output_quickfix" })
+M.register_alias = lazy("component", "alias")
+
 -- Used for vim-session integration.
 local timer_active = false
 ---@private
