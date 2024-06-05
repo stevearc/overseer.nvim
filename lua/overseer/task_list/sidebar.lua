@@ -120,6 +120,7 @@ function Sidebar:set_task_focused(task_id)
     },
   })
   self.focused_task_id = task_id
+  self:highlight_focused()
 end
 
 ---@private
@@ -134,8 +135,9 @@ function Sidebar:get_task_from_line(lnum)
   end
 
   for _, v in ipairs(self.task_lines) do
-    if v[1] >= lnum then
-      return v[2]
+    local end_lnum, task = v[1], v[2]
+    if end_lnum >= lnum then
+      return task
     end
   end
 end
@@ -146,13 +148,15 @@ function Sidebar:focus_task_id(task_id)
   if not winid then
     return
   end
+  local start_lnum = 1
   for _, v in ipairs(self.task_lines) do
-    local lnum, task = v[1], v[2]
+    local end_lnum, task = v[1], v[2]
     if task.id == task_id then
-      vim.api.nvim_win_set_cursor(winid, { lnum, 0 })
+      vim.api.nvim_win_set_cursor(winid, { start_lnum, 0 })
       self:set_task_focused(task_id)
       return
     end
+    start_lnum = end_lnum + 2
   end
 end
 
@@ -278,13 +282,41 @@ function Sidebar:get_preview_wins()
   return ret
 end
 
+---@private
+function Sidebar:highlight_focused()
+  local ns = vim.api.nvim_create_namespace("overseer_focus")
+  vim.api.nvim_buf_clear_namespace(self.bufnr, ns, 0, -1)
+  if not self.focused_task_id then
+    return
+  end
+
+  local start_lnum = 1
+  for _, v in ipairs(self.task_lines) do
+    local end_lnum, task = v[1], v[2]
+    if task.id == self.focused_task_id then
+      if vim.fn.has("nvim-0.10") == 1 then
+        vim.api.nvim_buf_set_extmark(self.bufnr, ns, start_lnum - 1, 0, {
+          line_hl_group = "CursorLine",
+          end_row = end_lnum - 1,
+        })
+      else
+        for i = start_lnum, end_lnum do
+          vim.api.nvim_buf_add_highlight(self.bufnr, ns, "CursorLine", i - 1, 0, -1)
+        end
+      end
+    end
+    start_lnum = end_lnum + 2
+  end
+end
+
 function Sidebar:jump(direction)
   local lnum = vim.api.nvim_win_get_cursor(0)[1]
   local prev = 1
   local cur = 1
   for _, v in ipairs(self.task_lines) do
-    local next = v[1] + 2
-    if v[1] >= lnum then
+    local end_lnum = v[1]
+    local next = end_lnum + 2
+    if end_lnum >= lnum then
       if direction < 0 then
         vim.api.nvim_win_set_cursor(0, { prev, 0 })
       else
@@ -380,6 +412,7 @@ function Sidebar:render(tasks)
   vim.bo[self.bufnr].modifiable = false
   vim.bo[self.bufnr].modified = false
   util.add_highlights(self.bufnr, ns, highlights)
+  self:highlight_focused()
 
   if prev_first_task_id ~= new_first_task_id then
     local in_sidebar = vim.api.nvim_get_current_buf() == self.bufnr
