@@ -369,9 +369,9 @@ Create a new Task
 **Examples:**
 ```lua
 local task = overseer.new_task({
-  cmd = {'./build.sh'},
-  args = {'all'},
-  components = {{'on_output_quickfix', open=true}, 'default'}
+  cmd = { "./build.sh" },
+  args = { "all" },
+  components = { { "on_output_quickfix", open = true }, "default" }
 })
 task:start()
 ```
@@ -682,6 +682,18 @@ Directly register an overseer template
 | Param | Type                                                     | Desc |
 | ----- | -------------------------------------------------------- | ---- |
 | defn  | `overseer.TemplateDefinition\|overseer.TemplateProvider` |      |
+
+**Examples:**
+```lua
+overseer.register_template({
+  name = "My Task",
+  builder = function(params)
+    return {
+      cmd = { "echo", "Hello", "world" },
+    }
+  end,
+})
+```
 
 ### load_template(name)
 

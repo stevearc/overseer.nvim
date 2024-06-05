@@ -327,9 +327,9 @@ end
 ---@return overseer.Task
 ---@example
 --- local task = overseer.new_task({
----   cmd = {'./build.sh'},
----   args = {'all'},
----   components = {{'on_output_quickfix', open=true}, 'default'}
+---   cmd = { "./build.sh" },
+---   args = { "all" },
+---   components = { { "on_output_quickfix", open = true }, "default" }
 --- })
 --- task:start()
 M.new_task = lazy("task", "new")
@@ -521,6 +521,15 @@ M.remove_template_hook = lazy_pend("template", "remove_hook_template")
 
 ---Directly register an overseer template
 ---@param defn overseer.TemplateDefinition|overseer.TemplateProvider
+---@example
+--- overseer.register_template({
+---   name = "My Task",
+---   builder = function(params)
+---     return {
+---       cmd = { "echo", "Hello", "world" },
+---     }
+---   end,
+--- })
 M.register_template = lazy_pend("template", "register")
 ---Load a template definition from its module location
 ---@param name string

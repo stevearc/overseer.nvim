@@ -328,9 +328,9 @@ new_task({opts}): overseer.Task                                *overseer.new_tas
 
     Examples: >lua
       local task = overseer.new_task({
-        cmd = {'./build.sh'},
-        args = {'all'},
-        components = {{'on_output_quickfix', open=true}, 'default'}
+        cmd = { "./build.sh" },
+        args = { "all" },
+        components = { { "on_output_quickfix", open = true }, "default" }
       })
       task:start()
 <
@@ -606,6 +606,17 @@ register_template({defn})                             *overseer.register_templat
 
     Parameters:
       {defn} `overseer.TemplateDefinition|overseer.TemplateProvider`
+
+    Examples: >lua
+      overseer.register_template({
+        name = "My Task",
+        builder = function(params)
+          return {
+            cmd = { "echo", "Hello", "world" },
+          }
+        end,
+      })
+<
 
 load_template({name})                                     *overseer.load_template*
     Load a template definition from its module location
