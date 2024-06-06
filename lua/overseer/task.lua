@@ -123,6 +123,9 @@ function Task.new_uninitialized(opts)
     exit_code = nil,
     prev_bufnr = nil,
     components = {},
+    -- for internal use
+    ---@diagnostic disable-next-line: undefined-field
+    parent_id = opts.parent_id,
   }
   local task = setmetatable(data, { __index = Task })
   task:add_components(opts.components)

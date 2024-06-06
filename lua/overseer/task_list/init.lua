@@ -6,10 +6,7 @@ local lookup = {}
 
 ---@return integer
 M.get_or_create_bufnr = function()
-  local sidebar, created = require("overseer.task_list.sidebar").get_or_create()
-  if created then
-    sidebar:render(tasks)
-  end
+  local sidebar = require("overseer.task_list.sidebar").get_or_create()
   return sidebar.bufnr
 end
 

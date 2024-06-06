@@ -26,6 +26,7 @@ M.get_or_create = function()
   if not sb then
     ref = Sidebar.new()
     sb = ref
+    sb:render(task_list.list_tasks())
   end
   return sb, created
 end
@@ -355,9 +356,9 @@ function Sidebar:render(tasks)
   if not vim.api.nvim_buf_is_valid(self.bufnr) then
     return false
   end
+  local prev_num_lines = vim.api.nvim_buf_line_count(self.bufnr)
   local prev_first_task = self:get_task_from_line(1)
   local prev_first_task_id = prev_first_task and prev_first_task.id
-  local new_first_task_id = not vim.tbl_isempty(tasks) and tasks[#tasks].id
   local ns = vim.api.nvim_create_namespace("overseer")
   vim.api.nvim_buf_clear_namespace(self.bufnr, ns, 0, -1)
 
@@ -412,22 +413,34 @@ function Sidebar:render(tasks)
   vim.bo[self.bufnr].modifiable = false
   vim.bo[self.bufnr].modified = false
   util.add_highlights(self.bufnr, ns, highlights)
-  self:highlight_focused()
 
-  if prev_first_task_id ~= new_first_task_id then
-    local in_sidebar = vim.api.nvim_get_current_buf() == self.bufnr
+  if sidebar_winid then
+    if view then
+      vim.api.nvim_win_call(sidebar_winid, function()
+        vim.fn.winrestview(view)
+      end)
+    end
+
+    local new_first_task = tasks[#tasks]
+    local new_first_task_id = new_first_task and new_first_task.id
+    local new_line_count = vim.api.nvim_buf_line_count(self.bufnr)
+
+    local in_sidebar = vim.api.nvim_get_current_win() == sidebar_winid
     local in_output_win = vim.b.overseer_task ~= nil
-    if not in_sidebar and not in_output_win then
-      for _, winid in ipairs(util.buf_list_wins(self.bufnr)) do
-        vim.api.nvim_win_set_cursor(winid, { 1, 0 })
-      end
+    if
+      not in_sidebar
+      and not in_output_win
+      and prev_first_task_id ~= new_first_task_id
+      and new_first_task_id
+    then
+      self:focus_task_id(new_first_task_id)
+    elseif prev_num_lines ~= new_line_count then
+      -- Make sure our cursor stays on the previously focused task, even if it's moved
+      self:focus_task_id(self.focused_task_id)
     end
   end
-  if sidebar_winid and view then
-    vim.api.nvim_win_call(sidebar_winid, function()
-      vim.fn.winrestview(view)
-    end)
-  end
+
+  self:highlight_focused()
 
   return true
 end

@@ -195,7 +195,6 @@ function OrchestratorStrategy:build_task(defn, i, j)
 
   ---@param task overseer.Task
   local function finalize_subtask(task)
-    task.parent_id = self.task.id
     task:add_component("orchestrator.on_status_broadcast")
     -- Don't include child tasks when saving to bundle. We will re-create them when the
     -- orchestration task is loaded.
@@ -204,11 +203,10 @@ function OrchestratorStrategy:build_task(defn, i, j)
     if self:section_complete(1) then
       self:start_next()
     end
-    -- Ensure the orchestrator task is sorted more recent than all children
-    task_list.touch_task(self.task)
   end
 
   if type(defn) == "table" and defn[1] == nil then
+    defn = vim.tbl_extend("error", { parent_id = self.task.id }, defn)
     local task = require("overseer").new_task(defn)
     finalize_subtask(task)
     return
@@ -241,6 +239,7 @@ function OrchestratorStrategy:build_task(defn, i, j)
         if task_defn.env or params.env then
           task_defn.env = vim.tbl_deep_extend("force", task_defn.env or {}, params.env or {})
         end
+        task_defn.parent_id = self.task.id
         local new_task = Task.new(task_defn)
         finalize_subtask(new_task)
       end)
