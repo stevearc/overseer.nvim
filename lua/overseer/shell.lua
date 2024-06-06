@@ -1,15 +1,17 @@
 local M = {}
 
 ---@class overseer.ShellEscapeConfig
----@field esc_char nil|string
----@field special_chars nil|string
+---@field esc_char? string
+---@field strong_esc_char? string string that escapes a strong quote inside a strong quote
+---@field special_chars? string
 ---@field strong string
----@field weak nil|string
+---@field weak? string
 
 ---@type table<string, overseer.ShellEscapeConfig>
 local esc_configs = {
   powershell = {
     esc_char = "`",
+    strong_esc_char = "'",
     special_chars = "[\"' ()]",
     strong = "'",
     weak = '"',
@@ -19,6 +21,7 @@ local esc_configs = {
   },
   bash = {
     esc_char = "\\",
+    strong_esc_char = "'\"'\"",
     special_chars = "[\"' ]",
     strong = "'",
     weak = '"',
@@ -112,7 +115,7 @@ end
 ---@return boolean
 local function escape(value, method, config)
   if method == "strong" and config.strong then
-    return wrap(escape_quote(value, config.strong, config.esc_char), config.strong), true
+    return wrap(escape_quote(value, config.strong, config.strong_esc_char), config.strong), true
   elseif method == "weak" and config.weak then
     return wrap(escape_quote(value, config.weak, config.esc_char), config.weak), true
   elseif method == "escape" and config.esc_char and config.special_chars then
