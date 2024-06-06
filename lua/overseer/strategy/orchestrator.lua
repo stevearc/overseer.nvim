@@ -8,7 +8,7 @@ local template = require("overseer.template")
 local util = require("overseer.util")
 local STATUS = constants.STATUS
 ---@diagnostic disable-next-line: deprecated
-local islist = vim.islist or vim.tbl_islist
+local islist = vim.isarray or vim.tbl_islist
 
 ---@param tasks table
 ---@param cb fun(task: overseer.Task)
@@ -59,7 +59,7 @@ function OrchestratorStrategy.new(opts)
   -- Convert it to each entry being a list of task definitions.
   local task_defns = {}
   for i, v in ipairs(opts.tasks) do
-    if type(v) == "table" and islist(v) and type(v[1]) == "table" then
+    if type(v) == "table" and (vim.tbl_isempty(v) or (islist(v) and type(v[1]) == "table")) then
       task_defns[i] = v
     else
       task_defns[i] = { v }
@@ -155,8 +155,9 @@ end
 
 function OrchestratorStrategy:start_next()
   if self.task and not self.task:is_complete() then
-    local all_success = false
+    local all_success = true
     for i, section in ipairs(self.tasks) do
+      all_success = false
       local status = get_status(section)
       if status == STATUS.PENDING then
         for _, id in ipairs(section) do
@@ -247,9 +248,13 @@ function OrchestratorStrategy:build_task(defn, i, j)
   end)
 end
 
+---Check if we have fully created all of the tasks in a section
 ---@private
 ---@param idx integer
 function OrchestratorStrategy:section_complete(idx)
+  if self.task_defns[idx] == nil then
+    return true
+  end
   for _, v in ipairs(self.tasks[idx]) do
     if v == -1 then
       return false
@@ -271,8 +276,11 @@ function OrchestratorStrategy:start(task)
       end
     end
   end
+
   if self:section_complete(1) then
-    self:start_next()
+    vim.schedule(function()
+      self:start_next()
+    end)
   end
 end
 
