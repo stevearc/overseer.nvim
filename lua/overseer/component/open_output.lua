@@ -28,14 +28,16 @@ local comp = {
   params = {
     on_start = {
       desc = "Open the output when the task starts",
-      type = "boolean",
-      default = false,
+      type = "enum",
+      choices = { "always", "never", "if_no_on_output_quickfix" },
+      default = "if_no_on_output_quickfix",
+      long_desc = "The 'if_no_on_output_quickfix' option will open the task output on start unless the task has the 'on_output_quickfix' component attached.",
     },
     on_complete = {
       desc = "Open the output when the task completes",
       type = "enum",
       choices = { "always", "never", "success", "failure" },
-      default = "always",
+      default = "never",
     },
     on_result = {
       desc = "Open the output when the task produces a result",
@@ -57,11 +59,26 @@ local comp = {
     },
   },
   constructor = function(params)
+    -- backwards compatibility
+    if params.on_start == true then
+      params.on_start = "always"
+    elseif params.on_start == false then
+      params.on_start = "never"
+    end
+    ---@type overseer.ComponentSkeleton
     local methods = {}
 
-    if params.on_start then
+    if params.on_start ~= "never" then
       methods.on_start = function(self, task)
-        open_output(task, params.direction, params.focus)
+        if
+          params.on_start == "always"
+          or (
+            params.on_start == "if_no_on_output_quickfix"
+            and not task:has_component("on_output_quickfix")
+          )
+        then
+          open_output(task, params.direction, params.focus)
+        end
       end
     end
 

@@ -821,13 +821,15 @@ open_output                                                          *open_outpu
       {focus}       `boolean` Focus the output window when it is opened (default
                     `false`)
       {on_complete} `enum` Open the output when the task completes (default
-                    `"always"`) (choices:
-                    `"always"|"never"|"success"|"failure"`)
+                    `"never"`) (choices: `"always"|"never"|"success"|"failure"`)
       {on_result}   `enum` Open the output when the task produces a result
                     (default `"never"`) (choices:
                     `"always"|"never"|"if_diagnostics"`)
-      {on_start}    `boolean` Open the output when the task starts (default
-                    `false`)
+      {on_start}    `enum` Open the output when the task starts (default
+                    `"if_no_on_output_quickfix"`) The 'if_no_on_output_quickfix'
+                    option will open the task output on start unless the task
+                    has the 'on_output_quickfix' component attached. (choices:
+                    `"always"|"never"|"if_no_on_output_quickfix"`)
 
 restart_on_save                                                  *restart_on_save*
     Restart on any buffer :write

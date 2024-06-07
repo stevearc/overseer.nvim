@@ -144,10 +144,13 @@ local function get_presentation_components(defn)
   if reveal == "always" then
     table.insert(ret, { "open_output", focus = defn.focus })
   elseif reveal == "silent" then
-    table.insert(
-      ret,
-      { "open_output", focus = defn.focus, on_complete = "failure", on_result = "if_diagnostics" }
-    )
+    table.insert(ret, {
+      "open_output",
+      focus = defn.focus,
+      on_start = "never",
+      on_complete = "failure",
+      on_result = "if_diagnostics",
+    })
   end
 
   local reveal_problems = presentation.revealProblems or "never"

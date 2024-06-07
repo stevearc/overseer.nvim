@@ -210,15 +210,16 @@ Normally you will want to use on_complete_notify. If you have a long-running wat
 
 Open task output
 
-| Param       | Type      | Default    | Desc                                                                                    |
-| ----------- | --------- | ---------- | --------------------------------------------------------------------------------------- |
-| direction   | `enum`    | `"dock"`   | Where to open the task output (`"dock"\|"float"\|"tab"\|"vertical"\|"horizontal"`)      |
-| focus       | `boolean` | `false`    | Focus the output window when it is opened                                               |
-| on_complete | `enum`    | `"always"` | Open the output when the task completes (`"always"\|"never"\|"success"\|"failure"`)     |
-| on_result   | `enum`    | `"never"`  | Open the output when the task produces a result (`"always"\|"never"\|"if_diagnostics"`) |
-| on_start    | `boolean` | `false`    | Open the output when the task starts                                                    |
+| Param       | Type      | Default                      | Desc                                                                                    |
+| ----------- | --------- | ---------------------------- | --------------------------------------------------------------------------------------- |
+| direction   | `enum`    | `"dock"`                     | Where to open the task output (`"dock"\|"float"\|"tab"\|"vertical"\|"horizontal"`)      |
+| focus       | `boolean` | `false`                      | Focus the output window when it is opened                                               |
+| on_complete | `enum`    | `"never"`                    | Open the output when the task completes (`"always"\|"never"\|"success"\|"failure"`)     |
+| on_result   | `enum`    | `"never"`                    | Open the output when the task produces a result (`"always"\|"never"\|"if_diagnostics"`) |
+| on_start    | `enum`    | `"if_no_on_output_quickfix"` | Open the output when the task starts (`"always"\|"never"\|"if_no_on_output_quickfix"`)  |
 
 - **direction:** The 'dock' option will open the output docked to the bottom next to the task list.
+- **on_start:** The 'if_no_on_output_quickfix' option will open the task output on start unless the task has the 'on_output_quickfix' component attached.
 
 ## restart_on_save
 
