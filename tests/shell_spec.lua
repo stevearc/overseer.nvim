@@ -17,8 +17,8 @@ describe("shell", function()
     it("Strong quotes value", function()
       local tests = {
         { "a space", "'a space'" },
-        { "has'quote", "'has\\'quote'" },
-        { "has'\" quotes", "'has\\'\" quotes'" },
+        { "has'quote", "'has'\"'\"'quote'" },
+        { "has'\" quotes", "'has'\"'\"'\" quotes'" },
       }
       for _, test in ipairs(tests) do
         local got = shell.escape(test[1], "strong", "/bin/bash")
@@ -57,8 +57,8 @@ describe("shell", function()
       it("Strong quotes value", function()
         local tests = {
           { "a space", "'a space'" },
-          { "has' quote", "'has`' quote'" },
-          { "has'\" quotes", "'has`'\" quotes'" },
+          { "has' quote", "'has'' quote'" },
+          { "has'\" quotes", "'has''\" quotes'" },
         }
         for _, test in ipairs(tests) do
           local got = shell.escape(test[1], "strong", "powershell")
