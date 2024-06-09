@@ -361,7 +361,7 @@ function Editor:add_new_component(insert_position)
   end
   table.sort(options)
 
-  vim.ui.select(options, {
+  vim.schedule_wrap(vim.ui.select)(options, {
     prompt = "New component",
     kind = "overseer_new_component",
     format_item = function(item)
