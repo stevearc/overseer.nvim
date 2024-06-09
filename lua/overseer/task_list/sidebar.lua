@@ -318,14 +318,21 @@ end
 
 ---@param direction integer -1 for up, 1 for down
 function Sidebar:scroll_output(direction)
-  if not self.preview or self.preview:is_disposed() then
+  if not self.focused_task_id then
     return
   end
-  vim.api.nvim_win_call(self.preview.winid, function()
-    local key =
-      vim.api.nvim_replace_termcodes(direction < 0 and "<C-u>" or "<C-d>", true, true, true)
-    vim.cmd.normal({ args = { key }, bang = true })
-  end)
+  for _, winid in ipairs(vim.api.nvim_tabpage_list_wins(0)) do
+    if vim.api.nvim_win_is_valid(winid) then
+      local bufnr = vim.api.nvim_win_get_buf(winid)
+      if vim.b[bufnr].overseer_task == self.focused_task_id then
+        vim.api.nvim_win_call(winid, function()
+          local key =
+            vim.api.nvim_replace_termcodes(direction < 0 and "<C-u>" or "<C-d>", true, true, true)
+          vim.cmd.normal({ args = { key }, bang = true })
+        end)
+      end
+    end
+  end
 end
 
 function Sidebar:run_action(name)
