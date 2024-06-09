@@ -270,20 +270,6 @@ function Sidebar:get_output_wins()
 end
 
 ---@private
----@return integer[]
-function Sidebar:get_preview_wins()
-  local ret = {}
-  local preview_win = util.get_preview_window()
-  if preview_win then
-    table.insert(ret, preview_win)
-  end
-  for _, winid in ipairs(self:get_output_wins()) do
-    table.insert(ret, winid)
-  end
-  return ret
-end
-
----@private
 function Sidebar:highlight_focused()
   local ns = vim.api.nvim_create_namespace("overseer_focus")
   vim.api.nvim_buf_clear_namespace(self.bufnr, ns, 0, -1)
@@ -332,14 +318,14 @@ end
 
 ---@param direction integer -1 for up, 1 for down
 function Sidebar:scroll_output(direction)
-  local wins = self:get_preview_wins()
-  for _, winid in ipairs(wins) do
-    vim.api.nvim_win_call(winid, function()
-      local key =
-        vim.api.nvim_replace_termcodes(direction < 0 and "<C-u>" or "<C-d>", true, true, true)
-      vim.cmd.normal({ args = { key }, bang = true })
-    end)
+  if not self.preview or self.preview:is_disposed() then
+    return
   end
+  vim.api.nvim_win_call(self.preview.winid, function()
+    local key =
+      vim.api.nvim_replace_termcodes(direction < 0 and "<C-u>" or "<C-d>", true, true, true)
+    vim.cmd.normal({ args = { key }, bang = true })
+  end)
 end
 
 function Sidebar:run_action(name)
