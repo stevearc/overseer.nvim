@@ -3,15 +3,6 @@ local log = require("overseer.log")
 local overseer = require("overseer")
 local TAG = constants.TAG
 
-local make_targets = [[
-(rule (targets) @name)
-
-(rule (targets) @phony (#eq? @phony ".PHONY")
-  normal: (prerequisites
-    (word) @name)
-)
-]]
-
 ---@type overseer.TemplateFileDefinition
 local tmpl = {
   name = "make",
@@ -29,44 +20,6 @@ local tmpl = {
     }
   end,
 }
-
-local function ts_parse_make_targets(parser, bufnr, cwd)
-  local query
-  if vim.treesitter.query.parse then
-    -- Neovim 0.9
-    query = vim.treesitter.query.parse("make", make_targets)
-  else
-    ---@diagnostic disable-next-line: undefined-field
-    query = vim.treesitter.parse_query("make", make_targets)
-  end
-  local root = parser:parse()[1]:root()
-  local captures = {}
-  for k, v in pairs(query.captures) do
-    captures[v] = k
-  end
-  local targets = {}
-  local default_target
-  ---@diagnostic disable-next-line: missing-parameter
-  for _, match in query:iter_matches(root, bufnr) do
-    local name = vim.treesitter.get_node_text(match[captures.name], bufnr)
-    if name ~= ".PHONY" then
-      targets[name] = true
-      if not default_target and not match[captures.phony] then
-        default_target = name
-      end
-    end
-  end
-
-  local ret = {}
-  for k in pairs(targets) do
-    local override = { name = string.format("make %s", k) }
-    if k == default_target then
-      override.priority = 55
-    end
-    table.insert(ret, overseer.wrap_template(tmpl, override, { args = { k }, cwd = cwd }))
-  end
-  return ret
-end
 
 local function parse_make_output(cwd, ret, cb)
   local jid = vim.fn.jobstart({ "make", "-rRpq" }, {
@@ -133,17 +86,9 @@ local provider = {
   generator = function(opts, cb)
     local makefile = assert(get_makefile(opts))
     local cwd = vim.fs.dirname(makefile)
-    local bufnr = vim.fn.bufadd(makefile)
 
     local ret = { overseer.wrap_template(tmpl, nil, { cwd = cwd }) }
-    local ok, parser =
-      pcall(vim.treesitter.get_parser, bufnr, "make", { injections = { make = {} } })
-    if ok then
-      vim.list_extend(ret, ts_parse_make_targets(parser, bufnr, cwd))
-      cb(ret)
-    else
-      parse_make_output(cwd, ret, cb)
-    end
+    parse_make_output(cwd, ret, cb)
   end,
 }
 return provider
