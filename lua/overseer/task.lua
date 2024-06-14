@@ -595,6 +595,7 @@ end
 
 ---Cleans up resources, removes from task list, and deletes buffer.
 ---@param force? boolean When true, will dispose even with a nonzero refcount or when buffer is visible
+---@return boolean disposed
 function Task:dispose(force)
   vim.validate({
     force = { force, "b", true },
