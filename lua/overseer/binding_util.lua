@@ -20,7 +20,7 @@ end
 
 ---@param bufnr number
 ---@param mode string
----@param bindings table<string, string>
+---@param bindings table<string, string|false>
 ---@param prefix string
 M.create_bindings_to_plug = function(bufnr, mode, bindings, prefix)
   local maps
