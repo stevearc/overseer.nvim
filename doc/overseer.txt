@@ -514,10 +514,10 @@ wrap_template({base}, {override}, {default_params}): overseer.TemplateFileDefini
           {params}    `nil|overseer.Params|fun(): overseer.Params`
           {priority}  `nil|number`
           {condition} `nil|overseer.SearchCondition`
-          {filetype} `nil|string|string[]`
-          {dir}      `nil|string|string[]`
-          {callback} `nil|fun(search: overseer.SearchParams): boolean` , nil|str
-                     ing
+              {filetype} `nil|string|string[]`
+              {dir}      `nil|string|string[]`
+              {callback} `nil|fun(search: overseer.SearchParams): boolean` , nil
+                         |string
           {builder}   `fun(params: table): overseer.TaskDefinition`
           {hide}      `nil|boolean` Hide from the template list
       {override}       `nil|table<string, any>` Override any fields on the base
