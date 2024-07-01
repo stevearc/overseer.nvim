@@ -29,7 +29,7 @@
 ---@field height? number
 ---@field separator? string String that separates tasks
 ---@field direction? string Default direction. Can be "left", "right", or "bottom"
----@field bindings? table<string, string> Set keymap to false to remove default behavior
+---@field bindings? table<string, string|false> Set keymap to false to remove default behavior
 
 ---@class (exact) overseer.ConfigFloatWin
 ---@field border? string|table
