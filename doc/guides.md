@@ -276,7 +276,7 @@ A component alias is just a simple string you can use as a component that resolv
 
 ```lua
 local task = require("overseer").new_task({
-    cmd = "g++ " . vim.fn.expand("%"),
+    cmd = "g++ " .. vim.fn.expand("%"),
     components = {
         -- Add on_complete_notify first with a customized 'statuses' parameter
         { "on_complete_notify", statuses = { "SUCCESS" } },
