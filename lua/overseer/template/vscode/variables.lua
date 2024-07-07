@@ -76,9 +76,6 @@ M.replace_vars = function(str, params, precalculated_vars)
     if precalculated_vars and precalculated_vars[name] then
       return precalculated_vars[name]
     end
-    -- TODO does not support ${workspacefolder:VALUE}
-    -- TODO does not support ${config:VALUE}
-    -- TODO does not support ${command:VALUE}
     if name == "userHome" then
       return assert(vim.loop.os_homedir())
     elseif name == "workspaceFolder" then
@@ -125,7 +122,13 @@ M.replace_vars = function(str, params, precalculated_vars)
       else
         fullname = string.format("${%s}", name)
       end
-      log:warn("Unsupported VS Code variable: %s", fullname)
+      -- TODO does not support ${workspacefolder:VALUE}
+      -- TODO does not support ${config:VALUE}
+      -- TODO does not support ${command:VALUE}
+      local unsupported = { "workspacefolder", "config", "command" }
+      if vim.tbl_contains(unsupported, name) then
+        log:warn("Unsupported VS Code variable: %s", fullname)
+      end
       return fullname
     end
   end)
