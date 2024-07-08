@@ -1,5 +1,5 @@
 ---@class (exact) overseer.Config
----@field strategy? string Default task strategy
+---@field strategy? overseer.Serialized Default task strategy
 ---@field templates? string[] Template modules to load
 ---@field auto_detect_success_color? boolean
 ---@field dap? boolean Patch nvim-dap to support preLaunchTask and postDebugTask
