@@ -10,6 +10,7 @@ local ToggleTermStrategy = {}
 
 ---@class overseeer.ToggleTermStrategyOpts
 ---@field use_shell? boolean load user shell before running task
+---@field size? number the size of the split if direction is vertical or horizontal
 ---@field direction? "vertical"|"horizontal"|"tab"|"float"
 ---@field highlights? table map to a highlight group name and a table of it's values
 ---@field auto_scroll? boolean automatically scroll to the bottom on task output
@@ -25,6 +26,7 @@ local ToggleTermStrategy = {}
 function ToggleTermStrategy.new(opts)
   opts = vim.tbl_extend("keep", opts or {}, {
     use_shell = false,
+    size = nil,
     direction = "float",
     highlights = nil,
     auto_scroll = nil,
@@ -122,7 +124,7 @@ function ToggleTermStrategy:start(task)
   })
 
   if self.opts.open_on_start then
-    self.term:toggle()
+    self.term:toggle(self.opts.size)
   else
     self.term:spawn()
   end
