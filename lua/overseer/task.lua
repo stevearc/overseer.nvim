@@ -441,11 +441,7 @@ function Task:open_output(direction)
   -- gross if statement here.
   if self.strategy.name == "toggleterm" and direction then
     ---@diagnostic disable-next-line: undefined-field
-    local term = self.strategy.term
-    if not term then
-      return
-    end
-    term:open(nil, direction)
+    self.strategy:open_terminal(direction)
     return
   end
 
