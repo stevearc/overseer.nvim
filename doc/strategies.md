@@ -74,6 +74,7 @@ Run tasks using the toggleterm plugin
 | ----- | --------------------------------------- | ----------------------------------------------- | ------------------------------------------------------------------------ |
 | opts  | `nil\|overseeer.ToggleTermStrategyOpts` |                                                 |                                                                          |
 |       | use_shell                               | `nil\|boolean`                                  | load user shell before running task                                      |
+|       | size                                    | `nil\|number`                                   | the size of the split if direction is vertical or horizontal             |
 |       | direction                               | `nil\|"vertical"\|"horizontal"\|"tab"\|"float"` |                                                                          |
 |       | highlights                              | `nil\|table`                                    | map to a highlight group name and a table of it's values                 |
 |       | auto_scroll                             | `nil\|boolean`                                  | automatically scroll to the bottom on task output                        |
