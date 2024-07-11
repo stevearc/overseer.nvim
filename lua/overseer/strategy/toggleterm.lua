@@ -6,6 +6,7 @@ local terminal = require("toggleterm.terminal")
 
 ---@class overseer.ToggleTermStrategy : overseer.Strategy
 ---@field private opts overseeer.ToggleTermStrategyOpts
+---@field private term? Terminal
 local ToggleTermStrategy = {}
 
 ---@class overseeer.ToggleTermStrategyOpts
@@ -142,6 +143,13 @@ function ToggleTermStrategy:dispose()
   if self.term then
     self.term:shutdown()
     self.term = nil
+  end
+end
+
+---@param direction "float"|"tab"|"vertical"|"horizontal"
+function ToggleTermStrategy:open_terminal(direction)
+  if self.term then
+    self.term:open(self.opts.size, direction)
   end
 end
 
