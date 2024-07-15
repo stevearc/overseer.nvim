@@ -253,6 +253,9 @@ local function convert_vscode_task(defn, precalculated_vars)
       end
     end
   end
+  if defn.hide then
+    tmpl.hide = true
+  end
   if defn.dependsOn then
     if type(defn.dependsOn) == "string" then
       defn.dependsOn = { defn.dependsOn }
@@ -296,9 +299,6 @@ local function convert_vscode_task(defn, precalculated_vars)
       defn.label or defn.name or defn.command
     )
     return nil
-  end
-  if defn.hide then
-    tmpl.hide = true
   end
 
   -- NOTE: we intentionally do nothing with defn.runOptions.
