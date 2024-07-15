@@ -80,8 +80,11 @@ M.replace_vars = function(str, params, precalculated_vars)
       return assert(vim.loop.os_homedir())
     elseif name == "workspaceFolder" then
       return get_workspace_folder()
+    elseif name == "workspaceRoot" then
+      -- workspaceRoot is deprecated, but we'll treat it the same as workspaceFolder
+      return get_workspace_folder()
     elseif name == "workspaceFolderBasename" then
-      return vim.fs.basename(vim.fn.getcwd())
+      return vim.fs.basename(get_workspace_folder())
     elseif name == "file" then
       return vim.fn.expand("%:p")
     elseif name == "fileWorkspaceFolder" then
@@ -109,7 +112,7 @@ M.replace_vars = function(str, params, precalculated_vars)
     elseif name == "defaultBuildTask" then
       -- FIXME dynamic call to find default build task
       return "BUILD"
-    elseif name == "pathSeparator" then
+    elseif name == "pathSeparator" or name == "/" then
       return files.sep
     elseif name == "env" then
       return os.getenv(arg)
