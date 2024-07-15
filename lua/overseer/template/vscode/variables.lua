@@ -125,8 +125,7 @@ M.replace_vars = function(str, params, precalculated_vars)
       -- TODO does not support ${workspacefolder:VALUE}
       -- TODO does not support ${config:VALUE}
       -- TODO does not support ${command:VALUE}
-      local unsupported = { "workspacefolder", "config", "command" }
-      if vim.tbl_contains(unsupported, name) then
+      if name == "workspacefolder" or name == "config" or name == "command" then
         log:warn("Unsupported VS Code variable: %s", fullname)
       end
       return fullname
