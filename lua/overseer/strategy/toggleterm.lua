@@ -28,7 +28,7 @@ function ToggleTermStrategy.new(opts)
   opts = vim.tbl_extend("keep", opts or {}, {
     use_shell = false,
     size = nil,
-    direction = "float",
+    direction = nil,
     highlights = nil,
     auto_scroll = nil,
     close_on_exit = false,
