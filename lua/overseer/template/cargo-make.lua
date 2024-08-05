@@ -49,6 +49,7 @@ return {
       cb(ret)
       return
     end
+    local cargo_make_file_dir = vim.fs.dirname(cargo_make_file)
 
     local data = files.read_file(cargo_make_file)
     if not data then
@@ -65,7 +66,7 @@ return {
           overseer.wrap_template(
             tmpl,
             { name = string.format("cargo-make %s", task_name) },
-            { args = { task_name } }
+            { args = { task_name }, cwd = cargo_make_file_dir }
           )
         )
       end

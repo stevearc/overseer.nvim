@@ -40,6 +40,7 @@ return {
   },
   generator = function(opts, cb)
     local package = get_deno_file(opts)
+    local package_dir = vim.fs.dirname(package)
     local data = files.load_json_file(package)
     local ret = {}
     local tasks = data.tasks
@@ -50,7 +51,7 @@ return {
           overseer.wrap_template(
             tmpl,
             { name = string.format("deno %s", k) },
-            { args = { "task", k } }
+            { args = { "task", k }, cwd = package_dir }
           )
         )
       end
