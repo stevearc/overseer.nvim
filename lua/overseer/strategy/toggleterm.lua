@@ -96,7 +96,7 @@ function ToggleTermStrategy:start(task)
 
       if self.opts.use_shell then
         t:send(cmd)
-        t:send("exit $?")
+        t:send("exit " .. (vim.o.shell:find("fish") and "$status" or "$?"))
       end
     end,
     on_stdout = function(t, job_id, d)
