@@ -58,8 +58,9 @@ M.listener = function(config)
             string.format("DAP preLaunchTask '%s' failed", config.preLaunchTask),
             vim.log.levels.ERROR
           )
+        else
+          coroutine.resume(co)
         end
-        coroutine.resume(co)
       end
 
       local function on_complete(_, status)
