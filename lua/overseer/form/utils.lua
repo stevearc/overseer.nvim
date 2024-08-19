@@ -207,12 +207,12 @@ M.parse_value = function(schema, value)
     end
     return true, ret
   elseif schema.type == "enum" then
-    local key = "^" .. value:lower()
+    local key = value:lower()
     local best
     for _, v in ipairs(schema.choices) do
       if v == value then
         return true, v
-      elseif v:lower():match(key) then
+      elseif vim.startswith(v:lower(), key) then
         best = v
       end
     end
