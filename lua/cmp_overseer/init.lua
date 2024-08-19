@@ -13,7 +13,7 @@ source.get_position_encoding_kind = function()
 end
 
 function source:get_keyword_pattern()
-  return [[\w*]]
+  return [[\S*]]
 end
 
 function source:complete(request, callback)
