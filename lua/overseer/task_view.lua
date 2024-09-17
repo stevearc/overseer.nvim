@@ -36,13 +36,15 @@ function TaskView.new(winid, opts)
     winid = vim.api.nvim_get_current_win()
   end
   set_minimal_win_opts(winid)
-  local self = setmetatable({
+  ---@type overseer.TaskView
+  local self = {
     winid = winid,
     select = opts.select or function(self, tasks)
       return tasks[1]
     end,
     autocmd_ids = {},
-  }, { __index = TaskView })
+  }
+  setmetatable(self, { __index = TaskView })
 
   -- Create one single autocmd that tracks the task_id under the cursor
   if not TaskView.cursor_track_autocmd_id then

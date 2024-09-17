@@ -111,13 +111,15 @@ end
 ---@field subs table<string, fun(key: string, value: any)[]>
 local ListParser = {}
 
+---@return overseer.ListParser
 function ListParser.new(children)
-  local parser = setmetatable({
+  local parser = {
     tree = M.loop({ ignore_failure = true }, M.sequence(children)),
     results = {},
     item = {},
     subs = {},
-  }, { __index = ListParser })
+  }
+  setmetatable(parser, { __index = ListParser })
   parser:subscribe("clear_results", function()
     parser.results = {}
     if parser.ctx then
@@ -183,6 +185,7 @@ end
 ---@field subs table<string, fun(key: string, value: any)[]>
 local MapParser = {}
 
+---@return overseer.MapParser
 function MapParser.new(children)
   local results = {}
   local items = {}
@@ -192,12 +195,13 @@ function MapParser.new(children)
     items[k] = {}
     wrapped_children[k] = M.loop({ ignore_failure = true }, M.sequence(v))
   end
-  local parser = setmetatable({
+  local parser = {
     children = wrapped_children,
     results = results,
     items = items,
     subs = {},
-  }, { __index = MapParser })
+  }
+  setmetatable(parser, { __index = MapParser })
   parser:subscribe("clear_results", function(current_key_only)
     if not current_key_only then
       for k in pairs(parser.children) do

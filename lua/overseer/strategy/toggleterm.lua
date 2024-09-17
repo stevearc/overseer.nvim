@@ -37,10 +37,13 @@ function ToggleTermStrategy.new(opts)
     hidden = false,
     on_create = nil,
   })
-  return setmetatable({
+  ---@type overseer.ToggleTermStrategy
+  local strategy = {
     opts = opts,
     term = nil,
-  }, { __index = ToggleTermStrategy })
+  }
+  setmetatable(strategy, { __index = ToggleTermStrategy })
+  return strategy
 end
 
 function ToggleTermStrategy:reset()

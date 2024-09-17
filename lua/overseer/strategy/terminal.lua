@@ -3,17 +3,20 @@ local log = require("overseer.log")
 local util = require("overseer.util")
 
 ---@class overseer.TerminalStrategy : overseer.Strategy
----@field bufnr integer
+---@field bufnr nil|integer
 ---@field chan_id nil|integer
 local TerminalStrategy = {}
 
 ---Run tasks using termopen()
 ---@return overseer.Strategy
 function TerminalStrategy.new()
-  return setmetatable({
+  ---@type overseer.TerminalStrategy
+  local strategy = {
     bufnr = nil,
     chan_id = nil,
-  }, { __index = TerminalStrategy })
+  }
+  setmetatable(strategy, { __index = TerminalStrategy })
+  return strategy
 end
 
 function TerminalStrategy:reset()

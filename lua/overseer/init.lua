@@ -480,7 +480,9 @@ M.wrap_template = function(base, override, default_params)
       end
     end
   end
-  return setmetatable(override, { __index = base })
+  setmetatable(override, { __index = base })
+  ---@cast override overseer.TemplateFileDefinition
+  return override
 end
 
 ---Add a hook that runs on a TaskDefinition before the task is created

@@ -8,10 +8,13 @@ local TestStrategy = {}
 ---Strategy used for unit testing
 ---@return overseer.Strategy
 function TestStrategy.new()
-  return setmetatable({
+  ---@type overseer.TestStrategy
+  local strategy = {
     task = nil,
     bufnr = vim.api.nvim_create_buf(false, true),
-  }, { __index = TestStrategy })
+  }
+  setmetatable(strategy, { __index = TestStrategy })
+  return strategy
 end
 
 function TestStrategy:reset()

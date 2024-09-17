@@ -3,7 +3,7 @@ local log = require("overseer.log")
 local util = require("overseer.util")
 
 ---@class overseer.JobstartStrategy : overseer.Strategy
----@field bufnr integer
+---@field bufnr nil|integer
 ---@field job_id nil|integer
 ---@field term_id nil|integer
 ---@field opts table
@@ -19,12 +19,15 @@ function JobstartStrategy.new(opts)
     preserve_output = false,
     use_terminal = true,
   })
-  return setmetatable({
+  ---@type overseer.JobstartStrategy
+  local strategy = {
     bufnr = nil,
     job_id = nil,
     term_id = nil,
     opts = opts,
-  }, { __index = JobstartStrategy })
+  }
+  setmetatable(strategy, { __index = JobstartStrategy })
+  return strategy
 end
 
 function JobstartStrategy:reset()

@@ -212,17 +212,13 @@ local function get_search_params()
   }
 end
 
----@param opts nil|table
----    dir string
----    ft nil|string
----@param cb nil|fun() Called when preloading is complete
+---@param opts? overseer.SearchParams
+---@param cb? fun() Called when preloading is complete
 M.preload_cache = function(opts, cb)
   template.list(opts or get_search_params(), cb or function() end)
 end
 
----@param opts nil|table
----    dir string
----    ft nil|string
+---@param opts? overseer.SearchParams
 M.clear_cache = function(opts)
   template.clear_cache(opts or get_search_params())
 end

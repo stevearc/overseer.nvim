@@ -106,7 +106,7 @@ function Task.new_uninitialized(opts)
   end
 
   -- Build the instance data for the task
-  local data = {
+  local task = {
     result = nil,
     metadata = opts.metadata or {},
     default_component_params = opts.default_component_params or {},
@@ -127,8 +127,9 @@ function Task.new_uninitialized(opts)
     ---@diagnostic disable-next-line: undefined-field
     parent_id = opts.parent_id,
   }
-  local task = setmetatable(data, { __index = Task })
+  setmetatable(task, { __index = Task })
   task:add_components(opts.components)
+  ---@cast task overseer.Task
   return task
 end
 

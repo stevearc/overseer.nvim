@@ -65,12 +65,15 @@ function OrchestratorStrategy.new(opts)
       task_defns[i] = { v }
     end
   end
-  return setmetatable({
+  ---@type overseer.OrchestratorStrategy
+  local strategy = {
     task = nil,
     bufnr = vim.api.nvim_create_buf(false, true),
     task_defns = task_defns,
     tasks = {},
-  }, { __index = OrchestratorStrategy })
+  }
+  setmetatable(strategy, { __index = OrchestratorStrategy })
+  return strategy
 end
 
 function OrchestratorStrategy:render_buf()

@@ -17,7 +17,10 @@ local NilStrategy = {}
 
 ---@return overseer.Strategy
 function NilStrategy.new()
-  return setmetatable({}, { __index = NilStrategy })
+  local strategy = {}
+  setmetatable(strategy, { __index = NilStrategy })
+  ---@cast strategy overseer.Strategy
+  return strategy
 end
 
 function NilStrategy:reset() end
@@ -48,7 +51,7 @@ M.load = function(name_or_config)
     return instance
   else
     log:error("No task strategy '%s'", name)
-    return NilStrategy
+    return NilStrategy.new()
   end
 end
 
