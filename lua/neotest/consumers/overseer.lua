@@ -78,6 +78,10 @@ neotest.overseer = setmetatable(neotest.overseer, {
     return neotest.overseer
   end,
   __index = function(_, key)
+    -- This can happen while neotest is still initializing
+    if not neotest.run then
+      return nil
+    end
     return neotest.run[key]
   end,
 })
