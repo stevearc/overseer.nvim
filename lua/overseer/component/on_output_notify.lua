@@ -68,6 +68,11 @@ local comp = {
         return v >= 0
       end,
     },
+    trim = {
+      desc = 'Remove whitespace from both sides of each line',
+      type = 'boolean',
+      default = true,
+    },
     output_on_complete = {
       desc = 'Show output summary even when the task completed',
       type = 'boolean',
@@ -102,6 +107,9 @@ local comp = {
         local lines = { header }
         if not complete or params.output_on_complete then
           for _, line in ipairs(self.lines) do
+            if params.trim then
+              line = vim.trim(line)
+            end
             if #line > max_width then
               line = line:sub(1, max_width - 1) .. '…'
             end
