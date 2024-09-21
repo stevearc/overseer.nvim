@@ -1,7 +1,7 @@
 -- Like on_complete_notify but, for long-running commands, also show real-time output summary (based on on_output_summarize).
 -- Requires nvim-notify to modify the last notification window when new output arrives instead of creating new notification.
 
-local util = require('overseer.util')
+local util = require("overseer.util")
 
 ---@param bufnr integer
 ---@param num_lines integer
@@ -18,8 +18,8 @@ local function get_last_lines(bufnr, num_lines)
     )
     while
       not vim.tbl_isempty(lines)
-      and (lines[#lines]:match('^%s*$') or lines[#lines]:match('^%[Process exited'))
-      do
+      and (lines[#lines]:match("^%s*$") or lines[#lines]:match("^%[Process exited"))
+    do
       table.remove(lines)
     end
     end_line = end_line - need_lines
@@ -28,54 +28,54 @@ local function get_last_lines(bufnr, num_lines)
 end
 
 local function has_nvim_notify()
-  return not not pcall(require, 'notify')
+  return not not pcall(require, "notify")
 end
 
 local function get_notify_config(setting, default)
   local notify_setting = vim.F.npcall(function()
-    return require('notify')._config()[setting]()
+    return require("notify")._config()[setting]()
   end)
   return vim.F.if_nil(notify_setting, default)
 end
 
 ---@type overseer.ComponentFileDefinition
 local comp = {
-  desc = 'Notify with task output summary for long-running tasks or when completed',
+  desc = "Notify with task output summary for long-running tasks or when completed",
 
   params = {
     max_lines = {
-      desc = 'Number of lines of output to show when detail > 1',
-      type = 'integer',
+      desc = "Number of lines of output to show when detail > 1",
+      type = "integer",
       default = 1,
       validate = function(v)
         return v > 0
       end,
     },
     max_width = {
-      desc = 'Maximum output width',
-      type = 'integer',
+      desc = "Maximum output width",
+      type = "integer",
       optional = true,
-      default = get_notify_config('max_width', 49),
+      default = get_notify_config("max_width", 49),
       validate = function(v)
         return v > 0
       end,
     },
     min_duration = {
-      desc = 'Minimum duration in milliseconds after which to display the notification',
-      type = 'number',
+      desc = "Minimum duration in milliseconds after which to display the notification",
+      type = "number",
       default = 2000,
       validate = function(v)
         return v >= 0
       end,
     },
     trim = {
-      desc = 'Remove whitespace from both sides of each line',
-      type = 'boolean',
+      desc = "Remove whitespace from both sides of each line",
+      type = "boolean",
       default = true,
     },
     output_on_complete = {
-      desc = 'Show output summary even when the task completed',
-      type = 'boolean',
+      desc = "Show output summary even when the task completed",
+      type = "boolean",
       default = false,
     },
   },
@@ -98,11 +98,14 @@ local comp = {
         -- Don't notify on output without nvim-notify installed, as this would create
         -- a lot of separate notifications instead of replacing the same one.
         if not complete and not has_nvim_notify() then
-          vim.notify_once('overseer.component.on_output_notify requires nvim-notify', vim.log.levels.WARN)
+          vim.notify_once(
+            "overseer.component.on_output_notify requires nvim-notify",
+            vim.log.levels.WARN
+          )
           return
         end
 
-        local header = string.format('%s %s', task.status, task.name)
+        local header = string.format("%s %s", task.status, task.name)
         local max_width = math.max(params.max_width or 0, #header)
         local lines = { header }
         if not complete or params.output_on_complete then
@@ -111,18 +114,18 @@ local comp = {
               line = vim.trim(line)
             end
             if #line > max_width then
-              line = line:sub(1, max_width - 1) .. '…'
+              line = line:sub(1, max_width - 1) .. "…"
             end
             table.insert(lines, line)
           end
         end
-        local msg = table.concat(lines, '\n')
+        local msg = table.concat(lines, "\n")
 
         local level = util.status_to_log_level(task.status)
         local ret = vim.notify(msg, level, {
           replace = self.notification_id,
           hide_from_history = self.notification_id and self.last_status == task.status,
-          timeout = complete and get_notify_config('default_timeout', 5000) or false,
+          timeout = complete and get_notify_config("default_timeout", 5000) or false,
         })
         self.notification_id = ret and ret.id
         self.last_status = task.status
