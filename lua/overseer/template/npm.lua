@@ -1,11 +1,13 @@
 local files = require("overseer.files")
 local overseer = require("overseer")
+local util = require("overseer.util")
 
-local lockfiles = {
-  npm = "package-lock.json",
-  pnpm = "pnpm-lock.yaml",
-  yarn = "yarn.lock",
-  bun = "bun.lockb",
+---@type table<string, string[]>
+local mgr_lockfiles = {
+  npm = { "package-lock.json" },
+  pnpm = { "pnpm-lock.yaml" },
+  yarn = { "yarn.lock" },
+  bun = { "bun.lockb", "bun.lock" },
 }
 
 ---@type overseer.TemplateFileDefinition
@@ -68,8 +70,12 @@ end
 
 local function pick_package_manager(package_file)
   local package_dir = vim.fs.dirname(package_file)
-  for mgr, lockfile in pairs(lockfiles) do
-    if files.exists(files.join(package_dir, lockfile)) then
+  for mgr, lockfiles in pairs(mgr_lockfiles) do
+    if
+      util.list_any(lockfiles, function(lockfile)
+        return files.exists(files.join(package_dir, lockfile))
+      end)
+    then
       return mgr
     end
   end
