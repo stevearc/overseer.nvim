@@ -1,16 +1,20 @@
 local files = require("overseer.files")
+local util = require("overseer.util")
 local M = {}
 
-local lockfiles = {
-  npm = "package-lock.json",
-  pnpm = "pnpm-lock.yaml",
-  yarn = "yarn.lock",
-  bun = "bun.lockb",
+---@type table<string, string[]>
+local mgr_lockfiles = {
+  npm = { "package-lock.json" },
+  pnpm = { "pnpm-lock.yaml" },
+  yarn = { "yarn.lock" },
+  bun = { "bun.lockb", "bun.lock" },
 }
 
 local function pick_package_manager()
-  for mgr, lockfile in pairs(lockfiles) do
-    if files.exists(lockfile) then
+  for mgr, lockfiles in pairs(mgr_lockfiles) do
+    if util.list_any(lockfiles, function(lockfile)
+      return files.exists(lockfile)
+    end) then
       return mgr
     end
   end
