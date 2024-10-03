@@ -181,6 +181,8 @@ function Task:render(lines, highlights, detail)
     else
       cmd_str = table.concat(cmd, " ")
     end
+    -- a command may contain newlines
+    cmd_str = cmd_str:gsub("\n", " ")
     table.insert(lines, cmd_str)
   end
 
