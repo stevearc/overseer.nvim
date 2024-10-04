@@ -394,6 +394,12 @@ function Sidebar:render(tasks)
       table.insert(highlights, { "OverseerTaskBorder", #lines, 0, -1 })
     end
   end
+
+  -- Attempting to render a newline within a line will cause a crash
+  for i, line in ipairs(lines) do
+    lines[i] = line:gsub("\n", " ")
+  end
+
   local sidebar_winid = self:get_winid()
   local view
   if sidebar_winid then
