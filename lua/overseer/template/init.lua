@@ -183,7 +183,7 @@ local function validate_template_provider(defn)
   })
   if not defn.cache_key then
     defn.cache_key = function(opts)
-      return opts.dir
+      return nil
     end
   end
 end
