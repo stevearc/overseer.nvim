@@ -545,7 +545,7 @@ M.list = function(opts, cb)
           true
         )
       else
-        local ok, tmpls = pcall(provider.generator, opts, provider_cb)
+        local ok, tmpls = xpcall(provider.generator, debug.traceback, opts, provider_cb)
         if ok then
           if tmpls then
             -- if there was a return value, the generator completed synchronously
