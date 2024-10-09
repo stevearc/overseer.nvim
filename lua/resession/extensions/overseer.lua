@@ -21,6 +21,14 @@ end
 M.on_load = function(data)
   local overseer = require("overseer")
   local config = require("overseer.config")
+  local task_list = require("overseer.task_list")
+  while true do
+    local task = task_list.get_by_index(1)
+    if task == nil then
+      break
+    end
+    task:dispose(true)
+  end
   for _, params in ipairs(data) do
     local task = overseer.new_task(params)
     if config.bundles.autostart_on_load then
