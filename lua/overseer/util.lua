@@ -730,7 +730,7 @@ M.get_last_output_lines = function(bufnr, num_lines)
     while
       not vim.tbl_isempty(lines)
       and (lines[#lines]:match("^%s*$") or lines[#lines]:match("^%[Process exited"))
-      do
+    do
       table.remove(lines)
     end
     end_line = end_line - need_lines
