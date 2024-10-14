@@ -1,31 +1,5 @@
--- Like on_complete_notify but, for long-running commands, also show real-time output summary (based on on_output_summarize).
--- Requires nvim-notify to modify the last notification window when new output arrives instead of creating new notification.
-
 local util = require("overseer.util")
-
----@param bufnr integer
----@param num_lines integer
----@return string[]
-local function get_last_lines(bufnr, num_lines)
-  local end_line = vim.api.nvim_buf_line_count(bufnr)
-  num_lines = math.min(num_lines, end_line)
-  local lines = {}
-  while end_line > 0 and #lines < num_lines do
-    local need_lines = num_lines - #lines
-    lines = vim.list_extend(
-      vim.api.nvim_buf_get_lines(bufnr, math.max(0, end_line - need_lines), end_line, false),
-      lines
-    )
-    while
-      not vim.tbl_isempty(lines)
-      and (lines[#lines]:match("^%s*$") or lines[#lines]:match("^%[Process exited"))
-    do
-      table.remove(lines)
-    end
-    end_line = end_line - need_lines
-  end
-  return lines
-end
+local uv = vim.uv or vim.loop
 
 local function has_nvim_notify()
   return not not pcall(require, "notify")
@@ -40,11 +14,16 @@ end
 
 ---@type overseer.ComponentFileDefinition
 local comp = {
-  desc = "Notify with task output summary for long-running tasks or when completed",
+  desc = "Use nvim-notify to show notification with task output summary for long-running tasks",
+
+  long_desc = vim.trim([[
+Works like on_complete_notify but, for long-running commands, also shows real-time output summary (like on_output_summarize).
+Requires nvim-notify to modify the last notification window when new output arrives instead of creating new notification.
+  ]]),
 
   params = {
     max_lines = {
-      desc = "Number of lines of output to show when detail > 1",
+      desc = "Number of lines of output to show",
       type = "integer",
       default = 1,
       validate = function(v)
@@ -60,8 +39,8 @@ local comp = {
         return v > 0
       end,
     },
-    min_duration = {
-      desc = "Minimum duration in milliseconds after which to display the notification",
+    delay_ms = {
+      desc = "Time in milliseconds to wait before displaying the notification during task runtime",
       type = "number",
       default = 2000,
       validate = function(v)
@@ -74,7 +53,11 @@ local comp = {
       default = true,
     },
     output_on_complete = {
-      desc = "Show output summary even when the task completed",
+      desc = "Show the last lines of task output and status on completion (instead of only the status)",
+      long_desc = vim.trim([[
+When output_on_complete==true: shows status + last output lines during task runtime and after completion.
+When output_on_complete==false: shows status + last output lines during task runtime and only status after completion.
+      ]]),
       type = "boolean",
       default = false,
     },
@@ -89,15 +72,15 @@ local comp = {
 
       defer_update_lines = util.debounce(function(self, task, bufnr, num_lines)
         if vim.api.nvim_buf_is_valid(bufnr) then
-          self.lines = get_last_lines(bufnr, num_lines)
+          self.lines = util.get_last_output_lines(bufnr, num_lines)
           self:update_notification(task)
         end
       end, { delay = 10, reset_timer_on_call = true }),
 
-      update_notification = function(self, task, complete)
+      update_notification = function(self, task)
         -- Don't notify on output without nvim-notify installed, as this would create
         -- a lot of separate notifications instead of replacing the same one.
-        if not complete and not has_nvim_notify() then
+        if task:is_running() and not has_nvim_notify() then
           vim.notify_once(
             "overseer.component.on_output_notify requires nvim-notify",
             vim.log.levels.WARN
@@ -108,7 +91,7 @@ local comp = {
         local header = string.format("%s %s", task.status, task.name)
         local max_width = math.max(params.max_width or 0, #header)
         local lines = { header }
-        if not complete or params.output_on_complete then
+        if task:is_running() or params.output_on_complete then
           for _, line in ipairs(self.lines) do
             if params.trim then
               line = vim.trim(line)
@@ -125,7 +108,7 @@ local comp = {
         local ret = vim.notify(msg, level, {
           replace = self.notification_id,
           hide_from_history = self.notification_id and self.last_status == task.status,
-          timeout = complete and get_notify_config("default_timeout", 5000) or false,
+          timeout = not task:is_running() and get_notify_config("default_timeout", 5000) or false,
         })
         self.notification_id = ret and ret.id
         self.last_status = task.status
@@ -139,17 +122,17 @@ local comp = {
       end,
 
       on_start = function(self)
-        self.start_time = vim.uv.now()
+        self.start_time = uv.now()
       end,
 
       on_output = function(self, task, _data)
-        local elapsed = vim.uv.now() - self.start_time
-        if elapsed < params.min_duration then
+        local elapsed = uv.now() - self.start_time
+        if elapsed < params.delay_ms then
           return
         end
 
         local bufnr = task:get_bufnr()
-        self.lines = get_last_lines(bufnr, params.max_lines)
+        self.lines = util.get_last_output_lines(bufnr, params.max_lines)
         self:update_notification(task)
 
         -- Update again after delay because the terminal buffer takes a few millis to be updated
@@ -158,7 +141,7 @@ local comp = {
       end,
 
       on_complete = function(self, task, _status)
-        self:update_notification(task, true)
+        self:update_notification(task)
       end,
     }
   end,

@@ -713,4 +713,29 @@ M.replace_buffer_in_wins = function(old_bufnr, new_bufnr)
   end
 end
 
+--- Get last N non-empty lines of job output
+---@param bufnr integer
+---@param num_lines integer
+---@return string[]
+M.get_last_output_lines = function(bufnr, num_lines)
+  local end_line = vim.api.nvim_buf_line_count(bufnr)
+  num_lines = math.min(num_lines, end_line)
+  local lines = {}
+  while end_line > 0 and #lines < num_lines do
+    local need_lines = num_lines - #lines
+    lines = vim.list_extend(
+      vim.api.nvim_buf_get_lines(bufnr, math.max(0, end_line - need_lines), end_line, false),
+      lines
+    )
+    while
+      not vim.tbl_isempty(lines)
+      and (lines[#lines]:match("^%s*$") or lines[#lines]:match("^%[Process exited"))
+      do
+      table.remove(lines)
+    end
+    end_line = end_line - need_lines
+  end
+  return lines
+end
+
 return M
