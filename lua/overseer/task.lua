@@ -451,13 +451,13 @@ function Task:open_output(direction)
     util.scroll_to_end(winid)
   elseif direction == "tab" then
     vim.cmd.tabnew()
-    util.set_term_window_opts()
     vim.api.nvim_win_set_buf(0, bufnr)
+    util.set_term_window_opts()
     util.scroll_to_end(0)
   elseif direction == "vertical" then
     vim.cmd.vsplit()
-    util.set_term_window_opts()
     vim.api.nvim_win_set_buf(0, bufnr)
+    util.set_term_window_opts()
     util.scroll_to_end(0)
   elseif direction == "horizontal" then
     -- If we're currently in the task list, open a split in the nearest other window
@@ -470,8 +470,8 @@ function Task:open_output(direction)
       end
     end
     vim.cmd.split()
-    util.set_term_window_opts()
     vim.api.nvim_win_set_buf(0, bufnr)
+    util.set_term_window_opts()
     util.scroll_to_end(0)
   else
     vim.cmd.normal({ args = { "m'" }, bang = true })
