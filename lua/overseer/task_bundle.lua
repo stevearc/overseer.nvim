@@ -150,6 +150,9 @@ M.save_task_bundle = function(name, tasks, opts)
       end, task_list.list_tasks(config.bundles.save_task_opts))
     end
     if vim.tbl_isempty(serialized) then
+      if opts.on_conflict == "overwrite" then
+        M.delete_task_bundle(name, { ignore_missing = true })
+      end
       return
     end
     local filepath = files.join(get_bundle_dir(), filename)
@@ -205,11 +208,19 @@ M.save_task_bundle = function(name, tasks, opts)
 end
 
 ---@param name? string
-M.delete_task_bundle = function(name)
+---@param opts? {ignore_missing?: boolean}
+M.delete_task_bundle = function(name, opts)
+  vim.validate({
+    name = { name, "s", true },
+    opts = { opts, "t", true },
+  })
+  opts = opts or {}
   if name then
     local filename = string.format("%s.bundle.json", name)
     if not files.delete_file(files.join(get_bundle_dir(), filename)) then
-      vim.notify(string.format("No task bundle at %s", filename))
+      if not opts.ignore_missing then
+        vim.notify(string.format("No task bundle at %s", filename))
+      end
     end
   else
     local tasks = M.list_task_bundles()
