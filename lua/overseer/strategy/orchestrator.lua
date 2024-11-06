@@ -59,7 +59,7 @@ function OrchestratorStrategy.new(opts)
   -- Convert it to each entry being a list of task definitions.
   local task_defns = {}
   for i, v in ipairs(opts.tasks) do
-    if type(v) == "table" and (vim.tbl_isempty(v) or (islist(v) and type(v[1]) == "table")) then
+    if type(v) == "table" and (vim.tbl_isempty(v) or islist(v)) then
       task_defns[i] = v
     else
       task_defns[i] = { v }
