@@ -141,6 +141,9 @@ end
 ---@param name string
 M.load_template = function(name)
   local ok, defn = pcall(require, string.format("overseer.template.%s", name))
+  if not ok and config.template_dir then
+    ok, defn = pcall(require, string.format("%s.%s", config.template_dir, name))
+  end
   if not ok then
     log:error("Error loading template '%s': %s", name, defn)
     return
