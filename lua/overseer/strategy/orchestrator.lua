@@ -10,6 +10,29 @@ local STATUS = constants.STATUS
 ---@diagnostic disable-next-line: deprecated
 local islist = vim.isarray or vim.tbl_islist
 
+---Check if this is a reference to a defined task template
+---@param task any
+---@return boolean
+local function is_named_task(task)
+  -- This can either be a task name, or a table with a task name as the first element
+  if type(task) == "string" then
+    return true
+  end
+  assert(type(task) == "table", "Task must be a string or table")
+
+  if islist(task) then
+    -- If this is a list-like table, then this is not a named task.
+    -- It will be a list of named tasks or task definitions.
+    return false
+  elseif type(task[1]) == "string" then
+    -- Named tasks have their name as the first element
+    return true
+  else
+    -- This is a task definition
+    return false
+  end
+end
+
 ---@param tasks table
 ---@param cb fun(task: overseer.Task)
 local function for_each_task(tasks, cb)
@@ -59,7 +82,9 @@ function OrchestratorStrategy.new(opts)
   -- Convert it to each entry being a list of task definitions.
   local task_defns = {}
   for i, v in ipairs(opts.tasks) do
-    if type(v) == "table" and (vim.tbl_isempty(v) or (islist(v) and type(v[1]) == "table")) then
+    if is_named_task(v) then
+      task_defns[i] = { v }
+    elseif islist(v) then
       task_defns[i] = v
     else
       task_defns[i] = { v }
