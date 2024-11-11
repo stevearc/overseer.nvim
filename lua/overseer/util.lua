@@ -637,7 +637,11 @@ M.run_in_fullscreen_win = function(bufnr, callback)
   })
   local winnr = vim.api.nvim_win_get_number(winid)
   vim.cmd.wincmd({ count = winnr, args = { "w" }, mods = { noautocmd = true } })
-  callback()
+  local ok, err = xpcall(callback, debug.traceback)
+  if not ok then
+    vim.api.nvim_err_writeln(err)
+  end
+  winnr = vim.api.nvim_win_get_number(winid)
   vim.cmd.close({ count = winnr, mods = { noautocmd = true, emsg_silent = true } })
 end
 
