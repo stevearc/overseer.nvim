@@ -1,5 +1,62 @@
 # Changelog
 
+## [1.5.0](https://github.com/stevearc/overseer.nvim/compare/v1.4.0...v1.5.0) (2024-11-11)
+
+
+### Features
+
+* add a plug binding for disposing a task ([b99f582](https://github.com/stevearc/overseer.nvim/commit/b99f5824acd6c5f85e94fc38f9db7315cd268b47))
+* allow template params to be a function ([#86](https://github.com/stevearc/overseer.nvim/issues/86)) ([e90c397](https://github.com/stevearc/overseer.nvim/commit/e90c3976e6a1d98733dc7078a967995c039a77bd))
+* API to register a component alias ([05e4f72](https://github.com/stevearc/overseer.nvim/commit/05e4f728eb2e0a42a34c73ff54b9449f0778f121))
+* change default task list position to the bottom ([d070abc](https://github.com/stevearc/overseer.nvim/commit/d070abc56adc9f19e02d40ff6c1f79869310904f))
+* component to show real-time notification with output summary ([#356](https://github.com/stevearc/overseer.nvim/issues/356)) ([cbcabf2](https://github.com/stevearc/overseer.nvim/commit/cbcabf231400c3a5c43ab66c4f5344d40855feba))
+* highlight focused task in task list ([362f78d](https://github.com/stevearc/overseer.nvim/commit/362f78dd6a33b0de5aec7de1ead6fc866ffd1deb))
+* new open_output component ([#306](https://github.com/stevearc/overseer.nvim/issues/306)) ([76561a4](https://github.com/stevearc/overseer.nvim/commit/76561a435aaad1dc105a0e6ae06cc122a0d97cdb))
+* on_complete_dispose can wait until task buffer has been seen ([9162631](https://github.com/stevearc/overseer.nvim/commit/916263159f5e1ab85f1ee10456fe651f8665c4f5))
+* on_result_diagnostics_trouble component to integrate with trouble.nvim ([cc33e6e](https://github.com/stevearc/overseer.nvim/commit/cc33e6e9919394dba1a5841a9ea93f2b0a6e14d7))
+* **vscode:** support presentation.reveal and presentation.revealProblems ([2d52e80](https://github.com/stevearc/overseer.nvim/commit/2d52e8069349dcb4233ff9024cd358954367df61))
+
+
+### Bug Fixes
+
+* add debug logging to on_complete_dispose ([d78fa84](https://github.com/stevearc/overseer.nvim/commit/d78fa84c06d37b1eb3bd42b4b5467c7476e74589))
+* allow setting toggleterm size in strategy ([#328](https://github.com/stevearc/overseer.nvim/issues/328)) ([d82f207](https://github.com/stevearc/overseer.nvim/commit/d82f20734953be76f28431584b8d3058399a6bb7))
+* always parse make output to find tasks ([#280](https://github.com/stevearc/overseer.nvim/issues/280)) ([f7507de](https://github.com/stevearc/overseer.nvim/commit/f7507de00d4b25aa7242353ccd22a4a5f052a2a8))
+* cmp completion supports more characters ([#340](https://github.com/stevearc/overseer.nvim/issues/340)) ([09d07e3](https://github.com/stevearc/overseer.nvim/commit/09d07e398b71eec2810e2ff265a843e474297e44))
+* crash when aborting task watch form ([03cbbb7](https://github.com/stevearc/overseer.nvim/commit/03cbbb7d5628c55f0038f846cdffdc3a95e16a90))
+* **dap:** stop debugging if preLaunchTask fails ([#344](https://github.com/stevearc/overseer.nvim/issues/344)) ([236e60c](https://github.com/stevearc/overseer.nvim/commit/236e60cdac6410dd95ea5cecafdb801a304d6a41))
+* define clear rules for when task list focus should change ([a6dc060](https://github.com/stevearc/overseer.nvim/commit/a6dc0600f675f10b8840c61d3f9d72fdf8cf970c))
+* delete task bundle on save if no tasks and on_conflict=overwrite ([#374](https://github.com/stevearc/overseer.nvim/issues/374)) ([c416be5](https://github.com/stevearc/overseer.nvim/commit/c416be50c2715a7f631d67e21154b8e6cd873ca3))
+* disable template caching unless provider specifically enables it ([6511b0e](https://github.com/stevearc/overseer.nvim/commit/6511b0ee9a54e6b18587aa3c9c55c97fa8bf6bdd))
+* don't warn on user defined vscode variables ([#325](https://github.com/stevearc/overseer.nvim/issues/325)) ([98ce1c8](https://github.com/stevearc/overseer.nvim/commit/98ce1c85c6b9fe16b140c5f9c1d25298b3605c6f))
+* focus race condition when adding new components ([#311](https://github.com/stevearc/overseer.nvim/issues/311)) ([09b1839](https://github.com/stevearc/overseer.nvim/commit/09b18396b974e67cf626a24afa74803c6650a4d5))
+* **form:** handle enum values with special characters ([#341](https://github.com/stevearc/overseer.nvim/issues/341)) ([6fdb72e](https://github.com/stevearc/overseer.nvim/commit/6fdb72eca78015f00cf9e43e0578f1bfdb984acc))
+* fzf-lua crash when running OverseerTaskAction ([8438119](https://github.com/stevearc/overseer.nvim/commit/8438119c3207274cc5f6823ea9b476a3d9cae849))
+* **go-task:** fix template to set working dir for task ([#295](https://github.com/stevearc/overseer.nvim/issues/295)) ([5fc6848](https://github.com/stevearc/overseer.nvim/commit/5fc6848307b9a00088f80f6e25041954da8416d2))
+* handle consumer access before neotest is initialized ([#352](https://github.com/stevearc/overseer.nvim/issues/352)) ([a2734d9](https://github.com/stevearc/overseer.nvim/commit/a2734d90c514eea27c4759c9f502adbcdfbce485))
+* miscalculation in task focus logic ([9e3b11a](https://github.com/stevearc/overseer.nvim/commit/9e3b11adf5ca1bb2753c76623f2c07b8c5c0d18e))
+* number column randomly appears when opening output ([#371](https://github.com/stevearc/overseer.nvim/issues/371)) ([6f8bc37](https://github.com/stevearc/overseer.nvim/commit/6f8bc37eb729a00e185cdf38b1ed3309a05bfeef))
+* orchestrator can take template definitions or task definitions ([#273](https://github.com/stevearc/overseer.nvim/issues/273)) ([a12d886](https://github.com/stevearc/overseer.nvim/commit/a12d8865a71ce0c5861a36a731264c915be35d7f))
+* orchestrator strategy allows empty task lists ([#309](https://github.com/stevearc/overseer.nvim/issues/309)) ([29dd31d](https://github.com/stevearc/overseer.nvim/commit/29dd31db39b44ddd57cfbc70610181a23acfae47))
+* orchestrator tasks sometimes not recognized ([#379](https://github.com/stevearc/overseer.nvim/issues/379)) ([25a9c64](https://github.com/stevearc/overseer.nvim/commit/25a9c6439a37b680ff4b3c02554f4173c197c18b))
+* pass cwd for cargo-make and deno tasks ([#337](https://github.com/stevearc/overseer.nvim/issues/337)) ([8e4ca87](https://github.com/stevearc/overseer.nvim/commit/8e4ca87f6073507b891a22ba9261bec309b05e9a))
+* preview scroll shortcuts ([#312](https://github.com/stevearc/overseer.nvim/issues/312)) ([9420d58](https://github.com/stevearc/overseer.nvim/commit/9420d5814e22ea2c6380a0aa213059098c708778))
+* proper escaping for single quotes ([#308](https://github.com/stevearc/overseer.nvim/issues/308)) ([fbf5330](https://github.com/stevearc/overseer.nvim/commit/fbf53309616b8c9489c66e9cdfe9761d0046ab82))
+* properly catch errors in run_in_fullscreen_win ([#377](https://github.com/stevearc/overseer.nvim/issues/377)) ([9f2145e](https://github.com/stevearc/overseer.nvim/commit/9f2145efd7b88ae6b811a301d2bd20e0784885ac))
+* provide full stacktrace when provider errors ([80156d8](https://github.com/stevearc/overseer.nvim/commit/80156d861c4a61b521e85e6220091adee910c445))
+* return on_result_diagnostics to default_vscode group ([e5723f2](https://github.com/stevearc/overseer.nvim/commit/e5723f2e84042a83354612b6daf7511441c7c9c0))
+* scrolling shortcuts work for all output windows ([#312](https://github.com/stevearc/overseer.nvim/issues/312)) ([6271cab](https://github.com/stevearc/overseer.nvim/commit/6271cab7ccc4ca840faa93f54440ffae3a3918bd))
+* small fixes to VSCode variable interpolation ([87526ba](https://github.com/stevearc/overseer.nvim/commit/87526babdb563b9e2f0646b420359389732326dc))
+* strip newlines before rendering ([#364](https://github.com/stevearc/overseer.nvim/issues/364)) ([965f815](https://github.com/stevearc/overseer.nvim/commit/965f8159408cee5970421ad36c4523333b798502))
+* support bun.lock ([#361](https://github.com/stevearc/overseer.nvim/issues/361)) ([e933735](https://github.com/stevearc/overseer.nvim/commit/e93373531dec5b1cc6d7ae6b7c786da44936a5b3))
+* **toggleterm:** better integration with the 'open' actions ([#159](https://github.com/stevearc/overseer.nvim/issues/159)) ([6a4008d](https://github.com/stevearc/overseer.nvim/commit/6a4008deab806a4a4157e34b4874141596b3b985))
+* **toggleterm:** exit for fish shell ([#345](https://github.com/stevearc/overseer.nvim/issues/345)) ([2c1ef39](https://github.com/stevearc/overseer.nvim/commit/2c1ef39d105eb0d707020d32f68843379044d0a6))
+* **toggleterm:** various issues with toggleterm strategy ([1f5f271](https://github.com/stevearc/overseer.nvim/commit/1f5f271e00b82ced6a30ae5ad6dbe7d1104e5980))
+* use listener hooks for nvim-dap instead of monkey patching ([ecdfbac](https://github.com/stevearc/overseer.nvim/commit/ecdfbac807652a374414d3d6f3e5b3af201f884d))
+* use the default toggleterm direction by default ([#332](https://github.com/stevearc/overseer.nvim/issues/332)) ([cbcdcba](https://github.com/stevearc/overseer.nvim/commit/cbcdcbae3704c21d3ff96a1927d952b8a966b08a))
+* vscode task hide option was not set correctly ([#329](https://github.com/stevearc/overseer.nvim/issues/329)) ([2a540de](https://github.com/stevearc/overseer.nvim/commit/2a540de6d97581399b3cc6ea9126cf5737cdcdbe))
+* warn when nvim-dap is too old to be supported ([#307](https://github.com/stevearc/overseer.nvim/issues/307)) ([d13ef57](https://github.com/stevearc/overseer.nvim/commit/d13ef578359ebf94d5c28757c252489ba94821a8))
+
 ## [1.4.0](https://github.com/stevearc/overseer.nvim/compare/v1.3.1...v1.4.0) (2024-05-16)
 
 
