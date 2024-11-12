@@ -3,6 +3,8 @@ local default_config = {
   strategy = "terminal",
   -- Template modules to load
   templates = { "builtin" },
+  -- Directories where overseer will look for template definitions (relative to rtp)
+  template_dirs = { "overseer.template" },
   -- When true, tries to detect a green color from your colorscheme to use for success highlight
   auto_detect_success_color = true,
   -- Patch nvim-dap to support preLaunchTask and postDebugTask
