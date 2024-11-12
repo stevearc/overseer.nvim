@@ -3,7 +3,7 @@ local default_config = {
   strategy = "terminal",
   -- Template modules to load
   templates = { "builtin" },
-  -- Additional template directory to include (relative to rtp)
+  -- Additional template directories to include (relative to rtp)
   template_dirs = { "overseer.template" },
   -- When true, tries to detect a green color from your colorscheme to use for success highlight
   auto_detect_success_color = true,
