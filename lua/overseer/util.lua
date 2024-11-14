@@ -627,6 +627,7 @@ M.run_in_fullscreen_win = function(bufnr, callback)
   if not bufnr or bufnr == 0 then
     bufnr = vim.api.nvim_get_current_buf()
   end
+  local start_winid = vim.api.nvim_get_current_win()
   local winid = vim.api.nvim_open_win(bufnr, false, {
     relative = "editor",
     width = vim.o.columns,
@@ -643,6 +644,8 @@ M.run_in_fullscreen_win = function(bufnr, callback)
   end
   winnr = vim.api.nvim_win_get_number(winid)
   vim.cmd.close({ count = winnr, mods = { noautocmd = true, emsg_silent = true } })
+  winnr = vim.api.nvim_win_get_number(start_winid)
+  vim.cmd.wincmd({ count = winnr, args = { "w" }, mods = { noautocmd = true } })
 end
 
 ---Run a function in the context of a current directory
