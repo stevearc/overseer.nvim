@@ -185,7 +185,7 @@ local comp = {
           items = valid_items
         end
         if params.open or (not vim.tbl_isempty(valid_items) and params.open_on_match) then
-          scroll_buffer = scroll_buffer or copen(self, params.open_height)
+          scroll_buffer = copen(self, params.open_height) or scroll_buffer
           cur_qf = vim.fn.getqflist({ context = 0, winid = 0, id = self.qf_id })
         end
         local what = {
