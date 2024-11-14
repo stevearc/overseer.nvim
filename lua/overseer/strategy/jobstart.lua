@@ -64,6 +64,8 @@ function JobstartStrategy:start(task)
         })
       end)
       self.term_id = term_id
+      -- Set the scrollback to max
+      vim.bo[self.bufnr].scrollback = 100000
       util.hack_around_termopen_autocmd(mode)
     else
       vim.bo[self.bufnr].modifiable = false

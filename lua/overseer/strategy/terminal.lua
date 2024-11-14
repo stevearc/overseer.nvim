@@ -82,6 +82,8 @@ function TerminalStrategy:start(task)
     })
   end)
 
+  -- Set the scrollback to max
+  vim.bo[self.bufnr].scrollback = 100000
   util.hack_around_termopen_autocmd(mode)
 
   if chan_id == 0 then
