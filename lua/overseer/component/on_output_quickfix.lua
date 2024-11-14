@@ -1,3 +1,4 @@
+local log = require("overseer.log")
 local util = require("overseer.util")
 
 ---@param winid integer
@@ -109,7 +110,32 @@ local comp = {
         end
       end,
       on_pre_result = function(self, task)
-        local lines = vim.api.nvim_buf_get_lines(task:get_bufnr(), 0, -1, true)
+        local bufnr = task:get_bufnr()
+        local lines = vim.api.nvim_buf_get_lines(bufnr, 0, -1, true)
+
+        local exceeds_scrollback = vim.bo[bufnr].buftype == "terminal"
+          and #lines >= vim.bo[bufnr].scrollback
+        if exceeds_scrollback then
+          if params.tail then
+            -- If we have been tailing the output, we should just keep the quickfix as it is
+            -- because we've exceeded the scrollback limit and will lose the earlier data.
+            log:warn(
+              "Task(%d) '%s' exceeded the output scrollback limit (%d lines). Keeping tail output instead of doing a large replace operation upon completion.",
+              task.id,
+              task.name,
+              vim.bo[bufnr].scrollback
+            )
+            return
+          else
+            log:warn(
+              "Task(%d) '%s' exceeded the output scrollback limit (%d lines). Only the last lines will be processed for the quickfix.",
+              task.id,
+              task.name,
+              vim.bo[bufnr].scrollback
+            )
+          end
+        end
+
         local prev_context = vim.fn.getqflist({ context = 0 }).context
         local action = " "
         -- If we have a quickfix ID, or if the current QF has a matching context, replace the list
