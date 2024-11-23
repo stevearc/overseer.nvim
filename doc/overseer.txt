@@ -446,7 +446,7 @@ run_template({opts}, {callback})                           *overseer.run_templat
 
     Examples: >lua
       -- Run the task named "make all"
-      -- equivalent to :OverseerRun make all
+      -- equivalent to :OverseerRun make\ all
       overseer.run_template({name = "make all"})
       -- Run the default "build" task
       -- equivalent to :OverseerRun BUILD
