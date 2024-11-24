@@ -1,5 +1,20 @@
 # Changelog
 
+## [1.6.0](https://github.com/stevearc/overseer.nvim/compare/v1.5.0...v1.6.0) (2024-11-24)
+
+
+### Features
+
+* template_dir config option ([#378](https://github.com/stevearc/overseer.nvim/issues/378)) ([2d00cdf](https://github.com/stevearc/overseer.nvim/commit/2d00cdf81f5a5e63a1ab11c7ffaf7540a67599c1))
+
+
+### Bug Fixes
+
+* increase scrollback for terminal buffers ([69c0837](https://github.com/stevearc/overseer.nvim/commit/69c0837a4a35d06dd9b4b3552ca18f02b6834dda))
+* **on_output_quickfix:** handle 'open' parameter correctly ([65b20c5](https://github.com/stevearc/overseer.nvim/commit/65b20c5a084cc50e2d8e96979776f940b4be0ead))
+* **on_output_quickfix:** handle large output more gracefully ([e734140](https://github.com/stevearc/overseer.nvim/commit/e734140137cdd25b4c31c0fb9bf22faa9c115dcc))
+* run_in_fullscreen_win utility doesn't change window focus ([cf7410b](https://github.com/stevearc/overseer.nvim/commit/cf7410b0cdbb7e7b955a8f2eca0a35e9e7e7865f))
+
 ## [1.5.0](https://github.com/stevearc/overseer.nvim/compare/v1.4.0...v1.5.0) (2024-11-11)
 
 
