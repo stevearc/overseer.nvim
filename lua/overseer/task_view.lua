@@ -160,8 +160,10 @@ function TaskView:update()
     if has_stickybuf then
       stickybuf.unpin(self.winid)
     end
-    vim.api.nvim_win_set_buf(self.winid, bufnr)
-    set_minimal_win_opts(self.winid)
+    vim.defer_fn(function()
+      vim.api.nvim_win_set_buf(self.winid, bufnr)
+      set_minimal_win_opts(self.winid)
+    end, 10)
   end
 end
 
