@@ -113,7 +113,6 @@ function TaskView.new(winid, opts)
       end,
     })
   )
-  self:update()
   return self
 end
 
