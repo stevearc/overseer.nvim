@@ -19,7 +19,6 @@ function JobstartStrategy.new(opts)
     preserve_output = false,
     use_terminal = true,
   })
-  ---@type overseer.JobstartStrategy
   local strategy = {
     bufnr = nil,
     job_id = nil,
@@ -27,6 +26,7 @@ function JobstartStrategy.new(opts)
     opts = opts,
   }
   setmetatable(strategy, { __index = JobstartStrategy })
+  ---@type overseer.JobstartStrategy
   return strategy
 end
 

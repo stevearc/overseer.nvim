@@ -10,12 +10,12 @@ local TerminalStrategy = {}
 ---Run tasks using termopen()
 ---@return overseer.Strategy
 function TerminalStrategy.new()
-  ---@type overseer.TerminalStrategy
   local strategy = {
     bufnr = nil,
     chan_id = nil,
   }
   setmetatable(strategy, { __index = TerminalStrategy })
+  ---@type overseer.TerminalStrategy
   return strategy
 end
 
