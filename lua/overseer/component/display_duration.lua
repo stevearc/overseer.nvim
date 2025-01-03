@@ -39,6 +39,9 @@ local comp = {
       end,
       on_complete = function(self)
         self.duration = os.time() - self.start_time
+        if timer then
+          timer:stop()
+        end
       end,
       render = function(self, task, lines, highlights, detail)
         if detail < params.detail_level or (not self.duration and not self.start_time) then
