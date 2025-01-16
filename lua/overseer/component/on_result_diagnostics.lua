@@ -64,11 +64,20 @@ local comp = {
         for filename, items in pairs(grouped) do
           local diagnostics = {}
           for _, item in ipairs(items) do
+            local lnum_idx = (item.lnum or 1) - 1
+
+            local end_lnum_idx
+            if item.end_lnum and item.end_lnum > 0 then
+              end_lnum_idx = item.end_lnum - 1
+            else
+              end_lnum_idx = lnum_idx + 1
+            end
+
             table.insert(diagnostics, {
               message = item.text,
               severity = type_to_severity[item.type] or vim.diagnostic.severity.ERROR,
-              lnum = (item.lnum or 1) - 1,
-              end_lnum = item.end_lnum and (item.end_lnum - 1),
+              lnum = lnum_idx,
+              end_lnum = end_lnum_idx,
               col = item.col or 0,
               end_col = item.end_col,
               source = task.name,
