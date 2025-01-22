@@ -150,5 +150,12 @@ M = {
       sidebar:run_action("dispose")
     end,
   },
+  {
+    desc = "Stop task",
+    plug = "<Plug>OverseerTask:Stop",
+    rhs = function(sidebar)
+      sidebar:run_action("stop")
+    end,
+  },
 }
 return M
