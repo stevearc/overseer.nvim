@@ -1,5 +1,26 @@
 # Changelog
 
+## [1.6.0](https://github.com/stevearc/overseer.nvim/compare/v1.5.0...v1.6.0) (2025-02-15)
+
+
+### Features
+
+* template_dir config option ([#378](https://github.com/stevearc/overseer.nvim/issues/378)) ([2d00cdf](https://github.com/stevearc/overseer.nvim/commit/2d00cdf81f5a5e63a1ab11c7ffaf7540a67599c1))
+
+
+### Bug Fixes
+
+* easy binding to stop running task ([#357](https://github.com/stevearc/overseer.nvim/issues/357)) ([9e37348](https://github.com/stevearc/overseer.nvim/commit/9e37348da1d254eec947bad482e7041235609843))
+* ensure task list state is cleared when buffer is unloaded ([#398](https://github.com/stevearc/overseer.nvim/issues/398)) ([d14f821](https://github.com/stevearc/overseer.nvim/commit/d14f8218115f8ae51eec26f8692943f25203d283))
+* error thrown in tasks.json does not contain tasks key ([#394](https://github.com/stevearc/overseer.nvim/issues/394)) ([8de1104](https://github.com/stevearc/overseer.nvim/commit/8de110400643a02aeddf266b772a05f63db2e625))
+* increase scrollback for terminal buffers ([69c0837](https://github.com/stevearc/overseer.nvim/commit/69c0837a4a35d06dd9b4b3552ca18f02b6834dda))
+* **on_output_quickfix:** handle 'open' parameter correctly ([65b20c5](https://github.com/stevearc/overseer.nvim/commit/65b20c5a084cc50e2d8e96979776f940b4be0ead))
+* **on_output_quickfix:** handle large output more gracefully ([e734140](https://github.com/stevearc/overseer.nvim/commit/e734140137cdd25b4c31c0fb9bf22faa9c115dcc))
+* **on_result_diagnostic:** treat `end_lnum &lt; 1` as uninitialized ([#396](https://github.com/stevearc/overseer.nvim/issues/396)) ([35b729b](https://github.com/stevearc/overseer.nvim/commit/35b729b746a4d65c83efee5b5643f07c2c1105d2))
+* run_in_fullscreen_win utility doesn't change window focus ([cf7410b](https://github.com/stevearc/overseer.nvim/commit/cf7410b0cdbb7e7b955a8f2eca0a35e9e7e7865f))
+* scroll to end of task output when opening window ([2a2b6fe](https://github.com/stevearc/overseer.nvim/commit/2a2b6fe1e04dec2c2e5b6b4deec2894153002778))
+* silence cd output during utils.run_in_cwd() ([#405](https://github.com/stevearc/overseer.nvim/issues/405)) ([8be5fdb](https://github.com/stevearc/overseer.nvim/commit/8be5fdb10500aefd37b2bd8cf03e3831f5c48225))
+
 ## [1.5.0](https://github.com/stevearc/overseer.nvim/compare/v1.4.0...v1.5.0) (2024-11-11)
 
 
