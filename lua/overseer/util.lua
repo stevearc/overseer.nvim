@@ -653,7 +653,7 @@ end
 ---@param callback fun()
 M.run_in_cwd = function(cwd, callback)
   M.run_in_fullscreen_win(nil, function()
-    vim.cmd.lcd({ args = { cwd }, mods = { noautocmd = true } })
+    vim.cmd.lcd({ args = { cwd }, mods = { silent = true, noautocmd = true } })
     callback()
   end)
 end
