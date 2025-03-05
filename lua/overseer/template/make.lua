@@ -25,6 +25,9 @@ local function parse_make_output(cwd, ret, cb)
   local jid = vim.fn.jobstart({ "make", "-rRpq" }, {
     cwd = cwd,
     stdout_buffered = true,
+    env = {
+      ["LANG"] = "C.UTF-8",
+    },
     on_stdout = vim.schedule_wrap(function(j, output)
       local parsing = false
       local prev_line = ""
