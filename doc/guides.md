@@ -43,7 +43,7 @@ overseer.load_template("myplugin.second_task")
 If you have multiple templates that you would like to expose as a bundle, you can create an alias module. For example, put the following into `overseer/template/myplugin/init.lua`:
 
 ```lua
-return { "first_task", "second_task" }
+return { "myplugin.first_task", "myplugin.second_task" }
 ```
 
 This is how `builtin` references all of the different built-in templates.
