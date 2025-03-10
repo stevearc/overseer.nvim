@@ -182,7 +182,6 @@ M.escape_cmd = function(cmd, method, shell)
   local config = get_config_for_shell(shell)
 
   local pieces = {}
-  local cmd_quoted = false
   local args_quoted = false
   for i, v in ipairs(cmd) do
     local arg_quote_method
@@ -190,12 +189,8 @@ M.escape_cmd = function(cmd, method, shell)
       arg_quote_method = v.quoting
       v = v.value
     end
-    if needs_quote(v, config) then
-      if i == 1 then
-        cmd_quoted = true
-      else
-        args_quoted = true
-      end
+    if i ~= 1 and needs_quote(v, config) then
+      args_quoted = true
       local escaped = escape(v, arg_quote_method or method, config)
       table.insert(pieces, escaped)
     else
@@ -205,12 +200,12 @@ M.escape_cmd = function(cmd, method, shell)
 
   local str_cmd = table.concat(pieces, " ")
   local norm_shell = M.normalize_shell_name(shell)
-  if norm_shell == "powershell" and cmd_quoted then
+  if norm_shell == "powershell" then
     str_cmd = "& " .. str_cmd
-  elseif norm_shell == "cmd" and cmd_quoted and args_quoted then
+  elseif norm_shell == "cmd" and args_quoted then
     str_cmd = wrap(str_cmd, '"')
   end
-  return str_cmd, cmd_quoted or args_quoted
+  return str_cmd, args_quoted
 end
 
 return M
