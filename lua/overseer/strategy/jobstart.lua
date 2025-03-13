@@ -19,7 +19,6 @@ function JobstartStrategy.new(opts)
     preserve_output = false,
     use_terminal = true,
   })
-  ---@type overseer.JobstartStrategy
   local strategy = {
     bufnr = nil,
     job_id = nil,
@@ -27,6 +26,7 @@ function JobstartStrategy.new(opts)
     opts = opts,
   }
   setmetatable(strategy, { __index = JobstartStrategy })
+  ---@type overseer.JobstartStrategy
   return strategy
 end
 
@@ -64,6 +64,8 @@ function JobstartStrategy:start(task)
         })
       end)
       self.term_id = term_id
+      -- Set the scrollback to max
+      vim.bo[self.bufnr].scrollback = 100000
       util.hack_around_termopen_autocmd(mode)
     else
       vim.bo[self.bufnr].modifiable = false

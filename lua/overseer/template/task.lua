@@ -82,7 +82,6 @@ local provider = {
         end
         assert(data)
         for _, target in ipairs(data.tasks) do
-          ---@type overseer.TemplateDefinition
           local override = {
             name = string.format("task %s", target.name),
             desc = target.desc,

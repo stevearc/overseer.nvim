@@ -140,7 +140,13 @@ end
 
 ---@param name string
 M.load_template = function(name)
-  local ok, defn = pcall(require, string.format("overseer.template.%s", name))
+  local ok, defn
+  for _, template_dir in ipairs(config.template_dirs) do
+    ok, defn = pcall(require, string.format("%s.%s", template_dir, name))
+    if ok then
+      break
+    end
+  end
   if not ok then
     log:error("Error loading template '%s': %s", name, defn)
     return
@@ -183,7 +189,7 @@ local function validate_template_provider(defn)
   })
   if not defn.cache_key then
     defn.cache_key = function(opts)
-      return opts.dir
+      return nil
     end
   end
 end
@@ -545,7 +551,7 @@ M.list = function(opts, cb)
           true
         )
       else
-        local ok, tmpls = pcall(provider.generator, opts, provider_cb)
+        local ok, tmpls = xpcall(provider.generator, debug.traceback, opts, provider_cb)
         if ok then
           if tmpls then
             -- if there was a return value, the generator completed synchronously

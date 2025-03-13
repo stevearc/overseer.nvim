@@ -341,6 +341,13 @@ return {
     end
     local ret = {}
     local precalculated_vars = variables.precalculate_vars()
+
+    if content.tasks == nil then
+      vim.notify("No 'tasks' key found in '.vscode/tasks.json'", vim.log.levels.WARN)
+      cb({})
+      return
+    end
+
     for _, task in ipairs(content.tasks) do
       local defn = vim.tbl_deep_extend("force", global_defaults, task)
       defn = vim.tbl_deep_extend("force", defn, task[os_key] or {})

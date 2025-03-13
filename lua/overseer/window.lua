@@ -22,9 +22,10 @@ local function create_overseer_window(direction, existing_win)
   local winid = vim.api.nvim_get_current_win()
 
   -- create the output window if we're opening on the bottom
+  local task_view
   if direction == "bottom" then
     vim.cmd.split({ mods = { vertical = true, noautocmd = true, split = "belowright" } })
-    TaskView.new(0, {
+    task_view = TaskView.new(0, {
       close_on_list_close = true,
       select = function(self, tasks, task_under_cursor)
         return task_under_cursor or tasks[1]
@@ -57,6 +58,11 @@ local function create_overseer_window(direction, existing_win)
   vim.bo[bufnr].filetype = "OverseerList"
 
   util.go_win_no_au(my_winid)
+
+  -- After all the windows are set up, scroll to the end of the task output
+  if task_view then
+    util.scroll_to_end(task_view.winid)
+  end
   return winid
 end
 

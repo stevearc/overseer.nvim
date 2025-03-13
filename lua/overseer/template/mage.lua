@@ -79,7 +79,6 @@ local provider = {
           if #line > 0 then
             local task_name, asterick, description = line:match("^  ([%w:]+)(%*?)%s+(.*)")
             if task_name ~= nil then
-              ---@type overseer.TemplateDefinition
               local override = {
                 name = string.format("mage %s", task_name),
                 desc = #description > 0 and description or nil,

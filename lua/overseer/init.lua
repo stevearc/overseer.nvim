@@ -384,7 +384,7 @@ M.list_tasks = lazy("task_list", "list_tasks")
 --- The default is controlled by the default_template_prompt config option.
 ---@example
 --- -- Run the task named "make all"
---- -- equivalent to :OverseerRun make all
+--- -- equivalent to :OverseerRun make\ all
 --- overseer.run_template({name = "make all"})
 --- -- Run the default "build" task
 --- -- equivalent to :OverseerRun BUILD

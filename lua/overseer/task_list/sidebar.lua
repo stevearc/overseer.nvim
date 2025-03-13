@@ -64,12 +64,20 @@ end
 ---@private
 function Sidebar:init()
   vim.api.nvim_create_autocmd({ "BufHidden", "WinLeave" }, {
-    desc = "Close preview window when task list closes",
+    desc = "[Overseer] Close preview window when task list closes",
     buffer = self.bufnr,
     command = "pclose",
   })
+  vim.api.nvim_create_autocmd("BufUnload", {
+    desc = "[Overseer] Clear state when task list buffer is unloaded",
+    buffer = self.bufnr,
+    callback = function()
+      ref = nil
+      return true
+    end,
+  })
   vim.api.nvim_create_autocmd("CursorMoved", {
-    desc = "Update preview window when cursor moves",
+    desc = "[Overseer] Update preview window when cursor moves",
     buffer = self.bufnr,
     nested = true,
     callback = function()
@@ -79,7 +87,7 @@ function Sidebar:init()
   })
   vim.api.nvim_create_autocmd("User", {
     pattern = "OverseerListUpdate",
-    desc = "Update overseer task list when tasks change",
+    desc = "[Overseer] Update task list when tasks change",
     callback = function()
       self:render(task_list.list_tasks())
     end,

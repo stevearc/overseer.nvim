@@ -36,7 +36,6 @@ function TaskView.new(winid, opts)
     winid = vim.api.nvim_get_current_win()
   end
   set_minimal_win_opts(winid)
-  ---@type overseer.TaskView
   local self = {
     winid = winid,
     select = opts.select or function(self, tasks)

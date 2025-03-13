@@ -10,12 +10,12 @@ local TerminalStrategy = {}
 ---Run tasks using termopen()
 ---@return overseer.Strategy
 function TerminalStrategy.new()
-  ---@type overseer.TerminalStrategy
   local strategy = {
     bufnr = nil,
     chan_id = nil,
   }
   setmetatable(strategy, { __index = TerminalStrategy })
+  ---@type overseer.TerminalStrategy
   return strategy
 end
 
@@ -82,6 +82,8 @@ function TerminalStrategy:start(task)
     })
   end)
 
+  -- Set the scrollback to max
+  vim.bo[self.bufnr].scrollback = 100000
   util.hack_around_termopen_autocmd(mode)
 
   if chan_id == 0 then

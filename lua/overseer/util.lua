@@ -627,6 +627,7 @@ M.run_in_fullscreen_win = function(bufnr, callback)
   if not bufnr or bufnr == 0 then
     bufnr = vim.api.nvim_get_current_buf()
   end
+  local start_winid = vim.api.nvim_get_current_win()
   local winid = vim.api.nvim_open_win(bufnr, false, {
     relative = "editor",
     width = vim.o.columns,
@@ -637,8 +638,14 @@ M.run_in_fullscreen_win = function(bufnr, callback)
   })
   local winnr = vim.api.nvim_win_get_number(winid)
   vim.cmd.wincmd({ count = winnr, args = { "w" }, mods = { noautocmd = true } })
-  callback()
+  local ok, err = xpcall(callback, debug.traceback)
+  if not ok then
+    vim.api.nvim_err_writeln(err)
+  end
+  winnr = vim.api.nvim_win_get_number(winid)
   vim.cmd.close({ count = winnr, mods = { noautocmd = true, emsg_silent = true } })
+  winnr = vim.api.nvim_win_get_number(start_winid)
+  vim.cmd.wincmd({ count = winnr, args = { "w" }, mods = { noautocmd = true } })
 end
 
 ---Run a function in the context of a current directory
@@ -646,7 +653,7 @@ end
 ---@param callback fun()
 M.run_in_cwd = function(cwd, callback)
   M.run_in_fullscreen_win(nil, function()
-    vim.cmd.lcd({ args = { cwd }, mods = { noautocmd = true } })
+    vim.cmd.lcd({ args = { cwd }, mods = { silent = true, noautocmd = true } })
     callback()
   end)
 end
@@ -711,6 +718,31 @@ M.replace_buffer_in_wins = function(old_bufnr, new_bufnr)
       vim.api.nvim_win_set_buf(win, new_bufnr)
     end
   end
+end
+
+--- Get last N non-empty lines of job output
+---@param bufnr integer
+---@param num_lines integer
+---@return string[]
+M.get_last_output_lines = function(bufnr, num_lines)
+  local end_line = vim.api.nvim_buf_line_count(bufnr)
+  num_lines = math.min(num_lines, end_line)
+  local lines = {}
+  while end_line > 0 and #lines < num_lines do
+    local need_lines = num_lines - #lines
+    lines = vim.list_extend(
+      vim.api.nvim_buf_get_lines(bufnr, math.max(0, end_line - need_lines), end_line, false),
+      lines
+    )
+    while
+      not vim.tbl_isempty(lines)
+      and (lines[#lines]:match("^%s*$") or lines[#lines]:match("^%[Process exited"))
+    do
+      table.remove(lines)
+    end
+    end_line = end_line - need_lines
+  end
+  return lines
 end
 
 return M
