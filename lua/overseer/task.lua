@@ -169,10 +169,6 @@ function Task:render(lines, highlights, detail)
   table.insert(highlights, { "Overseer" .. self.status, #lines, 0, string.len(self.status) })
   table.insert(highlights, { "OverseerTask", #lines, string.len(self.status) + 2, -1 })
 
-  if self.strategy.render then
-    self.strategy:render(lines, highlights, detail)
-  end
-
   if detail > 1 and self.cmd then
     local cmd = self.cmd
     local cmd_str
