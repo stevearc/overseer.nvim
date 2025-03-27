@@ -102,7 +102,7 @@ function Task.new_uninitialized(opts)
   name = name:gsub("\n", " ")
 
   if not opts.strategy then
-    opts.strategy = config.strategy
+    opts.strategy = "jobstart"
   end
 
   -- Build the instance data for the task

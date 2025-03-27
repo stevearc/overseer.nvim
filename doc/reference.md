@@ -51,9 +51,7 @@
 - [Strategies](#strategies)
   - [jobstart(opts)](strategies.md#jobstartopts)
   - [orchestrator(opts)](strategies.md#orchestratoropts)
-  - [terminal()](strategies.md#terminal)
   - [test()](strategies.md#test)
-  - [toggleterm(opts)](strategies.md#toggletermopts)
 - [Parsers](#parsers)
     - [always](parsers.md#always)
     - [append](parsers.md#append)
@@ -82,8 +80,6 @@ For speed tweakers: don't worry about lazy loading; overseer lazy-loads itself!
 
 ```lua
 require("overseer").setup({
-  -- Default task strategy
-  strategy = "terminal",
   -- Template modules to load
   templates = { "builtin" },
   -- Directories where overseer will look for template definitions (relative to rtp)
@@ -778,9 +774,7 @@ require("overseer").register_alias("my_plugin", { "default", "on_output_quickfix
 
 - [jobstart(opts)](strategies.md#jobstartopts)
 - [orchestrator(opts)](strategies.md#orchestratoropts)
-- [terminal()](strategies.md#terminal)
 - [test()](strategies.md#test)
-- [toggleterm(opts)](strategies.md#toggletermopts)
 
 <!-- /TOC.strategies -->
 
