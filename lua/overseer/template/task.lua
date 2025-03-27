@@ -1,8 +1,6 @@
 -- A task runner / simpler Make alternative written in Go
 -- https://taskfile.dev/
-
 local log = require("overseer.log")
-local overseer = require("overseer")
 
 local taskfiles = {
   "Taskfile.yml",
@@ -17,90 +15,51 @@ local function find_taskfile(opts)
   return vim.fs.find(taskfiles, { upward = true, type = "file", path = opts.dir })[1]
 end
 
----@type overseer.TemplateDefinition
-local template = {
-  name = "task",
-  desc = "default target",
-  params = {
-    ---@type overseer.StringParam
-    target = { optional = false, type = "string", desc = "target" },
-    ---@type overseer.ListParam
-    args = { optional = true, type = "list", delimiter = " " },
-    ---@type overseer.StringParam
-    cwd = { optional = true },
-  },
-  builder = function(params)
-    local cmd = { "task" }
-    if params.target then
-      table.insert(cmd, params.target)
-    end
-
-    ---@type overseer.TaskDefinition
-    local task = {
-      cmd = cmd,
-      cwd = params.cwd,
-    }
-
-    if params.args then
-      task.args = vim.list_extend({ "--" }, params.args)
-    end
-    return task
-  end,
-}
-
----@type overseer.TemplateProvider
-local provider = {
-  name = "task",
+---@type overseer.TemplateFileProvider
+return {
   cache_key = function(opts)
     return find_taskfile(opts)
   end,
-  condition = {
-    callback = function(opts)
-      if vim.fn.executable("task") == 0 then
-        return false, 'Command "task" not found'
-      end
-      if not find_taskfile(opts) then
-        return false, "No Taskfile found"
-      end
-      return true
-    end,
-  },
   generator = function(opts, cb)
+    if vim.fn.executable("task") == 0 then
+      return 'Command "task" not found'
+    end
+    local taskfile = find_taskfile(opts)
+    if not taskfile then
+      return "No Taskfile found"
+    end
+    local cwd = vim.fs.dirname(taskfile)
     local ret = {}
-    local cmd = { "task", "--list-all", "--json" }
-    local jid = vim.fn.jobstart(cmd, {
-      cwd = opts.dir,
-      stdout_buffered = true,
-      on_stdout = vim.schedule_wrap(function(_, output)
-        local ok, data =
-          pcall(vim.json.decode, table.concat(output, "\n"), { luanil = { object = true } })
+    vim.system(
+      { "task", "--list-all", "--json" },
+      {
+        cwd = cwd,
+        text = true,
+      },
+      vim.schedule_wrap(function(out)
+        if out.code ~= 0 then
+          return cb(out.stderr or out.stdout or "Error running 'task'")
+        end
+        local ok, data = pcall(vim.json.decode, out.stdout, { luanil = { object = true } })
         if not ok then
-          log.error("Task produced invalid json: %s\n%s", data, output)
-          cb(ret)
-          return
+          log.error("Task produced invalid json: %s", out.stdout)
+          return cb(data)
         end
         assert(data)
         for _, target in ipairs(data.tasks) do
-          local override = {
+          table.insert(ret, {
             name = string.format("task %s", target.name),
             desc = target.desc,
-          }
-          table.insert(
-            ret,
-            overseer.wrap_template(template, override, { target = target.name, cwd = opts.dir })
-          )
+            builder = function()
+              return {
+                cmd = { "task", target },
+                cwd = cwd,
+              }
+            end,
+          })
         end
         cb(ret)
-      end),
-    })
-    if jid == 0 then
-      log.error("Passed invalid arguments to 'task'")
-      cb(ret)
-    elseif jid == -1 then
-      log.error("'task' is not executable")
-      cb(ret)
-    end
+      end)
+    )
   end,
 }
-
-return provider
