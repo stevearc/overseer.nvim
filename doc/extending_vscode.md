@@ -28,7 +28,7 @@ end
 return M
 ```
 
-You can see how the existing task types were implemented in the [overseer/template/vscode/provider](../lua/overseer/template/vscode/provider) folder.
+You can see how the existing task types were implemented in the [overseer/vscode/provider](../lua/overseer/vscode/provider) folder.
 
 ## Problem matchers and patterns
 
@@ -67,4 +67,4 @@ M.problem_matchers = {
 return M
 ```
 
-You can see the existing patterns and problem matchers in [problem_matcher.lua](../lua/overseer/template/vscode/problem_matcher.lua)
+You can see the existing patterns and problem matchers in [problem_matcher.lua](../lua/overseer/vscode/problem_matcher.lua)

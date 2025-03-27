@@ -1,7 +1,7 @@
 local files = require("overseer.files")
 local log = require("overseer.log")
 local parser = require("overseer.parser")
-local problem_matcher = require("overseer.template.vscode.problem_matcher")
+local problem_matcher = require("overseer.vscode.problem_matcher")
 
 ---@type overseer.ComponentFileDefinition
 return {

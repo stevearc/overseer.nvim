@@ -1,9 +1,8 @@
 require("plenary.async").tests.add_to_env()
 local constants = require("overseer.constants")
-local files = require("overseer.files")
 local overseer = require("overseer")
 local parser = require("overseer.parser")
-local problem_matcher = require("overseer.template.vscode.problem_matcher")
+local problem_matcher = require("overseer.vscode.problem_matcher")
 local vscode = require("overseer.template.vscode")
 
 describe("vscode", function()
@@ -282,7 +281,7 @@ describe("vscode", function()
 end)
 
 describe("vscode integration tests", function()
-  local vs_util = require("overseer.template.vscode.vs_util")
+  local vs_util = require("overseer.vscode.vs_util")
   local _orig_load_tasks_file = vs_util.load_tasks_file
   local task_file
   local test_hook = function(task_defn, util)
