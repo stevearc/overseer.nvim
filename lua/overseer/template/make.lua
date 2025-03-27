@@ -9,19 +9,14 @@ local provider = {
   cache_key = function(opts)
     return get_makefile(opts)
   end,
-  condition = {
-    callback = function(opts)
-      if vim.fn.executable("make") == 0 then
-        return false, 'Command "make" not found'
-      end
-      if not get_makefile(opts) then
-        return false, "No Makefile found"
-      end
-      return true
-    end,
-  },
   generator = function(opts, cb)
-    local makefile = assert(get_makefile(opts))
+    if vim.fn.executable("make") == 0 then
+      return 'Command "make" not found'
+    end
+    local makefile = get_makefile(opts)
+    if not makefile then
+      return "No Makefile found"
+    end
     local cwd = vim.fs.dirname(makefile)
 
     local ret = {}
@@ -36,7 +31,7 @@ local provider = {
       },
       vim.schedule_wrap(function(out)
         if out.code ~= 0 and out.code ~= 1 then
-          return cb({})
+          return cb(out.stderr or out.stdout or "Error running 'make'")
         end
 
         local parsing = false

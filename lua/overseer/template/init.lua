@@ -9,16 +9,16 @@ local util = require("overseer.util")
 local islist = vim.islist or vim.tbl_islist
 local M = {}
 
----@class overseer.TemplateFileProvider
+---@class (exact) overseer.TemplateFileProvider
 ---@field module? string The name of the module this was loaded from
 ---@field condition? overseer.SearchCondition
 ---@field cache_key? fun(opts: overseer.SearchParams): nil|string
----@field generator fun(opts: overseer.SearchParams, cb: fun(tmpls: overseer.TemplateDefinition[]))
+---@field generator fun(opts: overseer.SearchParams, cb: fun(tmpls_or_err: string|overseer.TemplateDefinition[])) : nil|string|overseer.TemplateDefinition[]
 
----@class overseer.TemplateProvider : overseer.TemplateFileProvider
+---@class (exact) overseer.TemplateProvider : overseer.TemplateFileProvider
 ---@field name string
 
----@class overseer.TemplateFileDefinition
+---@class (exact) overseer.TemplateFileDefinition
 ---@field module? string The name of the module this was loaded from
 ---@field aliases? string[]
 ---@field desc? string
@@ -28,10 +28,10 @@ local M = {}
 ---@field builder fun(params: table): overseer.TaskDefinition
 ---@field hide? boolean Hide from the template list
 
----@class overseer.TemplateDefinition : overseer.TemplateFileDefinition
+---@class (exact) overseer.TemplateDefinition : overseer.TemplateFileDefinition
 ---@field name string
 
----@class overseer.SearchCondition
+---@class (exact) overseer.SearchCondition
 ---@field filetype? string|string[]
 ---@field dir? string|string[]
 ---@field callback? fun(search: overseer.SearchParams): boolean, nil|string
@@ -390,8 +390,19 @@ M.clear_cache = function(opts)
   end
 end
 
+---@class (exact) overseer.Report
+---@field providers table<string, overseer.ProviderReport>
+---@field templates table<string, {message: nil|string}>
+
+---@class (exact) overseer.ProviderReport
+---@field message? string
+---@field from_cache? boolean
+---@field total_tasks integer
+---@field available_tasks integer
+---@field elapsed_ms integer
+
 ---@param opts overseer.SearchParams
----@param cb fun(templates: overseer.TemplateDefinition[], report: table)
+---@param cb fun(templates: overseer.TemplateDefinition[], report: overseer.Report)
 M.list = function(opts, cb)
   initialize()
   vim.validate({
@@ -417,6 +428,7 @@ M.list = function(opts, cb)
   end
 
   local ret = {}
+  ---@type overseer.Report
   local report = {
     templates = {},
     providers = {},
@@ -428,7 +440,6 @@ M.list = function(opts, cb)
       table.insert(ret, tmpl)
     end
     report.templates[tmpl.name] = {
-      is_present = is_match,
       message = message,
     }
   end
@@ -447,20 +458,21 @@ M.list = function(opts, cb)
   local start_times = {}
   local timed_out = false
   ---This is the async callback that is passed to generators
-  ---@param tmpls overseer.TemplateDefinition[]
+  ---@param tmpls_or_err string|overseer.TemplateDefinition[]
   ---@param provider_name string
   ---@param module nil|string
   ---@param cache_key nil|string
   ---@param from_cache nil|boolean
-  local function handle_tmpls(tmpls, provider_name, module, cache_key, from_cache)
-    local elapsed_ms = (vim.uv.hrtime() - start_times[provider_name]) / 1e6
+  local function handle_tmpls(tmpls_or_err, provider_name, module, cache_key, from_cache)
+    local elapsed_ms = (vim.uv.now() - start_times[provider_name])
     if
       cache_key
       and config.template_cache_threshold > 0
       and elapsed_ms >= config.template_cache_threshold
+      and type(tmpls_or_err) == "table"
     then
-      log.debug("Caching %s: [%s] = %d", provider_name, cache_key, #tmpls)
-      cached_provider_results[cache_key] = tmpls
+      log.debug("Caching %s: [%s] = %d", provider_name, cache_key, #tmpls_or_err)
+      cached_provider_results[cache_key] = tmpls_or_err
     end
     if not pending[provider_name] then
       if not timed_out then
@@ -470,26 +482,37 @@ M.list = function(opts, cb)
     end
     pending[provider_name] = nil
     local num_available = 0
-    for _, tmpl in ipairs(tmpls) do
-      -- Set the module on the template so it can be used to match hooks
-      tmpl.module = module
-      local ok, err = pcall(validate_template_definition, tmpl)
-      if ok then
-        if condition_matches(tmpl.condition, tmpl.tags, opts, true) then
-          num_available = num_available + 1
-          table.insert(ret, tmpl)
+
+    if type(tmpls_or_err) == "string" then
+      report.providers[provider_name] = {
+        message = tmpls_or_err,
+        from_cache = false,
+        total_tasks = 0,
+        available_tasks = 0,
+        elapsed_ms = elapsed_ms,
+      }
+    else
+      for _, tmpl in ipairs(tmpls_or_err) do
+        -- Set the module on the template so it can be used to match hooks
+        tmpl.module = module
+        local ok, err = pcall(validate_template_definition, tmpl)
+        if ok then
+          if condition_matches(tmpl.condition, tmpl.tags, opts, true) then
+            num_available = num_available + 1
+            table.insert(ret, tmpl)
+          end
+        else
+          log.error("Template %s from %s: %s", tmpl.name, provider_name, err)
         end
-      else
-        log.error("Template %s from %s: %s", tmpl.name, provider_name, err)
       end
+      report.providers[provider_name] = {
+        message = nil,
+        from_cache = from_cache,
+        total_tasks = #tmpls_or_err,
+        available_tasks = num_available,
+        elapsed_ms = elapsed_ms,
+      }
     end
-    report.providers[provider_name] = {
-      is_present = true,
-      message = nil,
-      from_cache = from_cache,
-      total_tasks = #tmpls,
-      available_tasks = num_available,
-    }
 
     final_callback()
   end
@@ -513,10 +536,20 @@ M.list = function(opts, cb)
     local is_match, message = condition_matches(provider.condition, nil, opts, false)
     if is_match then
       local cache_key = provider.cache_key(opts)
-      local provider_cb = function(tmpls)
-        handle_tmpls(tmpls, provider_name, provider.module, cache_key)
+      local provider_done = false
+      ---@param tmpls_or_err string|overseer.TemplateDefinition[]
+      local provider_cb = function(tmpls_or_err)
+        if provider_done then
+          log.error(
+            "Template provider %s: generator callback called twice. This can also happen if you return results from the function and call the callback.",
+            provider.name
+          )
+        else
+          provider_done = true
+          handle_tmpls(tmpls_or_err, provider_name, provider.module, cache_key)
+        end
       end
-      start_times[provider.name] = vim.uv.hrtime()
+      start_times[provider.name] = vim.uv.now()
       pending[provider.name] = true
       if cache_key and cached_provider_results[cache_key] then
         handle_tmpls(
@@ -531,19 +564,21 @@ M.list = function(opts, cb)
         if ok then
           if tmpls then
             -- if there was a return value, the generator completed synchronously
-            -- TODO deprecate this flow
             provider_cb(tmpls)
           end
         else
+          assert(type(tmpls) == "string")
           log.error("Template provider %s: %s", provider.name, tmpls)
+          local errmsg = vim.split(tmpls, "\n", { plain = true })[1]
+          provider_cb(errmsg)
         end
       end
     else
       report.providers[provider_name] = {
-        is_present = is_match,
         message = message,
         total_tasks = 0,
         available_tasks = 0,
+        elapsed_ms = 0,
       }
     end
   end
