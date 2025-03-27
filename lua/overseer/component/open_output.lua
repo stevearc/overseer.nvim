@@ -23,7 +23,7 @@ local function open_output(task, direction, focus)
 end
 
 ---@type overseer.ComponentFileDefinition
-local comp = {
+return {
   desc = "Open task output",
   params = {
     on_start = {
@@ -110,5 +110,3 @@ local comp = {
     return methods
   end,
 }
-
-return comp

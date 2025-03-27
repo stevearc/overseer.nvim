@@ -1,7 +1,7 @@
 local task_list = require("overseer.task_list")
 local util = require("overseer.util")
 ---@type overseer.ComponentFileDefinition
-local comp = {
+return {
   desc = "Ensure that this task does not have any duplicates",
   -- Doesn't make sense for user to add this using a form.
   editable = false,
@@ -41,5 +41,3 @@ local comp = {
     }
   end,
 }
-
-return comp

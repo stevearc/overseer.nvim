@@ -4,7 +4,7 @@ local util = require("overseer.util")
 local STATUS = constants.STATUS
 
 ---@type overseer.ComponentFileDefinition
-local comp = {
+return {
   desc = "vim.notify when task is completed",
   params = {
     statuses = {
@@ -57,4 +57,3 @@ local comp = {
     }
   end,
 }
-return comp

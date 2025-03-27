@@ -14,7 +14,7 @@ local function is_buffer_visible(bufnr)
 end
 
 ---@type overseer.ComponentFileDefinition
-local comp = {
+return {
   desc = "After task is completed, dispose it after a timeout",
   params = {
     timeout = {
@@ -131,5 +131,3 @@ local comp = {
     }
   end,
 }
-
-return comp

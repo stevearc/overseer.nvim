@@ -34,7 +34,7 @@ local function copen(self, height)
 end
 
 ---@type overseer.ComponentFileDefinition
-local comp = {
+return {
   desc = "Set all task output into the quickfix (on complete)",
   params = {
     errorformat = {
@@ -238,5 +238,3 @@ local comp = {
     return comp
   end,
 }
-
-return comp

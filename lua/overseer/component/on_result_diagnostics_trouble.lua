@@ -1,5 +1,5 @@
 ---@type overseer.ComponentFileDefinition
-local comp = {
+return {
   desc = "If task result contains diagnostics, open trouble.nvim",
   params = {
     args = {
@@ -37,5 +37,3 @@ local comp = {
     }
   end,
 }
-
-return comp
