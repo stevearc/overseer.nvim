@@ -8,11 +8,20 @@ local STATUS = constants.STATUS
 local comp = {
   desc = "Run other tasks after this task completes",
   params = {
-    task_names = {
+    tasks = {
       desc = "Names of dependency task templates",
-      long_desc = 'This can be a list of strings (template names, e.g. {"cargo build"}), tables (name with params, e.g. {"shell", cmd = "sleep 10"}), or tables (raw task params, e.g. {cmd = "sleep 10"})',
+      long_desc = 'This can be a list of strings (template names, e.g. "cargo build"), tables (template name with params, e.g. {"mytask", foo = "bar"}), or tables (raw task params, e.g. {cmd = "sleep 10"})',
       -- TODO Can't input dependencies WITH params in the task launcher b/c the type is too complex
       type = "list",
+      optional = true,
+    },
+    task_names = {
+      deprecated = true,
+      desc = "Names of dependency task templates",
+      long_desc = 'This can be a list of strings (template names, e.g. "cargo build"), tables (template name with params, e.g. {"mytask", foo = "bar"}), or tables (raw task params, e.g. {cmd = "sleep 10"})',
+      -- TODO Can't input dependencies WITH params in the task launcher b/c the type is too complex
+      type = "list",
+      optional = true,
     },
     statuses = {
       desc = "Only run successive tasks if the final status is in this list",
@@ -38,7 +47,7 @@ local comp = {
         if not vim.tbl_contains(params.statuses, task.status) then
           return
         end
-        for i, name_or_config in ipairs(params.task_names) do
+        for i, name_or_config in ipairs(params.tasks or params.task_names or {}) do
           local task_id = self.task_lookup[i]
           local after_task = task_id and task_list.get(task_id)
           if after_task then

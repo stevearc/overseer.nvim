@@ -339,10 +339,10 @@ overseer.run_template({ name = "npm serve", autostart = false }, function(task)
   if task then
     task:add_component({
       "dependencies",
-      task_names = {
+      tasks = {
         "npm build",
-        -- You can also pass in params to the task
-        { "shell", cmd = "sleep 10" },
+        -- You can also pass in a task object
+        { cmd = "sleep 10" },
       },
       sequential = true,
     })
@@ -362,7 +362,7 @@ local task = overseer.new_task({
       "make clean", -- Step 1: clean
       { -- Step 2: build js and css in parallel
         "npm build",
-        { "shell", cmd = "lessc styles.less styles.css" },
+        { cmd = { "lessc", "styles.less", "styles.css" },
       },
       "npm serve", -- Step 3: serve
     },

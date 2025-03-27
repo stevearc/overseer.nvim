@@ -267,7 +267,6 @@ require("overseer").setup({
 | `OverseerSaveBundle`    | `[name]`            | Serialize and save the current tasks to disk                           |
 | `OverseerLoadBundle[!]` | `[name]`            | Load tasks that were saved to disk. With `!` tasks will not be started |
 | `OverseerDeleteBundle`  | `[name]`            | Delete a saved task bundle                                             |
-| `OverseerRunCmd`        | `[command]`         | Run a raw shell command                                                |
 | `OverseerRun`           | `[name/tags]`       | Run a task from a template                                             |
 | `OverseerBuild`         |                     | Open the task builder                                                  |
 | `OverseerQuickAction`   | `[action]`          | Run an action on the most recent task, or the task under the cursor    |

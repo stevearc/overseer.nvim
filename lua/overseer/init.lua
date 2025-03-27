@@ -69,15 +69,6 @@ local commands = {
     },
   },
   {
-    cmd = "OverseerRunCmd",
-    args = "`[command]`",
-    func = "_run_command",
-    def = {
-      desc = "Run a raw shell command",
-      nargs = "?",
-    },
-  },
-  {
     cmd = "OverseerRun",
     args = "`[name/tags]`",
     func = "_run_template",

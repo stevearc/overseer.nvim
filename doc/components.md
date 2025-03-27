@@ -30,12 +30,12 @@
 
 Set dependencies for task
 
-| Param       | Type           | Default | Desc                               |
-| ----------- | -------------- | ------- | ---------------------------------- |
-| *task_names | `list[string]` |         | Names of dependency task templates |
-| sequential  | `boolean`      | `false` |                                    |
+| Param      | Type           | Default | Desc                               |
+| ---------- | -------------- | ------- | ---------------------------------- |
+| sequential | `boolean`      | `false` |                                    |
+| tasks      | `list[string]` |         | Names of dependency task templates |
 
-- **task_names:** This can be a list of strings (template names, e.g. {"cargo build"}), tables (name with params, e.g. {"shell", cmd = "sleep 10"}), or tables (raw task params, e.g. {cmd = "sleep 10"})
+- **tasks:** This can be a list of strings (template names, e.g. "cargo build"), tables (template name with params, e.g. {"mytask", foo = "bar"}), or tables (raw task params, e.g. {cmd = "sleep 10"})
 
 ## display_duration
 
@@ -242,14 +242,14 @@ Restart on any buffer :write
 
 Run other tasks after this task completes
 
-| Param       | Type           | Default       | Desc                                                          |
-| ----------- | -------------- | ------------- | ------------------------------------------------------------- |
-| *task_names | `list[string]` |               | Names of dependency task templates                            |
-| detach      | `boolean`      | `false`       | Tasks created will not be linked to the parent task           |
-| statuses    | `list[enum]`   | `["SUCCESS"]` | Only run successive tasks if the final status is in this list |
+| Param    | Type           | Default       | Desc                                                          |
+| -------- | -------------- | ------------- | ------------------------------------------------------------- |
+| detach   | `boolean`      | `false`       | Tasks created will not be linked to the parent task           |
+| statuses | `list[enum]`   | `["SUCCESS"]` | Only run successive tasks if the final status is in this list |
+| tasks    | `list[string]` |               | Names of dependency task templates                            |
 
-- **task_names:** This can be a list of strings (template names, e.g. {"cargo build"}), tables (name with params, e.g. {"shell", cmd = "sleep 10"}), or tables (raw task params, e.g. {cmd = "sleep 10"})
 - **detach:** This means they will not restart when the parent restarts, and will not be disposed when the parent is disposed
+- **tasks:** This can be a list of strings (template names, e.g. "cargo build"), tables (template name with params, e.g. {"mytask", foo = "bar"}), or tables (raw task params, e.g. {cmd = "sleep 10"})
 
 ## timeout
 
