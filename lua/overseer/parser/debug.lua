@@ -10,7 +10,7 @@ local output_buf
 local input_buf
 
 local function get_filepath(filename)
-  return files.join(vim.fn.stdpath("cache"), "overseer", filename)
+  return vim.fs.joinpath(vim.fn.stdpath("cache"), "overseer", filename)
 end
 
 local function load_parser()
@@ -177,7 +177,7 @@ M.start_debug_session = function()
       vim.api.nvim_buf_delete(buf, { force = true })
     end
   end
-  local overseer_dir = files.join(vim.fn.stdpath("cache"), "overseer")
+  local overseer_dir = vim.fs.joinpath(vim.fn.stdpath("cache"), "overseer")
   if vim.fn.isdirectory(overseer_dir) == 0 then
     vim.fn.mkdir(overseer_dir)
   end

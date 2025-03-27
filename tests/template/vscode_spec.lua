@@ -333,7 +333,7 @@ src/index.ts:3:1 - error TS1435: Unknown keyword or identifier. Did you mean 'im
     assert.are.same({
       diagnostics = {
         {
-          filename = files.join(task.cwd, "src/index.ts"),
+          filename = vim.fs.joinpath(task.cwd, "src/index.ts"),
           lnum = 3,
           col = 1,
           type = "E",
@@ -364,7 +364,7 @@ src/index.ts:3:1 - error TS1435: Unknown keyword or identifier. Did you mean 'im
     assert.are.same({
       diagnostics = {
         {
-          filename = files.join(task.cwd, "src/index.ts"),
+          filename = vim.fs.joinpath(task.cwd, "src/index.ts"),
           lnum = 3,
           col = 1,
           type = "E",

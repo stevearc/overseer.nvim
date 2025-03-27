@@ -27,17 +27,6 @@ M.exists = function(filepath)
   return stat ~= nil and stat.type ~= nil
 end
 
----@return string
-M.join = function(...)
-  local joined = table.concat({ ... }, M.sep)
-  if M.is_windows then
-    joined = joined:gsub("\\\\+", "\\")
-  else
-    joined = joined:gsub("//+", "/")
-  end
-  return joined
-end
-
 M.is_absolute = function(path)
   if M.is_windows then
     return path:lower():match("^%a:")

@@ -49,7 +49,7 @@ return {
         },
         builder = function(params)
           return {
-            cmd = { files.join(opts.dir, filename) },
+            cmd = { vim.fs.joinpath(opts.dir, filename) },
             args = params.args,
           }
         end,
