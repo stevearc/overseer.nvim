@@ -1,5 +1,5 @@
 ---@type overseer.ComponentFileDefinition
-local comp = {
+return {
   desc = "Cancel task if it exceeds a timeout",
   params = {
     timeout = {
@@ -51,5 +51,3 @@ local comp = {
     }
   end,
 }
-
-return comp

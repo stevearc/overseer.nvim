@@ -2,7 +2,7 @@ local files = require("overseer.files")
 local log = require("overseer.log")
 
 ---@type overseer.ComponentFileDefinition
-local comp = {
+return {
   desc = "Restart on any buffer :write",
   params = {
     paths = {
@@ -140,5 +140,3 @@ local comp = {
     }
   end,
 }
-
-return comp

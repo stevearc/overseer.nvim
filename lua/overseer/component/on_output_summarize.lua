@@ -2,7 +2,7 @@ local task_list = require("overseer.task_list")
 local util = require("overseer.util")
 
 ---@type overseer.ComponentFileDefinition
-local comp = {
+return {
   desc = "Summarize task output in the task list",
   params = {
     max_lines = {
@@ -56,5 +56,3 @@ local comp = {
     }
   end,
 }
-
-return comp

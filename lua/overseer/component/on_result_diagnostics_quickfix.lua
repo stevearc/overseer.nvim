@@ -1,6 +1,6 @@
 -- Looks for a result value of 'diagnostics' that is a list of quickfix items
 ---@type overseer.ComponentFileDefinition
-local comp = {
+return {
   desc = "If task result contains diagnostics, add them to the quickfix",
   params = {
     use_loclist = {
@@ -74,5 +74,3 @@ local comp = {
     }
   end,
 }
-
-return comp

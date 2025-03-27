@@ -13,7 +13,7 @@ local type_to_severity = {
 
 -- Looks for a result value of 'diagnostics' that is a list of quickfix items
 ---@type overseer.ComponentFileDefinition
-local comp = {
+return {
   desc = "If task result contains diagnostics, display them",
   params = {
     virtual_text = {
@@ -108,5 +108,3 @@ local comp = {
     }
   end,
 }
-
-return comp

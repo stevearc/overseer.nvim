@@ -1,5 +1,5 @@
 ---@type overseer.ComponentFileDefinition
-local comp = {
+return {
   desc = "Write task output to a file",
   params = {
     filename = {
@@ -36,5 +36,3 @@ local comp = {
     }
   end,
 }
-
-return comp

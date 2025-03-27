@@ -12,7 +12,7 @@ local function get_notify_config(setting, default)
 end
 
 ---@type overseer.ComponentFileDefinition
-local comp = {
+return {
   desc = "Use nvim-notify to show notification with task output summary for long-running tasks",
 
   long_desc = vim.trim([[
@@ -145,5 +145,3 @@ When output_on_complete==false: shows status + last output lines during task run
     }
   end,
 }
-
-return comp

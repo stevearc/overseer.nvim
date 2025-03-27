@@ -4,7 +4,7 @@ local parser = require("overseer.parser")
 local problem_matcher = require("overseer.template.vscode.problem_matcher")
 
 ---@type overseer.ComponentFileDefinition
-local comp = {
+return {
   desc = "Parses task output and sets task result",
   params = {
     parser = {
@@ -97,5 +97,3 @@ local comp = {
     }
   end,
 }
-
-return comp
