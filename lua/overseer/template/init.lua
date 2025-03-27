@@ -477,7 +477,7 @@ M.list = function(opts, cb)
   ---@param cache_key nil|string
   ---@param from_cache nil|boolean
   local function handle_tmpls(tmpls, provider_name, module, cache_key, from_cache)
-    local elapsed_ms = (vim.loop.hrtime() - start_times[provider_name]) / 1e6
+    local elapsed_ms = (vim.uv.hrtime() - start_times[provider_name]) / 1e6
     if
       cache_key
       and config.template_cache_threshold > 0
@@ -540,7 +540,7 @@ M.list = function(opts, cb)
       local provider_cb = function(tmpls)
         handle_tmpls(tmpls, provider_name, provider.module, cache_key)
       end
-      start_times[provider.name] = vim.loop.hrtime()
+      start_times[provider.name] = vim.uv.hrtime()
       pending[provider.name] = true
       if cache_key and cached_provider_results[cache_key] then
         handle_tmpls(

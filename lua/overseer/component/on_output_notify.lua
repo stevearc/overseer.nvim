@@ -1,5 +1,4 @@
 local util = require("overseer.util")
-local uv = vim.uv or vim.loop
 
 local function has_nvim_notify()
   return not not pcall(require, "notify")
@@ -122,11 +121,11 @@ When output_on_complete==false: shows status + last output lines during task run
       end,
 
       on_start = function(self)
-        self.start_time = uv.now()
+        self.start_time = vim.uv.now()
       end,
 
       on_output = function(self, task, _data)
-        local elapsed = uv.now() - self.start_time
+        local elapsed = vim.uv.now() - self.start_time
         if elapsed < params.delay_ms then
           return
         end

@@ -97,7 +97,7 @@ local comp = {
           })
         elseif opts.mode == "uv" then
           for _, path in ipairs(opts.paths) do
-            local fs_event = assert(vim.loop.new_fs_event())
+            local fs_event = assert(vim.uv.new_fs_event())
             fs_event:start(
               path,
               { recursive = true },

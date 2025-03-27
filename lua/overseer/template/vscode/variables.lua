@@ -77,7 +77,7 @@ M.replace_vars = function(str, params, precalculated_vars)
       return precalculated_vars[name]
     end
     if name == "userHome" then
-      return assert(vim.loop.os_homedir())
+      return assert(vim.uv.os_homedir())
     elseif name == "workspaceFolder" then
       return get_workspace_folder()
     elseif name == "workspaceRoot" then
@@ -102,7 +102,7 @@ M.replace_vars = function(str, params, precalculated_vars)
     elseif name == "fileExtname" then
       return vim.fn.expand("%:e")
     elseif name == "cwd" then
-      return vim.loop.cwd()
+      return vim.uv.cwd()
     elseif name == "lineNumber" then
       return vim.api.nvim_win_get_cursor(0)[1]
     elseif name == "selectedText" then
