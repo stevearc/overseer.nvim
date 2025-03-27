@@ -1,11 +1,17 @@
 local config = require("overseer.config")
 local M = {}
 
+---@param value number
+---@return boolean
 local function is_float(value)
   local _, p = math.modf(value)
   return p ~= 0
 end
 
+---@generic T
+---@param value T
+---@param max_value integer
+---@return T
 local function calc_float(value, max_value)
   if value and is_float(value) then
     return math.min(max_value, value * max_value)
@@ -14,10 +20,12 @@ local function calc_float(value, max_value)
   end
 end
 
+---@return integer
 M.get_editor_width = function()
   return vim.o.columns
 end
 
+---@return integer
 M.get_editor_height = function()
   local editor_height = vim.o.lines - vim.o.cmdheight
   -- Subtract 1 if tabline is visible
@@ -33,6 +41,11 @@ M.get_editor_height = function()
   return editor_height
 end
 
+---@param values? number|number[]
+---@param max_value? integer
+---@param aggregator fun(a: number, b: number): number
+---@param limit number
+---@return nil|integer
 local function calc_list(values, max_value, aggregator, limit)
   local ret = limit
   if not max_value or not values then
@@ -48,6 +61,12 @@ local function calc_list(values, max_value, aggregator, limit)
   return ret
 end
 
+---@param desired_size? integer
+---@param exact_size? integer
+---@param min_size? number|number[]
+---@param max_size? number|number[]
+---@param total_size integer
+---@return integer
 local function calculate_dim(desired_size, exact_size, min_size, max_size, total_size)
   local ret = calc_float(exact_size, total_size)
   local min_val = calc_list(min_size, total_size, math.max, 1)
@@ -72,6 +91,17 @@ local function calculate_dim(desired_size, exact_size, min_size, max_size, total
   return math.floor(ret)
 end
 
+---@class (exact) overseer.LayoutOpts
+---@field width? number
+---@field height? number
+---@field min_width? number|number[]
+---@field max_width? number|number[]
+---@field min_height? number|number[]
+---@field max_height? number|number[]
+
+---@param desired_width? integer
+---@param opts overseer.LayoutOpts
+---@return integer
 M.calculate_width = function(desired_width, opts)
   return calculate_dim(
     desired_width,
@@ -82,6 +112,9 @@ M.calculate_width = function(desired_width, opts)
   )
 end
 
+---@param desired_height? integer
+---@param opts overseer.LayoutOpts
+---@return integer
 M.calculate_height = function(desired_height, opts)
   return calculate_dim(
     desired_height,
