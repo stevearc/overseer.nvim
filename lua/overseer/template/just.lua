@@ -65,7 +65,6 @@ local tmpl = {
           table.insert(ret, {
             name = string.format("just %s", recipe.name),
             desc = recipe.doc,
-            priority = k == data.first and 55 or 60,
             params = params_defn,
             builder = function(params)
               local cmd = { "just", recipe.name }

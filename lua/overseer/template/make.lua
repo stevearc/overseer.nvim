@@ -6,7 +6,6 @@ local TAG = constants.TAG
 ---@type overseer.TemplateFileDefinition
 local tmpl = {
   name = "make",
-  priority = 60,
   tags = { TAG.BUILD },
   params = {
     args = { optional = true, type = "list", delimiter = " " },

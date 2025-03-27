@@ -248,9 +248,6 @@ local function convert_vscode_task(defn, precalculated_vars)
       tmpl.tags = { group_to_tag[defn.group] }
     else
       tmpl.tags = { group_to_tag[defn.group.kind] }
-      if defn.isDefault then
-        tmpl.priority = 40
-      end
     end
   end
   if defn.hide then

@@ -3,7 +3,6 @@ local overseer = require("overseer")
 
 ---@type overseer.TemplateFileDefinition
 local tmpl = {
-  priority = 60,
   params = {
     subcmd = { optional = true },
     args = { type = "list", delimiter = " ", default = {} },
@@ -61,7 +60,7 @@ return {
             )
           )
         end
-        table.insert(ret, overseer.wrap_template(tmpl, { name = "mix", priority = 65 }))
+        table.insert(ret, overseer.wrap_template(tmpl, { name = "mix" }))
       end),
       on_exit = vim.schedule_wrap(function(j, output)
         cb(ret)

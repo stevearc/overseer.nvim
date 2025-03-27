@@ -24,7 +24,6 @@ local M = {}
 ---@field desc? string
 ---@field tags? string[]
 ---@field params? overseer.Params|fun(): overseer.Params
----@field priority? number
 ---@field condition? overseer.SearchCondition
 ---@field builder fun(params: table): overseer.TaskDefinition
 ---@field hide? boolean Hide from the template list
@@ -38,8 +37,6 @@ local M = {}
 ---@field callback? fun(search: overseer.SearchParams): boolean, nil|string
 
 ---@alias overseer.Params table<string, overseer.Param>
-
-local DEFAULT_PRIORITY = 50
 
 ---@type table<string, overseer.TemplateDefinition>
 local registry = {}
@@ -196,13 +193,11 @@ end
 
 ---@param defn overseer.TemplateDefinition
 local function validate_template_definition(defn)
-  defn.priority = defn.priority or DEFAULT_PRIORITY
   defn.params = defn.params or {}
   vim.validate({
     name = { defn.name, "s" },
     desc = { defn.desc, "s", true },
     tags = { defn.tags, "t", true },
-    priority = { defn.priority, "n" },
     builder = { defn.builder, "f" },
   })
   local params = defn.params
@@ -456,14 +451,6 @@ M.list = function(opts, cb)
     if not finished_iterating or not vim.tbl_isempty(pending) then
       return
     end
-    -- Make sure results are sorted by priority, and then name
-    table.sort(ret, function(a, b)
-      if a.priority == b.priority then
-        return a.name < b.name
-      else
-        return a.priority < b.priority
-      end
-    end)
 
     cb(ret, report)
   end

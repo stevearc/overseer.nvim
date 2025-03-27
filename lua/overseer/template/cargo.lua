@@ -6,7 +6,6 @@ local TAG = constants.TAG
 
 ---@type overseer.TemplateFileDefinition
 local tmpl = {
-  priority = 60,
   params = {
     args = { type = "list", delimiter = " " },
     cwd = { optional = true },
@@ -106,12 +105,10 @@ return {
         { args = { "clippy" } },
         { args = { "fmt" } },
       }
-      local roots =
-        { {
-          postfix = "",
-          cwd = cargo_dir,
-          priority = 55,
-        } }
+      local roots = { {
+        postfix = "",
+        cwd = cargo_dir,
+      } }
       if workspace_root ~= cargo_dir then
         roots[1].relative_file_root = workspace_root
         table.insert(roots, { postfix = " (workspace)", cwd = workspace_root })
@@ -125,7 +122,6 @@ return {
               {
                 name = string.format("cargo %s%s", table.concat(command.args, " "), root.postfix),
                 tags = command.tags,
-                priority = root.priority,
               },
               { args = command.args, cwd = root.cwd, relative_file_root = root.relative_file_root }
             )
