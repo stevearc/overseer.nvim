@@ -129,35 +129,28 @@ end
 -- TEMPLATE LOADING/RUNNING
 
 ---Options for running a template
----Values for prompt:
----  always    Show when template has any params
----  missing   Show when template has any params not explicitly passed in
----  allow     Only show when a required param is missing
----  avoid     Only show when a required param with no default value is missing
----  never     Never show prompt (error if required param missing)
 ---@class overseer.TemplateRunOpts
 ---@field name? string The name of the template to run
 ---@field tags? string[] List of tags used to filter when searching for template
 ---@field autostart? boolean When true, start the task after creating it (default true)
 ---@field first? boolean When true, take first result and never show the task picker. Default behavior will auto-set this based on presence of name and tags
----@field prompt? "always"|"missing"|"allow"|"avoid"|"never" Controls when to prompt user for parameter input
 ---@field params? table Parameters to pass to template
 ---@field cwd? string Working directory for the task
 ---@field env? table<string, string> Additional environment variables for the task
+---@field disallow_prompt? boolean When true, if any required parameters are missing return an error instead of prompting the user for them
 
 ---@param opts overseer.TemplateRunOpts
 ---@param callback? fun(task: overseer.Task|nil, err: string|nil)
 M.run_template = function(opts, callback)
   opts = vim.tbl_deep_extend("keep", opts or {}, {
     autostart = true,
-    prompt = config.default_template_prompt,
   })
   vim.validate({
     name = { opts.name, "s", true },
     tags = { opts.tags, "t", true },
     autostart = { opts.autostart, "b", true },
     first = { opts.first, "b", true },
-    prompt = { opts.prompt, "s", true },
+    disallow_prompt = { opts.disallow_prompt, "b", true },
     params = { opts.params, "t", true },
     callback = { callback, "f", true },
   })
@@ -180,9 +173,9 @@ M.run_template = function(opts, callback)
       return
     end
     local build_opts = {
-      prompt = opts.prompt,
       params = opts.params or {},
       search = search_opts,
+      disallow_prompt = opts.disallow_prompt,
     }
     template.build_task_args(tmpl, build_opts, function(task_defn)
       local task = nil
