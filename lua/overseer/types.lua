@@ -14,7 +14,6 @@
 ---@field component_aliases? table<string, overseer.Serialized[]> Aliases for bundles of components. Redefine the builtins, or create your own.
 ---@field bundles? overseer.ConfigBundles
 ---@field preload_components? string[] A list of components to preload on setup. Only matters if you want them to show up in the task editor.
----@field default_template_prompt? "always"|"missing"|"allow"|"avoid"|"never" Controls when the parameter prompt is shown when running a template
 ---@field template_timeout? integer For template providers, how long to wait (in ms) before timing out. Set to 0 to disable timeouts.
 ---@field template_cache_threshold? integer Cache template provider results if the provider takes longer than this to run. Time is in ms. Set to 0 to disable caching.
 ---@field log? table[]

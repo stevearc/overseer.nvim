@@ -305,22 +305,19 @@ end
 
 ---Check if template should prompt user for input. Exposed for testing
 ---@private
----@param prompt "always"|"never"|"allow"|"missing"|"avoid"
+---@param disallow_prompt? boolean
 ---@param param_schema table
 ---@param params table
 ---@return nil|boolean
 ---@return nil|string Error message if error is present
-M._should_prompt = function(prompt, param_schema, params)
+M._should_prompt = function(disallow_prompt, param_schema, params)
   if vim.tbl_isempty(param_schema) then
     return false
   end
-  local show_prompt = prompt == "always"
+  local show_prompt = false
   for k, schema in pairs(param_schema) do
     -- This parameter has no value passed in via the API
     if params[k] == nil then
-      if prompt == "missing" then
-        show_prompt = true
-      end
       local has_default = schema.default ~= nil
       if has_default then
         -- Set the default value into the params, if any
@@ -328,16 +325,10 @@ M._should_prompt = function(prompt, param_schema, params)
       end
 
       -- If the param is not optional, process possible prompt values to show the prompt or error
-      if not schema.optional then
-        if prompt == "allow" then
-          show_prompt = true
-        end
-        if not has_default then
-          if prompt == "avoid" then
-            show_prompt = true
-          elseif prompt == "never" then
-            return nil, string.format("Missing param %s", k)
-          end
+      if not schema.optional and not has_default then
+        show_prompt = true
+        if disallow_prompt then
+          return nil, string.format("Missing param %s", k)
         end
       end
     end
@@ -346,25 +337,23 @@ M._should_prompt = function(prompt, param_schema, params)
 end
 
 ---@class overseer.TemplateBuildOpts
----@field prompt? "always"|"never"|"allow"|"missing"|"avoid"
 ---@field params table
 ---@field search overseer.SearchParams
+---@field disallow_prompt? boolean
 
 ---@param tmpl overseer.TemplateDefinition
 ---@param opts overseer.TemplateBuildOpts
 ---@param callback fun(task: overseer.TaskDefinition|nil, err: string|nil)
 M.build_task_args = function(tmpl, opts, callback)
   vim.validate({
-    prompt = { opts.prompt, "s", true },
     params = { opts.params, "t" },
   })
-  opts.prompt = opts.prompt or config.default_template_prompt
   local param_schema = tmpl.params or {}
   if type(param_schema) == "function" then
     param_schema = param_schema()
     form_utils.validate_params(param_schema)
   end
-  local show_prompt, err = M._should_prompt(opts.prompt, param_schema, opts.params)
+  local show_prompt, err = M._should_prompt(opts.disallow_prompt, param_schema, opts.params)
   if err then
     return callback(nil, err)
   end

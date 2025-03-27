@@ -167,13 +167,6 @@ local default_config = {
   -- A list of components to preload on setup.
   -- Only matters if you want them to show up in the task editor.
   preload_components = {},
-  -- Controls when the parameter prompt is shown when running a template
-  --   always    Show when template has any params
-  --   missing   Show when template has any params not explicitly passed in
-  --   allow     Only show when a required param is missing
-  --   avoid     Only show when a required param with no default value is missing
-  --   never     Never show prompt (error if required param missing)
-  default_template_prompt = "allow",
   -- For template providers, how long to wait (in ms) before timing out.
   -- Set to 0 to disable timeouts.
   template_timeout = 3000,

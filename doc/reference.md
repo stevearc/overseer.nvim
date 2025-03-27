@@ -247,13 +247,6 @@ require("overseer").setup({
   -- A list of components to preload on setup.
   -- Only matters if you want them to show up in the task editor.
   preload_components = {},
-  -- Controls when the parameter prompt is shown when running a template
-  --   always    Show when template has any params
-  --   missing   Show when template has any params not explicitly passed in
-  --   allow     Only show when a required param is missing
-  --   avoid     Only show when a required param with no default value is missing
-  --   never     Never show prompt (error if required param missing)
-  default_template_prompt = "allow",
   -- For template providers, how long to wait (in ms) before timing out.
   -- Set to 0 to disable timeouts.
   template_timeout = 3000,
@@ -446,30 +439,18 @@ List all tasks
 `run_template(opts, callback)` \
 Run a task from a template
 
-| Param      | Type                                                   | Desc                                                                                                                                |
-| ---------- | ------------------------------------------------------ | ----------------------------------------------------------------------------------------------------------------------------------- |
-| opts       | `overseer.TemplateRunOpts`                             |                                                                                                                                     |
-| >name      | `nil\|string`                                          | The name of the template to run                                                                                                     |
-| >tags      | `nil\|string[]`                                        | List of tags used to filter when searching for template                                                                             |
-| >autostart | `nil\|boolean`                                         | When true, start the task after creating it (default true)                                                                          |
-| >first     | `nil\|boolean`                                         | When true, take first result and never show the task picker. Default behavior will auto-set this based on presence of name and tags |
-| >prompt    | `nil\|"always"\|"missing"\|"allow"\|"avoid"\|"never"`  | Controls when to prompt user for parameter input                                                                                    |
-| >params    | `nil\|table`                                           | Parameters to pass to template                                                                                                      |
-| >cwd       | `nil\|string`                                          | Working directory for the task                                                                                                      |
-| >env       | `nil\|table<string, string>`                           | Additional environment variables for the task                                                                                       |
-| callback   | `nil\|fun(task: overseer.Task\|nil, err: string\|nil)` |                                                                                                                                     |
-
-**Note:**
-<pre>
-The prompt option will control when the user is presented a popup dialog to input template
-parameters. The possible values are:
-   always    Show when template has any params
-   missing   Show when template has any params not explicitly passed in
-   allow     Only show when a required param is missing
-   avoid     Only show when a required param with no default value is missing
-   never     Never show prompt (error if required param missing)
-The default is controlled by the default_template_prompt config option.
-</pre>
+| Param            | Type                                                   | Desc                                                                                                                                |
+| ---------------- | ------------------------------------------------------ | ----------------------------------------------------------------------------------------------------------------------------------- |
+| opts             | `overseer.TemplateRunOpts`                             |                                                                                                                                     |
+| >name            | `nil\|string`                                          | The name of the template to run                                                                                                     |
+| >tags            | `nil\|string[]`                                        | List of tags used to filter when searching for template                                                                             |
+| >autostart       | `nil\|boolean`                                         | When true, start the task after creating it (default true)                                                                          |
+| >first           | `nil\|boolean`                                         | When true, take first result and never show the task picker. Default behavior will auto-set this based on presence of name and tags |
+| >params          | `nil\|table`                                           | Parameters to pass to template                                                                                                      |
+| >cwd             | `nil\|string`                                          | Working directory for the task                                                                                                      |
+| >env             | `nil\|table<string, string>`                           | Additional environment variables for the task                                                                                       |
+| >disallow_prompt | `nil\|boolean`                                         | When true, if any required parameters are missing return an error instead of prompting the user for them                            |
+| callback         | `nil\|fun(task: overseer.Task\|nil, err: string\|nil)` |                                                                                                                                     |
 
 **Examples:**
 ```lua
@@ -491,8 +472,6 @@ overseer.run_template({name = "make"}, function(task)
     overseer.run_action(task, 'open float')
   end
 end)
--- Run a task and always show the parameter prompt
-overseer.run_template({name = "npm watch", prompt = "always"})
 ```
 
 ### preload_task_cache(opts, cb)

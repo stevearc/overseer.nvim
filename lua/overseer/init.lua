@@ -271,15 +271,6 @@ end
 ---Run a task from a template
 ---@param opts overseer.TemplateRunOpts
 ---@param callback nil|fun(task: overseer.Task|nil, err: string|nil)
----@note
---- The prompt option will control when the user is presented a popup dialog to input template
---- parameters. The possible values are:
----    always    Show when template has any params
----    missing   Show when template has any params not explicitly passed in
----    allow     Only show when a required param is missing
----    avoid     Only show when a required param with no default value is missing
----    never     Never show prompt (error if required param missing)
---- The default is controlled by the default_template_prompt config option.
 ---@example
 --- -- Run the task named "make all"
 --- -- equivalent to :OverseerRun make\ all
@@ -299,8 +290,6 @@ end
 ---     overseer.run_action(task, 'open float')
 ---   end
 --- end)
---- -- Run a task and always show the parameter prompt
---- overseer.run_template({name = "npm watch", prompt = "always"})
 M.run_template = function(opts, callback)
   return require("overseer.commands").run_template(opts, callback)
 end
