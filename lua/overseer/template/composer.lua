@@ -3,7 +3,6 @@ local overseer = require("overseer")
 
 ---@type overseer.TemplateFileDefinition
 local tmpl = {
-  priority = 60,
   params = {
     args = { type = "list", delimiter = " " },
     cwd = { optional = true },

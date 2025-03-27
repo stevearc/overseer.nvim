@@ -12,7 +12,6 @@ local mgr_lockfiles = {
 
 ---@type overseer.TemplateFileDefinition
 local tmpl = {
-  priority = 60,
   params = {
     args = { optional = true, type = "list", delimiter = " " },
     cwd = { optional = true },

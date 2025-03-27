@@ -21,7 +21,6 @@ end
 local template = {
   name = "task",
   desc = "default target",
-  priority = 60,
   params = {
     ---@type overseer.StringParam
     target = { optional = false, type = "string", desc = "target" },
@@ -86,9 +85,6 @@ local provider = {
             name = string.format("task %s", target.name),
             desc = target.desc,
           }
-          if target.name == "default" then
-            override.priority = 55
-          end
           table.insert(
             ret,
             overseer.wrap_template(template, override, { target = target.name, cwd = opts.dir })

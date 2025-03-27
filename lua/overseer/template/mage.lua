@@ -23,7 +23,6 @@ end
 ---@type overseer.TemplateDefinition
 local template = {
   name = "mage",
-  priority = 60,
   params = {
     ---@type overseer.StringParam
     target = { optional = false, type = "string", desc = "target" },
@@ -83,10 +82,6 @@ local provider = {
                 name = string.format("mage %s", task_name),
                 desc = #description > 0 and description or nil,
               }
-              -- default task
-              if asterick == "*" then
-                override.priority = 55
-              end
               table.insert(ret, overseer.wrap_template(template, override, { target = task_name }))
             end
           end

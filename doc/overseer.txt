@@ -40,9 +40,6 @@ OverseerRunCmd `[command]`                                         *:OverseerRun
 OverseerRun `[name/tags]`                                             *:OverseerRun*
     Run a task from a template
 
-OverseerInfo                                                       *:OverseerInfo*
-    Display diagnostic information about overseer
-
 OverseerBuild                                                     *:OverseerBuild*
     Open the task builder
 
@@ -492,7 +489,6 @@ wrap_template({base}, {override}, {default_params}): overseer.TemplateFileDefini
           {desc}      `nil|string`
           {tags}      `nil|string[]`
           {params}    `nil|overseer.Params|fun(): overseer.Params`
-          {priority}  `nil|number`
           {condition} `nil|overseer.SearchCondition`
               {filetype} `nil|string|string[]`
               {dir}      `nil|string|string[]`

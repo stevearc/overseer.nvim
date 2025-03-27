@@ -57,7 +57,6 @@ local provider = {
         for _, task in ipairs(tasks) do
           table.insert(ret, {
             name = string.format("rake %s", task.task_name),
-            priority = 60,
             params = task.args,
             builder = function(parms)
               local param_vals = {}
