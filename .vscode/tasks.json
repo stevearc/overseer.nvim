@@ -15,18 +15,14 @@
       "label": "(vscode) sleep",
       "group": "test",
       "command": "sleep",
-      "args": [
-        "10"
-      ]
+      "args": ["10"]
     },
     {
       "type": "process",
       "label": "(vscode) test file",
       "group": "test",
       "command": "./run_tests.sh",
-      "args": [
-        "${file}"
-      ],
+      "args": ["${file}"],
       "presentation": {
         "reveal": "always"
       }
@@ -36,10 +32,7 @@
       "label": "(vscode) prompt input",
       "group": "test",
       "command": "echo",
-      "args": [
-        "${input:word}",
-        "${input:position}"
-      ]
+      "args": ["${input:word}", "${input:position}"]
     },
     {
       "type": "process",
@@ -47,7 +40,7 @@
       "command": "./tests/fake_background_task.sh",
       "isBackground": true,
       "presentation": {
-        "revealProblems": "onProblem",
+        "revealProblems": "onProblem"
       },
       "problemMatcher": {
         "pattern": {
@@ -64,27 +57,13 @@
     },
     {
       "label": "(vscode) compound parallel",
-      "dependsOn": [
-        "(vscode) test",
-        "(vscode) sleep"
-      ]
-    },
-    {
-      "label": "(vscode) compound sequence",
-      "dependsOn": [
-        "(vscode) sleep",
-        "(vscode) test",
-        "(vscode) prompt input"
-      ],
-      "dependsOrder": "sequence"
+      "dependsOn": ["(vscode) test", "(vscode) sleep"]
     },
     {
       "type": "shell",
       "label": "(vscode) create/move/delete",
       "command": "rm",
-      "args": [
-        "vscode_moved_test_file.txt"
-      ],
+      "args": ["vscode_moved_test_file.txt"],
       "dependsOn": "(vscode) move"
     },
     {
@@ -100,25 +79,24 @@
     },
     {
       "label": "Build/Test/Serve pipeline",
-      "dependsOn": [
-        "make build",
-        "run tests",
-        "run webserver"
-      ],
+      "dependsOn": ["make build", "run tests", "run webserver"],
       "dependsOrder": "sequence"
     },
     {
       "label": "make build",
+      "hide": true,
       "type": "shell",
       "command": "echo make: Nothing to be done for 'all'. && sleep 4"
     },
     {
       "label": "run tests",
+      "hide": true,
       "type": "shell",
       "command": "echo 'starting tests...' && sleep 4 && echo 'Tests passed'"
     },
     {
       "label": "run webserver",
+      "hide": true,
       "type": "shell",
       "command": "echo 'Serving on 127.0.0.1:8080' && sleep 120"
     }
@@ -133,11 +111,7 @@
       "id": "position",
       "description": "This is a position",
       "type": "pickString",
-      "options": [
-        "first",
-        "second",
-        "third"
-      ]
+      "options": ["first", "second", "third"]
     }
   ]
 }
