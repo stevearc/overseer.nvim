@@ -182,19 +182,7 @@ local default_config = {
   -- Cache template provider results if the provider takes longer than this to run.
   -- Time is in ms. Set to 0 to disable caching.
   template_cache_threshold = 100,
-  -- Configure where the logs go and what level to use
-  -- Types are "echo", "notify", and "file"
-  log = {
-    {
-      type = "echo",
-      level = vim.log.levels.WARN,
-    },
-    {
-      type = "file",
-      filename = "overseer.log",
-      level = vim.log.levels.WARN,
-    },
-  },
+  log_level = vim.log.levels.WARN,
 }
 
 local M = vim.deepcopy(default_config)
@@ -241,15 +229,12 @@ end
 ---@param opts? overseer.Config
 M.setup = function(opts)
   local component = require("overseer.component")
-  local log = require("overseer.log")
   opts = opts or {}
   remove_binding_conflicts(opts)
   local newconf = vim.tbl_deep_extend("force", default_config, opts)
   for k, v in pairs(newconf) do
     M[k] = v
   end
-
-  log.set_root(log.new({ handlers = M.log }))
 
   M.actions = merge_actions(require("overseer.task_list.actions"), newconf.actions)
 

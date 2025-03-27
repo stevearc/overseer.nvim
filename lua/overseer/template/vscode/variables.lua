@@ -129,7 +129,7 @@ M.replace_vars = function(str, params, precalculated_vars)
       -- TODO does not support ${config:VALUE}
       -- TODO does not support ${command:VALUE}
       if name == "workspacefolder" or name == "config" or name == "command" then
-        log:warn("Unsupported VS Code variable: %s", fullname)
+        log.warn("Unsupported VS Code variable: %s", fullname)
       end
       return fullname
     end

@@ -100,7 +100,7 @@ M.load_task_bundle = function(name, opts)
           task:start()
         end
       else
-        log:error("Could not load task in bundle %s: %s", filepath, task)
+        log.error("Could not load task in bundle %s: %s", filepath, task)
       end
     end
     vim.notify(string.format("Started %d tasks", count))

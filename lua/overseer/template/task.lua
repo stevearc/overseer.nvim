@@ -76,7 +76,7 @@ local provider = {
         local ok, data =
           pcall(vim.json.decode, table.concat(output, "\n"), { luanil = { object = true } })
         if not ok then
-          log:error("Task produced invalid json: %s\n%s", data, output)
+          log.error("Task produced invalid json: %s\n%s", data, output)
           cb(ret)
           return
         end
@@ -98,10 +98,10 @@ local provider = {
       end),
     })
     if jid == 0 then
-      log:error("Passed invalid arguments to 'task'")
+      log.error("Passed invalid arguments to 'task'")
       cb(ret)
     elseif jid == -1 then
-      log:error("'task' is not executable")
+      log.error("'task' is not executable")
       cb(ret)
     end
   end,

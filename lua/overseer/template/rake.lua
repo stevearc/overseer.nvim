@@ -81,10 +81,10 @@ local provider = {
       end),
     })
     if jid == 0 then
-      log:error("Passed invalid arguments to 'rake'")
+      log.error("Passed invalid arguments to 'rake'")
       cb(ret)
     elseif jid == -1 then
-      log:error("'rake' is not executable")
+      log.error("'rake' is not executable")
       cb(ret)
     end
   end,

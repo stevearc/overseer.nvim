@@ -100,7 +100,7 @@ local function get_host_start_options(runtime, launch_config)
       }
     end
   else
-    log:warn("Azure func task provider could not find debug provider for runtime %s", runtime)
+    log.warn("Azure func task provider could not find debug provider for runtime %s", runtime)
     return nil
   end
 end
@@ -118,7 +118,7 @@ M.get_task_opts = function(defn, launch_config)
       if runtime then
         ret.problem_matcher = string.format("$func-%s-watch", runtime)
       else
-        log:warn("Azure func task provider could not find runtime for language %s", language)
+        log.warn("Azure func task provider could not find runtime for language %s", language)
         ret.problem_matcher = "$func-watch"
       end
     end
@@ -126,7 +126,7 @@ M.get_task_opts = function(defn, launch_config)
       local start_opts = get_host_start_options(runtime, launch_config)
       ret = vim.tbl_deep_extend("force", ret, start_opts or {})
     else
-      log:warn("Azure func task provider could not find debug provider for language %s", language)
+      log.warn("Azure func task provider could not find debug provider for language %s", language)
     end
   end
 

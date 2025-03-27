@@ -54,7 +54,7 @@ M.run_action = function(opts, ...)
     end
   end
   if opts.name then
-    log:warn("Cannot perform action '%s'", opts.name)
+    log.warn("Cannot perform action '%s'", opts.name)
     return
   end
   table.sort(viable, function(a, b)
@@ -79,7 +79,7 @@ M.run_action = function(opts, ...)
       if action.condition == nil or action.condition(vim.F.unpack_len(args)) then
         action.run(vim.F.unpack_len(args))
       else
-        log:warn("Can no longer perform action '%s' on task", action.name)
+        log.warn("Can no longer perform action '%s' on task", action.name)
       end
       if opts.post_action then
         opts.post_action(vim.F.unpack_len(args))

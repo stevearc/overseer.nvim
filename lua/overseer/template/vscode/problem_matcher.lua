@@ -281,7 +281,7 @@ local default_matchers = {
 ---@param defn table
 M.register_pattern = function(name, defn)
   if name:find("$", nil, true) ~= 1 then
-    log:warn("Pattern '%s' should start with '$'", name)
+    log.warn("Pattern '%s' should start with '$'", name)
     name = "$" .. name
   end
   default_patterns[name] = defn
@@ -291,7 +291,7 @@ end
 ---@param defn table
 M.register_problem_matcher = function(name, defn)
   if name:find("$", nil, true) ~= 1 then
-    log:warn("Problem matcher '%s' should start with '$'", name)
+    log.warn("Problem matcher '%s' should start with '$'", name)
     name = "$" .. name
   end
   default_matchers[name] = defn
@@ -428,7 +428,7 @@ M.resolve_problem_matcher = function(problem_matcher)
   if type(problem_matcher) == "string" then
     local pm = default_matchers[problem_matcher]
     if not pm then
-      log:error("Could not find problem matcher '%s'", problem_matcher)
+      log.error("Could not find problem matcher '%s'", problem_matcher)
     end
     return M.resolve_problem_matcher(pm)
   elseif islist(problem_matcher) then
@@ -448,7 +448,7 @@ M.resolve_problem_matcher = function(problem_matcher)
     if default_matchers[problem_matcher.base] then
       return vim.tbl_deep_extend("keep", problem_matcher, default_matchers[problem_matcher.base])
     else
-      log:error("Could not find problem matcher '%s'", problem_matcher.base)
+      log.error("Could not find problem matcher '%s'", problem_matcher.base)
       return nil
     end
   end
@@ -548,7 +548,7 @@ M.get_parser_from_problem_matcher = function(problem_matcher, precalculated_vars
     if default_patterns[pattern] then
       pattern = vim.deepcopy(default_patterns[pattern])
     else
-      log:error("Could not find problem matcher pattern '%s'", pattern)
+      log.error("Could not find problem matcher pattern '%s'", pattern)
       return nil
     end
   end

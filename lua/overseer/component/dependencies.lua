@@ -30,7 +30,7 @@ return {
             -- If no task ID found, start the dependency
             util.run_template_or_task(name_or_config, function(new_task)
               if not new_task then
-                log:error(
+                log.error(
                   "Task(%s)[dependencies] could not find template %s",
                   task.name,
                   name_or_config

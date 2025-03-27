@@ -148,7 +148,7 @@ M.load_template = function(name)
     end
   end
   if not ok then
-    log:error("Error loading template '%s': %s", name, defn)
+    log.error("Error loading template '%s': %s", name, defn)
     return
   end
   -- If this module was just a list of names, then it's an alias for a
@@ -164,7 +164,7 @@ M.load_template = function(name)
     defn.module = name
     local register_ok, err = pcall(M.register, defn)
     if not register_ok then
-      log:error("Error loading template '%s': %s", name, err)
+      log.error("Error loading template '%s': %s", name, err)
     end
   end
 end
@@ -483,12 +483,12 @@ M.list = function(opts, cb)
       and config.template_cache_threshold > 0
       and elapsed_ms >= config.template_cache_threshold
     then
-      log:debug("Caching %s: [%s] = %d", provider_name, cache_key, #tmpls)
+      log.debug("Caching %s: [%s] = %d", provider_name, cache_key, #tmpls)
       cached_provider_results[cache_key] = tmpls
     end
     if not pending[provider_name] then
       if not timed_out then
-        log:warn("Template %s double-called callback", provider_name)
+        log.warn("Template %s double-called callback", provider_name)
       end
       return
     end
@@ -504,7 +504,7 @@ M.list = function(opts, cb)
           table.insert(ret, tmpl)
         end
       else
-        log:error("Template %s from %s: %s", tmpl.name, provider_name, err)
+        log.error("Template %s from %s: %s", tmpl.name, provider_name, err)
       end
     end
     report.providers[provider_name] = {
@@ -523,7 +523,7 @@ M.list = function(opts, cb)
     vim.defer_fn(function()
       if not vim.tbl_isempty(pending) then
         timed_out = true
-        log:error("Listing templates timed out. Pending providers: %s", vim.tbl_keys(pending))
+        log.error("Listing templates timed out. Pending providers: %s", vim.tbl_keys(pending))
         pending = {}
         final_callback()
         -- Make sure that the callback doesn't get called again
@@ -559,7 +559,7 @@ M.list = function(opts, cb)
             provider_cb(tmpls)
           end
         else
-          log:error("Template provider %s: %s", provider.name, tmpls)
+          log.error("Template provider %s: %s", provider.name, tmpls)
         end
       end
     else

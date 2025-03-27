@@ -161,7 +161,7 @@ M._run_template = function(params)
     end
   end
   if name and not vim.tbl_isempty(tags) then
-    log:error("Cannot find template: %s is not a tag", name)
+    log.error("Cannot find template: %s is not a tag", name)
     return
   end
   local opts = {
@@ -310,7 +310,7 @@ M.run_template = function(opts, callback)
       end, templates)
 
       if #templates == 0 then
-        log:error("Could not find any matching task templates for opts %s", opts)
+        log.error("Could not find any matching task templates for opts %s", opts)
       elseif #templates == 1 or opts.first then
         handle_tmpl(templates[1])
       else

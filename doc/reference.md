@@ -263,19 +263,7 @@ require("overseer").setup({
   -- Cache template provider results if the provider takes longer than this to run.
   -- Time is in ms. Set to 0 to disable caching.
   template_cache_threshold = 100,
-  -- Configure where the logs go and what level to use
-  -- Types are "echo", "notify", and "file"
-  log = {
-    {
-      type = "echo",
-      level = vim.log.levels.WARN,
-    },
-    {
-      type = "file",
-      filename = "overseer.log",
-      level = vim.log.levels.WARN,
-    },
-  },
+  log_level = vim.log.levels.WARN,
 })
 ```
 

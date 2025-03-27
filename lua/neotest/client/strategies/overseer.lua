@@ -20,7 +20,7 @@ M.recycle_group = function(group_id)
   if not pool[group_id] then
     pool[group_id] = {}
   end
-  log:debug("Recycling neotest task group %s", group_id)
+  log.debug("Recycling neotest task group %s", group_id)
   vim.list_extend(pool[group_id], tasks_by_group[group_id])
   tasks_by_group[group_id] = {}
 end
@@ -41,7 +41,7 @@ local function get_or_create_task(spec, context, output_path)
   end
   if task then
     -- Reset the task
-    log:debug("Using pooled neotest task %s from group %s", task.id, current_group_id)
+    log.debug("Using pooled neotest task %s from group %s", task.id, current_group_id)
     task:reset(false)
     task:remove_components({ "on_output_write_file", "neotest.link_with_neotest" })
     task:add_components({
@@ -79,7 +79,7 @@ local function get_or_create_task(spec, context, output_path)
       neotest_group_id = current_group_id,
     }
     task = overseer.new_task(opts)
-    log:debug("Created new neotest task %s group %s", task.id, current_group_id)
+    log.debug("Created new neotest task %s group %s", task.id, current_group_id)
     task:set_include_in_bundle(false)
     task:subscribe("on_dispose", function(disposed_task)
       local tasks = tasks_by_group[disposed_task.metadata.group_id]

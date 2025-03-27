@@ -85,7 +85,7 @@ local function do_setup()
   for _, cb in ipairs(setup_callbacks) do
     local cb_ok, err = pcall(cb)
     if not cb_ok then
-      log:error("Error running overseer setup callback: %s", err)
+      log.error("Error running overseer setup callback: %s", err)
     end
   end
 end
@@ -115,12 +115,12 @@ local function lazy_pend(mod, fn)
         local log = require("overseer.log")
         local ok, module = pcall(require, string.format("overseer.%s", mod))
         if not ok then
-          log:error("Error requiring overseer lazy module: %s", module)
+          log.error("Error requiring overseer lazy module: %s", module)
           return
         end
         local call_ok, err = pcall(module[fn], unpack(args))
         if not call_ok then
-          log:error("Error in overseer lazy call to %s.%s: %s\n%s", mod, fn, err, traceback)
+          log.error("Error in overseer lazy call to %s.%s: %s\n%s", mod, fn, err, traceback)
         end
       end)
     end
@@ -280,7 +280,7 @@ M.enable_dap = function(enabled)
   end
   if not dap.listeners.on_config then
     local log = require("overseer.log")
-    log:warn("overseer requires a newer version of nvim-dap to enable DAP integration")
+    log.warn("overseer requires a newer version of nvim-dap to enable DAP integration")
     return
   end
   if enabled then

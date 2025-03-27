@@ -56,10 +56,10 @@ local function parse_make_output(cwd, ret, cb)
     end),
   })
   if jid == 0 then
-    log:error("Passed invalid arguments to 'make'")
+    log.error("Passed invalid arguments to 'make'")
     cb(ret)
   elseif jid == -1 then
-    log:error("'make' is not executable")
+    log.error("'make' is not executable")
     cb(ret)
   end
 end

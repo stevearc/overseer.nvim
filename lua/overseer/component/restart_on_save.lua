@@ -103,7 +103,7 @@ local comp = {
               { recursive = true },
               vim.schedule_wrap(function(err, filename, events)
                 if err then
-                  log:warn("Overseer[restart_on_save] watch error: %s", err)
+                  log.warn("Overseer[restart_on_save] watch error: %s", err)
                 else
                   trigger_restart(task)
                 end

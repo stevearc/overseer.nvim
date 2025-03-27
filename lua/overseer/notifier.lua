@@ -18,7 +18,7 @@ local function system_notify(message, level)
   local job_id
   if files.is_windows then
     -- TODO
-    log:warn("System notifications are not supported on Windows yet")
+    log.warn("System notifications are not supported on Windows yet")
     return
   elseif files.is_mac then
     local cmd = {
@@ -45,7 +45,7 @@ local function system_notify(message, level)
     })
   end
   if job_id <= 0 then
-    log:warn("Error performing system notification")
+    log.warn("Error performing system notification")
   end
 end
 

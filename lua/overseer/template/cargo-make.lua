@@ -45,7 +45,7 @@ return {
 
     local cargo_make_file = get_cargo_make_file(opts)
     if not cargo_make_file then
-      log:error("No Makefile.toml file found")
+      log.error("No Makefile.toml file found")
       cb(ret)
       return
     end
@@ -53,7 +53,7 @@ return {
 
     local data = files.read_file(cargo_make_file)
     if not data then
-      log:error("Failed to read Makefile.toml file")
+      log.error("Failed to read Makefile.toml file")
       cb(ret)
       return
     end

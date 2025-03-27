@@ -105,7 +105,7 @@ local function validate_component(name, opts)
   end
   comp.name = name
   if opts.deprecated_message then
-    log:warn("Overseer component %s is deprecated: %s", name, opts.deprecated_message)
+    log.warn("Overseer component %s is deprecated: %s", name, opts.deprecated_message)
   end
   return comp
 end
@@ -231,7 +231,7 @@ local function validate_params(params, schema, ignore_errors)
   end
   for name in pairs(params) do
     if type(name) == "string" and (not schema or schema[name] == nil) then
-      log:warn("Component '%s' passed unknown param '%s'", getname(params), name)
+      log.warn("Component '%s' passed unknown param '%s'", getname(params), name)
       params[name] = nil
     end
   end
