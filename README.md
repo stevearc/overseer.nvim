@@ -213,7 +213,6 @@ If you want to define custom tasks for your project, I'd recommend starting with
 - [Highlight groups](doc/reference.md#highlight-groups)
 - [Lua API](doc/reference.md#lua-api)
   - [setup(opts)](doc/reference.md#setupopts)
-  - [on_setup(callback)](doc/reference.md#on_setupcallback)
   - [new_task(opts)](doc/reference.md#new_taskopts)
   - [toggle(opts)](doc/reference.md#toggleopts)
   - [open(opts)](doc/reference.md#openopts)

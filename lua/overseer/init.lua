@@ -1,131 +1,6 @@
----@mod overseer
-
 ---@diagnostic disable: undefined-doc-param
 
 local M = {}
-
-local setup_callbacks = {}
-
-local BREAKING_CHANGES_NOTICE =
-  [[ATTN: overseer.nvim will experience breaking changes soon. Pin to version v1.6.0 or earlier to avoid disruption.
-See: https://github.com/stevearc/overseer.nvim/pull/448]]
-local initialized = false
-local pending_opts
-local function do_setup()
-  if not pending_opts then
-    if initialized then
-      return
-    else
-      -- If user hasn't called setup(), assume an empty options table
-      pending_opts = {}
-    end
-  end
-  vim.notify_once(BREAKING_CHANGES_NOTICE, vim.log.levels.WARN)
-  local config = require("overseer.config")
-  local log = require("overseer.log")
-  config.setup(pending_opts)
-  pending_opts = nil
-  local util = require("overseer.util")
-  local success_color = util.find_success_color()
-  for _, hl in ipairs(M.get_all_highlights()) do
-    vim.cmd(string.format("hi default link %s %s", hl.name, hl.default))
-  end
-  local aug = vim.api.nvim_create_augroup("Overseer", {})
-  if config.auto_detect_success_color then
-    vim.api.nvim_create_autocmd("ColorScheme", {
-      pattern = "*",
-      group = aug,
-      desc = "Set Overseer default success color",
-      callback = function()
-        success_color = util.find_success_color()
-        vim.cmd(string.format("hi link OverseerSUCCESS %s", success_color))
-      end,
-    })
-  end
-  vim.api.nvim_create_autocmd("User", {
-    pattern = "SessionSavePre",
-    desc = "Save task state when vim-session saves",
-    group = aug,
-    callback = function()
-      local task_list = require("overseer.task_list")
-      local cmds = vim.g.session_save_commands
-      local tasks = vim.tbl_map(function(task)
-        return task:serialize()
-      end, task_list.list_tasks({ bundleable = true }))
-      -- Abort if no tasks or if not using vim-session (no vim.g.session_save_commands)
-      if not cmds or vim.tbl_isempty(tasks) then
-        return
-      end
-      table.insert(cmds, '" overseer.nvim')
-      ---@type string
-      local data = vim.json.encode(tasks) ---@diagnostic disable-line: assign-type-mismatch
-      -- For some reason, vim.json.encode encodes / as \/.
-      data = string.gsub(data, "\\/", "/")
-      data = string.gsub(data, "'", "\\'")
-      table.insert(cmds, string.format("lua require('overseer')._start_tasks('%s')", data))
-      vim.g.session_save_commands = cmds
-    end,
-  })
-  local Notifier = require("overseer.notifier")
-  vim.api.nvim_create_autocmd("FocusGained", {
-    desc = "Track editor focus for overseer",
-    group = aug,
-    callback = function()
-      Notifier.focused = true
-    end,
-  })
-  vim.api.nvim_create_autocmd("FocusLost", {
-    desc = "Track editor focus for overseer",
-    group = aug,
-    callback = function()
-      Notifier.focused = false
-    end,
-  })
-  initialized = true
-  for _, cb in ipairs(setup_callbacks) do
-    local cb_ok, err = pcall(cb)
-    if not cb_ok then
-      log.error("Error running overseer setup callback: %s", err)
-    end
-  end
-end
-
----When this function is called, complete the overseer setup
----@param mod string Name of overseer module
----@param fn string Name of function to wrap
-local function lazy(mod, fn)
-  return function(...)
-    do_setup()
-    return require(string.format("overseer.%s", mod))[fn](...)
-  end
-end
-
----When this function is called, if overseer has not loaded yet defer the call until after overseer
----has loaded.
----@param mod string Name of overseer module
----@param fn string Name of function to wrap
-local function lazy_pend(mod, fn)
-  return function(...)
-    if initialized then
-      require(string.format("overseer.%s", mod))[fn](...)
-    else
-      local args = { ... }
-      local traceback = debug.traceback()
-      M.on_setup(function()
-        local log = require("overseer.log")
-        local ok, module = pcall(require, string.format("overseer.%s", mod))
-        if not ok then
-          log.error("Error requiring overseer lazy module: %s", module)
-          return
-        end
-        local call_ok, err = pcall(module[fn], unpack(args))
-        if not call_ok then
-          log.error("Error in overseer lazy call to %s.%s: %s\n%s", mod, fn, err, traceback)
-        end
-      end)
-    end
-  end
-end
 
 local commands = {
   {
@@ -252,7 +127,9 @@ local commands = {
 
 local function create_commands()
   for _, v in pairs(commands) do
-    vim.api.nvim_create_user_command(v.cmd, lazy("commands", v.func), v.def)
+    vim.api.nvim_create_user_command(v.cmd, function(args)
+      require("overseer.commands")[v.func](args)
+    end, v.def)
   end
 end
 
@@ -310,20 +187,23 @@ M.setup = function(opts)
   opts = opts or {}
   create_commands()
   M.enable_dap(opts.dap)
-  pending_opts = opts
-  if initialized then
-    do_setup()
-  end
-end
+  local config = require("overseer.config")
+  config.setup(opts)
 
----Add a callback to run after overseer lazy setup
----@param callback fun()
-M.on_setup = function(callback)
-  if initialized then
-    callback()
-  else
-    table.insert(setup_callbacks, callback)
+  for _, hl in ipairs(M.get_all_highlights()) do
+    vim.api.nvim_set_hl(0, hl.name, { link = hl.default, default = true })
   end
+  local aug = vim.api.nvim_create_augroup("Overseer", {})
+  vim.api.nvim_create_autocmd("ColorScheme", {
+    pattern = "*",
+    group = aug,
+    desc = "Update Overseer highlights",
+    callback = function()
+      for _, hl in ipairs(M.get_all_highlights()) do
+        vim.api.nvim_set_hl(0, hl.name, { link = hl.default, default = true })
+      end
+    end,
+  })
 end
 
 ---Create a new Task
@@ -336,43 +216,61 @@ end
 ---   components = { { "on_output_quickfix", open = true }, "default" }
 --- })
 --- task:start()
-M.new_task = lazy("task", "new")
+M.new_task = function(opts)
+  return require("overseer.task").new(opts)
+end
 
 ---Open or close the task list
 ---@param opts nil|overseer.WindowOpts
-M.toggle = lazy("window", "toggle")
+M.toggle = function(opts)
+  return require("overseer.window").toggle(opts)
+end
 ---Open the task list
 ---@param opts nil|overseer.WindowOpts
 ---    enter boolean|nil If false, stay in current window. Default true
 ---    direction nil|"left"|"right" Which direction to open the task list
-M.open = lazy("window", "open")
+M.open = function(opts)
+  return require("overseer.window").open(opts)
+end
 
 ---Close the task list
-M.close = lazy("window", "close")
+M.close = function()
+  return require("overseer.window").close()
+end
 
 ---Get the list of saved task bundles
 ---@return string[] Names of task bundles
-M.list_task_bundles = lazy("task_bundle", "list_task_bundles")
+M.list_task_bundles = function()
+  return require("overseer.task_bundle").list_task_bundles()
+end
 ---Load tasks from a saved bundle
 ---@param name nil|string
 ---@param opts nil|table
 ---    ignore_missing nil|boolean When true, don't notify if bundle doesn't exist
 ---    autostart nil|boolean When true, start the tasks after loading (default true)
-M.load_task_bundle = lazy("task_bundle", "load_task_bundle")
+M.load_task_bundle = function(name, opts)
+  return require("overseer.task_bundle").load_task_bundle(name, opts)
+end
 ---Save tasks to a bundle on disk
 ---@param name string|nil Name of bundle. If nil, will prompt user.
 ---@param tasks nil|overseer.Task[] Specific tasks to save. If nil, uses config.bundles.save_task_opts
 ---@param opts table|nil
 ---    on_conflict nil|"overwrite"|"append"|"cancel"
-M.save_task_bundle = lazy("task_bundle", "save_task_bundle")
+M.save_task_bundle = function(name, tasks, opts)
+  return require("overseer.task_bundle").save_task_bundle(name, tasks, opts)
+end
 ---Delete a saved task bundle
 ---@param name string|nil
-M.delete_task_bundle = lazy("task_bundle", "delete_task_bundle")
+M.delete_task_bundle = function(name)
+  return require("overseer.task_bundle").delete_task_bundle(name)
+end
 
 ---List all tasks
 ---@param opts nil|overseer.ListTaskOpts
 ---@return overseer.Task[]
-M.list_tasks = lazy("task_list", "list_tasks")
+M.list_tasks = function(opts)
+  return require("overseer.task_list").list_tasks(opts)
+end
 
 ---Run a task from a template
 ---@param opts overseer.TemplateRunOpts
@@ -407,7 +305,9 @@ M.list_tasks = lazy("task_list", "list_tasks")
 --- end)
 --- -- Run a task and always show the parameter prompt
 --- overseer.run_template({name = "npm watch", prompt = "always"})
-M.run_template = lazy("commands", "run_template")
+M.run_template = function(opts, callback)
+  return require("overseer.commands").run_template(opts, callback)
+end
 
 ---Preload templates for run_template
 ---@param opts nil|table
@@ -423,17 +323,23 @@ M.run_template = lazy("commands", "run_template")
 ---   local cwd = vim.v.cwd or vim.fn.getcwd()
 ---   require("overseer").preload_task_cache({ dir = cwd })
 --- })
-M.preload_task_cache = lazy("commands", "preload_cache")
+M.preload_task_cache = function()
+  return require("overseer.commands").preload_cache()
+end
 ---Clear cached templates for run_template
----@param opts nil|table
+---@param opts? overseer.SearchParams
 ---    dir string
 ---    ft nil|string
-M.clear_task_cache = lazy("commands", "clear_cache")
+M.clear_task_cache = function(opts)
+  return require("overseer.commands").clear_cache(opts)
+end
 
 ---Run an action on a task
 ---@param task overseer.Task
 ---@param name string|nil Name of action. When omitted, prompt user to pick.
-M.run_action = lazy("action_util", "run_task_action")
+M.run_action = function(task, name)
+  return require("overseer.action_util").run_task_action(task, name)
+end
 
 ---Create a new template by overriding fields on another
 ---@param base overseer.TemplateFileDefinition The base template definition to wrap
@@ -511,7 +417,9 @@ end
 ---     GO111MODULE = "on"
 ---   })
 --- end)
-M.add_template_hook = lazy_pend("template", "add_hook_template")
+M.add_template_hook = function(opts, hook)
+  require("overseer.template").add_hook_template(opts, hook)
+end
 ---Remove a hook that was added with add_template_hook
 ---@param opts nil|overseer.HookOptions Same as for add_template_hook
 ---@param hook fun(task_defn: overseer.TaskDefinition, util: overseer.TaskUtil)
@@ -523,7 +431,9 @@ M.add_template_hook = lazy_pend("template", "add_hook_template")
 --- overseer.add_template_hook(opts, hook)
 --- -- Remove should pass in the same opts as add
 --- overseer.remove_template_hook(opts, hook)
-M.remove_template_hook = lazy_pend("template", "remove_hook_template")
+M.remove_template_hook = function(opts, hook)
+  require("overseer.template").remove_hook_template(opts, hook)
+end
 
 ---Directly register an overseer template
 ---@param defn overseer.TemplateDefinition|overseer.TemplateProvider
@@ -536,16 +446,22 @@ M.remove_template_hook = lazy_pend("template", "remove_hook_template")
 ---     }
 ---   end,
 --- })
-M.register_template = lazy_pend("template", "register")
+M.register_template = function(defn)
+  require("overseer.template").register(defn)
+end
 ---Load a template definition from its module location
 ---@param name string
 ---@example
 --- -- This will load the template in lua/overseer/template/mytask.lua
 --- overseer.load_template('mytask')
-M.load_template = lazy_pend("template", "load_template")
+M.load_template = function(name)
+  require("overseer.template").load_template(name)
+end
 
 ---Open a tab with windows laid out for debugging a parser
-M.debug_parser = lazy("parser.debug", "start_debug_session")
+M.debug_parser = function()
+  return require("overseer.parser.debug").start_debug_session()
+end
 
 ---Register a new component alias.
 ---@param name string
@@ -556,28 +472,8 @@ M.debug_parser = lazy("parser.debug", "start_debug_session")
 --- setting a component alias that they can then use when creating tasks.
 ---@example
 --- require("overseer").register_alias("my_plugin", { "default", "on_output_quickfix" })
-M.register_alias = lazy("component", "alias")
-
--- Used for vim-session integration.
-local timer_active = false
----@private
-M._start_tasks = function(str)
-  -- HACK for some reason vim-session fires SessionSavePre multiple times, which
-  -- can lead to multiple 'load' lines in the same session file. We need to make
-  -- sure we only take the first one.
-  if timer_active then
-    return
-  end
-  timer_active = true
-  vim.defer_fn(function()
-    ---@type any
-    local data = vim.json.decode(str)
-    for _, params in ipairs(data) do
-      local task = M.new_task(params)
-      task:start()
-    end
-    timer_active = false
-  end, 100)
+M.register_alias = function(name, components)
+  return require("overseer.component").alias(name, components)
 end
 
 setmetatable(M, {
@@ -616,12 +512,10 @@ end
 ---Used for documentation generation
 ---@private
 M.get_all_highlights = function()
-  local util = require("overseer.util")
-  local success_color = util.find_success_color()
   return {
     { name = "OverseerPENDING", default = "Normal", desc = "Pending tasks" },
     { name = "OverseerRUNNING", default = "Constant", desc = "Running tasks" },
-    { name = "OverseerSUCCESS", default = success_color, desc = "Succeeded tasks" },
+    { name = "OverseerSUCCESS", default = "DiagnosticOk", desc = "Succeeded tasks" },
     { name = "OverseerCANCELED", default = "DiagnosticWarn", desc = "Canceled tasks" },
     { name = "OverseerFAILURE", default = "DiagnosticError", desc = "Failed tasks" },
     { name = "OverseerDISPOSED", default = "Comment" },

@@ -236,6 +236,7 @@ function OrchestratorStrategy:build_task(defn, i, j)
 
   if type(defn) == "table" and defn[1] == nil then
     defn = vim.tbl_extend("error", { parent_id = self.task.id }, defn)
+    ---@cast defn overseer.TaskDefinition
     local task = require("overseer").new_task(defn)
     finalize_subtask(task)
     return

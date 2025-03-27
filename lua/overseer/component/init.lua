@@ -46,7 +46,6 @@ local M = {}
 ---@field editable boolean
 
 local registry = {}
-local aliases = {}
 
 local builtin_components = {
   "dependencies",
@@ -113,12 +112,7 @@ end
 ---@param name string
 ---@param components string[]
 M.alias = function(name, components)
-  vim.validate({
-    name = { name, "s" },
-    components = { components, "t" },
-  })
-
-  aliases[name] = components
+  config.component_aliases[name] = components
 end
 
 ---@param name string
@@ -136,7 +130,7 @@ end
 ---@param name string
 ---@return string[]?
 M.get_alias = function(name)
-  return aliases[name]
+  return config.component_aliases[name]
 end
 
 ---@param comp_params overseer.Serialized
@@ -150,7 +144,7 @@ end
 ---@return string
 M.stringify_alias = function(name)
   local strings = {}
-  for _, comp in ipairs(aliases[name]) do
+  for _, comp in ipairs(M.get_alias(name) or {}) do
     table.insert(strings, getname(comp))
   end
   return table.concat(strings, ", ")
@@ -175,7 +169,7 @@ end
 
 ---@return string[]
 M.list_aliases = function()
-  return vim.tbl_keys(aliases)
+  return vim.tbl_keys(config.component_aliases)
 end
 
 M.params_should_replace = function(new_params, existing)
@@ -197,8 +191,9 @@ local function resolve(seen, resolved, names)
     -- Let's not get stuck if there are cycles
     if not seen[name] then
       seen[name] = true
-      if aliases[name] then
-        resolve(seen, resolved, aliases[name])
+      local alias_components = M.get_alias(name)
+      if alias_components then
+        resolve(seen, resolved, alias_components)
       else
         table.insert(resolved, comp_params)
       end

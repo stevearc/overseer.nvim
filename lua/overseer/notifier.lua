@@ -1,12 +1,37 @@
 local files = require("overseer.files")
 local log = require("overseer.log")
+
 local Notifier = { focused = true }
 
 ---@class overseer.NotifierParams
 ---@field system "always"|"never"|"unfocused"
 
+local initialized = false
+local function create_autocmds()
+  if initialized then
+    return
+  end
+  initialized = true
+  local aug = vim.api.nvim_create_augroup("Overseer", { clear = false })
+  vim.api.nvim_create_autocmd("FocusGained", {
+    desc = "Track editor focus for overseer",
+    group = aug,
+    callback = function()
+      Notifier.focused = true
+    end,
+  })
+  vim.api.nvim_create_autocmd("FocusLost", {
+    desc = "Track editor focus for overseer",
+    group = aug,
+    callback = function()
+      Notifier.focused = false
+    end,
+  })
+end
+
 ---@param opts? overseer.NotifierParams
 function Notifier.new(opts)
+  create_autocmds()
   opts = vim.tbl_deep_extend("keep", opts or {}, {
     system = "never",
   })

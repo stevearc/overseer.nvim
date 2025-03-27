@@ -67,11 +67,6 @@ function M:init(options)
   if self.options.colored == nil then
     self.options.colored = true
   end
-  if self.options.colored then
-    overseer.on_setup(function()
-      self:update_colors()
-    end)
-  end
   self.symbols = vim.tbl_extend(
     "keep",
     self.options.symbols or {},
