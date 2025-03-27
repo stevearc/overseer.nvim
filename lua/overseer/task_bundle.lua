@@ -36,7 +36,7 @@ local function get_bundle_previewer()
       local lines = {}
       local highlights = {}
       local data = files.load_json_file(
-        files.join(get_bundle_dir(), string.format("%s.bundle.json", entry.value))
+        vim.fs.joinpath(get_bundle_dir(), string.format("%s.bundle.json", entry.value))
       )
       for _, params in ipairs(data) do
         local task_ok, task = pcall(Task.new_uninitialized, params)
@@ -83,7 +83,7 @@ M.load_task_bundle = function(name, opts)
     autostart = config.bundles.autostart_on_load,
   })
   if name then
-    local filepath = files.join(get_bundle_dir(), string.format("%s.bundle.json", name))
+    local filepath = vim.fs.joinpath(get_bundle_dir(), string.format("%s.bundle.json", name))
     local data = files.load_json_file(filepath)
     if not data then
       if not opts.ignore_missing then
@@ -155,10 +155,10 @@ M.save_task_bundle = function(name, tasks, opts)
       end
       return
     end
-    local filepath = files.join(get_bundle_dir(), filename)
+    local filepath = vim.fs.joinpath(get_bundle_dir(), filename)
 
     local function append_to_file()
-      local data = files.load_json_file(files.join(get_bundle_dir(), filename))
+      local data = files.load_json_file(vim.fs.joinpath(get_bundle_dir(), filename))
       for _, new_task in ipairs(serialized) do
         table.insert(data, new_task)
       end
@@ -217,7 +217,7 @@ M.delete_task_bundle = function(name, opts)
   opts = opts or {}
   if name then
     local filename = string.format("%s.bundle.json", name)
-    if not files.delete_file(files.join(get_bundle_dir(), filename)) then
+    if not files.delete_file(vim.fs.joinpath(get_bundle_dir(), filename)) then
       if not opts.ignore_missing then
         vim.notify(string.format("No task bundle at %s", filename))
       end

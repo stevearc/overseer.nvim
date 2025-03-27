@@ -22,7 +22,7 @@ local function find_tasks_file(dir)
   local vscode_dirs =
     vim.fs.find(".vscode", { upward = true, type = "directory", path = dir, limit = math.huge })
   for _, vscode_dir in ipairs(vscode_dirs) do
-    local tasks_file = files.join(vscode_dir, "tasks.json")
+    local tasks_file = vim.fs.joinpath(vscode_dir, "tasks.json")
     if files.exists(tasks_file) then
       return tasks_file
     end

@@ -2,7 +2,7 @@ local files = require("overseer.files")
 local M = {}
 
 local function get_npm_bin(name)
-  local package_bin = files.join("node_modules", ".bin", name)
+  local package_bin = vim.fs.joinpath("node_modules", ".bin", name)
   if files.exists(package_bin) then
     return package_bin
   end

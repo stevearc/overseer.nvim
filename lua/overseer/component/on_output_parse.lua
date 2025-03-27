@@ -67,7 +67,8 @@ return {
             -- Ensure that all relative filenames are rooted at the task cwd, not vim's current cwd
             for _, diag in ipairs(result.diagnostics) do
               if diag.filename and not files.is_absolute(diag.filename) then
-                diag.filename = files.join(params.relative_file_root or task.cwd, diag.filename)
+                diag.filename =
+                  vim.fs.joinpath(params.relative_file_root or task.cwd, diag.filename)
               end
             end
           end
