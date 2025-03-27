@@ -53,10 +53,6 @@ M._run_template = function(params)
   end)
 end
 
-M._build_task = function(_params)
-  M.build_task()
-end
-
 M._quick_action = function(params)
   local action_name = params.fargs[1]
   if action_name == "" then
@@ -203,20 +199,6 @@ M.run_template = function(opts, callback)
       end
     end)
   end
-end
-
-M.build_task = function()
-  local task = Task.new({
-    name = "New task",
-    cmd = { "ls" },
-  })
-  task_editor.open(task, function(result)
-    if result then
-      task:start()
-    else
-      task:dispose()
-    end
-  end)
 end
 
 ---@param name? string Name of action to run

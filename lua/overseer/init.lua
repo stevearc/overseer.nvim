@@ -50,13 +50,6 @@ local commands = {
     },
   },
   {
-    cmd = "OverseerBuild",
-    func = "_build_task",
-    def = {
-      desc = "Open the task builder",
-    },
-  },
-  {
     cmd = "OverseerQuickAction",
     args = "`[action]`",
     func = "_quick_action",
