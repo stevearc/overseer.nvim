@@ -3,18 +3,18 @@ local constants = require("overseer.constants")
 local overseer = require("overseer")
 local parser = require("overseer.parser")
 local problem_matcher = require("overseer.vscode.problem_matcher")
-local vscode = require("overseer.template.vscode")
+local vscode = require("overseer.vscode")
 
 describe("vscode", function()
   it("parses process command and args", function()
-    local provider = vscode.get_provider("process")
+    local provider = assert(vscode.get_provider("process"))
     local opts =
       provider.get_task_opts({ type = "process", command = "ls", args = { "foo", "bar" } })
     assert.are.same({ "ls", "foo", "bar" }, opts.cmd)
   end)
 
   it("parses shell command and args", function()
-    local provider = vscode.get_provider("shell")
+    local provider = assert(vscode.get_provider("shell"))
     local opts = provider.get_task_opts({
       type = "shell",
       command = "ls",
@@ -24,7 +24,7 @@ describe("vscode", function()
   end)
 
   it("strong quotes the args", function()
-    local provider = vscode.get_provider("shell")
+    local provider = assert(vscode.get_provider("shell"))
     local opts = provider.get_task_opts({
       type = "shell",
       command = "ls",
@@ -34,7 +34,7 @@ describe("vscode", function()
   end)
 
   it("interpolates variables in command, args, and opts", function()
-    local tmpl = vscode.convert_vscode_task({
+    local tmpl = assert(vscode.convert_vscode_task({
       label = "task",
       type = "shell",
       command = "${workspaceFolder}/script",
@@ -45,7 +45,7 @@ describe("vscode", function()
           FOO = "${execPath}",
         },
       },
-    })
+    }))
     local task = tmpl.builder({})
     local dir = vim.fn.getcwd(0)
     assert.equals(string.format("%s/script code", dir), task.cmd)
@@ -54,7 +54,7 @@ describe("vscode", function()
   end)
 
   it("interpolates input variables in command", function()
-    local tmpl = vscode.convert_vscode_task({
+    local tmpl = assert(vscode.convert_vscode_task({
       label = "task",
       type = "shell",
       command = "echo",
@@ -67,43 +67,43 @@ describe("vscode", function()
           options = { "first", "second" },
         },
       },
-    })
+    }))
     local task = tmpl.builder({ a_word = 'hello"world' })
     assert.equals('echo hello\\"world', task.cmd)
   end)
 
   it("uses the task label", function()
-    local tmpl = vscode.convert_vscode_task({
+    local tmpl = assert(vscode.convert_vscode_task({
       type = "shell",
       command = "ls",
       label = "my task",
-    })
+    }))
     assert.equals("my task", tmpl.name)
   end)
 
   it("sets the tag from the group", function()
-    local tmpl = vscode.convert_vscode_task({
+    local tmpl = assert(vscode.convert_vscode_task({
       label = "task",
       type = "shell",
       command = "ls",
       group = "test",
-    })
+    }))
     assert.are.same({ constants.TAG.TEST }, tmpl.tags)
   end)
 
   it("sets the tag from group object", function()
-    local tmpl = vscode.convert_vscode_task({
+    local tmpl = assert(vscode.convert_vscode_task({
       label = "task",
       type = "shell",
       command = "ls",
       group = { kind = "build", isDefault = true },
-    })
+    }))
     assert.are.same({ constants.TAG.BUILD }, tmpl.tags)
   end)
 
   describe("problem matcher", function()
     it("can parse simple line output", function()
-      local parse = parser.new(problem_matcher.get_parser_from_problem_matcher({
+      local parse = parser.new(assert(problem_matcher.get_parser_from_problem_matcher({
         pattern = {
           regexp = "^(.*):(\\d+):(\\d+):\\s+(warning|error):\\s+(.*)$",
           file = 1,
@@ -112,7 +112,7 @@ describe("vscode", function()
           severity = 4,
           message = 5,
         },
-      }))
+      })))
       parse:ingest({ "helloWorld.c:5:3: warning: implicit declaration of function 'prinft'" })
       local results = parse:get_result()
       assert.are.same({
@@ -127,7 +127,7 @@ describe("vscode", function()
     end)
 
     it("can set the default severity level", function()
-      local parse = parser.new(problem_matcher.get_parser_from_problem_matcher({
+      local parse = parser.new(assert(problem_matcher.get_parser_from_problem_matcher({
         severity = "warning",
         pattern = {
           regexp = "^(.*):(\\d+):(\\d+):\\s+(.*)$",
@@ -136,7 +136,7 @@ describe("vscode", function()
           column = 3,
           message = 4,
         },
-      }))
+      })))
       parse:ingest({ "helloWorld.c:5:3: implicit declaration of function 'prinft'" })
       local results = parse:get_result()
       assert.are.same({
@@ -151,14 +151,14 @@ describe("vscode", function()
     end)
 
     it("can parse a file location", function()
-      local parse = parser.new(problem_matcher.get_parser_from_problem_matcher({
+      local parse = parser.new(assert(problem_matcher.get_parser_from_problem_matcher({
         pattern = {
           regexp = "^(.*):([0-9,]+):\\s+(.*)$",
           file = 1,
           location = 2,
           message = 3,
         },
-      }))
+      })))
       parse:ingest({ "helloWorld.c:5,3,5,8: implicit declaration of function 'prinft'" })
       local results = parse:get_result()
       assert.are.same({
@@ -174,13 +174,13 @@ describe("vscode", function()
     end)
 
     it("uses full line as message by default", function()
-      local parse = parser.new(problem_matcher.get_parser_from_problem_matcher({
+      local parse = parser.new(assert(problem_matcher.get_parser_from_problem_matcher({
         pattern = {
           regexp = "^(.*):(\\d+):.*$",
           file = 1,
           location = 2,
         },
-      }))
+      })))
       parse:ingest({ "helloWorld.c:5: implicit declaration of function 'prinft'" })
       local results = parse:get_result()
       assert.are.same({
@@ -193,7 +193,7 @@ describe("vscode", function()
     end)
 
     it("can match multiline patterns", function()
-      local parse = parser.new(problem_matcher.get_parser_from_problem_matcher({
+      local parse = parser.new(assert(problem_matcher.get_parser_from_problem_matcher({
         pattern = {
           {
             regexp = "^([^\\s].*)$",
@@ -207,10 +207,10 @@ describe("vscode", function()
             message = 4,
           },
         },
-      }))
+      })))
       parse:ingest({
-        { "test.js" },
-        { '  1:0   error  Missing "use strict" statement' },
+        "test.js",
+        '  1:0   error  Missing "use strict" statement',
       })
       assert.are.same({
         {
@@ -224,7 +224,7 @@ describe("vscode", function()
     end)
 
     it("can match repeating multiline patterns", function()
-      local parse = parser.new(problem_matcher.get_parser_from_problem_matcher({
+      local parse = parser.new(assert(problem_matcher.get_parser_from_problem_matcher({
         pattern = {
           {
             regexp = "^([^\\s].*)$",
@@ -239,11 +239,11 @@ describe("vscode", function()
             loop = true,
           },
         },
-      }))
+      })))
       parse:ingest({
-        { "test.js" },
-        { '  1:0   error    Missing "use strict" statement' },
-        { "  1:9   warning  foo is defined but never used" },
+        "test.js",
+        '  1:0   error    Missing "use strict" statement',
+        "  1:9   warning  foo is defined but never used",
       })
       assert.are.same({
         {
@@ -264,9 +264,9 @@ describe("vscode", function()
     end)
 
     it("can use built in parsers", function()
-      local parse = parser.new(problem_matcher.get_parser_from_problem_matcher({
+      local parse = parser.new(assert(problem_matcher.get_parser_from_problem_matcher({
         pattern = "$go",
-      }))
+      })))
       parse:ingest({ "my_test.go:307: Expected 'Something' received 'Nothing'" })
       local results = parse:get_result()
       assert.are.same({
@@ -288,6 +288,7 @@ describe("vscode integration tests", function()
     task_defn.strategy = "test"
   end
   before_each(function()
+    ---@diagnostic disable-next-line: duplicate-set-field
     vs_util.load_tasks_file = function()
       return task_file
     end

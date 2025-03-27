@@ -513,6 +513,7 @@ end
 
 ---@param problem_matcher table
 ---@param precalculated_vars? table
+---@return nil|table
 M.get_parser_from_problem_matcher = function(problem_matcher, precalculated_vars)
   if not problem_matcher then
     return nil

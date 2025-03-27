@@ -8,7 +8,7 @@ local function find_tasks_file(dir)
     vim.fs.find(".vscode", { upward = true, type = "directory", path = dir, limit = math.huge })
   for _, vscode_dir in ipairs(vscode_dirs) do
     local tasks_file = vim.fs.joinpath(vscode_dir, "tasks.json")
-    if files.exists(tasks_file) then
+    if vim.uv.fs_stat(tasks_file) then
       return tasks_file
     end
   end
@@ -22,6 +22,7 @@ M.get_tasks_file = function(cwd, dir)
   return find_tasks_file(cwd) or find_tasks_file(dir)
 end
 
+---We use this so we can inject a different value in tests
 ---@param tasks_file string
 ---@return table
 M.load_tasks_file = function(tasks_file)

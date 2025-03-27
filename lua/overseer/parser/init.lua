@@ -136,6 +136,7 @@ function ListParser:reset()
   self.item = {}
 end
 
+---@param lines string[]
 function ListParser:ingest(lines)
   self.ctx = {
     __num_results = #self.results,
