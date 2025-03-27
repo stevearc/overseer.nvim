@@ -239,7 +239,7 @@ local function convert_vscode_task(defn, precalculated_vars)
   local task_builder = get_task_builder(defn, precalculated_vars)
   -- If we don't have a task builder, but the type exists, then we don't support this task type
   if not task_builder and defn.type then
-    log:warn("Unsupported VSCode task type '%s' for task %s", defn.type, tmpl.name)
+    log.warn("Unsupported VSCode task type '%s' for task %s", defn.type, tmpl.name)
     return nil
   end
 
@@ -294,7 +294,7 @@ local function convert_vscode_task(defn, precalculated_vars)
   elseif task_builder then
     tmpl.builder = task_builder
   else
-    log:warn(
+    log.warn(
       'VSCode task \'%s\' is missing type. Try setting "type": "shell"',
       defn.label or defn.name or defn.command
     )

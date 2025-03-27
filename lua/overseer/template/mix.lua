@@ -68,10 +68,10 @@ return {
       end),
     })
     if jid == 0 then
-      log:error("Passed invalid arguments to 'mix'")
+      log.error("Passed invalid arguments to 'mix'")
       cb(ret)
     elseif jid == -1 then
-      log:error("'mix' is not executable")
+      log.error("'mix' is not executable")
       cb(ret)
     end
   end,

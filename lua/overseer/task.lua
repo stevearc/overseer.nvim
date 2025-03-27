@@ -136,7 +136,7 @@ end
 ---@param opts overseer.TaskDefinition
 ---@return overseer.Task
 function Task.new(opts)
-  log:trace("New task: %s", opts)
+  log.trace("New task: %s", opts)
   local task = Task.new_uninitialized(opts)
   task.id = next_id
   next_id = next_id + 1
@@ -516,7 +516,7 @@ function Task:dispatch(name, ...)
     if type(comp[name]) == "function" then
       local ok, err = pcall(comp[name], comp, self, ...)
       if not ok then
-        log:error("Task %s dispatch %s.%s: %s", self.name, comp.name, name, err)
+        log.error("Task %s dispatch %s.%s: %s", self.name, comp.name, name, err)
       elseif err ~= nil then
         table.insert(ret, err)
       end
@@ -527,7 +527,7 @@ function Task:dispatch(name, ...)
     for _, cb in ipairs(self._subscribers[name]) do
       local ok, err = pcall(cb, self, ...)
       if not ok then
-        log:error("Task %s dispatch callback %s: %s", self.name, name, err)
+        log.error("Task %s dispatch callback %s: %s", self.name, name, err)
       elseif err == false then
         table.insert(to_unsub, cb)
       end
@@ -548,10 +548,10 @@ function Task:finalize(status)
     status = { status, "s" },
   })
   if not self:is_running() then
-    log:warn("Task %s cannot change status from %s to %s", self.name, self.status, status)
+    log.warn("Task %s cannot change status from %s to %s", self.name, self.status, status)
     return
   elseif status ~= STATUS.SUCCESS and status ~= STATUS.FAILURE and status ~= STATUS.CANCELED then
-    log:error("Task %s finalize passed invalid status %s", self.name, status)
+    log.error("Task %s finalize passed invalid status %s", self.name, status)
     return
   end
   self.status = status
@@ -601,7 +601,7 @@ function Task:dispose(force)
     return false
   end
   if self._references > 0 and not force then
-    log:debug("Not disposing task %s: has %d references", self.name, self._references)
+    log.debug("Not disposing task %s: has %d references", self.name, self._references)
     return false
   end
   local bufnr = self:get_bufnr()
@@ -609,7 +609,7 @@ function Task:dispose(force)
   if not force then
     -- Can't dispose if the strategy bufnr is open
     if bufnr_visible then
-      log:debug("Not disposing task %s: buffer is visible", self.name)
+      log.debug("Not disposing task %s: buffer is visible", self.name)
       return false
     end
   end
@@ -625,7 +625,7 @@ function Task:dispose(force)
   end
   self.status = STATUS.DISPOSED
   self:dispatch("on_status", self.status)
-  log:debug("Disposing task %s", self.name)
+  log.debug("Disposing task %s", self.name)
   self.strategy:dispose()
   self:dispatch("on_dispose")
   task_list.remove(self)
@@ -643,7 +643,7 @@ end
 ---@return boolean
 function Task:restart(force_stop)
   vim.validate({ force_stop = { force_stop, "b", true } })
-  log:debug("Restart task %s", self.name)
+  log.debug("Restart task %s", self.name)
   if self:is_running() then
     if force_stop then
       self:stop()
@@ -668,7 +668,7 @@ function Task:on_exit(code)
   self:dispatch("on_exit", code)
   -- We shouldn't hit this unless there is no result component or it errored
   if self:is_running() then
-    log:error(
+    log.error(
       "Task %s did not finalize during exit. Is it missing the on_exit_set_status component?",
       self.name
     )
@@ -679,24 +679,24 @@ end
 
 function Task:start()
   if self:is_complete() then
-    log:error("Cannot start task '%s' that has completed", self.name)
+    log.error("Cannot start task '%s' that has completed", self.name)
     return false
   end
   if self:is_disposed() then
-    log:error("Cannot start task '%s' that has been disposed", self.name)
+    log.error("Cannot start task '%s' that has been disposed", self.name)
     return false
   end
   if self:is_running() then
     return false
   end
   if vim.tbl_contains(self:dispatch("on_pre_start"), false) then
-    log:debug("Component prevented task %s from starting", self.name)
+    log.debug("Component prevented task %s from starting", self.name)
     return false
   end
-  log:debug("Starting task %s", self.name)
+  log.debug("Starting task %s", self.name)
   local ok, err = pcall(self.strategy.start, self.strategy, self)
   if not ok then
-    log:error("Strategy '%s' failed to start for task '%s': %s", self.strategy.name, self.name, err)
+    log.error("Strategy '%s' failed to start for task '%s': %s", self.strategy.name, self.name, err)
     return false
   end
   self.status = STATUS.RUNNING
@@ -717,7 +717,7 @@ function Task:stop()
   if not self:is_running() then
     return false
   end
-  log:debug("Stopping task %s", self.name)
+  log.debug("Stopping task %s", self.name)
   self:finalize(STATUS.CANCELED)
   self.strategy:stop()
   return true

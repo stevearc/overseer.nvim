@@ -28,10 +28,10 @@ M.listener = function(config)
 
   if config.postDebugTask then
     dap.listeners.after.event_terminated.overseer = function()
-      log:debug("Running DAP postDebugTask %s", config.postDebugTask)
+      log.debug("Running DAP postDebugTask %s", config.postDebugTask)
       get_task(config.postDebugTask, config, function(task, err)
         if err then
-          log:error("Could not run postDebugTask %s", config.postDebugTask)
+          log.error("Could not run postDebugTask %s", config.postDebugTask)
         elseif task then
           task:start()
         end
@@ -40,11 +40,11 @@ M.listener = function(config)
   end
 
   if config.preLaunchTask then
-    log:debug("Running DAP preLaunchTask %s", config.preLaunchTask)
+    log.debug("Running DAP preLaunchTask %s", config.preLaunchTask)
     local co = coroutine.running()
     get_task(config.preLaunchTask, config, function(task, err)
       if not task then
-        log:error("Could not run preLaunchTask %s: %s", config.preLaunchTask, err)
+        log.error("Could not run preLaunchTask %s: %s", config.preLaunchTask, err)
         return
       end
 

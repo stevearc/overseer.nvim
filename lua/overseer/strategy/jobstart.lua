@@ -14,7 +14,7 @@ local function register(job_id)
       desc = "Clean up running overseer tasks on exit",
       callback = function()
         local job_ids = vim.tbl_keys(all_channels)
-        log:debug("VimLeavePre clean up terminal tasks %s", job_ids)
+        log.debug("VimLeavePre clean up terminal tasks %s", job_ids)
         for _, chan_id in ipairs(job_ids) do
           vim.fn.jobstop(chan_id)
         end
@@ -23,7 +23,7 @@ local function register(job_id)
         vim.fn.jobwait(job_ids)
         local elapsed = (vim.uv.hrtime() - start_wait) / 1e6
         if elapsed > 1000 then
-          log:warn(
+          log.warn(
             "Killing running tasks took %dms. One or more processes likely did not terminate on SIGHUP. See https://github.com/stevearc/overseer.nvim/issues/46",
             elapsed
           )
@@ -189,7 +189,7 @@ function JobstartStrategy:start(task)
       if self.job_id ~= j then
         return
       end
-      log:debug("Task %s exited with code %s", task.name, c)
+      log.debug("Task %s exited with code %s", task.name, c)
       -- Feed one last line end to flush the output
       on_stdout({ "" })
       if self.opts.use_terminal then

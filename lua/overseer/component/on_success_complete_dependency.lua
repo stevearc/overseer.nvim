@@ -28,7 +28,7 @@ local comp = {
         if next then
           next:dispatch("on_dependency_complete", task.id)
         else
-          log:warn("Could not find task %s", params.task_id)
+          log.warn("Could not find task %s", params.task_id)
         end
         if params.once then
           vim.defer_fn(function()

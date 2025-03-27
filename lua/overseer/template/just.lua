@@ -35,7 +35,7 @@ local tmpl = {
         local ok, data =
           pcall(vim.json.decode, table.concat(output, ""), { luanil = { object = true } })
         if not ok then
-          log:error("just produced invalid json: %s\n%s", data, output)
+          log.error("just produced invalid json: %s\n%s", data, output)
           cb(ret)
           return
         end
@@ -90,10 +90,10 @@ local tmpl = {
       end),
     })
     if jid == 0 then
-      log:error("Passed invalid arguments to 'just'")
+      log.error("Passed invalid arguments to 'just'")
       cb(ret)
     elseif jid == -1 then
-      log:error("'just' is not executable")
+      log.error("'just' is not executable")
       cb(ret)
     end
   end,

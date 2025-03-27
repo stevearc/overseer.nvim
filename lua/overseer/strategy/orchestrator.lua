@@ -245,7 +245,7 @@ function OrchestratorStrategy:build_task(defn, i, j)
   params = params or {}
   template.get_by_name(name, search, function(tmpl)
     if not tmpl then
-      log:error("Orchestrator could not find task '%s'", name)
+      log.error("Orchestrator could not find task '%s'", name)
       self.task:finalize(STATUS.FAILURE)
       return
     end
@@ -258,7 +258,7 @@ function OrchestratorStrategy:build_task(defn, i, j)
       build_opts,
       vim.schedule_wrap(function(task_defn)
         if not task_defn then
-          log:warn("Canceled building task '%s'", name)
+          log.warn("Canceled building task '%s'", name)
           self.task:finalize(STATUS.FAILURE)
           return
         end

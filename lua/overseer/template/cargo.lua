@@ -87,7 +87,7 @@ return {
 
     get_workspace_root(cargo_dir, function(err, workspace_root)
       if err then
-        log:error("Error fetching cargo workspace_root: %s", err)
+        log.error("Error fetching cargo workspace_root: %s", err)
         cb(ret)
         return
       end

@@ -46,7 +46,7 @@ M.load = function(name_or_config)
     instance.name = name
     return instance
   else
-    log:error("No task strategy '%s'", name)
+    log.error("No task strategy '%s'", name)
     return NilStrategy.new()
   end
 end

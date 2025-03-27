@@ -67,7 +67,7 @@ local comp = {
       end,
       _start_timer = function(self, task)
         self:_stop_timer()
-        log:debug(
+        log.debug(
           "task(%s)[on_complete_dispose] starting dispose timer for %ds",
           task.id,
           opts.timeout
@@ -80,7 +80,7 @@ local comp = {
           1000 * opts.timeout,
           1000 * opts.timeout,
           vim.schedule_wrap(function()
-            log:debug("task(%s)[on_complete_dispose] attempt dispose", task.id)
+            log.debug("task(%s)[on_complete_dispose] attempt dispose", task.id)
             task:dispose()
           end)
         )
@@ -88,7 +88,7 @@ local comp = {
 
       on_complete = function(self, task, status)
         if not vim.tbl_contains(opts.statuses, task.status) then
-          log:debug(
+          log.debug(
             "task(%s)[on_complete_dispose] complete, not auto-disposing task of status %s",
             task.id,
             status
@@ -103,7 +103,7 @@ local comp = {
         then
           self:_start_timer(task)
         else
-          log:debug(
+          log.debug(
             "task(%s)[on_complete_dispose] complete, waiting for output view",
             task.id,
             status

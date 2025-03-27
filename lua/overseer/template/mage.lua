@@ -95,10 +95,10 @@ local provider = {
       end),
     })
     if jid == 0 then
-      log:error("Passed invalid arguments to 'mage'")
+      log.error("Passed invalid arguments to 'mage'")
       cb(ret)
     elseif jid == -1 then
-      log:error("'mage' is not executable")
+      log.error("'mage' is not executable")
       cb(ret)
     end
   end,
