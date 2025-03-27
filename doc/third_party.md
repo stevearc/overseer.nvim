@@ -6,7 +6,6 @@
 - [Heirline](#heirline)
 - [Neotest](#neotest)
 - [DAP](#dap)
-- [ToggleTerm](#toggleterm)
 - [Session managers](#session-managers)
   - [resession.nvim](#resessionnvim)
   - [Other session managers](#other-session-managers)
@@ -187,52 +186,6 @@ And enable the integration manually later, such as when `nvim-dap` is loaded:
 ```lua
 require("overseer").enable_dap()
 ```
-
-## ToggleTerm
-
-If you use [toggleterm](https://github.com/akinsho/toggleterm.nvim), you can use the built-in "toggleterm" strategy to allow your tasks to be in a terminal buffer owned by toggleterm. You can use your existing toggleterm keybinds to pull up long-running tasks started with overseer. You can set it up with defaults using:
-
-```lua
-require("overseer").setup({
-  strategy = "toggleterm",
-})
-```
-
-You can also configure the behavior a bit more:
-
-```lua
-require("overseer").setup({
-  strategy = {
-    "toggleterm",
-    -- load your default shell before starting the task
-    use_shell = false,
-    -- overwrite the default toggleterm "direction" parameter
-    direction = nil,
-    -- overwrite the default toggleterm "highlights" parameter
-    highlights = nil,
-    -- overwrite the default toggleterm "auto_scroll" parameter
-    auto_scroll = nil,
-    -- have the toggleterm window close and delete the terminal buffer
-    -- automatically after the task exits
-    close_on_exit = false,
-    -- have the toggleterm window close without deleting the terminal buffer
-    -- automatically after the task exits
-    -- can be "never, "success", or "always". "success" will close the window
-    -- only if the exit code is 0.
-    quit_on_exit = "never",
-    -- open the toggleterm window when a task starts
-    open_on_start = true,
-    -- mirrors the toggleterm "hidden" parameter, and keeps the task from
-    -- being rendered in the toggleable window
-    hidden = false,
-    -- command to run when the terminal is created. Combine with `use_shell`
-    -- to run a terminal command before starting the task
-    on_create = nil,
-  },
-})
-```
-
-More documentation on this strategy can be found [here](strategies.md#toggletermopts).
 
 ## Session managers
 

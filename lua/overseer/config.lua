@@ -1,6 +1,4 @@
 local default_config = {
-  -- Default task strategy
-  strategy = "terminal",
   -- Template modules to load
   templates = { "builtin" },
   -- Directories where overseer will look for template definitions (relative to rtp)

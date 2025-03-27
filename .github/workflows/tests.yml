@@ -45,7 +45,7 @@ jobs:
       - uses: stevearc/nvim-typecheck-action@v2
         with:
           path: lua
-          libraries: https://github.com/nvim-neotest/neotest https://github.com/mfussenegger/nvim-dap https://github.com/akinsho/toggleterm.nvim
+          libraries: https://github.com/nvim-neotest/neotest https://github.com/mfussenegger/nvim-dap
 
   run_tests:
     strategy:

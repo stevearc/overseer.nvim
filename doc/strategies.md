@@ -6,9 +6,7 @@ The strategy is what controls how a task is actually run. The default, `terminal
 
 - [jobstart(opts)](#jobstartopts)
 - [orchestrator(opts)](#orchestratoropts)
-- [terminal()](#terminal)
 - [test()](#test)
-- [toggleterm(opts)](#toggletermopts)
 
 <!-- /TOC -->
 
@@ -53,36 +51,11 @@ overseer.new_task({
 })
 ```
 
-## terminal()
-
-`terminal(): overseer.Strategy` \
-Run tasks using termopen()
-
-
 ## test()
 
 `test(): overseer.Strategy` \
 Strategy used for unit testing
 
-
-## toggleterm(opts)
-
-`toggleterm(opts): overseer.Strategy` \
-Run tasks using the toggleterm plugin
-
-| Param          | Type                                            | Desc                                                                     |
-| -------------- | ----------------------------------------------- | ------------------------------------------------------------------------ |
-| opts           | `nil\|overseeer.ToggleTermStrategyOpts`         |                                                                          |
-| >use_shell     | `nil\|boolean`                                  | load user shell before running task                                      |
-| >size          | `nil\|number`                                   | the size of the split if direction is vertical or horizontal             |
-| >direction     | `nil\|"vertical"\|"horizontal"\|"tab"\|"float"` |                                                                          |
-| >highlights    | `nil\|table`                                    | map to a highlight group name and a table of it's values                 |
-| >auto_scroll   | `nil\|boolean`                                  | automatically scroll to the bottom on task output                        |
-| >close_on_exit | `nil\|boolean`                                  | close the terminal and delete terminal buffer (if open) after task exits |
-| >quit_on_exit  | `nil\|"never"\|"always"\|"success"`             | close the terminal window (if open) after task exits                     |
-| >open_on_start | `nil\|boolean`                                  | toggle open the terminal automatically when task starts                  |
-| >hidden        | `nil\|boolean`                                  | cannot be toggled with normal ToggleTerm commands                        |
-| >on_create     | `nil\|fun(term: table)`                         | function to execute on terminal creation                                 |
 
 
 <!-- /API -->

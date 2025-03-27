@@ -1,4 +1,3 @@
-local config = require("overseer.config")
 local log = require("overseer.log")
 local util = require("overseer.util")
 local M = {}
@@ -35,12 +34,9 @@ function NilStrategy:stop() end
 
 function NilStrategy:dispose() end
 
----@param name_or_config? string|table
+---@param name_or_config string|table
 ---@return overseer.Strategy
 M.load = function(name_or_config)
-  if not name_or_config then
-    name_or_config = config.strategy
-  end
   local conf
   local name
   name, conf = util.split_config(name_or_config)
