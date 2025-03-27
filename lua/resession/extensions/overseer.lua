@@ -1,15 +1,15 @@
 local M = {}
 
+-- TODO split out autostart_on_load from list_tasks opts
 local conf = {}
 
 M.config = function(data)
-  conf = data
+  conf = data or {}
 end
 
 M.on_save = function()
-  local config = require("overseer.config")
   local task_list = require("overseer.task_list")
-  local opts = vim.tbl_deep_extend("keep", conf or {}, config.bundles.save_task_opts)
+  local opts = vim.tbl_deep_extend("keep", conf, { bundleable = true })
   local serialized = vim.tbl_map(function(task)
     return task:serialize()
   end, task_list.list_tasks(opts))
@@ -20,10 +20,9 @@ end
 
 M.on_load = function(data)
   local overseer = require("overseer")
-  local config = require("overseer.config")
   for _, params in ipairs(data) do
     local task = overseer.new_task(params)
-    if config.bundles.autostart_on_load then
+    if conf.autostart_on_load then
       task:start()
     end
   end

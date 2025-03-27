@@ -8,11 +8,9 @@
 ---@field form? overseer.ConfigFloatWin Configure the floating window used for task templates that require input and the floating window used for editing tasks
 ---@field task_launcher? table
 ---@field task_editor? table
----@field confirm? overseer.ConfigFloatWin
 ---@field task_win? overseer.ConfigTaskWin
 ---@field help_win? overseer.ConfigFloatWin
 ---@field component_aliases? table<string, overseer.Serialized[]> Aliases for bundles of components. Redefine the builtins, or create your own.
----@field bundles? overseer.ConfigBundles
 ---@field preload_components? string[] A list of components to preload on setup. Only matters if you want them to show up in the task editor.
 ---@field template_timeout? integer For template providers, how long to wait (in ms) before timing out. Set to 0 to disable timeouts.
 ---@field template_cache_threshold? integer Cache template provider results if the provider takes longer than this to run. Time is in ms. Set to 0 to disable caching.
@@ -43,9 +41,5 @@
 ---@field border? string|table
 ---@field padding? integer
 ---@field win_opts? table<string, any>
-
----@class (exact) overseer.ConfigBundles
----@field save_task_opts? table When saving a bundle with OverseerSaveBundle or save_task_bundle(), filter the tasks with these options (passed to list_tasks())
----@field autostart_on_load? boolean Autostart tasks when they are loaded from a bundle
 
 ---@alias overseer.Serialized string|{[1]: string, [string]: any}

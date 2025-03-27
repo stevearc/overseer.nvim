@@ -54,14 +54,11 @@ Task.params = {
 ---@field default_component_params? table<string, any> Default values for component params
 ---@field components? overseer.Serialized[] List of components to attach. Defaults to `{"default"}`
 
----Create an uninitialized Task with no ID that will not be run
----This is used by the Task previewer (loading task bundles) so that we can use
----the Task rendering logic, but don't end up actually creating & registering a
----Task.
 ---@param opts overseer.TaskDefinition
 ---@return overseer.Task
-function Task.new_uninitialized(opts)
+function Task.new(opts)
   opts = opts or {}
+  log.trace("New task: %s", opts)
   vim.validate({
     -- cmd can be table or string
     args = { opts.args, "t", true },
@@ -107,6 +104,7 @@ function Task.new_uninitialized(opts)
 
   -- Build the instance data for the task
   local task = {
+    id = next_id,
     result = nil,
     metadata = opts.metadata or {},
     default_component_params = opts.default_component_params or {},
@@ -127,19 +125,10 @@ function Task.new_uninitialized(opts)
     ---@diagnostic disable-next-line: undefined-field
     parent_id = opts.parent_id,
   }
+  next_id = next_id + 1
   setmetatable(task, { __index = Task })
   task:add_components(opts.components)
   ---@cast task overseer.Task
-  return task
-end
-
----@param opts overseer.TaskDefinition
----@return overseer.Task
-function Task.new(opts)
-  log.trace("New task: %s", opts)
-  local task = Task.new_uninitialized(opts)
-  task.id = next_id
-  next_id = next_id + 1
   task:dispatch("on_init")
   local bufnr = task:get_bufnr()
   if bufnr then

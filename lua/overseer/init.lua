@@ -41,34 +41,6 @@ local commands = {
     },
   },
   {
-    cmd = "OverseerSaveBundle",
-    args = "`[name]`",
-    func = "_save_bundle",
-    def = {
-      desc = "Serialize and save the current tasks to disk",
-      nargs = "?",
-    },
-  },
-  {
-    cmd = "OverseerLoadBundle",
-    args = "`[name]`",
-    func = "_load_bundle",
-    def = {
-      desc = "Load tasks that were saved to disk. With `!` tasks will not be started",
-      nargs = "?",
-      bang = true,
-    },
-  },
-  {
-    cmd = "OverseerDeleteBundle",
-    args = "`[name]`",
-    func = "_delete_bundle",
-    def = {
-      desc = "Delete a saved task bundle",
-      nargs = "?",
-    },
-  },
-  {
     cmd = "OverseerRun",
     args = "`[name/tags]`",
     func = "_run_template",
@@ -223,33 +195,6 @@ end
 ---Close the task list
 M.close = function()
   return require("overseer.window").close()
-end
-
----Get the list of saved task bundles
----@return string[] Names of task bundles
-M.list_task_bundles = function()
-  return require("overseer.task_bundle").list_task_bundles()
-end
----Load tasks from a saved bundle
----@param name nil|string
----@param opts nil|table
----    ignore_missing nil|boolean When true, don't notify if bundle doesn't exist
----    autostart nil|boolean When true, start the tasks after loading (default true)
-M.load_task_bundle = function(name, opts)
-  return require("overseer.task_bundle").load_task_bundle(name, opts)
-end
----Save tasks to a bundle on disk
----@param name string|nil Name of bundle. If nil, will prompt user.
----@param tasks nil|overseer.Task[] Specific tasks to save. If nil, uses config.bundles.save_task_opts
----@param opts table|nil
----    on_conflict nil|"overwrite"|"append"|"cancel"
-M.save_task_bundle = function(name, tasks, opts)
-  return require("overseer.task_bundle").save_task_bundle(name, tasks, opts)
-end
----Delete a saved task bundle
----@param name string|nil
-M.delete_task_bundle = function(name)
-  return require("overseer.task_bundle").delete_task_bundle(name)
 end
 
 ---List all tasks

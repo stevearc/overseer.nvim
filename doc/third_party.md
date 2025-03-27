@@ -207,40 +207,34 @@ The configuration options will be passed to [list_tasks](reference.md#list_tasks
 
 ### Other session managers
 
-For other session managers, task bundles should make it convenient to load/save tasks. These are exposed to the user with the commands `:OverseerSaveBundle` and `:OverseerLoadBundle`, but you can use the lua API directly for a nicer integration. You essentially just need to get the session name and add some hooks using your plugin's API to handle overseer tasks on session save/restore.
+For other session managers, the API allows you to list and serialize tasks. As long as your session
+manager has some way to store auxiliary data, you can use this to save and restore tasks.
 
 For example, to integrate with [auto-session](https://github.com/rmagatti/auto-session)
 
 ```lua
--- Convert the cwd to a simple file name
-local function get_cwd_as_name()
-  local dir = vim.fn.getcwd(0)
-  return dir:gsub("[^A-Za-z0-9]", "_")
-end
-local overseer = require("overseer")
 require("auto-session").setup({
   pre_save_cmds = {
     function()
-      overseer.save_task_bundle(
-        get_cwd_as_name(),
-        -- Passing nil will use config.opts.save_task_opts. You can call list_tasks() explicitly and
-        -- pass in the results if you want to save specific tasks.
-        nil,
-        { on_conflict = "overwrite" } -- Overwrite existing bundle, if any
-      )
+      local tasks = require("overseer.task_list").list_tasks({ bundleable = true })
+      local cmds = {}
+      for _, task in ipairs(tasks) do
+        local json = vim.json.encode(task:serialize())
+        -- For some reason, vim.json.encode encodes / as \/.
+        json = string.gsub(json, "\\/", "/")
+        -- Escape single quotes so we can put this inside single quotes
+        json = string.gsub(json, "'", "\\'")
+        table.insert(cmds, string.format("lua require('overseer').new_task(vim.json.decode('%s')):start()", json))
+      end
+      return cmds
     end,
   },
   -- Optionally get rid of all previous tasks when restoring a session
   pre_restore_cmds = {
     function()
-      for _, task in ipairs(overseer.list_tasks({})) do
+      for _, task in ipairs(require("overseer").list_tasks({})) do
         task:dispose(true)
       end
-    end,
-  },
-  post_restore_cmds = {
-    function()
-      overseer.load_task_bundle(get_cwd_as_name(), { ignore_missing = true })
     end,
   },
 })
