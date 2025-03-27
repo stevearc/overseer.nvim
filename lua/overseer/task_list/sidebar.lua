@@ -289,16 +289,10 @@ function Sidebar:highlight_focused()
   for _, v in ipairs(self.task_lines) do
     local end_lnum, task = v[1], v[2]
     if task.id == self.focused_task_id then
-      if vim.fn.has("nvim-0.10") == 1 then
-        vim.api.nvim_buf_set_extmark(self.bufnr, ns, start_lnum - 1, 0, {
-          line_hl_group = "CursorLine",
-          end_row = end_lnum - 1,
-        })
-      else
-        for i = start_lnum, end_lnum do
-          vim.api.nvim_buf_add_highlight(self.bufnr, ns, "CursorLine", i - 1, 0, -1)
-        end
-      end
+      vim.api.nvim_buf_set_extmark(self.bufnr, ns, start_lnum - 1, 0, {
+        line_hl_group = "CursorLine",
+        end_row = end_lnum - 1,
+      })
     end
     start_lnum = end_lnum + 2
   end
