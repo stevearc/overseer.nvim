@@ -20,7 +20,7 @@ local comp = {
       timer = nil,
       canceled = false,
       on_start = function(self, task)
-        self.timer = vim.loop.new_timer()
+        self.timer = vim.uv.new_timer()
         self.timer:start(
           1000 * opts.timeout,
           0,

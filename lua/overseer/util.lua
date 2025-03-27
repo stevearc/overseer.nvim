@@ -571,7 +571,7 @@ M.debounce = function(func, opts)
     if type(delay) == "function" then
       delay = delay(unpack(args))
     end
-    timer = assert(vim.loop.new_timer())
+    timer = assert(vim.uv.new_timer())
     timer:start(delay, 0, function()
       timer:close()
       timer = nil

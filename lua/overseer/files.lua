@@ -1,10 +1,10 @@
 local M = {}
 
 ---@type boolean
-M.is_windows = vim.loop.os_uname().version:match("Windows")
+M.is_windows = vim.uv.os_uname().version:match("Windows")
 
 ---@type boolean
-M.is_mac = vim.loop.os_uname().sysname == "Darwin"
+M.is_mac = vim.uv.os_uname().sysname == "Darwin"
 
 ---@type string
 M.sep = M.is_windows and "\\" or "/"
@@ -23,7 +23,7 @@ end
 ---@param filepath string
 ---@return boolean
 M.exists = function(filepath)
-  local stat = vim.loop.fs_stat(filepath)
+  local stat = vim.uv.fs_stat(filepath)
   return stat ~= nil and stat.type ~= nil
 end
 
@@ -105,10 +105,10 @@ M.read_file = function(filepath)
   if not M.exists(filepath) then
     return nil
   end
-  local fd = assert(vim.loop.fs_open(filepath, "r", 420)) -- 0644
-  local stat = assert(vim.loop.fs_fstat(fd))
-  local content = vim.loop.fs_read(fd, stat.size)
-  vim.loop.fs_close(fd)
+  local fd = assert(vim.uv.fs_open(filepath, "r", 420)) -- 0644
+  local stat = assert(vim.uv.fs_fstat(fd))
+  local content = vim.uv.fs_read(fd, stat.size)
+  vim.uv.fs_close(fd)
   return content
 end
 
@@ -137,9 +137,9 @@ end
 ---@return string[]
 M.list_files = function(dir)
   ---@diagnostic disable-next-line: param-type-mismatch
-  local fd = vim.loop.fs_opendir(dir, nil, 32)
+  local fd = vim.uv.fs_opendir(dir, nil, 32)
   ---@diagnostic disable-next-line: param-type-mismatch
-  local entries = vim.loop.fs_readdir(fd)
+  local entries = vim.uv.fs_readdir(fd)
   local ret = {}
   while entries do
     for _, entry in ipairs(entries) do
@@ -148,10 +148,10 @@ M.list_files = function(dir)
       end
     end
     ---@diagnostic disable-next-line: param-type-mismatch
-    entries = vim.loop.fs_readdir(fd)
+    entries = vim.uv.fs_readdir(fd)
   end
   ---@diagnostic disable-next-line: param-type-mismatch
-  vim.loop.fs_closedir(fd)
+  vim.uv.fs_closedir(fd)
   return ret
 end
 
@@ -166,7 +166,7 @@ M.mkdir = function(dirname, perms)
     if not M.exists(parent) then
       M.mkdir(parent)
     end
-    vim.loop.fs_mkdir(dirname, perms)
+    vim.uv.fs_mkdir(dirname, perms)
   end
 end
 
@@ -174,15 +174,15 @@ end
 ---@param contents string
 M.write_file = function(filename, contents)
   M.mkdir(vim.fn.fnamemodify(filename, ":p:h"))
-  local fd = assert(vim.loop.fs_open(filename, "w", 420)) -- 0644
-  vim.loop.fs_write(fd, contents)
-  vim.loop.fs_close(fd)
+  local fd = assert(vim.uv.fs_open(filename, "w", 420)) -- 0644
+  vim.uv.fs_write(fd, contents)
+  vim.uv.fs_close(fd)
 end
 
 ---@param filename string
 M.delete_file = function(filename)
   if M.exists(filename) then
-    vim.loop.fs_unlink(filename)
+    vim.uv.fs_unlink(filename)
     return true
   end
 end

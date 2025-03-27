@@ -26,7 +26,7 @@ local comp = {
       end,
       on_start = function(self)
         if not timer then
-          timer = assert(vim.loop.new_timer())
+          timer = assert(vim.uv.new_timer())
           timer:start(
             1000,
             1000,
