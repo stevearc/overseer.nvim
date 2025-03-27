@@ -72,11 +72,27 @@ local function pick_package_manager(package_file)
   local package_dir = vim.fs.dirname(package_file)
   for mgr, lockfiles in pairs(mgr_lockfiles) do
     if
-      util.list_any(lockfiles, function(lockfile)
-        return files.exists(files.join(package_dir, lockfile))
-      end)
+        util.list_any(lockfiles, function(lockfile)
+          return files.exists(files.join(package_dir, lockfile))
+        end)
     then
       return mgr
+    end
+  end
+  local matches = vim.fs.find('.git', { upward = true, type = 'directory', limit = math.huge })
+  -- If not found in the package directory, check if it's a git repo
+  -- And see if there's a lockfile in the git directory
+  -- This is common in pnpm monorepos
+  if #matches > 0 then
+    local git_dir = vim.fs.dirname(matches[1])
+    for mgr, lockfiles in pairs(mgr_lockfiles) do
+      if
+          util.list_any(lockfiles, function(lockfile)
+            return files.exists(files.join(git_dir, lockfile))
+          end)
+      then
+        return mgr
+      end
     end
   end
   return "npm"
