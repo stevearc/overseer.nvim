@@ -2,7 +2,7 @@
 -- VS Code task definition provided by https://github.com/microsoft/vscode-azurefunctions
 -- Reference implementation: https://github.com/microsoft/vscode-azurefunctions/blob/411ece5f9453af075c1ff48c70aec349f5942a47/src/debug/FuncTaskProvider.ts#L101
 local log = require("overseer.log")
-local vs_util = require("overseer.template.vscode.vs_util")
+local vs_util = require("overseer.vscode.vs_util")
 local M = {}
 
 M.problem_patterns = {
@@ -72,11 +72,33 @@ local function get_runtime_from_language(language)
   end
 end
 
+---@type {[1]: string, [2]: string[]}[]
+local language_indicators = {
+  { "python", { "setup.py", "setup.cfg", "pyproject.toml", "mypy.ini" } },
+  { "typescript", { "tsconfig.json" } },
+  { "javascript", { "package.json" } },
+  -- TODO java
+  -- TODO powershell
+}
+
+---Get the primary language for the workspace
+---TODO this is VERY incomplete at the moment
+---@return string|nil
+local function get_workspace_language()
+  for _, lang_config in ipairs(language_indicators) do
+    local lang, files = lang_config[1], lang_config[2]
+    for _, file in ipairs(files) do
+      if vim.uv.fs_stat(file) then
+        return lang
+      end
+    end
+  end
+end
+
 ---@param runtime? string
 ---@return table|nil
 local function get_debug_provider(runtime)
-  local ok, debug =
-    pcall(require, string.format("overseer.template.vscode.provider.func.debug_%s", runtime))
+  local ok, debug = pcall(require, string.format("overseer.vscode.provider.func.debug_%s", runtime))
   if ok then
     return debug
   else
@@ -112,7 +134,7 @@ M.get_task_opts = function(defn, launch_config)
   }
 
   if defn.command:match("^%s*host start") or defn.command:match("^%s*start") then
-    local language = vs_util.get_workspace_language()
+    local language = get_workspace_language()
     local runtime = get_runtime_from_language(language)
     if not defn.problemMatcher then
       if runtime then

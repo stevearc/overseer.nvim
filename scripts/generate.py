@@ -220,7 +220,7 @@ def format_example_code(code: str, indentation: int = 0) -> Iterable[str]:
 
 def updated_problem_matcher_list(doc: str):
     patterns = read_nvim_json(
-        'require("overseer.template.vscode.problem_matcher").list_patterns()'
+        'require("overseer.vscode.problem_matcher").list_patterns()'
     )
     lines = [f"- `{pat}`\n" for pat in patterns]
     replace_section(
@@ -230,7 +230,7 @@ def updated_problem_matcher_list(doc: str):
         ["\n"] + lines,
     )
     matchers = read_nvim_json(
-        'require("overseer.template.vscode.problem_matcher").list_problem_matchers()'
+        'require("overseer.vscode.problem_matcher").list_problem_matchers()'
     )
     lines = [f"- `{matcher}`\n" for matcher in matchers]
     replace_section(

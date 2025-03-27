@@ -1,11 +1,17 @@
 local constants = require("overseer.constants")
 local files = require("overseer.files")
 local log = require("overseer.log")
-local problem_matcher = require("overseer.template.vscode.problem_matcher")
-local variables = require("overseer.template.vscode.variables")
-local vs_util = require("overseer.template.vscode.vs_util")
+local problem_matcher = require("overseer.vscode.problem_matcher")
+local variables = require("overseer.vscode.variables")
+local vs_util = require("overseer.vscode.vs_util")
 
 local LAUNCH_CONFIG_KEY = "__launch_config__ "
+
+---@class (exact) overseer.VSCodeTaskProvider
+---@field problem_patterns? table<string, table>
+---@field problem_matchers? table<string, table>
+---@field on_load? fun()
+---@field get_task_opts fun(defn: table, launch_config?: table): table
 
 ---@param params table
 ---@param str string
@@ -97,6 +103,7 @@ local group_to_tag = {
   clean = constants.TAG.CLEAN,
 }
 
+---@param task_provider overseer.VSCodeTaskProvider
 local function register_provider(task_provider)
   if task_provider.problem_patterns then
     for k, v in pairs(task_provider.problem_patterns) do
@@ -114,9 +121,10 @@ local function register_provider(task_provider)
 end
 
 local registered_providers = {}
+---@param type string
+---@return nil|overseer.VSCodeTaskProvider
 local function get_provider(type)
-  local ok, task_provider =
-    pcall(require, string.format("overseer.template.vscode.provider.%s", type))
+  local ok, task_provider = pcall(require, string.format("overseer.vscode.provider.%s", type))
   if ok then
     if not registered_providers[type] then
       register_provider(task_provider)
@@ -199,8 +207,8 @@ local function get_task_builder(defn, precalculated_vars)
     local opts = vim.tbl_deep_extend("force", defn.options or {}, task_opts)
     local components = { "default_vscode" }
     local pmatcher = defn.problemMatcher
-    if not pmatcher and task_provider.problem_matcher then
-      pmatcher = task_provider.problem_matcher
+    if not pmatcher and task_opts.problem_matcher then
+      pmatcher = task_opts.problem_matcher
     end
     if pmatcher then
       table.insert(components, 1, {
