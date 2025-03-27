@@ -1,5 +1,3 @@
-local log = require("overseer.log")
-
 ---@param opts overseer.SearchParams
 ---@return nil|string
 local function get_rakefile(opts)
@@ -7,33 +5,33 @@ local function get_rakefile(opts)
 end
 
 ---@type overseer.TemplateFileProvider
-local provider = {
+return {
   cache_key = function(opts)
     return get_rakefile(opts)
   end,
-  condition = {
-    callback = function(opts)
-      if vim.fn.executable("rake") == 0 then
-        return false, 'Command "rake" not found'
-      end
-      if not get_rakefile(opts) then
-        return false, "No Rakefile found"
-      end
-      return true
-    end,
-  },
   generator = function(opts, cb)
+    if vim.fn.executable("rake") == 0 then
+      return 'Command "rake" not found'
+    end
+    local rakefile = get_rakefile(opts)
+    if not rakefile then
+      return "No Rakefile found"
+    end
+    local cwd = vim.fs.dirname(rakefile)
     local ret = {}
-    local jid = vim.fn.jobstart({
-      "rake",
-      "-T",
-    }, {
-      cwd = opts.dir,
-      stdout_buffered = true,
-      on_stdout = vim.schedule_wrap(function(j, output)
+    vim.system(
+      { "rake", "-T" },
+      {
+        cwd = cwd,
+        text = true,
+      },
+      vim.schedule_wrap(function(out)
+        if out.code ~= 0 then
+          return cb(out.stderr or out.stdout or "Error running 'rake -T'")
+        end
         local tasks = {}
-        for _, line in ipairs(output) do
-          if #line > 0 then
+        for line in vim.gsplit(out.stdout, "\n") do
+          if line ~= "" then
             local task_name, params = line:match("^rake (%S+)(%[%S+%])")
             if task_name == nil then
               -- no parameters
@@ -67,26 +65,15 @@ local provider = {
               if #param_vals > 0 then
                 p = "[" .. table.concat(param_vals, ",") .. "]"
               end
-              local cmd = { "rake", task.task_name .. p }
               return {
-                cmd = cmd,
+                cmd = { "rake", task.task_name .. p },
               }
             end,
           })
         end
-      end),
-      on_exit = vim.schedule_wrap(function(j, output)
+
         cb(ret)
-      end),
-    })
-    if jid == 0 then
-      log.error("Passed invalid arguments to 'rake'")
-      cb(ret)
-    elseif jid == -1 then
-      log.error("'rake' is not executable")
-      cb(ret)
-    end
+      end)
+    )
   end,
 }
-
-return provider

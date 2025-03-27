@@ -1,46 +1,16 @@
-local files = require("overseer.files")
-local overseer = require("overseer")
-
----@type overseer.TemplateDefinition
-local tmpl = {
-  name = "tox",
-  params = {
-    args = { optional = true, type = "list", delimiter = " " },
-  },
-  builder = function(params)
-    local cmd = { "tox" }
-    if params.args then
-      cmd = vim.list_extend(cmd, params.args)
-    end
-    return {
-      cmd = cmd,
-    }
-  end,
-}
-
----@param opts overseer.SearchParams
----@return nil|string
-local function get_toxfile(opts)
-  return vim.fs.find("tox.ini", { upward = true, type = "file", path = opts.dir })[1]
-end
-
+---@type overseer.TemplateFileProvider
 return {
-  cache_key = function(opts)
-    return get_toxfile(opts)
-  end,
-  condition = {
-    callback = function(opts)
-      if not get_toxfile(opts) then
-        return false, "No tox.ini file found"
-      end
-      return true
-    end,
-  },
-  generator = function(opts, cb)
-    local tox_file = assert(get_toxfile(opts))
-    local content = assert(files.read_file(tox_file))
+  generator = function(opts)
+    local tox_file = vim.fs.find("tox.ini", { upward = true, type = "file", path = opts.dir })[1]
+    if not tox_file then
+      return "No tox.ini file found"
+    end
+    local file = io.open(tox_file, "r")
+    if not file then
+      return "Failed to read tox.ini file"
+    end
     local targets = {}
-    for line in vim.gsplit(content, "\n") do
+    for line in file:lines() do
       local envlist = line:match("^envlist%s*=%s*(.+)$")
       if envlist then
         for t in vim.gsplit(envlist, "%s*,%s*") do
@@ -56,17 +26,19 @@ return {
       end
     end
 
-    local ret = { tmpl }
+    local ret = {}
+    local cwd = vim.fs.dirname(tox_file)
     for k in pairs(targets) do
-      table.insert(
-        ret,
-        overseer.wrap_template(
-          tmpl,
-          { name = string.format("tox -e %s", k) },
-          { args = { "-e", k } }
-        )
-      )
+      table.insert(ret, {
+        name = string.format("tox %s", k),
+        builder = function()
+          return {
+            cmd = { "tox", "-e", k },
+            cwd = cwd,
+          }
+        end,
+      })
     end
-    cb(ret)
+    return ret
   end,
 }

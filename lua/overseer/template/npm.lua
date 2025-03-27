@@ -1,6 +1,4 @@
 local files = require("overseer.files")
-local overseer = require("overseer")
-local util = require("overseer.util")
 
 ---@type table<string, string[]>
 local mgr_lockfiles = {
@@ -8,22 +6,6 @@ local mgr_lockfiles = {
   pnpm = { "pnpm-lock.yaml" },
   yarn = { "yarn.lock" },
   bun = { "bun.lockb", "bun.lock" },
-}
-
----@type overseer.TemplateFileDefinition
-local tmpl = {
-  params = {
-    args = { optional = true, type = "list", delimiter = " " },
-    cwd = { optional = true },
-    bin = { optional = true, type = "string" },
-  },
-  builder = function(params)
-    return {
-      cmd = { params.bin },
-      args = params.args,
-      cwd = params.cwd,
-    }
-  end,
 }
 
 ---@param opts overseer.SearchParams
@@ -70,77 +52,65 @@ end
 local function pick_package_manager(package_file)
   local package_dir = vim.fs.dirname(package_file)
   for mgr, lockfiles in pairs(mgr_lockfiles) do
-    if
-      util.list_any(lockfiles, function(lockfile)
-        return files.exists(files.join(package_dir, lockfile))
-      end)
-    then
-      return mgr
+    for _, lockfile in ipairs(lockfiles) do
+      if vim.uv.fs_stat(vim.fs.joinpath(package_dir, lockfile)) then
+        return mgr
+      end
     end
   end
   return "npm"
 end
 
+---@type overseer.TemplateFileProvider
 return {
-  cache_key = function(opts)
-    return get_package_file(opts)
-  end,
-  condition = {
-    callback = function(opts)
-      local package_file = get_package_file(opts)
-      if not package_file then
-        return false, "No package.json file found"
-      end
-      local package_manager = pick_package_manager(package_file)
-      if vim.fn.executable(package_manager) == 0 then
-        return false, string.format("Could not find command '%s'", package_manager)
-      end
-      return true
-    end,
-  },
-  generator = function(opts, cb)
+  generator = function(opts)
     local package = get_package_file(opts)
     if not package then
-      cb({})
-      return
+      return "No package.json file found"
     end
     local bin = pick_package_manager(package)
+    if vim.fn.executable(bin) == 0 then
+      return string.format("Could not find command '%s'", bin)
+    end
+
     local data = files.load_json_file(package)
     local ret = {}
+    local cwd = vim.fs.dirname(package)
     if data.scripts then
       for k in pairs(data.scripts) do
-        table.insert(
-          ret,
-          overseer.wrap_template(
-            tmpl,
-            { name = string.format("%s %s", bin, k) },
-            { args = { "run", k }, bin = bin, cwd = vim.fs.dirname(package) }
-          )
-        )
+        table.insert(ret, {
+          name = string.format("%s %s", bin, k),
+          builder = function()
+            return {
+              cmd = { bin, "run", k },
+              cwd = cwd,
+            }
+          end,
+        })
       end
     end
 
     -- Load tasks from workspaces
     if data.workspaces then
       for _, workspace in ipairs(data.workspaces) do
-        local workspace_path = files.join(vim.fs.dirname(package), workspace)
-        local workspace_package_file = files.join(workspace_path, "package.json")
+        local workspace_path = vim.fs.joinpath(cwd, workspace)
+        local workspace_package_file = vim.fs.joinpath(workspace_path, "package.json")
         local workspace_data = files.load_json_file(workspace_package_file)
         if workspace_data and workspace_data.scripts then
           for k in pairs(workspace_data.scripts) do
-            table.insert(
-              ret,
-              overseer.wrap_template(
-                tmpl,
-                { name = string.format("%s[%s] %s", bin, workspace, k) },
-                { args = { "run", k }, bin = bin, cwd = workspace_path }
-              )
-            )
+            table.insert(ret, {
+              name = string.format("%s[%s] %s", bin, workspace, k),
+              builder = function()
+                return {
+                  cmd = { bin, "run", k },
+                  cwd = workspace_path,
+                }
+              end,
+            })
           end
         end
       end
     end
-    table.insert(ret, overseer.wrap_template(tmpl, { name = bin }, { bin = bin }))
-    cb(ret)
+    return ret
   end,
 }

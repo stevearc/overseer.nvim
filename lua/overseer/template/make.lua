@@ -5,7 +5,7 @@ local function get_makefile(opts)
 end
 
 ---@type overseer.TemplateFileProvider
-local provider = {
+return {
   cache_key = function(opts)
     return get_makefile(opts)
   end,
@@ -67,4 +67,3 @@ local provider = {
     )
   end,
 }
-return provider
