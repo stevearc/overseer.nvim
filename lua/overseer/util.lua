@@ -628,34 +628,38 @@ M.run_in_fullscreen_win = function(bufnr, callback)
     bufnr = vim.api.nvim_get_current_buf()
   end
   local start_winid = vim.api.nvim_get_current_win()
-  local winid = vim.api.nvim_open_win(bufnr, false, {
+  local eventignore = vim.o.eventignore
+  vim.o.eventignore = "all"
+  local winid = vim.api.nvim_open_win(bufnr, true, {
     relative = "editor",
     width = vim.o.columns,
     height = vim.o.lines,
     row = 0,
     col = 0,
-    noautocmd = true,
   })
-  local winnr = vim.api.nvim_win_get_number(winid)
-  vim.cmd.wincmd({ count = winnr, args = { "w" }, mods = { noautocmd = true } })
   local ok, err = xpcall(callback, debug.traceback)
   if not ok then
     vim.api.nvim_err_writeln(err)
   end
-  winnr = vim.api.nvim_win_get_number(winid)
-  vim.cmd.close({ count = winnr, mods = { noautocmd = true, emsg_silent = true } })
-  winnr = vim.api.nvim_win_get_number(start_winid)
-  vim.cmd.wincmd({ count = winnr, args = { "w" }, mods = { noautocmd = true } })
+  pcall(vim.api.nvim_win_close, winid, true)
+  vim.api.nvim_set_current_win(start_winid)
+  vim.o.eventignore = eventignore
 end
 
 ---Run a function in the context of a current directory
----@param cwd string
+---@param cwd? string
 ---@param callback fun()
 M.run_in_cwd = function(cwd, callback)
-  M.run_in_fullscreen_win(nil, function()
-    vim.cmd.lcd({ args = { cwd }, mods = { silent = true, noautocmd = true } })
-    callback()
-  end)
+  if not cwd then
+    return callback()
+  end
+  local prev_cwd = vim.fn.getcwd()
+  vim.cmd.lcd({ args = { cwd }, mods = { emsg_silent = true, noautocmd = true } })
+  local ok, err = xpcall(callback, debug.traceback)
+  if not ok then
+    vim.api.nvim_err_writeln(err)
+  end
+  vim.cmd.lcd({ args = { prev_cwd }, mods = { emsg_silent = true, noautocmd = true } })
 end
 
 ---@param status overseer.Status
