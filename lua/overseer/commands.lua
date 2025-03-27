@@ -1,11 +1,8 @@
 local Task = require("overseer.task")
 local action_util = require("overseer.action_util")
-local config = require("overseer.config")
 local constants = require("overseer.constants")
-local files = require("overseer.files")
 local log = require("overseer.log")
 local sidebar = require("overseer.task_list.sidebar")
-local task_bundle = require("overseer.task_bundle")
 local task_editor = require("overseer.task_editor")
 local task_list = require("overseer.task_list")
 local template = require("overseer.template")
@@ -27,18 +24,6 @@ end
 
 M._toggle = function(params)
   window.toggle({ enter = not params.bang, direction = args_or_nil(params.args) })
-end
-
-M._save_bundle = function(params)
-  task_bundle.save_task_bundle(args_or_nil(params.args))
-end
-
-M._load_bundle = function(params)
-  task_bundle.load_task_bundle(args_or_nil(params.args), { autostart = not params.bang })
-end
-
-M._delete_bundle = function(params)
-  task_bundle.delete_task_bundle(args_or_nil(params.args))
 end
 
 M._run_template = function(params)

@@ -11,10 +11,6 @@
   - [toggle(opts)](#toggleopts)
   - [open(opts)](#openopts)
   - [close()](#close)
-  - [list_task_bundles()](#list_task_bundles)
-  - [load_task_bundle(name, opts)](#load_task_bundlename-opts)
-  - [save_task_bundle(name, tasks, opts)](#save_task_bundlename-tasks-opts)
-  - [delete_task_bundle(name)](#delete_task_bundlename)
   - [list_tasks(opts)](#list_tasksopts)
   - [run_template(opts, callback)](#run_templateopts-callback)
   - [preload_task_cache(opts, cb)](#preload_task_cacheopts-cb)
@@ -187,23 +183,6 @@ require("overseer").setup({
       },
     },
   },
-  -- Configure the floating window used for confirmation prompts
-  confirm = {
-    border = "rounded",
-    zindex = 40,
-    -- Dimensions can be integers or a float between 0 and 1 (e.g. 0.4 for 40%)
-    -- min_X and max_X can be a single value or a list of mixed integer/float types.
-    min_width = 20,
-    max_width = 0.5,
-    width = nil,
-    min_height = 6,
-    max_height = 0.9,
-    height = nil,
-    -- Set any window options here (e.g. winhighlight)
-    win_opts = {
-      winblend = 0,
-    },
-  },
   -- Configuration for task floating windows
   task_win = {
     -- How much space to leave around the floating window
@@ -235,43 +214,31 @@ require("overseer").setup({
       "on_result_diagnostics",
     },
   },
-  bundles = {
-    -- When saving a bundle with OverseerSaveBundle or save_task_bundle(), filter the tasks with
-    -- these options (passed to list_tasks())
-    save_task_opts = {
-      bundleable = true,
-    },
-    -- Autostart tasks when they are loaded from a bundle
-    autostart_on_load = true,
-  },
   -- A list of components to preload on setup.
   -- Only matters if you want them to show up in the task editor.
   preload_components = {},
   -- For template providers, how long to wait (in ms) before timing out.
-  -- Set to 0 to disable timeouts.
+  -- Set to 0 to wait forever.
   template_timeout = 3000,
   -- Cache template provider results if the provider takes longer than this to run.
   -- Time is in ms. Set to 0 to disable caching.
-  template_cache_threshold = 100,
+  template_cache_threshold = 200,
   log_level = vim.log.levels.WARN,
 })
 ```
 
 ## Commands
 
-| Command                 | Args                | Description                                                            |
-| ----------------------- | ------------------- | ---------------------------------------------------------------------- |
-| `OverseerOpen[!]`       | `left/right/bottom` | Open the overseer window. With `!` cursor stays in current window      |
-| `OverseerClose`         |                     | Close the overseer window                                              |
-| `OverseerToggle[!]`     | `left/right/bottom` | Toggle the overseer window. With `!` cursor stays in current window    |
-| `OverseerSaveBundle`    | `[name]`            | Serialize and save the current tasks to disk                           |
-| `OverseerLoadBundle[!]` | `[name]`            | Load tasks that were saved to disk. With `!` tasks will not be started |
-| `OverseerDeleteBundle`  | `[name]`            | Delete a saved task bundle                                             |
-| `OverseerRun`           | `[name/tags]`       | Run a task from a template                                             |
-| `OverseerBuild`         |                     | Open the task builder                                                  |
-| `OverseerQuickAction`   | `[action]`          | Run an action on the most recent task, or the task under the cursor    |
-| `OverseerTaskAction`    |                     | Select a task to run an action on                                      |
-| `OverseerClearCache`    |                     | Clear the task cache                                                   |
+| Command               | Args                | Description                                                         |
+| --------------------- | ------------------- | ------------------------------------------------------------------- |
+| `OverseerOpen[!]`     | `left/right/bottom` | Open the overseer window. With `!` cursor stays in current window   |
+| `OverseerClose`       |                     | Close the overseer window                                           |
+| `OverseerToggle[!]`   | `left/right/bottom` | Toggle the overseer window. With `!` cursor stays in current window |
+| `OverseerRun`         | `[name/tags]`       | Run a task from a template                                          |
+| `OverseerBuild`       |                     | Open the task builder                                               |
+| `OverseerQuickAction` | `[action]`          | Run an action on the most recent task, or the task under the cursor |
+| `OverseerTaskAction`  |                     | Select a task to run an action on                                   |
+| `OverseerClearCache`  |                     | Clear the task cache                                                |
 
 ## Highlight groups
 
@@ -370,51 +337,6 @@ Open the task list
 `close()` \
 Close the task list
 
-
-### list_task_bundles()
-
-`list_task_bundles(): string[]` \
-Get the list of saved task bundles
-
-
-Returns:
-
-| Type     | Desc                  |
-| -------- | --------------------- |
-| string[] | Names of task bundles |
-
-### load_task_bundle(name, opts)
-
-`load_task_bundle(name, opts)` \
-Load tasks from a saved bundle
-
-| Param           | Type           | Desc                                                    |
-| --------------- | -------------- | ------------------------------------------------------- |
-| name            | `nil\|string`  |                                                         |
-| opts            | `nil\|table`   |                                                         |
-| >ignore_missing | `nil\|boolean` | When true, don't notify if bundle doesn't exist         |
-| >autostart      | `nil\|boolean` | When true, start the tasks after loading (default true) |
-
-### save_task_bundle(name, tasks, opts)
-
-`save_task_bundle(name, tasks, opts)` \
-Save tasks to a bundle on disk
-
-| Param        | Type                                   | Desc                                                               |
-| ------------ | -------------------------------------- | ------------------------------------------------------------------ |
-| name         | `string\|nil`                          | Name of bundle. If nil, will prompt user.                          |
-| tasks        | `nil\|overseer.Task[]`                 | Specific tasks to save. If nil, uses config.bundles.save_task_opts |
-| opts         | `table\|nil`                           |                                                                    |
-| >on_conflict | `nil\|"overwrite"\|"append"\|"cancel"` |                                                                    |
-
-### delete_task_bundle(name)
-
-`delete_task_bundle(name)` \
-Delete a saved task bundle
-
-| Param | Type          | Desc |
-| ----- | ------------- | ---- |
-| name  | `string\|nil` |      |
 
 ### list_tasks(opts)
 

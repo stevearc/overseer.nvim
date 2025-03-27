@@ -1,7 +1,6 @@
 local component = require("overseer.component")
 local constants = require("overseer.constants")
 local form = require("overseer.form")
-local task_bundle = require("overseer.task_bundle")
 local task_editor = require("overseer.task_editor")
 local task_list = require("overseer.task_list")
 local util = require("overseer.util")
@@ -24,12 +23,6 @@ M = {
     end,
     run = function(task)
       task:stop()
-    end,
-  },
-  save = {
-    desc = "save the task to a bundle file",
-    run = function(task)
-      task_bundle.save_task_bundle(nil, { task })
     end,
   },
   restart = {
