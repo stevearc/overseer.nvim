@@ -87,13 +87,6 @@ local commands = {
     },
   },
   {
-    cmd = "OverseerInfo",
-    func = "_info",
-    def = {
-      desc = "Display diagnostic information about overseer",
-    },
-  },
-  {
     cmd = "OverseerBuild",
     func = "_build_task",
     def = {
@@ -174,9 +167,12 @@ M.enable_dap = function(enabled)
   end
 end
 
+M.called_setup = false
+
 ---Initialize overseer
 ---@param opts overseer.Config|nil Configuration options
 M.setup = function(opts)
+  M.called_setup = true
   if vim.fn.has("nvim-0.10") == 0 then
     vim.notify_once(
       "overseer has dropped support for Neovim <0.10. Please use a different branch or upgrade Neovim",
