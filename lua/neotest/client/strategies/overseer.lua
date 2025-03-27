@@ -78,6 +78,7 @@ local function get_or_create_task(spec, context, output_path)
     opts.metadata = {
       neotest_group_id = current_group_id,
     }
+    ---@cast opts overseer.TaskDefinition
     task = overseer.new_task(opts)
     log.debug("Created new neotest task %s group %s", task.id, current_group_id)
     task:set_include_in_bundle(false)

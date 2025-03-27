@@ -64,8 +64,6 @@ OPTIONS                                                         *overseer-option
       templates = { "builtin" },
       -- Directories where overseer will look for template definitions (relative to rtp)
       template_dirs = { "overseer.template" },
-      -- When true, tries to detect a green color from your colorscheme to use for success highlight
-      auto_detect_success_color = true,
       -- Patch nvim-dap to support preLaunchTask and postDebugTask
       dap = true,
       -- Configure the task list
@@ -289,12 +287,6 @@ setup({opts})                                                     *overseer.setu
     Parameters:
       {opts} `overseer.Config|nil` Configuration options
 
-on_setup({callback})                                           *overseer.on_setup*
-    Add a callback to run after overseer lazy setup
-
-    Parameters:
-      {callback} `fun()`
-
 new_task({opts}): overseer.Task                                *overseer.new_task*
     Create a new Task
 
@@ -478,7 +470,7 @@ clear_task_cache({opts})                               *overseer.clear_task_cach
     Clear cached templates for run_template
 
     Parameters:
-      {opts} `nil|table`
+      {opts} `nil|overseer.SearchParams`
           {dir} `string`
           {ft}  `nil|string`
 

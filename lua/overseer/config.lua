@@ -3,8 +3,6 @@ local default_config = {
   templates = { "builtin" },
   -- Directories where overseer will look for template definitions (relative to rtp)
   template_dirs = { "overseer.template" },
-  -- When true, tries to detect a green color from your colorscheme to use for success highlight
-  auto_detect_success_color = true,
   -- Patch nvim-dap to support preLaunchTask and postDebugTask
   dap = true,
   -- Configure the task list
@@ -228,7 +226,6 @@ end
 
 ---@param opts? overseer.Config
 M.setup = function(opts)
-  local component = require("overseer.component")
   opts = opts or {}
   remove_binding_conflicts(opts)
   local newconf = vim.tbl_deep_extend("force", default_config, opts)
@@ -237,10 +234,6 @@ M.setup = function(opts)
   end
 
   M.actions = merge_actions(require("overseer.task_list.actions"), newconf.actions)
-
-  for k, v in pairs(M.component_aliases) do
-    component.alias(k, v)
-  end
 end
 
 return M

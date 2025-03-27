@@ -486,68 +486,6 @@ M.set_bufenter_callback = function(bufnr, key, callback)
   })
 end
 
----@param group string
----@return nil|integer
-M.get_hl_foreground = function(group)
-  if vim.fn.has("nvim-0.9") == 1 then
-    return vim.api.nvim_get_hl(0, { name = group }).fg
-  else
-    ---@diagnostic disable-next-line: undefined-field, deprecated
-    local ok, data = pcall(vim.api.nvim_get_hl_by_name, group, true)
-    if ok then
-      return data.foreground
-    end
-  end
-end
-
----@param color integer
----@return number[]
-M.color_to_rgb = function(color)
-  local r = bit.band(bit.rshift(color, 16), 0xff)
-  local g = bit.band(bit.rshift(color, 8), 0xff)
-  local b = bit.band(color, 0xff)
-  return { r / 255.0, g / 255.0, b / 255.0 }
-end
-
--- Attempts to find a green color from the current colorscheme
-M.find_success_color = function()
-  if vim.fn.has("nvim-0.9") == 1 then
-    return "DiagnosticOk"
-  end
-  local candidates = {
-    "Constant",
-    "Keyword",
-    "Special",
-    "Type",
-    "PreProc",
-    "Operator",
-    "String",
-    "Statement",
-    "Identifier",
-    "Function",
-    "Character",
-    "Title",
-  }
-  local best_grp
-  local best
-  for _, grp in ipairs(candidates) do
-    local fg = M.get_hl_foreground(grp)
-    if fg then
-      local rgb = M.color_to_rgb(fg)
-      -- Super simple "green" detection heuristic: g - r - b
-      local score = rgb[2] - rgb[1] - rgb[3]
-      if not best or score > best then
-        best_grp = grp
-        best = score
-      end
-    end
-  end
-  if best_grp and best > -0.5 then
-    return best_grp
-  end
-  return "DiagnosticInfo"
-end
-
 ---@param func fun(...: any)
 ---@param opts? {reset_timer_on_call: nil|boolean, delay: nil|integer|fun(...: any): integer}
 M.debounce = function(func, opts)
@@ -608,6 +546,7 @@ end
 M.run_template_or_task = function(name_or_config, cb)
   if type(name_or_config) == "table" and name_or_config[1] == nil then
     -- This is a raw task params table
+    ---@cast name_or_config overseer.TaskDefinition
     cb(require("overseer").new_task(name_or_config))
   else
     local name, dep_params = M.split_config(name_or_config)

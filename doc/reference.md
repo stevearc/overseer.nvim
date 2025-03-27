@@ -7,7 +7,6 @@
 - [Highlight groups](#highlight-groups)
 - [Lua API](#lua-api)
   - [setup(opts)](#setupopts)
-  - [on_setup(callback)](#on_setupcallback)
   - [new_task(opts)](#new_taskopts)
   - [toggle(opts)](#toggleopts)
   - [open(opts)](#openopts)
@@ -84,8 +83,6 @@ require("overseer").setup({
   templates = { "builtin" },
   -- Directories where overseer will look for template definitions (relative to rtp)
   template_dirs = { "overseer.template" },
-  -- When true, tries to detect a green color from your colorscheme to use for success highlight
-  auto_detect_success_color = true,
   -- Patch nvim-dap to support preLaunchTask and postDebugTask
   dap = true,
   -- Configure the task list
@@ -325,15 +322,6 @@ Initialize overseer
 | ----- | ---------------------- | --------------------- |
 | opts  | `overseer.Config\|nil` | Configuration options |
 
-### on_setup(callback)
-
-`on_setup(callback)` \
-Add a callback to run after overseer lazy setup
-
-| Param    | Type    | Desc |
-| -------- | ------- | ---- |
-| callback | `fun()` |      |
-
 ### new_task(opts)
 
 `new_task(opts): overseer.Task` \
@@ -540,11 +528,11 @@ vim.api.nvim_create_autocmd({"VimEnter", "DirChanged"}, {
 `clear_task_cache(opts)` \
 Clear cached templates for run_template
 
-| Param | Type          | Desc |
-| ----- | ------------- | ---- |
-| opts  | `nil\|table`  |      |
-| >dir  | `string`      |      |
-| >ft   | `nil\|string` |      |
+| Param | Type                         | Desc |
+| ----- | ---------------------------- | ---- |
+| opts  | `nil\|overseer.SearchParams` |      |
+| >dir  | `string`                     |      |
+| >ft   | `nil\|string`                |      |
 
 ### run_action(task, name)
 
