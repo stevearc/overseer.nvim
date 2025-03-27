@@ -289,38 +289,11 @@ M.task_action = function()
   end)
 end
 
+---@param callback fun(info: overseer.Report)
 M.info = function(callback)
   local search_opts = get_search_params()
-  local info = {
-    log = {
-      file = nil,
-      level = nil,
-    },
-    templates = {
-      templates = {},
-      providers = {},
-    },
-  }
-  local levels_reverse = {}
-  for k, v in pairs(vim.log.levels) do
-    levels_reverse[v] = k
-  end
-  for _, log_conf in ipairs(config.log) do
-    if log_conf.type == "file" then
-      local ok, stdpath = pcall(vim.fn.stdpath, "log")
-      if not ok then
-        stdpath = vim.fn.stdpath("cache")
-      end
-      info.log = {
-        file = files.join(stdpath, log_conf.filename),
-        level = levels_reverse[log_conf.level],
-      }
-      break
-    end
-  end
   template.list(search_opts, function(_, report)
-    info.templates = report
-    callback(info)
+    callback(report)
   end)
 end
 
