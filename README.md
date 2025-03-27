@@ -62,7 +62,7 @@ A task runner and job management plugin for Neovim
 
 ## Requirements
 
-- Neovim 0.8+ (for older versions, use the [nvim-0.7 branch](https://github.com/stevearc/overseer.nvim/tree/nvim-0.7))
+- Neovim 0.10+ (for older versions, use a [nvim-0.x branch](https://github.com/stevearc/overseer.nvim/branches))
 
 ## Installation
 
