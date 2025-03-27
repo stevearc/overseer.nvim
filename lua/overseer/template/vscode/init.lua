@@ -263,7 +263,7 @@ local function convert_vscode_task(defn, precalculated_vars)
         local task_defn = task_builder(params)
         table.insert(task_defn.components, {
           "dependencies",
-          task_names = defn.dependsOn,
+          tasks = defn.dependsOn,
           sequential = defn.dependsOrder == "sequence",
         })
         return task_defn

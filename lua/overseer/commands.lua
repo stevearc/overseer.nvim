@@ -41,16 +41,6 @@ M._delete_bundle = function(params)
   task_bundle.delete_task_bundle(args_or_nil(params.args))
 end
 
-M._run_command = function(params)
-  local tmpl_params = {
-    cmd = params.args ~= "" and params.args or nil,
-  }
-  M.run_template({
-    name = "shell",
-    params = tmpl_params,
-  })
-end
-
 M._run_template = function(params)
   local name
   local tags = {}

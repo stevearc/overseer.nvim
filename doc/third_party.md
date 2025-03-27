@@ -158,8 +158,8 @@ require("neotest").setup({
     overseer = {
       components = function(run_spec)
         return {
-          { "dependencies", task_names = {
-            { "shell", cmd = "sleep 4" },
+          { "dependencies", tasks = {
+            { cmd = "sleep 4" },
           } },
           "default_neotest",
         }
