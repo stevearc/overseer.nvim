@@ -20,7 +20,6 @@
   - [add_template_hook(opts, hook)](#add_template_hookopts-hook)
   - [remove_template_hook(opts, hook)](#remove_template_hookopts-hook)
   - [register_template(defn)](#register_templatedefn)
-  - [load_template(name)](#load_templatename)
   - [debug_parser()](#debug_parser)
   - [register_alias(name, components)](#register_aliasname-components)
 - [Components](#components)
@@ -75,10 +74,6 @@ For speed tweakers: don't worry about lazy loading; overseer lazy-loads itself!
 
 ```lua
 require("overseer").setup({
-  -- Template modules to load
-  templates = { "builtin" },
-  -- Directories where overseer will look for template definitions (relative to rtp)
-  template_dirs = { "overseer.template" },
   -- Patch nvim-dap to support preLaunchTask and postDebugTask
   dap = true,
   -- Configure the task list
@@ -235,7 +230,6 @@ require("overseer").setup({
 | `OverseerClose`       |                     | Close the overseer window                                           |
 | `OverseerToggle[!]`   | `left/right/bottom` | Toggle the overseer window. With `!` cursor stays in current window |
 | `OverseerRun`         | `[name/tags]`       | Run a task from a template                                          |
-| `OverseerBuild`       |                     | Open the task builder                                               |
 | `OverseerQuickAction` | `[action]`          | Run an action on the most recent task, or the task under the cursor |
 | `OverseerTaskAction`  |                     | Select a task to run an action on                                   |
 | `OverseerClearCache`  |                     | Clear the task cache                                                |
@@ -301,8 +295,7 @@ Create a new Task
 **Examples:**
 ```lua
 local task = overseer.new_task({
-  cmd = { "./build.sh" },
-  args = { "all" },
+  cmd = { "./build.sh", "all" },
   components = { { "on_output_quickfix", open = true }, "default" }
 })
 task:start()
@@ -448,22 +441,20 @@ Run an action on a task
 `wrap_template(base, override, default_params): overseer.TemplateFileDefinition` \
 Create a new template by overriding fields on another
 
-| Param          | Type                                               | Desc                                                  |
-| -------------- | -------------------------------------------------- | ----------------------------------------------------- |
-| base           | `overseer.TemplateFileDefinition`                  | The base template definition to wrap                  |
-| >module        | `nil\|string`                                      | The name of the module this was loaded from           |
-| >aliases       | `nil\|string[]`                                    |                                                       |
-| >desc          | `nil\|string`                                      |                                                       |
-| >tags          | `nil\|string[]`                                    |                                                       |
-| >params        | `nil\|overseer.Params\|fun(): overseer.Params`     |                                                       |
-| >condition     | `nil\|overseer.SearchCondition`                    |                                                       |
-| >>filetype     | `nil\|string\|string[]`                            |                                                       |
-| >>dir          | `nil\|string\|string[]`                            |                                                       |
-| >>callback     | `nil\|fun(search: overseer.SearchParams): boolean` | , nil|string                                          |
-| >builder       | `fun(params: table): overseer.TaskDefinition`      |                                                       |
-| >hide          | `nil\|boolean`                                     | Hide from the template list                           |
-| override       | `nil\|table<string, any>`                          | Override any fields on the base                       |
-| default_params | `nil\|table<string, any>`                          | Provide default values for any parameters on the base |
+| Param          | Type                                           | Desc                                                  |
+| -------------- | ---------------------------------------------- | ----------------------------------------------------- |
+| base           | `overseer.TemplateFileDefinition`              | The base template definition to wrap                  |
+| >aliases       | `nil\|string[]`                                |                                                       |
+| >desc          | `nil\|string`                                  |                                                       |
+| >tags          | `nil\|string[]`                                |                                                       |
+| >params        | `nil\|overseer.Params\|fun(): overseer.Params` |                                                       |
+| >condition     | `nil\|overseer.SearchCondition`                |                                                       |
+| >>filetype     | `nil\|string\|string[]`                        |                                                       |
+| >>dir          | `nil\|string\|string[]`                        |                                                       |
+| >builder       | `fun(params: table): overseer.TaskDefinition`  |                                                       |
+| >hide          | `nil\|boolean`                                 | Hide from the template list                           |
+| override       | `nil\|table<string, any>`                      | Override any fields on the base                       |
+| default_params | `nil\|table<string, any>`                      | Provide default values for any parameters on the base |
 
 **Note:**
 <pre>
@@ -568,21 +559,6 @@ overseer.register_template({
     }
   end,
 })
-```
-
-### load_template(name)
-
-`load_template(name)` \
-Load a template definition from its module location
-
-| Param | Type     | Desc |
-| ----- | -------- | ---- |
-| name  | `string` |      |
-
-**Examples:**
-```lua
--- This will load the template in lua/overseer/template/mytask.lua
-overseer.load_template('mytask')
 ```
 
 ### debug_parser()

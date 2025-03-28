@@ -1,8 +1,4 @@
 local default_config = {
-  -- Template modules to load
-  templates = { "builtin" },
-  -- Directories where overseer will look for template definitions (relative to rtp)
-  template_dirs = { "overseer.template" },
   -- Patch nvim-dap to support preLaunchTask and postDebugTask
   dap = true,
   -- Configure the task list
@@ -202,5 +198,48 @@ M.setup = function(opts)
 
   M.actions = merge_actions(require("overseer.task_list.actions"), newconf.actions)
 end
+
+---@class (exact) overseer.Config
+---@field strategy? overseer.Serialized Default task strategy
+---@field auto_detect_success_color? boolean
+---@field dap? boolean Patch nvim-dap to support preLaunchTask and postDebugTask
+---@field task_list? overseer.ConfigTaskList Configure the task list
+---@field actions? any See :help overseer-actions
+---@field form? overseer.ConfigFloatWin Configure the floating window used for task templates that require input and the floating window used for editing tasks
+---@field task_launcher? table
+---@field task_editor? table
+---@field task_win? overseer.ConfigTaskWin
+---@field help_win? overseer.ConfigFloatWin
+---@field component_aliases? table<string, overseer.Serialized[]> Aliases for bundles of components. Redefine the builtins, or create your own.
+---@field preload_components? string[] A list of components to preload on setup. Only matters if you want them to show up in the task editor.
+---@field template_timeout? integer For template providers, how long to wait (in ms) before timing out. Set to 0 to disable timeouts.
+---@field template_cache_threshold? integer Cache template provider results if the provider takes longer than this to run. Time is in ms. Set to 0 to disable caching.
+---@field log? table[]
+
+---@class (exact) overseer.ConfigTaskList
+---@field default_detail? 1|2|3 Default detail level for tasks. Can be 1-3.
+---@field max_width? number|number[] Width dimensions can be integers or a float between 0 and 1 (e.g. 0.4 for 40%). min_width and max_width can be a single value or a list of mixed integer/float types. max_width = {100, 0.2} means "the lesser of 100 columns or 20% of total"
+---@field min_width? number|number[] min_width = {40, 0.1} means "the greater of 40 columns or 10% of total"
+---@field width? number optionally define an integer/float for the exact width of the task list
+---@field max_height? number|number[]
+---@field min_height? number|number[]
+---@field height? number
+---@field separator? string String that separates tasks
+---@field direction? string Default direction. Can be "left", "right", or "bottom"
+---@field bindings? table<string, string|false> Set keymap to false to remove default behavior
+
+---@class (exact) overseer.ConfigFloatWin
+---@field border? string|table
+---@field zindex? integer
+---@field min_width? number|number[]
+---@field max_width? number|number[]
+---@field min_height? number|number[]
+---@field max_height? number|number[]
+---@field win_opts? table<string, any>
+
+---@class (exact) overseer.ConfigTaskWin
+---@field border? string|table
+---@field padding? integer
+---@field win_opts? table<string, any>
 
 return M

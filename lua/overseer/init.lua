@@ -2,6 +2,8 @@
 
 local M = {}
 
+---@alias overseer.Serialized string|{[1]: string, [string]: any}
+
 local commands = {
   {
     cmd = "OverseerOpen",
@@ -163,8 +165,7 @@ end
 ---@return overseer.Task
 ---@example
 --- local task = overseer.new_task({
----   cmd = { "./build.sh" },
----   args = { "all" },
+---   cmd = { "./build.sh", "all" },
 ---   components = { { "on_output_quickfix", open = true }, "default" }
 --- })
 --- task:start()
@@ -362,14 +363,6 @@ end
 --- })
 M.register_template = function(defn)
   require("overseer.template").register(defn)
-end
----Load a template definition from its module location
----@param name string
----@example
---- -- This will load the template in lua/overseer/template/mytask.lua
---- overseer.load_template('mytask')
-M.load_template = function(name)
-  require("overseer.template").load_template(name)
 end
 
 ---Open a tab with windows laid out for debugging a parser

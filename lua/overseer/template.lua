@@ -8,16 +8,15 @@ local util = require("overseer.util")
 local M = {}
 
 ---@class (exact) overseer.TemplateFileProvider
----@field module? string The name of the module this was loaded from
 ---@field condition? overseer.SearchCondition
 ---@field cache_key? fun(opts: overseer.SearchParams): nil|string
 ---@field generator fun(opts: overseer.SearchParams, cb: fun(tmpls_or_err: string|overseer.TemplateDefinition[])) : nil|string|overseer.TemplateDefinition[]
 
 ---@class (exact) overseer.TemplateProvider : overseer.TemplateFileProvider
 ---@field name string
+---@field module? string The name of the module this was loaded from
 
 ---@class (exact) overseer.TemplateFileDefinition
----@field module? string The name of the module this was loaded from
 ---@field aliases? string[]
 ---@field desc? string
 ---@field tags? string[]
@@ -28,6 +27,7 @@ local M = {}
 
 ---@class (exact) overseer.TemplateDefinition : overseer.TemplateFileDefinition
 ---@field name string
+---@field module? string The name of the module this was loaded from
 
 ---@class (exact) overseer.SearchCondition
 ---@field filetype? string|string[]
@@ -35,11 +35,10 @@ local M = {}
 
 ---@alias overseer.Params table<string, overseer.Param>
 
----@type table<string, overseer.TemplateDefinition>
-local registry = {}
-
 ---@type overseer.TemplateProvider[]
-local providers = {}
+local registered_providers = {}
+---@type overseer.TemplateProvider[]
+local file_providers = {}
 
 ---@type table<string, overseer.TemplateDefinition[]>
 local cached_provider_results = {}
@@ -48,6 +47,75 @@ local cached_provider_results = {}
 local clear_cache_autocmd
 
 local hooks = {}
+
+---@param defn overseer.TemplateProvider
+local function validate_template_provider(defn)
+  vim.validate({
+    name = { defn.name, "s" },
+    generator = { defn.generator, "f" },
+    cache_key = { defn.cache_key, "f", true },
+  })
+end
+
+---@param name string
+---@return nil|overseer.TemplateDefinition|overseer.TemplateProvider
+local function load_template(name)
+  local ok, defn = pcall(require, name)
+  if not ok then
+    log.error("Error loading template '%s': %s", name, defn)
+    return
+  end
+  name = name:gsub("^overseer%.template%.", "")
+  -- If this module was just a list of names, then it's an alias for a
+  -- collection of templates
+  if vim.islist(defn) then
+    log.warn("Deprecated: Template '%s' is a list of templates. We don't need this anymore.", name)
+  else
+    if not defn.name then
+      defn.name = name
+    end
+    defn.module = name
+    return defn
+  end
+end
+
+local _combined_providers
+local last_rtp
+---@return overseer.TemplateProvider[]
+local function get_providers()
+  if last_rtp == vim.o.runtimepath then
+    return _combined_providers
+  end
+  file_providers = {}
+  last_rtp = vim.o.runtimepath
+
+  local task_files = vim.api.nvim_get_runtime_file("lua/overseer/template/**/*.lua", true)
+  for _, abspath in ipairs(task_files) do
+    local module_name = abspath:match("^.*(overseer/template/.*)%.lua$"):gsub("/", ".")
+    local tmpl = load_template(module_name)
+    if tmpl then
+      if tmpl.generator then
+        table.insert(file_providers, tmpl)
+      else
+        local provider = {
+          name = tmpl.module,
+          module = tmpl.module,
+          condition = tmpl.condition,
+          generator = function()
+            return { tmpl }
+          end,
+        }
+        ---@cast provider overseer.TemplateProvider
+        validate_template_provider(provider)
+        table.insert(file_providers, provider)
+      end
+    end
+  end
+
+  _combined_providers = vim.list_extend({}, registered_providers)
+  vim.list_extend(_combined_providers, file_providers)
+  return _combined_providers
+end
 
 ---@param condition? overseer.SearchCondition Template conditions
 ---@param tags? string[] Template tags
@@ -124,62 +192,6 @@ local function hook_matches(opts, search, name, module)
     end
   end
   return true
-end
-
----@param name string
-M.load_template = function(name)
-  local ok, defn
-  for _, template_dir in ipairs(config.template_dirs) do
-    ok, defn = pcall(require, string.format("%s.%s", template_dir, name))
-    if ok then
-      break
-    end
-  end
-  if not ok then
-    log.error("Error loading template '%s': %s", name, defn)
-    return
-  end
-  -- If this module was just a list of names, then it's an alias for a
-  -- collection of templates
-  if vim.islist(defn) then
-    for _, v in ipairs(defn) do
-      M.load_template(v)
-    end
-  else
-    if not defn.name then
-      defn.name = name
-    end
-    defn.module = name
-    local register_ok, err = pcall(M.register, defn)
-    if not register_ok then
-      log.error("Error loading template '%s': %s", name, err)
-    end
-  end
-end
-
-local initialized = false
-local function initialize()
-  if initialized then
-    return
-  end
-  for _, name in ipairs(config.templates) do
-    M.load_template(name)
-  end
-  initialized = true
-end
-
----@param defn overseer.TemplateProvider
-local function validate_template_provider(defn)
-  vim.validate({
-    name = { defn.name, "s" },
-    generator = { defn.generator, "f" },
-    cache_key = { defn.cache_key, "f", true },
-  })
-  if not defn.cache_key then
-    defn.cache_key = function(opts)
-      return nil
-    end
-  end
 end
 
 ---@param defn overseer.TemplateDefinition
@@ -286,11 +298,21 @@ M.register = function(defn)
   if defn.generator then
     ---@cast defn overseer.TemplateProvider
     validate_template_provider(defn)
-    table.insert(providers, defn)
+    table.insert(registered_providers, defn)
   else
     ---@cast defn overseer.TemplateDefinition
     validate_template_definition(defn)
-    registry[defn.name] = defn
+    local provider = {
+      name = defn.name,
+      module = defn.module,
+      condition = defn.condition,
+      generator = function()
+        return { defn }
+      end,
+    }
+    ---@cast provider overseer.TemplateProvider
+    validate_template_provider(provider)
+    table.insert(registered_providers, provider)
   end
 end
 
@@ -373,17 +395,18 @@ end
 
 ---@param opts overseer.SearchParams
 M.clear_cache = function(opts)
-  for _, provider in ipairs(providers) do
-    local cache_key = provider.cache_key(opts)
-    if cache_key then
-      cached_provider_results[cache_key] = nil
+  for _, provider in ipairs(get_providers()) do
+    if provider.cache_key then
+      local cache_key = provider.cache_key(opts)
+      if cache_key then
+        cached_provider_results[cache_key] = nil
+      end
     end
   end
 end
 
 ---@class (exact) overseer.Report
 ---@field providers table<string, overseer.ProviderReport>
----@field templates table<string, {message: nil|string}>
 
 ---@class (exact) overseer.ProviderReport
 ---@field message? string
@@ -395,7 +418,6 @@ end
 ---@param opts overseer.SearchParams
 ---@param cb fun(templates: overseer.TemplateDefinition[], report: overseer.Report)
 M.list = function(opts, cb)
-  initialize()
   vim.validate({
     tags = { opts.tags, "t", true },
     dir = { opts.dir, "s" },
@@ -421,19 +443,8 @@ M.list = function(opts, cb)
   local ret = {}
   ---@type overseer.Report
   local report = {
-    templates = {},
     providers = {},
   }
-  -- First add all of the simple templates that match the condition
-  for _, tmpl in pairs(registry) do
-    local is_match, message = condition_matches(tmpl.condition, tmpl.tags, opts, true)
-    if is_match then
-      table.insert(ret, tmpl)
-    end
-    report.templates[tmpl.name] = {
-      message = message,
-    }
-  end
 
   local finished_iterating = false
   local pending = {}
@@ -522,11 +533,14 @@ M.list = function(opts, cb)
     end, config.template_timeout)
   end
 
-  for _, provider in ipairs(providers) do
+  for _, provider in ipairs(get_providers()) do
     local provider_name = provider.name
     local is_match, message = condition_matches(provider.condition, nil, opts, false)
     if is_match then
-      local cache_key = provider.cache_key(opts)
+      local cache_key
+      if provider.cache_key then
+        cache_key = provider.cache_key(opts)
+      end
       local provider_done = false
       ---@param tmpls_or_err string|overseer.TemplateDefinition[]
       local provider_cb = function(tmpls_or_err)
@@ -581,12 +595,6 @@ end
 ---@param opts overseer.SearchParams
 ---@param cb fun(template: nil|overseer.TemplateDefinition)
 M.get_by_name = function(name, opts, cb)
-  initialize()
-  local ret = registry[name]
-  if ret and condition_matches(ret.condition, ret.tags, opts, false) then
-    cb(ret)
-    return
-  end
   M.list(opts, function(templates)
     for _, tmpl in ipairs(templates) do
       if tmpl.name == name or (tmpl.aliases and vim.tbl_contains(tmpl.aliases, name)) then

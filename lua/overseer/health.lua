@@ -37,13 +37,6 @@ M.check = function()
     return
   end
 
-  for name, tmpl_report in pairs(info.templates) do
-    if tmpl_report.message then
-      vim.health.warn(string.format("%s: %s", name, tmpl_report.message))
-    else
-      vim.health.ok(string.format("%s: available", name))
-    end
-  end
   local provider_names = vim.tbl_keys(info.providers)
   table.sort(provider_names, function(a_name, b_name)
     local a, b = info.providers[a_name], info.providers[b_name]
