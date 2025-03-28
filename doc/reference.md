@@ -353,18 +353,19 @@ List all tasks
 `run_task(opts, callback)` \
 Run a task from a template
 
-| Param            | Type                                                   | Desc                                                                                                                                |
-| ---------------- | ------------------------------------------------------ | ----------------------------------------------------------------------------------------------------------------------------------- |
-| opts             | `overseer.TemplateRunOpts`                             |                                                                                                                                     |
-| >name            | `nil\|string`                                          | The name of the template to run                                                                                                     |
-| >tags            | `nil\|string[]`                                        | List of tags used to filter when searching for template                                                                             |
-| >autostart       | `nil\|boolean`                                         | When true, start the task after creating it (default true)                                                                          |
-| >first           | `nil\|boolean`                                         | When true, take first result and never show the task picker. Default behavior will auto-set this based on presence of name and tags |
-| >params          | `nil\|table`                                           | Parameters to pass to template                                                                                                      |
-| >cwd             | `nil\|string`                                          | Working directory for the task                                                                                                      |
-| >env             | `nil\|table<string, string>`                           | Additional environment variables for the task                                                                                       |
-| >disallow_prompt | `nil\|boolean`                                         | When true, if any required parameters are missing return an error instead of prompting the user for them                            |
-| callback         | `nil\|fun(task: overseer.Task\|nil, err: string\|nil)` |                                                                                                                                     |
+| Param            | Type                                                                    | Desc                                                                                                                                |
+| ---------------- | ----------------------------------------------------------------------- | ----------------------------------------------------------------------------------------------------------------------------------- |
+| opts             | `overseer.TemplateRunOpts`                                              |                                                                                                                                     |
+| >name            | `nil\|string`                                                           | The name of the template to run                                                                                                     |
+| >tags            | `nil\|string[]`                                                         | List of tags used to filter when searching for template                                                                             |
+| >autostart       | `nil\|boolean`                                                          | When true, start the task after creating it (default true)                                                                          |
+| >first           | `nil\|boolean`                                                          | When true, take first result and never show the task picker. Default behavior will auto-set this based on presence of name and tags |
+| >params          | `nil\|table`                                                            | Parameters to pass to template                                                                                                      |
+| >cwd             | `nil\|string`                                                           | Working directory for the task                                                                                                      |
+| >env             | `nil\|table<string, string>`                                            | Additional environment variables for the task                                                                                       |
+| >disallow_prompt | `nil\|boolean`                                                          | When true, if any required parameters are missing return an error instead of prompting the user for them                            |
+| >on_build        | `nil\|fun(task_defn: overseer.TaskDefinition, util: overseer.TaskUtil)` | callback that is called after the task definition is built but before the task is created.                                          |
+| callback         | `nil\|fun(task: overseer.Task\|nil, err: string\|nil)`                  |                                                                                                                                     |
 
 **Examples:**
 ```lua

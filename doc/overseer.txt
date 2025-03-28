@@ -322,6 +322,9 @@ run_task({opts}, {callback})                                   *overseer.run_tas
           {disallow_prompt} `nil|boolean` When true, if any required parameters
                             are missing return an error instead of prompting the
                             user for them
+          {on_build}        `nil|fun(task_defn: overseer.TaskDefinition, util: overseer.TaskUtil)`
+                            callback that is called after the task definition is
+                            built but before the task is created.
       {callback} `nil|fun(task: overseer.Task|nil, err: string|nil)`
 
     Examples: >lua

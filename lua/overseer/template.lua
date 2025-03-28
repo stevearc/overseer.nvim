@@ -244,8 +244,9 @@ end
 ---@param tmpl overseer.TemplateDefinition
 ---@param search overseer.SearchParams
 ---@param params table
+---@param on_build? fun(task_defn: overseer.TaskDefinition, util: overseer.TaskUtil)
 ---@return overseer.TaskDefinition
-local function build_task_args(tmpl, search, params)
+local function build_task_args(tmpl, search, params, on_build)
   local task_defn = tmpl.builder(params)
   task_defn.components = component.resolve(task_defn.components or { "default" })
 
@@ -255,6 +256,9 @@ local function build_task_args(tmpl, search, params)
     end
   end
 
+  if on_build then
+    on_build(task_defn, task_util)
+  end
   return task_defn
 end
 
@@ -353,6 +357,7 @@ end
 ---@field params table
 ---@field search overseer.SearchParams
 ---@field disallow_prompt? boolean
+---@field on_build? fun(task_defn: overseer.TaskDefinition, util: overseer.TaskUtil)
 
 ---@param tmpl overseer.TemplateDefinition
 ---@param opts overseer.TemplateBuildOpts
@@ -371,7 +376,7 @@ M.build_task_args = function(tmpl, opts, callback)
     return callback(nil, err)
   end
   if not show_prompt then
-    callback(build_task_args(tmpl, opts.search, opts.params))
+    callback(build_task_args(tmpl, opts.search, opts.params, opts.on_build))
     return
   end
 
@@ -381,7 +386,7 @@ M.build_task_args = function(tmpl, opts, callback)
   end
   form.open(tmpl.name, schema, opts.params, function(final_params)
     if final_params then
-      callback(build_task_args(tmpl, opts.search, final_params))
+      callback(build_task_args(tmpl, opts.search, final_params, opts.on_build))
     else
       callback()
     end

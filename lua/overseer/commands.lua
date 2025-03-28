@@ -108,6 +108,7 @@ end
 ---@field cwd? string Working directory for the task
 ---@field env? table<string, string> Additional environment variables for the task
 ---@field disallow_prompt? boolean When true, if any required parameters are missing return an error instead of prompting the user for them
+---@field on_build? fun(task_defn: overseer.TaskDefinition, util: overseer.TaskUtil) callback that is called after the task definition is built but before the task is created.
 
 ---@param opts overseer.TemplateRunOpts
 ---@param callback? fun(task: overseer.Task|nil, err: string|nil)
@@ -146,6 +147,7 @@ M.run_template = function(opts, callback)
       params = opts.params or {},
       search = search_opts,
       disallow_prompt = opts.disallow_prompt,
+      on_build = opts.on_build,
     }
     template.build_task_args(tmpl, build_opts, function(task_defn)
       local task = nil
