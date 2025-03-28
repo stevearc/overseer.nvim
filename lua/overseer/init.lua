@@ -385,19 +385,13 @@ end
 
 setmetatable(M, {
   __index = function(t, key)
-    local ok, val = pcall(require, string.format("overseer.%s", key))
-    if ok then
-      rawset(t, key, val)
-      return val
-    else
-      -- allow top-level direct access to constants (e.g. overseer.STATUS)
-      local constants = require("overseer.constants")
-      if constants[key] then
-        rawset(t, key, constants[key])
-        return constants[key]
-      end
-      error(string.format("Error requiring overseer.%s: %s", key, val))
+    -- allow top-level direct access to constants (e.g. overseer.STATUS)
+    local constants = require("overseer.constants")
+    if constants[key] then
+      rawset(t, key, constants[key])
+      return constants[key]
     end
+    return rawget(t, key)
   end,
 })
 
