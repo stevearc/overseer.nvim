@@ -5,8 +5,6 @@ local form = require("overseer.form")
 local form_utils = require("overseer.form.utils")
 local log = require("overseer.log")
 local util = require("overseer.util")
----@diagnostic disable-next-line: deprecated
-local islist = vim.islist or vim.tbl_islist
 local M = {}
 
 ---@class (exact) overseer.TemplateFileProvider
@@ -34,7 +32,6 @@ local M = {}
 ---@class (exact) overseer.SearchCondition
 ---@field filetype? string|string[]
 ---@field dir? string|string[]
----@field callback? fun(search: overseer.SearchParams): boolean, nil|string
 
 ---@alias overseer.Params table<string, overseer.Param>
 
@@ -101,12 +98,6 @@ local function condition_matches(condition, tags, search, match_tags)
     end
   end
 
-  if condition.callback then
-    local passed, message = condition.callback(search)
-    if not passed then
-      return false, message
-    end
-  end
   return true
 end
 
@@ -150,7 +141,7 @@ M.load_template = function(name)
   end
   -- If this module was just a list of names, then it's an alias for a
   -- collection of templates
-  if islist(defn) then
+  if vim.islist(defn) then
     for _, v in ipairs(defn) do
       M.load_template(v)
     end
