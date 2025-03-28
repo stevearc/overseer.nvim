@@ -7,8 +7,6 @@ local task_list = require("overseer.task_list")
 local template = require("overseer.template")
 local util = require("overseer.util")
 local STATUS = constants.STATUS
----@diagnostic disable-next-line: deprecated
-local islist = vim.isarray or vim.tbl_islist
 
 ---Check if this is a reference to a defined task template
 ---@param task any
@@ -20,7 +18,7 @@ local function is_named_task(task)
   end
   assert(type(task) == "table", "Task must be a string or table")
 
-  if islist(task) then
+  if vim.islist(task) then
     -- If this is a list-like table, then this is not a named task.
     -- It will be a list of named tasks or task definitions.
     return false
@@ -84,7 +82,7 @@ function OrchestratorStrategy.new(opts)
   for i, v in ipairs(opts.tasks) do
     if is_named_task(v) then
       task_defns[i] = { v }
-    elseif islist(v) then
+    elseif vim.islist(v) then
       task_defns[i] = v
     else
       task_defns[i] = { v }
