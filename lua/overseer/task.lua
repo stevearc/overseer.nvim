@@ -1,5 +1,4 @@
 local component = require("overseer.component")
-local config = require("overseer.config")
 local constants = require("overseer.constants")
 local form_utils = require("overseer.form.utils")
 local layout = require("overseer.layout")
