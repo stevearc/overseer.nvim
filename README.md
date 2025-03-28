@@ -218,7 +218,7 @@ If you want to define custom tasks for your project, I'd recommend starting with
   - [open(opts)](doc/reference.md#openopts)
   - [close()](doc/reference.md#close)
   - [list_tasks(opts)](doc/reference.md#list_tasksopts)
-  - [run_template(opts, callback)](doc/reference.md#run_templateopts-callback)
+  - [run_task(opts, callback)](doc/reference.md#run_taskopts-callback)
   - [preload_task_cache(opts, cb)](doc/reference.md#preload_task_cacheopts-cb)
   - [clear_task_cache(opts)](doc/reference.md#clear_task_cacheopts)
   - [run_action(task, name)](doc/reference.md#run_actiontask-name)

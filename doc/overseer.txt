@@ -302,7 +302,7 @@ list_tasks({opts}): overseer.Task[]                          *overseer.list_task
                          in a bundle
           {filter}       `nil|fun(task: overseer.Task): boolean`
 
-run_template({opts}, {callback})                           *overseer.run_template*
+run_task({opts}, {callback})                                   *overseer.run_task*
     Run a task from a template
 
     Parameters:
@@ -327,18 +327,18 @@ run_template({opts}, {callback})                           *overseer.run_templat
     Examples: >lua
       -- Run the task named "make all"
       -- equivalent to :OverseerRun make\ all
-      overseer.run_template({name = "make all"})
+      overseer.run_task({name = "make all"})
       -- Run the default "build" task
       -- equivalent to :OverseerRun BUILD
-      overseer.run_template({tags = {overseer.TAG.BUILD}})
+      overseer.run_task({tags = {overseer.TAG.BUILD}})
       -- Run the task named "serve" with some default parameters
-      overseer.run_template({name = "serve", params = {port = 8080}})
+      overseer.run_task({name = "serve", params = {port = 8080}})
       -- Create a task but do not start it
-      overseer.run_template({name = "make", autostart = false}, function(task)
+      overseer.run_task({name = "make", autostart = false}, function(task)
         -- do something with the task
       end)
       -- Run a task and immediately open the floating window
-      overseer.run_template({name = "make"}, function(task)
+      overseer.run_task({name = "make"}, function(task)
         if task then
           overseer.run_action(task, 'open float')
         end
@@ -346,7 +346,7 @@ run_template({opts}, {callback})                           *overseer.run_templat
 <
 
 preload_task_cache({opts}, {cb})                     *overseer.preload_task_cache*
-    Preload templates for run_template
+    Preload templates for run_task
 
     Parameters:
       {opts} `nil|table`
@@ -367,7 +367,7 @@ preload_task_cache({opts}, {cb})                     *overseer.preload_task_cach
 <
 
 clear_task_cache({opts})                               *overseer.clear_task_cache*
-    Clear cached templates for run_template
+    Clear cached templates for run_task
 
     Parameters:
       {opts} `nil|overseer.SearchParams`
@@ -387,14 +387,20 @@ wrap_template({base}, {override}, {default_params}): overseer.TemplateFileDefini
     Parameters:
       {base}           `overseer.TemplateFileDefinition` The base template
                        definition to wrap
-          {aliases}   `nil|string[]`
-          {desc}      `nil|string`
-          {tags}      `nil|string[]`
-          {params}    `nil|overseer.Params|fun(): overseer.Params`
-          {condition} `nil|overseer.SearchCondition`
+          {aliases}   `nil|string[]` alternate names for the task. Used when
+                      running a task by name in overseer.run_task
+          {desc}      `nil|string` extended description of the task
+          {tags}      `nil|string[]` collection of tags used for optional task
+                      filtering
+          {params}    `nil|overseer.Params|fun(): overseer.Params` parameters to
+                      customize the task. If any are missing when the task is
+                      built, overseer will prompt the user for input
+          {condition} `nil|overseer.SearchCondition` simple condition checks for
+                      when this task is available
               {filetype} `nil|string|string[]`
               {dir}      `nil|string|string[]`
-          {builder}   `fun(params: table): overseer.TaskDefinition`
+          {builder}   `fun(params: table): overseer.TaskDefinition` function
+                      that builds the task definition from the parameters
           {hide}      `nil|boolean` Hide from the template list
       {override}       `nil|table<string, any>` Override any fields on the base
       {default_params} `nil|table<string, any>` Provide default values for any

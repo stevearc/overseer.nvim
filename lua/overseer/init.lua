@@ -196,27 +196,33 @@ end
 ---@example
 --- -- Run the task named "make all"
 --- -- equivalent to :OverseerRun make\ all
---- overseer.run_template({name = "make all"})
+--- overseer.run_task({name = "make all"})
 --- -- Run the default "build" task
 --- -- equivalent to :OverseerRun BUILD
---- overseer.run_template({tags = {overseer.TAG.BUILD}})
+--- overseer.run_task({tags = {overseer.TAG.BUILD}})
 --- -- Run the task named "serve" with some default parameters
---- overseer.run_template({name = "serve", params = {port = 8080}})
+--- overseer.run_task({name = "serve", params = {port = 8080}})
 --- -- Create a task but do not start it
---- overseer.run_template({name = "make", autostart = false}, function(task)
+--- overseer.run_task({name = "make", autostart = false}, function(task)
 ---   -- do something with the task
 --- end)
 --- -- Run a task and immediately open the floating window
---- overseer.run_template({name = "make"}, function(task)
+--- overseer.run_task({name = "make"}, function(task)
 ---   if task then
 ---     overseer.run_action(task, 'open float')
 ---   end
 --- end)
-M.run_template = function(opts, callback)
+M.run_task = function(opts, callback)
   return require("overseer.commands").run_template(opts, callback)
 end
 
----Preload templates for run_template
+---Use overseer.run_task
+---@deprecated
+M.run_template = function(opts, callback)
+  return M.run_task(opts, callback)
+end
+
+---Preload templates for run_task
 ---@param opts nil|table
 ---    dir string
 ---    ft nil|string
@@ -233,7 +239,7 @@ end
 M.preload_task_cache = function()
   return require("overseer.commands").preload_cache()
 end
----Clear cached templates for run_template
+---Clear cached templates for run_task
 ---@param opts? overseer.SearchParams
 ---    dir string
 ---    ft nil|string

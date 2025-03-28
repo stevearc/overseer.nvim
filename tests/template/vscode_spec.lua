@@ -312,7 +312,7 @@ describe("vscode integration tests", function()
       },
     }
 
-    local task, err = a.wrap(overseer.run_template, 2)({ name = "tsc watch" })
+    local task, err = a.wrap(overseer.run_task, 2)({ name = "tsc watch" })
     assert.is_nil(err)
     task.strategy:send_output([[
 yarn run v1.22.10
