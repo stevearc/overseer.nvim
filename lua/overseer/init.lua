@@ -85,14 +85,6 @@ local function create_commands()
 end
 
 ---Add support for preLaunchTask/postDebugTask to nvim-dap
----@private
----@deprecated
----@param enabled boolean
-M.patch_dap = function(enabled)
-  M.enable_dap(enabled)
-end
-
----Add support for preLaunchTask/postDebugTask to nvim-dap
 ---This is enabled by default when you call overseer.setup() unless you set `dap = false`
 ---@param enabled? boolean
 M.enable_dap = function(enabled)
