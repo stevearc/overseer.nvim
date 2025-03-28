@@ -81,7 +81,7 @@ The definition of a template looks like this:
   end,
   -- Optional fields
   desc = "Optional description of task",
-  -- Tags can be used in overseer.run_template()
+  -- Tags can be used in overseer.run_task()
   tags = {overseer.TAG.BUILD},
   params = {
     -- See :help overseer-params
@@ -335,7 +335,7 @@ You can of course create your own components to parse output leveraging the `on_
 There are currently two ways to get tasks to run sequentially. The first is by using the [dependencies](components.md#dependencies) component. For example, if you wanted to create a `npm serve` task that runs `npm build` first, you could create it like so:
 
 ```lua
-overseer.run_template({ name = "npm serve", autostart = false }, function(task)
+overseer.run_task({ name = "npm serve", autostart = false }, function(task)
   if task then
     task:add_component({
       "dependencies",

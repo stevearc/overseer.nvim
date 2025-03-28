@@ -12,7 +12,7 @@
   - [open(opts)](#openopts)
   - [close()](#close)
   - [list_tasks(opts)](#list_tasksopts)
-  - [run_template(opts, callback)](#run_templateopts-callback)
+  - [run_task(opts, callback)](#run_taskopts-callback)
   - [preload_task_cache(opts, cb)](#preload_task_cacheopts-cb)
   - [clear_task_cache(opts)](#clear_task_cacheopts)
   - [run_action(task, name)](#run_actiontask-name)
@@ -348,9 +348,9 @@ List all tasks
 | >bundleable   | `nil\|boolean`                            | Only list tasks that should be included in a bundle |
 | >filter       | `nil\|fun(task: overseer.Task): boolean`  |                                                     |
 
-### run_template(opts, callback)
+### run_task(opts, callback)
 
-`run_template(opts, callback)` \
+`run_task(opts, callback)` \
 Run a task from a template
 
 | Param            | Type                                                   | Desc                                                                                                                                |
@@ -370,18 +370,18 @@ Run a task from a template
 ```lua
 -- Run the task named "make all"
 -- equivalent to :OverseerRun make\ all
-overseer.run_template({name = "make all"})
+overseer.run_task({name = "make all"})
 -- Run the default "build" task
 -- equivalent to :OverseerRun BUILD
-overseer.run_template({tags = {overseer.TAG.BUILD}})
+overseer.run_task({tags = {overseer.TAG.BUILD}})
 -- Run the task named "serve" with some default parameters
-overseer.run_template({name = "serve", params = {port = 8080}})
+overseer.run_task({name = "serve", params = {port = 8080}})
 -- Create a task but do not start it
-overseer.run_template({name = "make", autostart = false}, function(task)
+overseer.run_task({name = "make", autostart = false}, function(task)
   -- do something with the task
 end)
 -- Run a task and immediately open the floating window
-overseer.run_template({name = "make"}, function(task)
+overseer.run_task({name = "make"}, function(task)
   if task then
     overseer.run_action(task, 'open float')
   end
@@ -391,7 +391,7 @@ end)
 ### preload_task_cache(opts, cb)
 
 `preload_task_cache(opts, cb)` \
-Preload templates for run_template
+Preload templates for run_task
 
 | Param | Type          | Desc                               |
 | ----- | ------------- | ---------------------------------- |
@@ -418,7 +418,7 @@ vim.api.nvim_create_autocmd({"VimEnter", "DirChanged"}, {
 ### clear_task_cache(opts)
 
 `clear_task_cache(opts)` \
-Clear cached templates for run_template
+Clear cached templates for run_task
 
 | Param | Type                         | Desc |
 | ----- | ---------------------------- | ---- |
@@ -441,20 +441,20 @@ Run an action on a task
 `wrap_template(base, override, default_params): overseer.TemplateFileDefinition` \
 Create a new template by overriding fields on another
 
-| Param          | Type                                           | Desc                                                  |
-| -------------- | ---------------------------------------------- | ----------------------------------------------------- |
-| base           | `overseer.TemplateFileDefinition`              | The base template definition to wrap                  |
-| >aliases       | `nil\|string[]`                                |                                                       |
-| >desc          | `nil\|string`                                  |                                                       |
-| >tags          | `nil\|string[]`                                |                                                       |
-| >params        | `nil\|overseer.Params\|fun(): overseer.Params` |                                                       |
-| >condition     | `nil\|overseer.SearchCondition`                |                                                       |
-| >>filetype     | `nil\|string\|string[]`                        |                                                       |
-| >>dir          | `nil\|string\|string[]`                        |                                                       |
-| >builder       | `fun(params: table): overseer.TaskDefinition`  |                                                       |
-| >hide          | `nil\|boolean`                                 | Hide from the template list                           |
-| override       | `nil\|table<string, any>`                      | Override any fields on the base                       |
-| default_params | `nil\|table<string, any>`                      | Provide default values for any parameters on the base |
+| Param          | Type                                           | Desc                                                                                                                 |
+| -------------- | ---------------------------------------------- | -------------------------------------------------------------------------------------------------------------------- |
+| base           | `overseer.TemplateFileDefinition`              | The base template definition to wrap                                                                                 |
+| >aliases       | `nil\|string[]`                                | alternate names for the task. Used when running a task by name in overseer.run_task                                  |
+| >desc          | `nil\|string`                                  | extended description of the task                                                                                     |
+| >tags          | `nil\|string[]`                                | collection of tags used for optional task filtering                                                                  |
+| >params        | `nil\|overseer.Params\|fun(): overseer.Params` | parameters to customize the task. If any are missing when the task is built, overseer will prompt the user for input |
+| >condition     | `nil\|overseer.SearchCondition`                | simple condition checks for when this task is available                                                              |
+| >>filetype     | `nil\|string\|string[]`                        |                                                                                                                      |
+| >>dir          | `nil\|string\|string[]`                        |                                                                                                                      |
+| >builder       | `fun(params: table): overseer.TaskDefinition`  | function that builds the task definition from the parameters                                                         |
+| >hide          | `nil\|boolean`                                 | Hide from the template list                                                                                          |
+| override       | `nil\|table<string, any>`                      | Override any fields on the base                                                                                      |
+| default_params | `nil\|table<string, any>`                      | Provide default values for any parameters on the base                                                                |
 
 **Note:**
 <pre>

@@ -126,7 +126,7 @@ Finally, you can create a custom command to do all of these steps at once:
 ```lua
 vim.api.nvim_create_user_command("WatchRun", function()
   local overseer = require("overseer")
-  overseer.run_template({ name = "run script" }, function(task)
+  overseer.run_task({ name = "run script" }, function(task)
     if task then
       task:add_component({ "restart_on_save", paths = {vim.fn.expand("%:p")} })
       local main_win = vim.api.nvim_get_current_win()

@@ -551,7 +551,7 @@ M.run_template_or_task = function(name_or_config, cb)
   else
     local name, dep_params = M.split_config(name_or_config)
     -- If no task ID found, start the dependency
-    require("overseer.commands").run_template({
+    require("overseer").run_task({
       name = name,
       params = dep_params,
       autostart = false,

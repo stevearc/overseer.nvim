@@ -8,7 +8,7 @@ local util = require("overseer.util")
 local M = {}
 
 ---@class (exact) overseer.TemplateFileProvider
----@field condition? overseer.SearchCondition
+---@field condition? overseer.SearchCondition simple condition checks for when this provider is available
 ---@field cache_key? fun(opts: overseer.SearchParams): nil|string
 ---@field generator fun(opts: overseer.SearchParams, cb: fun(tmpls_or_err: string|overseer.TemplateDefinition[])) : nil|string|overseer.TemplateDefinition[]
 
@@ -17,12 +17,12 @@ local M = {}
 ---@field module? string The name of the module this was loaded from
 
 ---@class (exact) overseer.TemplateFileDefinition
----@field aliases? string[]
----@field desc? string
----@field tags? string[]
----@field params? overseer.Params|fun(): overseer.Params
----@field condition? overseer.SearchCondition
----@field builder fun(params: table): overseer.TaskDefinition
+---@field aliases? string[] alternate names for the task. Used when running a task by name in overseer.run_task
+---@field desc? string extended description of the task
+---@field tags? string[] collection of tags used for optional task filtering
+---@field params? overseer.Params|fun(): overseer.Params parameters to customize the task. If any are missing when the task is built, overseer will prompt the user for input
+---@field condition? overseer.SearchCondition simple condition checks for when this task is available
+---@field builder fun(params: table): overseer.TaskDefinition function that builds the task definition from the parameters
 ---@field hide? boolean Hide from the template list
 
 ---@class (exact) overseer.TemplateDefinition : overseer.TemplateFileDefinition

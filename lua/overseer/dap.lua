@@ -17,7 +17,7 @@ local function get_task(name, config, cb)
   else
     args.name = name
   end
-  require("overseer").run_template(args, cb)
+  require("overseer").run_task(args, cb)
 end
 
 M.listener = function(config)
