@@ -114,6 +114,7 @@ M.render_value = function(schema, value)
   return value
 end
 
+---@deprecated
 ---@param schema overseer.Param
 ---@param prefix string
 ---@param name string

@@ -1,4 +1,4 @@
-local overseer = require("overseer")
+local form = require("overseer.form")
 
 local schema = {
   required_str = { desc = "This is a required param" },
@@ -36,7 +36,6 @@ local schema = {
   },
 }
 
-overseer.close() -- Need this to trigger the setup()
-overseer.form.open("Test template builder", schema, {}, function(params)
+form.open("Test template builder", schema, {}, function(params)
   vim.notify(vim.inspect(params))
 end)
