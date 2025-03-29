@@ -143,7 +143,7 @@ local default_config = {
   log_level = vim.log.levels.WARN,
 }
 
-local M = vim.deepcopy(default_config)
+local M = {}
 
 local function merge_actions(default_actions, user_actions)
   local actions = {}
@@ -184,8 +184,10 @@ local function remove_binding_conflicts(user_conf)
   end
 end
 
+local has_setup = false
 ---@param opts? overseer.Config
 M.setup = function(opts)
+  has_setup = true
   opts = opts or {}
   remove_binding_conflicts(opts)
   local newconf = vim.tbl_deep_extend("force", default_config, opts)
@@ -238,4 +240,13 @@ end
 ---@field padding? integer
 ---@field win_opts? table<string, any>
 
-return M
+return setmetatable(M, {
+  -- If the user hasn't called setup() yet, make sure we correctly set up the config object so there
+  -- aren't random crashes.
+  __index = function(self, key)
+    if not has_setup then
+      M.setup()
+    end
+    return rawget(self, key)
+  end,
+})
