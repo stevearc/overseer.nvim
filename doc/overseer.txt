@@ -729,7 +729,8 @@ restart_on_save                                                  *restart_on_sav
     Parameters:
       {delay}     `number` How long to wait (in ms) before triggering restart
                   (default `500`)
-      {interrupt} `boolean` Interrupt running tasks (default `true`)
+      {interrupt} `boolean` Interrupt running tasks. If false, will wait for
+                  task to complete before restarting (default `true`)
       {mode}      `enum` How to watch the paths (default `"autocmd"`) 'autocmd'
                   will set autocmds on BufWritePost. 'uv' will use a libuv file
                   watcher (recursive watching may not be supported on all

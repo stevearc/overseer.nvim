@@ -15,15 +15,7 @@ If you're simply looking for the easiest way to define custom tasks, overseer su
 
 In this tutorial, you will create a custom task that builds a C++ file.
 
-First, change your call to `setup()` to include the following option:
-
-```lua
-require("overseer").setup({
-  templates = { "builtin", "user.cpp_build" },
-})
-```
-
-Next, create the file `lua/overseer/template/user/cpp_build.lua` inside your neovim config directory (`:echo stdpath('config')`). Add the following content:
+First, create the file `lua/overseer/template/user/cpp_build.lua` inside your neovim config directory (`:echo stdpath("config")`). Add the following content:
 
 ```lua
 -- /home/stevearc/.config/nvim/lua/overseer/template/user/cpp_build.lua
@@ -33,11 +25,14 @@ return {
     -- Full path to current file (see :help expand())
     local file = vim.fn.expand("%:p")
     return {
-      cmd = { "g++" },
-      args = { file },
+      cmd = { "g++", file },
+      -- attach a component to the task that will pipe the output to the quickfix.
+      -- components customize the behavior of a task.
+      -- see :help overseer-components for a list of all components.
       components = { { "on_output_quickfix", open = true }, "default" },
     }
   end,
+  -- provide a condition so the task will only be available when you are in a c++ file
   condition = {
     filetype = { "cpp" },
   },
@@ -52,15 +47,7 @@ Now when you are editing a cpp file, you can run `:OverseerRun` and select "g++ 
 
 In this tutorial, you will create a task that re-runs a script every time it's saved, and view the output in a split. If there are errors, they will be displayed inline.
 
-First, change your call to `setup()` to include the following option:
-
-```lua
-require("overseer").setup({
-  templates = { "builtin", "user.run_script" },
-})
-```
-
-Next, create the file `lua/overseer/template/user/run_script.lua` inside your neovim config directory (`:echo stdpath('config')`). Add the following content:
+First, create the file `lua/overseer/template/user/run_script.lua` inside your neovim config directory (`:echo stdpath('config')`). Add the following content:
 
 ```lua
 -- /home/stevearc/.config/nvim/lua/overseer/template/user/run_script.lua
@@ -74,6 +61,8 @@ return {
     end
     return {
       cmd = cmd,
+      -- add some components that will pipe the output to quickfix,
+      -- parse it using errorformat, and display any matching lines as diagnostics.
       components = {
         { "on_output_quickfix", set_diagnostics = true },
         "on_result_diagnostics",
@@ -111,7 +100,9 @@ set -e
 echo "Hello world"
 ```
 
-The next step is to display the output in a vertical split. For that, we are going to use [actions](guides.md#actions). Run `:OverseerQuickAction` and select "open vsplit". This will open the output in a vertical split next to your file.
+The next step is to display the output in a vertical split. For that, we are going to use
+[actions](guides.md#actions). Run `:OverseerQuickAction` and select "open vsplit". This will open
+the output in a vertical split next to your file.
 
 ![Screenshot from 2022-09-04 12-40-04](https://user-images.githubusercontent.com/506791/188330767-d680d200-0938-48d1-86ab-8e993745551d.png)
 
@@ -119,19 +110,21 @@ Try changing your script to have an error, then restart the task. The output sho
 
 ![Screenshot from 2022-09-04 12-41-51](https://user-images.githubusercontent.com/506791/188330827-d54af448-aedb-4652-a5f2-8d3d94e1cb31.png)
 
-Lastly, we would like to restart this task every time we save the file. Once more use `:OverseerQuickAction` and this time select "watch". It will prompt you for a path to watch, you should enter the path to the file. Now every time you `:w` the file it should re-run and update the output!
+Lastly, we would like to restart this task every time we save the file. Once more use
+`:OverseerQuickAction` and this time select "watch". It will prompt you for a path to watch, you
+should enter the path to the file. Now every time you `:w` the file it should re-run and update the
+output!
 
 Finally, you can create a custom command to do all of these steps at once:
 
 ```lua
 vim.api.nvim_create_user_command("WatchRun", function()
   local overseer = require("overseer")
-  overseer.run_task({ name = "run script" }, function(task)
+  overseer.run_task({ name = "run script", autostart = false }, function(task)
     if task then
-      task:add_component({ "restart_on_save", paths = {vim.fn.expand("%:p")} })
-      local main_win = vim.api.nvim_get_current_win()
-      overseer.run_action(task, "open vsplit")
-      vim.api.nvim_set_current_win(main_win)
+      task:add_component({ "restart_on_save", paths = { vim.fn.expand("%:p") } })
+      task:start()
+      task:open_output("vertical")
     else
       vim.notify("WatchRun not supported for filetype " .. vim.bo.filetype, vim.log.levels.ERROR)
     end

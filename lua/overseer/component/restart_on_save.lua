@@ -31,7 +31,7 @@ return {
       long_desc = "'autocmd' will set autocmds on BufWritePost. 'uv' will use a libuv file watcher (recursive watching may not be supported on all platforms).",
     },
     interrupt = {
-      desc = "Interrupt running tasks",
+      desc = "Interrupt running tasks. If false, will wait for task to complete before restarting",
       type = "boolean",
       default = true,
     },

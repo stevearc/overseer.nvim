@@ -35,8 +35,9 @@ This template will find all shell scripts in the current directory and create ta
 ```lua
 local files = require("overseer.files")
 
+---@type overseer.TemplateFileProvider
 return {
-  generator = function(opts, cb)
+  generator = function(opts)
     local scripts = vim.tbl_filter(function(filename)
       return filename:match("%.sh$")
     end, files.list_files(opts.dir))
@@ -44,19 +45,15 @@ return {
     for _, filename in ipairs(scripts) do
       table.insert(ret, {
         name = filename,
-        params = {
-          args = { optional = true, type = "list", delimiter = " " },
-        },
         builder = function(params)
           return {
             cmd = { vim.fs.joinpath(opts.dir, filename) },
-            args = params.args,
           }
         end,
       })
     end
 
-    cb(ret)
+    return ret
   end,
 }
 ```
@@ -69,7 +66,6 @@ You can add directory-local tasks by setting the exrc option (`vim.o.exrc = true
 -- /path/to/dir/.nvim.lua
 require("overseer").register_template({
   name = "My project task",
-  params = {},
   condition = {
     -- This makes the template only available in the current directory
     -- In case you :cd out later
@@ -77,8 +73,8 @@ require("overseer").register_template({
   },
   builder = function()
     return {
-      cmd = {"echo"},
-      args = {"Hello", "world"},
+      cmd = { "echo" },
+      args = { "Hello", "world" },
     }
   end,
 })
