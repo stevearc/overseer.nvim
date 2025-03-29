@@ -222,7 +222,6 @@ If you want to define custom tasks for your project, I'd recommend starting with
   - [preload_task_cache(opts, cb)](doc/reference.md#preload_task_cacheopts-cb)
   - [clear_task_cache(opts)](doc/reference.md#clear_task_cacheopts)
   - [run_action(task, name)](doc/reference.md#run_actiontask-name)
-  - [wrap_template(base, override, default_params)](doc/reference.md#wrap_templatebase-override-default_params)
   - [add_template_hook(opts, hook)](doc/reference.md#add_template_hookopts-hook)
   - [remove_template_hook(opts, hook)](doc/reference.md#remove_template_hookopts-hook)
   - [register_template(defn)](doc/reference.md#register_templatedefn)
