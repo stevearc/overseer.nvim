@@ -150,6 +150,7 @@ function Builder.new(title, schema, params, callback)
     bufnr = bufnr,
     fields_focused = {},
     fields_ever_focused = {},
+    ext_id_to_schema_field_name = {},
     ever_submitted = false,
   }, { __index = Builder })
   builder:init_autocmds()
@@ -176,6 +177,7 @@ function Builder:init_autocmds()
         local line = vim.api.nvim_buf_get_lines(0, lnum - 1, lnum, true)[1]
         self.cur_line = { lnum, line }
         self:parse()
+        vim.bo[self.bufnr].modified = false
       end,
     })
   )
@@ -247,24 +249,42 @@ function Builder:render()
   local lines = { util.align(self.title, vim.api.nvim_win_get_width(0), "center") }
   local highlights = { { "OverseerTask", 1, 0, -1 } }
   local extmarks = {}
+  local extmark_idx_to_name = {}
   for _, name in ipairs(self.schema_keys) do
     local prefix = self.schema[name].optional and "" or "*"
     local schema = self.schema[name]
-    table.insert(lines, form_utils.render_field(schema, prefix, name, self.params[name]))
+    local field_hl = "OverseerField"
+    if
+      (self.fields_ever_focused[name] or self.ever_submitted)
+      and not form_utils.validate_field(self.schema[name], self.params[name])
+    then
+      field_hl = "DiagnosticError"
+    end
+    table.insert(extmarks, {
+      #lines,
+      0,
+      {
+        virt_text = { { prefix, "NormalFloat" }, { name, field_hl }, { ": ", "NormalFloat" } },
+        virt_text_pos = "inline",
+        right_gravity = false,
+        invalidate = true,
+      },
+    })
+    extmark_idx_to_name[#extmarks] = name
+    table.insert(lines, tostring(form_utils.render_value(schema, self.params[name])))
     if schema.conceal then
-      local start_col = (prefix .. name):len() + 1
-      local length = #lines[#lines] - start_col
+      local length = #lines[#lines]
       -- Because conceallevel replaces every concealed _block_ with a single character, we have to
       -- create 1-width conceal blocks, one for each character
-      for i = 1, length do
+      for i = 0, length do
         table.insert(extmarks, {
           #lines - 1,
-          start_col + i,
+          i,
           {
             right_gravity = false,
             strict = false,
             conceal = "*",
-            end_col = start_col + i + 2,
+            end_col = i + 1,
           },
         })
       end
@@ -277,9 +297,11 @@ function Builder:render()
   end
   vim.api.nvim_buf_set_lines(self.bufnr, 0, -1, true, lines)
   util.add_highlights(self.bufnr, title_ns, highlights)
-  for _, mark in ipairs(extmarks) do
+  self.ext_id_to_schema_field_name = {}
+  for i, mark in ipairs(extmarks) do
     local line, col, opts = unpack(mark)
-    vim.api.nvim_buf_set_extmark(self.bufnr, title_ns, line, col, opts)
+    local ext_id = vim.api.nvim_buf_set_extmark(self.bufnr, title_ns, line, col, opts)
+    self.ext_id_to_schema_field_name[ext_id] = extmark_idx_to_name[i]
   end
   self:on_cursor_move()
 end
@@ -291,31 +313,27 @@ function Builder:on_cursor_move()
     self:render()
     return
   end
-  local original_cur = vim.deepcopy(cur)
   local ns = vim.api.nvim_create_namespace("overseer")
   vim.api.nvim_buf_clear_namespace(self.bufnr, ns, 0, -1)
   local num_lines = vim.api.nvim_buf_line_count(self.bufnr)
 
   -- Top line is title
   if cur[1] == 1 and num_lines > 1 then
-    cur[1] = 2
+    vim.schedule_wrap(vim.api.nvim_win_set_cursor)(0, { 2, 0 })
+    return
   end
 
   local buflines = vim.api.nvim_buf_get_lines(self.bufnr, 0, -1, true)
+  local lnum_to_field_name = self:get_lnum_to_field_name()
   for i, line in ipairs(buflines) do
-    local name, text = parse_line(line)
+    local name = lnum_to_field_name[i]
     if name and self.schema[name] then
       local focused = i == cur[1]
-      local name_end = string.len(line) - string.len(text)
-      -- Move cursor to input section of field
       if focused then
-        if cur[2] < name_end then
-          cur[2] = name_end
-        end
         local schema = self.schema[name]
         local vtext = {}
         if schema.type == "namedEnum" then
-          local value = schema.choices[text]
+          local value = schema.choices[line]
           if value then
             table.insert(vtext, { string.format("[%s] ", value), "Comment" })
           end
@@ -341,29 +359,34 @@ function Builder:on_cursor_move()
       elseif self.fields_focused[name] then
         self.fields_ever_focused[name] = true
       end
-
-      local group = "OverseerField"
-      if
-        (self.fields_ever_focused[name] or self.ever_submitted)
-        and not form_utils.validate_field(self.schema[name], self.params[name])
-      then
-        group = "DiagnosticError"
-      end
-      vim.api.nvim_buf_add_highlight(self.bufnr, ns, group, i - 1, 0, name_end)
     end
   end
+end
 
-  if cur and (cur[1] ~= original_cur[1] or cur[2] ~= original_cur[2]) then
-    vim.api.nvim_win_set_cursor(0, cur)
+---@private
+---@return table<integer, string>
+function Builder:get_lnum_to_field_name()
+  local title_ns = vim.api.nvim_create_namespace("overseer_title")
+  local extmarks =
+    vim.api.nvim_buf_get_extmarks(self.bufnr, title_ns, 0, -1, { type = "virt_text" })
+  local lnum_to_field_name = {}
+  for _, extmark in ipairs(extmarks) do
+    local ext_id, row = extmark[1], extmark[2]
+    local field_name = self.ext_id_to_schema_field_name[ext_id]
+    if field_name then
+      lnum_to_field_name[row + 1] = field_name
+    end
   end
+  return lnum_to_field_name
 end
 
 function Builder:parse()
   local buflines = vim.api.nvim_buf_get_lines(self.bufnr, 0, -1, true)
-  for _, line in ipairs(buflines) do
-    local name, text = parse_line(line)
+  local lnum_to_field_name = self:get_lnum_to_field_name()
+  for i, line in ipairs(buflines) do
+    local name = lnum_to_field_name[i]
     if name and self.schema[name] then
-      local parsed, value = form_utils.parse_value(self.schema[name], text)
+      local parsed, value = form_utils.parse_value(self.schema[name], line)
       if parsed then
         self.params[name] = value
       end
@@ -379,9 +402,13 @@ function Builder:cancel()
 end
 
 function Builder:submit()
+  local first_submit = not self.ever_submitted
   self.ever_submitted = true
   for i, name in pairs(self.schema_keys) do
     if not form_utils.validate_field(self.schema[name], self.params[name]) then
+      if first_submit then
+        self:render()
+      end
       local lnum = i + 1
       if vim.api.nvim_win_get_cursor(0)[1] ~= lnum then
         vim.api.nvim_win_set_cursor(0, { lnum, line_len(self.bufnr, lnum) })
