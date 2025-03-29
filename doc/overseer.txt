@@ -580,6 +580,27 @@ on_exit_set_status                                            *on_exit_set_statu
       {success_codes} `list[integer]` Additional exit codes to consider as
                       success
 
+on_output_notify                                                *on_output_notify*
+    Use nvim-notify to show notification with task output summary for long-running tasks
+    Works like on_complete_notify but, for long-running commands, also shows
+    real-time output summary (like on_output_summarize). Requires nvim-notify to
+    modify the last notification window when new output arrives instead of
+    creating new notification.
+
+    Parameters:
+      {delay_ms}  `number` Time in milliseconds to wait before displaying the
+                  notification during task runtime (default `2000`)
+      {max_lines} `integer` Number of lines of output to show (default `1`)
+      {max_width} `integer` Maximum output width (default `49`)
+      {output_on_complete} `boolean` Show the last lines of task output and
+                  status on completion (instead of only the status) (default
+                  `false`) When output_on_complete==true: shows status + last
+                  output lines during task runtime and after completion. When
+                  output_on_complete==false: shows status + last output lines
+                  during task runtime and only status after completion.
+      {trim}      `boolean` Remove whitespace from both sides of each line
+                  (default `true`)
+
 on_output_parse                                                  *on_output_parse*
     Parses task output and sets task result
 

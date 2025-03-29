@@ -8,6 +8,7 @@
 - [on_complete_notify](#on_complete_notify)
 - [on_complete_restart](#on_complete_restart)
 - [on_exit_set_status](#on_exit_set_status)
+- [on_output_notify](#on_output_notify)
 - [on_output_parse](#on_output_parse)
 - [on_output_quickfix](#on_output_quickfix)
 - [on_output_summarize](#on_output_summarize)
@@ -93,6 +94,27 @@ Sets final task status based on exit code
 | Param         | Type            | Desc                                         |
 | ------------- | --------------- | -------------------------------------------- |
 | success_codes | `list[integer]` | Additional exit codes to consider as success |
+
+## on_output_notify
+
+[on_output_notify.lua](../lua/overseer/component/on_output_notify.lua)
+
+Use nvim-notify to show notification with task output summary for long-running tasks
+
+Works like on_complete_notify but, for long-running commands, also shows real-time output summary
+(like on_output_summarize). Requires nvim-notify to modify the last notification window when new
+output arrives instead of creating new notification.
+
+| Param              | Type      | Default | Desc                                                                                     |
+| ------------------ | --------- | ------- | ---------------------------------------------------------------------------------------- |
+| delay_ms           | `number`  | `2000`  | Time in milliseconds to wait before displaying the notification during task runtime      |
+| max_lines          | `integer` | `1`     | Number of lines of output to show                                                        |
+| max_width          | `integer` | `49`    | Maximum output width                                                                     |
+| output_on_complete | `boolean` | `false` | Show the last lines of task output and status on completion (instead of only the status) |
+| trim               | `boolean` | `true`  | Remove whitespace from both sides of each line                                           |
+
+- **output_on_complete:** When output_on_complete==true: shows status + last output lines during task runtime and after completion.
+When output_on_complete==false: shows status + last output lines during task runtime and only status after completion.
 
 ## on_output_parse
 
