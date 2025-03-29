@@ -31,77 +31,6 @@ local bindings = {
   },
 }
 
--- Telescope-specific settings for picking a new component
-local function get_telescope_new_component(options)
-  local has_telescope = pcall(require, "telescope")
-  if not has_telescope then
-    return
-  end
-
-  local themes = require("telescope.themes")
-  local finders = require("telescope.finders")
-  local entry_display = require("telescope.pickers.entry_display")
-  local picker_opts = themes.get_dropdown()
-
-  local width = vim.api.nvim_win_get_width(0) - 2
-  local height = vim.api.nvim_win_get_height(0) - 2
-  picker_opts.layout_config.width = function(_, max_columns, _)
-    return math.min(max_columns, width)
-  end
-  picker_opts.layout_config.height = function(_, _, max_lines)
-    return math.min(max_lines, height)
-  end
-
-  local max_name = 1
-  for _, name in ipairs(options) do
-    local len = string.len(name)
-    if len > max_name then
-      max_name = len
-    end
-  end
-
-  local displayer = entry_display.create({
-    separator = " ",
-    items = {
-      { width = max_name },
-      { remaining = true },
-    },
-  })
-
-  local function make_display(entry)
-    local columns = {
-      entry.value,
-    }
-    if entry.desc then
-      table.insert(columns, { entry.desc, "Comment" })
-    end
-    return displayer(columns)
-  end
-  picker_opts.finder = finders.new_table({
-    results = options,
-    entry_maker = function(item)
-      local comp = component.get(item)
-      local ordinal = item
-      local description
-      if comp then
-        description = comp.desc
-      else
-        description = component.stringify_alias(item)
-      end
-      if description then
-        ordinal = ordinal .. " " .. description
-      end
-      return {
-        display = make_display,
-        ordinal = ordinal,
-        desc = description,
-        value = item,
-      }
-    end,
-  })
-  return picker_opts
-end
-
 local Editor = {}
 
 function Editor.new(task, task_cb)
@@ -376,7 +305,6 @@ function Editor:add_new_component(insert_position)
         return string.format("%s [%s]", item, component.stringify_alias(item))
       end
     end,
-    telescope = get_telescope_new_component(options),
   }, function(result)
     self.disable_close_on_leave = false
     if result then
