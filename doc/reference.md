@@ -209,9 +209,6 @@ require("overseer").setup({
       "on_result_diagnostics",
     },
   },
-  -- A list of components to preload on setup.
-  -- Only matters if you want them to show up in the task editor.
-  preload_components = {},
   -- For template providers, how long to wait (in ms) before timing out.
   -- Set to 0 to wait forever.
   template_timeout = 3000,

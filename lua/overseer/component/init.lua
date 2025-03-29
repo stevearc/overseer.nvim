@@ -153,9 +153,6 @@ end
 ---@return string[]
 M.list_editable = function()
   local ret = {}
-  for _, v in ipairs(config.preload_components) do
-    M.get(v)
-  end
   for _, v in ipairs(builtin_components) do
     M.get(v)
   end
