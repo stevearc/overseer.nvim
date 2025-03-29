@@ -9,31 +9,31 @@ local M = {}
 ---`<event>_*` means "triggers <event> under some condition"
 ---`on_<event>_*` means "does something when <event> is fired
 ---@class overseer.ComponentFileDefinition
----@field desc string
----@field long_desc? string
----@field params? overseer.Params
----@field editable? boolean
----@field serializable? boolean
----@field constructor fun(params: table): overseer.ComponentSkeleton
----@field deprecated_message? string
+---@field desc string description of component
+---@field long_desc? string extended description for documentation generation
+---@field params? overseer.Params parameters that can customize the component
+---@field constructor fun(params: table): overseer.ComponentSkeleton creates the component from the params
+---@field editable? boolean when true, component can be live-edited in the task editor
+---@field serializable? boolean when true, will be serialized when serializing a task
+---@field deprecated_message? string when present, overseer will warn the user when this component is used
 
 ---@class overseer.ComponentDefinition : overseer.ComponentFileDefinition
 ---@field name string
 
 ---The intermediate form of a component returned by the constructor
 ---@class overseer.ComponentSkeleton
----@field on_init? fun(self: overseer.Component, task: overseer.Task)
----@field on_pre_start? fun(self: overseer.Component, task: overseer.Task): nil|boolean
----@field on_start? fun(self: overseer.Component, task: overseer.Task)
----@field on_reset? fun(self: overseer.Component, task: overseer.Task)
----@field on_pre_result? fun(self: overseer.Component, task: overseer.Task): nil|table
----@field on_preprocess_result? fun(self: overseer.Component, task: overseer.Task, result: table)
----@field on_result? fun(self: overseer.Component, task: overseer.Task, result: table)
----@field on_complete? fun(self: overseer.Component, task: overseer.Task, status: overseer.Status, result: table)
----@field on_output? fun(self: overseer.Component, task: overseer.Task, data: string[])
----@field on_output_lines? fun(self: overseer.Component, task: overseer.Task, lines: string[])
----@field on_exit? fun(self: overseer.Component, task: overseer.Task, code: number)
----@field on_dispose? fun(self: overseer.Component, task: overseer.Task)
+---@field on_init? fun(self: overseer.Component, task: overseer.Task) called when the component is first created.
+---@field on_pre_start? fun(self: overseer.Component, task: overseer.Task): nil|boolean called when a task is attempting to start. Can return false to prevent the task from starting.
+---@field on_start? fun(self: overseer.Component, task: overseer.Task) called when the task has started
+---@field on_reset? fun(self: overseer.Component, task: overseer.Task) called when the task is reset
+---@field on_pre_result? fun(self: overseer.Component, task: overseer.Task): nil|table called when the task is generating results. Can return a table that will be merged into the task's results.
+---@field on_preprocess_result? fun(self: overseer.Component, task: overseer.Task, result: table) called after on_pre_result and before on_result. Can modify the result table.
+---@field on_result? fun(self: overseer.Component, task: overseer.Task, result: table) called after the task result has been created
+---@field on_complete? fun(self: overseer.Component, task: overseer.Task, status: overseer.Status, result: table) called when the task completes (successful or not)
+---@field on_output? fun(self: overseer.Component, task: overseer.Task, data: string[]) called with the raw output from jobstart on_stdout callback
+---@field on_output_lines? fun(self: overseer.Component, task: overseer.Task, lines: string[]) called with lines of text from the output. This is easier to work with than the raw data from on_output.
+---@field on_exit? fun(self: overseer.Component, task: overseer.Task, code: number) called when the process exits
+---@field on_dispose? fun(self: overseer.Component, task: overseer.Task) called when the task is disposed or the component is removed. Guaranteed to be called if on_init was called.
 ---@field on_status? fun(self: overseer.Component, task: overseer.Task, status: overseer.Status) Called when the task status changes
 ---@field render? fun(self: overseer.Component, task: overseer.Task, lines: string[], highlights: table[], detail: number)
 
@@ -104,7 +104,10 @@ local function validate_component(name, opts)
   end
   comp.name = name
   if opts.deprecated_message then
-    log.warn("Overseer component %s is deprecated: %s", name, opts.deprecated_message)
+    vim.notify_once(
+      string.format("Overseer component %s is deprecated: %s", name, opts.deprecated_message),
+      vim.log.levels.WARN
+    )
   end
   return comp
 end
@@ -150,12 +153,23 @@ M.stringify_alias = function(name)
   return table.concat(strings, ", ")
 end
 
+local preloaded = false
+local function preload_components()
+  if preloaded then
+    return
+  end
+  preloaded = true
+  local comp_files = vim.api.nvim_get_runtime_file("lua/overseer/component/*.lua", true)
+  for _, abspath in ipairs(comp_files) do
+    local module_name = abspath:match("^.*overseer/component/(.*)%.lua$")
+    M.get(module_name)
+  end
+end
+
 ---@return string[]
 M.list_editable = function()
   local ret = {}
-  for _, v in ipairs(builtin_components) do
-    M.get(v)
-  end
+  preload_components()
   for k, v in pairs(registry) do
     if v.editable then
       table.insert(ret, k)
@@ -330,7 +344,10 @@ end
 ---@private
 M.get_all_descriptions = function()
   local ret = {}
-  for _, name in ipairs(builtin_components) do
+  preload_components()
+  local names = vim.tbl_keys(registry)
+  table.sort(names)
+  for _, name in ipairs(names) do
     local defn = assert(M.get(name))
     table.insert(ret, {
       name = name,

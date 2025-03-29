@@ -51,7 +51,10 @@ return {
               new_task.env = new_task.env or task.env
               new_task.parent_id = task.parent_id or task.id
               self.task_lookup[i] = new_task.id
-              new_task:add_component({ "on_success_complete_dependency", task_id = task.id })
+              new_task:add_component({
+                "dependencies.on_success_complete_dependency",
+                task_id = task.id,
+              })
               -- Don't include child tasks when saving to bundle.
               -- We will re-create them when this task runs again
               new_task:set_include_in_bundle(false)
