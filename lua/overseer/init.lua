@@ -133,8 +133,7 @@ M.setup = function(opts)
   opts = opts or {}
   create_commands()
   M.enable_dap(opts.dap)
-  local config = require("overseer.config")
-  config.setup(opts)
+  require("overseer.config").setup(opts)
 
   for _, hl in ipairs(M.get_all_highlights()) do
     vim.api.nvim_set_hl(0, hl.name, { link = hl.default, default = true })
@@ -254,60 +253,6 @@ M.run_action = function(task, name)
   return require("overseer.action_util").run_task_action(task, name)
 end
 
----Create a new template by overriding fields on another
----@param base overseer.TemplateFileDefinition The base template definition to wrap
----@param override nil|table<string, any> Override any fields on the base
----@param default_params nil|table<string, any> Provide default values for any parameters on the base
----@return overseer.TemplateFileDefinition
----@note
---- This is typically used for a TemplateProvider, to define the task a single time and generate
---- multiple templates based on the available args.
----@example
---- local tmpl = {
----   params = {
----     args = { type = 'list', delimiter = ' ' }
----   },
----   builder = function(params)
----   return {
----     cmd = { 'make' },
----     args = params.args,
----   }
---- }
---- local template_provider = {
----   name = "Some provider",
----   generator = function(opts, cb)
----     cb({
----       overseer.wrap_template(tmpl, nil, { args = { 'all' } }),
----       overseer.wrap_template(tmpl, {name = 'make clean'}, { args = { 'clean' } }),
----     })
----   end
---- }
-M.wrap_template = function(base, override, default_params)
-  override = override or {}
-  if default_params then
-    local base_params = base.params
-    if type(base_params) == "function" then
-      override.params = function()
-        local params = base_params()
-        for k, v in pairs(default_params) do
-          params[k].default = v
-          params[k].optional = true
-        end
-        return params
-      end
-    else
-      override.params = vim.deepcopy(base_params or {})
-      for k, v in pairs(default_params) do
-        override.params[k].default = v
-        override.params[k].optional = true
-      end
-    end
-  end
-  setmetatable(override, { __index = base })
-  ---@cast override overseer.TemplateFileDefinition
-  return override
-end
-
 ---Add a hook that runs on a TaskDefinition before the task is created
 ---@param opts nil|overseer.HookOptions When nil, run the hook on all templates
 ---    name nil|string Only run if the template name matches this pattern (using string.match)
@@ -381,18 +326,6 @@ M.register_alias = function(name, components)
   return require("overseer.component").alias(name, components)
 end
 
-setmetatable(M, {
-  __index = function(t, key)
-    -- allow top-level direct access to constants (e.g. overseer.STATUS)
-    local constants = require("overseer.constants")
-    if constants[key] then
-      rawset(t, key, constants[key])
-      return constants[key]
-    end
-    return rawget(t, key)
-  end,
-})
-
 ---Used for documentation generation
 ---@private
 M.get_all_commands = function()
@@ -441,5 +374,17 @@ M.get_all_highlights = function()
     },
   }
 end
+
+setmetatable(M, {
+  __index = function(t, key)
+    -- allow top-level direct access to constants (e.g. overseer.STATUS)
+    local constants = require("overseer.constants")
+    if constants[key] then
+      rawset(t, key, constants[key])
+      return constants[key]
+    end
+    return rawget(t, key)
+  end,
+})
 
 return M

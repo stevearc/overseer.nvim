@@ -16,7 +16,6 @@
   - [preload_task_cache(opts, cb)](#preload_task_cacheopts-cb)
   - [clear_task_cache(opts)](#clear_task_cacheopts)
   - [run_action(task, name)](#run_actiontask-name)
-  - [wrap_template(base, override, default_params)](#wrap_templatebase-override-default_params)
   - [add_template_hook(opts, hook)](#add_template_hookopts-hook)
   - [remove_template_hook(opts, hook)](#remove_template_hookopts-hook)
   - [register_template(defn)](#register_templatedefn)
@@ -434,55 +433,6 @@ Run an action on a task
 | ----- | --------------- | -------------------------------------------------- |
 | task  | `overseer.Task` |                                                    |
 | name  | `string\|nil`   | Name of action. When omitted, prompt user to pick. |
-
-### wrap_template(base, override, default_params)
-
-`wrap_template(base, override, default_params): overseer.TemplateFileDefinition` \
-Create a new template by overriding fields on another
-
-| Param          | Type                                           | Desc                                                                                                                 |
-| -------------- | ---------------------------------------------- | -------------------------------------------------------------------------------------------------------------------- |
-| base           | `overseer.TemplateFileDefinition`              | The base template definition to wrap                                                                                 |
-| >aliases       | `nil\|string[]`                                | alternate names for the task. Used when running a task by name in overseer.run_task                                  |
-| >desc          | `nil\|string`                                  | extended description of the task                                                                                     |
-| >tags          | `nil\|string[]`                                | collection of tags used for optional task filtering                                                                  |
-| >params        | `nil\|overseer.Params\|fun(): overseer.Params` | parameters to customize the task. If any are missing when the task is built, overseer will prompt the user for input |
-| >condition     | `nil\|overseer.SearchCondition`                | simple condition checks for when this task is available                                                              |
-| >>filetype     | `nil\|string\|string[]`                        |                                                                                                                      |
-| >>dir          | `nil\|string\|string[]`                        |                                                                                                                      |
-| >builder       | `fun(params: table): overseer.TaskDefinition`  | function that builds the task definition from the parameters                                                         |
-| >hide          | `nil\|boolean`                                 | Hide from the template list                                                                                          |
-| override       | `nil\|table<string, any>`                      | Override any fields on the base                                                                                      |
-| default_params | `nil\|table<string, any>`                      | Provide default values for any parameters on the base                                                                |
-
-**Note:**
-<pre>
-This is typically used for a TemplateProvider, to define the task a single time and generate
-multiple templates based on the available args.
-</pre>
-
-**Examples:**
-```lua
-local tmpl = {
-  params = {
-    args = { type = 'list', delimiter = ' ' }
-  },
-  builder = function(params)
-  return {
-    cmd = { 'make' },
-    args = params.args,
-  }
-}
-local template_provider = {
-  name = "Some provider",
-  generator = function(opts, cb)
-    cb({
-      overseer.wrap_template(tmpl, nil, { args = { 'all' } }),
-      overseer.wrap_template(tmpl, {name = 'make clean'}, { args = { 'clean' } }),
-    })
-  end
-}
-```
 
 ### add_template_hook(opts, hook)
 
