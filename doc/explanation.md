@@ -18,11 +18,9 @@
 ### Tasks
 
 Tasks represent a single command that is run. They appear in the [task list](#task-list), where you
-can manage them (start/stop/restart/edit/open terminal). You can create them directly, either with
-`:OverseerBuild` or via the API `require('overseer.task').new()`.
-
-Most of the time, however, you will find it most convenient to create them using
-[templates](#templates).
+can manage them (start/stop/restart/edit/open terminal). You can create them directly with the
+[new_task()](reference.md#new_taskopts) method. Most of the time, however, you will find it most
+convenient to create them using [templates](#templates).
 
 ### Components
 
@@ -75,8 +73,8 @@ The task editor allows you to change the components on a task by hand. You shoul
 often (if you find yourself frequently making the same edits, consider turning that into an
 [action](guides.md#actions)), but it can be useful for experimentation and tweaking values on the fly.
 
-There are two ways to get to the task editor: `:OverseerBuild` will open it on a new task, and for
-existing tasks (that are not running) you can use the `edit` action.
+To open the editor for a task, use the `edit` action (open the overseer task list, `<CR>` on the
+task, select `edit`).
 
 For the most part you can edit the values like a normal buffer, but there is a lot of magic involved
 to produce a "form-like" experience. For enum fields, you can autocomplete the possible values with
@@ -119,13 +117,7 @@ detail of the logs by adjusting the level:
 
 ```lua
 overseer.setup({
-  log = {
-    {
-      type = "file",
-      filename = "overseer.log",
-      level = vim.log.levels.DEBUG, -- or TRACE for max verbosity
-    },
-  },
+  log_level = vim.log.levels.TRACE,
 })
 ```
 

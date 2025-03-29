@@ -421,15 +421,6 @@ function Task:open_output(direction)
     return
   end
 
-  -- Toggleterm itself needs to handle these operations.
-  -- TODO: maybe we should build a formal abstraction that handles this, instead of relying on a
-  -- gross if statement here.
-  if self.strategy.name == "toggleterm" and direction then
-    ---@diagnostic disable-next-line: undefined-field
-    self.strategy:open_terminal(direction)
-    return
-  end
-
   if direction == "float" then
     local winid = layout.open_fullscreen_float(bufnr)
     util.scroll_to_end(winid)

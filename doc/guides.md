@@ -30,39 +30,24 @@ overseer.register_template({
 
 **2) as a module**
 
-Similar to [custom components](#custom-components), templates can be lazy-loaded from a module in the `overseer.template` namespace. It is recommended that you namespace your tasks inside of a folder (e.g. `overseer/template/myplugin/first_task.lua`, referenced as `myplugin.first_task`). To load them, you would pass the require path in setup:
-
-```lua
-overseer.setup({
-  templates = { "builtin", "myplugin.first_task" },
-})
--- You can also load them separately from setup
-overseer.load_template("myplugin.second_task")
-```
-
-If you have multiple templates that you would like to expose as a bundle, you can create an alias module. For example, put the following into `overseer/template/myplugin/init.lua`:
-
-```lua
-return { "myplugin.first_task", "myplugin.second_task" }
-```
-
-This is how `builtin` references all of the different built-in templates.
+Similar to [custom components](#custom-components), templates can be lazy-loaded from a module in the `overseer.template` namespace. It is recommended that you namespace your tasks inside of a folder (e.g. `overseer/template/myplugin/first_task.lua`, referenced as `myplugin.first_task`). Overseer will automatically detect and load them.
 
 ### Template definition
 
 The definition of a template looks like this:
 
 ```lua
-{
+---@type overseer.TemplateFileDefinition
+return {
   -- Required fields
   name = "Some Task",
   builder = function(params)
     -- This must return an overseer.TaskDefinition
     return {
-      -- cmd is the only required field
-      cmd = {'echo'},
-      -- additional arguments for the cmd
-      args = {"hello", "world"},
+      -- cmd is the only required field. It can be a list or a string.
+      cmd = { "echo", "hello", "world" },
+      -- additional arguments for the cmd (usually only useful if cmd is a string)
+      args = {},
       -- the name of the task (defaults to the cmd of the task)
       name = "Greet",
       -- set the working directory for the task
@@ -72,7 +57,7 @@ The definition of a template looks like this:
         VAR = "FOO",
       },
       -- the list of components or component aliases to add to the task
-      components = {"my_custom_component", "default"},
+      components = { "my_custom_component", "default" },
       -- arbitrary table of data for your own personal use
       metadata = {
         foo = "bar",
@@ -86,50 +71,47 @@ The definition of a template looks like this:
   params = {
     -- See :help overseer-params
   },
-  -- Determines sort order when choosing tasks. Lower comes first.
-  priority = 50,
   -- Add requirements for this template. If they are not met, the template will not be visible.
   -- All fields are optional.
   condition = {
     -- A string or list of strings
     -- Only matches when current buffer is one of the listed filetypes
-    filetype = {"c", "cpp"},
+    filetype = { "c", "cpp" },
     -- A string or list of strings
     -- Only matches when cwd is inside one of the listed dirs
     dir = "/home/user/my_project",
-    -- Arbitrary logic for determining if task is available
-    callback = function(search)
-      print(vim.inspect(search))
-      return true
-    end,
   },
 }
 ```
 
 ### Template providers
 
-Template providers are used to generate multiple templates dynamically. The main use case is generating one task per target (e.g. for a makefile), but can be used for any situation where you want the templates themselves to be generated at runtime.
+Template providers are used to generate multiple templates dynamically. The main use case is
+generating one task per target (e.g. for a makefile), but can be used for any situation where you
+want the templates themselves to be generated at runtime.
 
-Providers are created the same way templates are (with `overseer.register_template`, or by putting them in a module). The structure is as follows:
+Providers are created the same way templates are (with `overseer.register_template`, or by putting
+them in a lua file). The structure is as follows:
 
 ```lua
-{
+---@type overseer.TemplateFileProvider
+return {
   generator = function(search, cb)
-    -- Pass a list of templates to the callback
+    -- return a list of tasks
+    return {...}
+    -- Or if you need to do some async work, pass a list of templates to the callback.
     -- See the built-in providers for make or npm for an example
     cb({...})
   end,
   -- Optional. Same as template.condition
   condition = {
-    callback = function(search)
-      return true
-    end,
+    filetype = { "c" },
   },
-  -- Optional. Overrides the default cache key of `opts.dir`
-  -- Additionally, if the returned value is an absolute file path,
-  -- whenever that file is written overseer will automatically clear the cache
+  -- Optional. Some task generators may be slow and thus you may want to cache the results.
+  -- By providing a cache key (usually a config file or root directory), overseer will automatically
+  -- cache results from slow providers and will clear the cache when that file is written.
   cache_key = function(opts)
-    return vim.fs.find('Makefile', { upward = true, type = "file", path = opts.dir })[1]
+    return vim.fs.find("Makefile", { upward = true, type = "file", path = opts.dir })[1]
   end,
 }
 ```
@@ -185,6 +167,7 @@ Paths given are all relative to any runtimepath (`:help rtp`), so in practice it
 The component definition should look like the following example:
 
 ```lua
+---@type overseer.ComponentFileDefinition
 return {
   desc = "Include a description of your component",
   -- Define parameters that can be passed in to the component

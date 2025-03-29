@@ -249,12 +249,12 @@ Open task output
 
 Restart on any buffer :write
 
-| Param     | Type           | Default     | Desc                                                                      |
-| --------- | -------------- | ----------- | ------------------------------------------------------------------------- |
-| delay     | `number`       | `500`       | How long to wait (in ms) before triggering restart                        |
-| interrupt | `boolean`      | `true`      | Interrupt running tasks                                                   |
-| mode      | `enum`         | `"autocmd"` | How to watch the paths (`"autocmd"\|"uv"`)                                |
-| paths     | `list[string]` |             | Only restart when writing files in these paths (can be directory or file) |
+| Param     | Type           | Default     | Desc                                                                                |
+| --------- | -------------- | ----------- | ----------------------------------------------------------------------------------- |
+| delay     | `number`       | `500`       | How long to wait (in ms) before triggering restart                                  |
+| interrupt | `boolean`      | `true`      | Interrupt running tasks. If false, will wait for task to complete before restarting |
+| mode      | `enum`         | `"autocmd"` | How to watch the paths (`"autocmd"\|"uv"`)                                          |
+| paths     | `list[string]` |             | Only restart when writing files in these paths (can be directory or file)           |
 
 - **mode:** 'autocmd' will set autocmds on BufWritePost. 'uv' will use a libuv file watcher (recursive watching may not be supported on all platforms).
 
