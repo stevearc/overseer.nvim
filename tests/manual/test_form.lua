@@ -16,15 +16,15 @@ local schema = {
     type = "number",
     optional = true,
   },
-  required_list = { desc = "This is a required number param", type = "list" },
+  required_list = { desc = "This is a required list param", type = "list" },
   optional_list = {
-    desc = "This is an optional number param",
+    desc = "This is an optional list param",
     type = "list",
     optional = true,
   },
-  required_bool = { desc = "This is a required number param", type = "boolean" },
+  required_bool = { desc = "This is a required boolean param", type = "boolean" },
   optional_bool = {
-    desc = "This is an optional number param",
+    desc = "This is an optional boolean param",
     type = "boolean",
     optional = true,
   },
@@ -36,6 +36,6 @@ local schema = {
   },
 }
 
-form.open("Test template builder", schema, {}, function(params)
+form.open("Test form", schema, {}, function(params)
   vim.notify(vim.inspect(params))
 end)

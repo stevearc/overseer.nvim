@@ -56,9 +56,6 @@ local Builder = {}
 local function line_len(bufnr, lnum)
   return string.len(vim.api.nvim_buf_get_lines(bufnr, lnum - 1, lnum, true)[1])
 end
-local function parse_line(line)
-  return line:match("^%*?([^%s]+): ?(.*)$")
-end
 
 function Builder.new(title, schema, params, callback)
   -- Filter out the opaque types
@@ -100,19 +97,20 @@ function Builder.new(title, schema, params, callback)
   vim.bo[bufnr].swapfile = false
   vim.bo[bufnr].bufhidden = "wipe"
   vim.bo[bufnr].buftype = "acwrite"
-  vim.api.nvim_buf_set_name(bufnr, "Overseer task builder")
+  vim.api.nvim_buf_set_name(bufnr, "Overseer form")
 
-  local autocmds = {}
   local builder
   local cleanup, layout = form_utils.open_form_win(bufnr, {
-    autocmds = autocmds,
     on_resize = function()
       builder:render()
     end,
     get_preferred_dim = function()
       local max_len = 1
       for k, v in pairs(schema) do
-        local len = string.len(form_utils.render_field(v, " ", k, params[k]))
+        local len = string.len(k .. tostring(form_utils.render_value(v, params[k]))) + 2
+        if v.required then
+          len = len + 1
+        end
         if v.desc then
           len = len + 1 + string.len(v.desc)
         end
@@ -123,17 +121,14 @@ function Builder.new(title, schema, params, callback)
       return max_len, #keys + 1
     end,
   })
-  table.insert(
-    autocmds,
-    vim.api.nvim_create_autocmd("BufEnter", {
-      desc = "Reset disable_close_on_leave",
-      buffer = bufnr,
-      nested = true,
-      callback = function()
-        builder.disable_close_on_leave = false
-      end,
-    })
-  )
+  vim.api.nvim_create_autocmd("BufEnter", {
+    desc = "Reset disable_close_on_leave",
+    buffer = bufnr,
+    nested = true,
+    callback = function()
+      builder.disable_close_on_leave = false
+    end,
+  })
   vim.bo[bufnr].filetype = "OverseerForm"
 
   builder = setmetatable({
@@ -146,7 +141,6 @@ function Builder.new(title, schema, params, callback)
     callback = callback,
     cleanup = cleanup,
     layout = layout,
-    autocmds = autocmds,
     bufnr = bufnr,
     fields_focused = {},
     fields_ever_focused = {},
@@ -166,55 +160,43 @@ function Builder.new(title, schema, params, callback)
 end
 
 function Builder:init_autocmds()
-  table.insert(
-    self.autocmds,
-    vim.api.nvim_create_autocmd({ "TextChanged", "TextChangedI" }, {
-      desc = "Update form on change",
-      buffer = self.bufnr,
-      nested = true,
-      callback = function()
-        local lnum = vim.api.nvim_win_get_cursor(0)[1]
-        local line = vim.api.nvim_buf_get_lines(0, lnum - 1, lnum, true)[1]
-        self.cur_line = { lnum, line }
-        self:parse()
-        vim.bo[self.bufnr].modified = false
-      end,
-    })
-  )
-  table.insert(
-    self.autocmds,
-    vim.api.nvim_create_autocmd("InsertLeave", {
-      desc = "Rerender form",
-      buffer = self.bufnr,
-      callback = function()
-        self:render()
-      end,
-    })
-  )
-  table.insert(
-    self.autocmds,
-    vim.api.nvim_create_autocmd({ "CursorMoved", "CursorMovedI" }, {
-      desc = "Update form on move cursor",
-      buffer = self.bufnr,
-      nested = true,
-      callback = function()
-        self:on_cursor_move()
-      end,
-    })
-  )
-  table.insert(
-    self.autocmds,
-    vim.api.nvim_create_autocmd("BufLeave", {
-      desc = "Close float on BufLeave",
-      buffer = self.bufnr,
-      nested = true,
-      callback = function()
-        if not self.disable_close_on_leave then
-          self:cancel()
-        end
-      end,
-    })
-  )
+  vim.api.nvim_create_autocmd({ "TextChanged", "TextChangedI" }, {
+    desc = "Update form on change",
+    buffer = self.bufnr,
+    nested = true,
+    callback = function()
+      local lnum = vim.api.nvim_win_get_cursor(0)[1]
+      local line = vim.api.nvim_buf_get_lines(0, lnum - 1, lnum, true)[1]
+      self.cur_line = { lnum, line }
+      self:parse()
+      vim.bo[self.bufnr].modified = false
+    end,
+  })
+  vim.api.nvim_create_autocmd("InsertLeave", {
+    desc = "Rerender form",
+    buffer = self.bufnr,
+    callback = function()
+      self:render()
+    end,
+  })
+  vim.api.nvim_create_autocmd({ "CursorMoved", "CursorMovedI" }, {
+    desc = "Update form on move cursor",
+    buffer = self.bufnr,
+    nested = true,
+    callback = function()
+      self:on_cursor_move()
+    end,
+  })
+  vim.api.nvim_create_autocmd("BufLeave", {
+    desc = "Close float on BufLeave",
+    buffer = self.bufnr,
+    nested = true,
+    callback = function()
+      if not self.disable_close_on_leave then
+        self:cancel()
+      end
+    end,
+  })
 end
 
 function Builder:init_keymaps()
@@ -266,7 +248,7 @@ function Builder:render()
       {
         virt_text = { { prefix, "NormalFloat" }, { name, field_hl }, { ": ", "NormalFloat" } },
         virt_text_pos = "inline",
-        right_gravity = false,
+        undo_restore = false,
         invalidate = true,
       },
     })
@@ -281,7 +263,7 @@ function Builder:render()
           #lines - 1,
           i,
           {
-            right_gravity = false,
+            undo_restore = false,
             strict = false,
             conceal = "*",
             end_col = i + 1,
