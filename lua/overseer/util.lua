@@ -171,15 +171,18 @@ end
 ---@param text string
 ---@param width number
 ---@param alignment "left"|"right"|"center"
+---@return string
 M.align = function(text, width, alignment)
+  local textwidth = vim.api.nvim_strwidth(text)
   if alignment == "center" then
-    local padding = math.floor((width - string.len(text)) / 2)
-    return string.rep(" ", padding) .. text
+    local padding = math.floor((width - textwidth) / 2)
+    return string.rep(" ", padding) .. text .. string.rep(" ", width - textwidth - padding)
   elseif alignment == "right" then
-    local padding = width - string.len(text)
+    local padding = width - textwidth
     return string.rep(" ", padding) .. text
   else
-    return text
+    local padding = width - textwidth
+    return text .. string.rep(" ", padding)
   end
 end
 

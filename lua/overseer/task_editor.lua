@@ -31,9 +31,31 @@ local bindings = {
   },
 }
 
+local task_editable_params = { "cmd", "cwd" }
+---@type overseer.Params
+local task_builtin_params = {
+  -- It's kind of a hack to specify a delimiter without type = 'list'. This is
+  -- so the task editor displays nicely if the value is a list OR a string
+  cmd = { delimiter = " " },
+  cwd = {
+    optional = true,
+  },
+}
+
+---@class overseer.TaskEditor
+---@field cur_line? {[1]: number, [2]: string}
+---@field bufnr integer
+---@field private components overseer.ComponentDefinition[]
+---@field private ext_id_to_comp_and_schema_field_name table<integer, {[1]: overseer.ComponentDefinition?, [2]: string?}>
+---@field private task overseer.Task
+---@field private task_data table<string, any>
+---@field private callback fun(task?: overseer.Task)
+---@field layout fun()
+---@field cleanup fun()
 local Editor = {}
 
 function Editor.new(task, task_cb)
+  -- Make sure the task doesn't get disposed while we're editing it
   task:inc_reference()
   local function callback(...)
     task:dec_reference()
@@ -41,6 +63,7 @@ function Editor.new(task, task_cb)
       task_cb(...)
     end
   end
+
   local bufnr = vim.api.nvim_create_buf(false, true)
   vim.bo[bufnr].swapfile = false
   vim.bo[bufnr].bufhidden = "wipe"
@@ -52,19 +75,13 @@ function Editor.new(task, task_cb)
     table.insert(components, vim.deepcopy(comp.params))
   end
   local task_data = {}
-  for k in pairs(Task.params) do
+  for k in pairs(task_builtin_params) do
     task_data[k] = vim.deepcopy(task[k])
   end
 
-  local autocmds = {}
-  local cleanup, layout = form_utils.open_form_win(bufnr, {
-    autocmds = autocmds,
-    get_preferred_dim = function()
-      -- TODO this is causing a lot of jumping
-    end,
-  })
+  local cleanup, layout = form_utils.open_form_win(bufnr, {})
   vim.bo[bufnr].filetype = "OverseerForm"
-  local editor = setmetatable({
+  local self = setmetatable({
     cur_line = nil,
     task = task,
     callback = callback,
@@ -72,14 +89,13 @@ function Editor.new(task, task_cb)
     components = components,
     task_name = task.name,
     task_data = task_data,
-    line_to_comp = {},
     disable_close_on_leave = false,
+    ext_id_to_comp_and_schema_field_name = {},
     layout = layout,
     cleanup = cleanup,
-    autocmds = autocmds,
   }, { __index = Editor })
 
-  binding_util.create_plug_bindings(bufnr, bindings, editor)
+  binding_util.create_plug_bindings(bufnr, bindings, self)
   for mode, user_bindings in pairs(config.task_launcher.bindings) do
     binding_util.create_bindings_to_plug(bufnr, mode, user_bindings, "OverseerLauncher:")
   end
@@ -87,112 +103,98 @@ function Editor.new(task, task_cb)
     desc = "Submit on buffer write",
     buffer = bufnr,
     callback = function()
-      editor:submit()
+      self:submit()
     end,
   })
 
-  table.insert(
-    editor.autocmds,
-    vim.api.nvim_create_autocmd("BufLeave", {
-      desc = "Close float on BufLeave",
-      buffer = bufnr,
-      nested = true,
-      callback = function()
-        if not editor.disable_close_on_leave then
-          editor:cancel()
-        end
-      end,
-    })
-  )
-  table.insert(
-    editor.autocmds,
-    vim.api.nvim_create_autocmd("BufEnter", {
-      desc = "Reset disable_close_on_leave",
-      buffer = bufnr,
-      nested = true,
-      callback = function()
-        editor.disable_close_on_leave = false
-      end,
-    })
-  )
-  table.insert(
-    editor.autocmds,
-    vim.api.nvim_create_autocmd({ "TextChanged", "TextChangedI" }, {
-      desc = "Update form on change",
-      buffer = bufnr,
-      nested = true,
-      callback = function()
-        local lnum = vim.api.nvim_win_get_cursor(0)[1]
-        local line = vim.api.nvim_buf_get_lines(0, lnum - 1, lnum, true)[1]
-        editor.cur_line = { lnum, line }
-        editor:parse()
-      end,
-    })
-  )
-  table.insert(
-    editor.autocmds,
-    vim.api.nvim_create_autocmd("InsertLeave", {
-      desc = "Rerender form",
-      buffer = bufnr,
-      callback = function()
-        editor:render()
-      end,
-    })
-  )
-  table.insert(
-    editor.autocmds,
-    vim.api.nvim_create_autocmd({ "CursorMoved", "CursorMovedI" }, {
-      desc = "Update form on move cursor",
-      buffer = bufnr,
-      nested = true,
-      callback = function()
-        editor:on_cursor_move()
-      end,
-    })
-  )
-  return editor
+  vim.api.nvim_create_autocmd("BufLeave", {
+    desc = "Close float on BufLeave",
+    buffer = bufnr,
+    nested = true,
+    callback = function()
+      if not self.disable_close_on_leave then
+        self:cancel()
+      end
+    end,
+  })
+  vim.api.nvim_create_autocmd("BufEnter", {
+    desc = "Reset disable_close_on_leave",
+    buffer = bufnr,
+    nested = true,
+    callback = function()
+      self.disable_close_on_leave = false
+    end,
+  })
+  vim.api.nvim_create_autocmd({ "TextChanged", "TextChangedI" }, {
+    desc = "Update form on change",
+    buffer = bufnr,
+    nested = true,
+    callback = function()
+      local lnum = vim.api.nvim_win_get_cursor(0)[1]
+      local line = vim.api.nvim_buf_get_lines(0, lnum - 1, lnum, true)[1]
+      self.cur_line = { lnum, line }
+      self:parse()
+      vim.bo[self.bufnr].modified = false
+    end,
+  })
+  vim.api.nvim_create_autocmd("InsertLeave", {
+    desc = "Rerender form",
+    buffer = bufnr,
+    callback = function()
+      self:render()
+    end,
+  })
+  vim.api.nvim_create_autocmd({ "CursorMoved" }, {
+    desc = "Update form on move cursor",
+    buffer = bufnr,
+    nested = true,
+    callback = function()
+      self:on_cursor_move()
+    end,
+  })
+  return self
+end
+
+---@private
+---@return table<integer, {[1]: overseer.ComponentDefinition?, [2]: string}>
+function Editor:get_lnum_to_comp_and_field()
+  local ns = vim.api.nvim_create_namespace("overseer")
+  local extmarks = vim.api.nvim_buf_get_extmarks(self.bufnr, ns, 0, -1, { type = "virt_text" })
+  local lnum_to_field_name = {}
+  for _, extmark in ipairs(extmarks) do
+    local ext_id, row = extmark[1], extmark[2]
+    local comp_and_field = self.ext_id_to_comp_and_schema_field_name[ext_id]
+    if comp_and_field then
+      lnum_to_field_name[row + 1] = comp_and_field
+    end
+  end
+  return lnum_to_field_name
 end
 
 function Editor:on_cursor_move()
   if vim.api.nvim_get_mode().mode == "i" then
     return
   end
-  local cur = vim.api.nvim_win_get_cursor(0)
-  if self.cur_line and self.cur_line[1] ~= cur[1] then
+  local lnum = vim.api.nvim_win_get_cursor(0)[1]
+  if self.cur_line and self.cur_line[1] ~= lnum then
     self.cur_line = nil
     self:render()
     return
   end
-  local original_cur = vim.deepcopy(cur)
   local vtext_ns = vim.api.nvim_create_namespace("overseer_vtext")
   vim.api.nvim_buf_clear_namespace(self.bufnr, vtext_ns, 0, -1)
+  local lnum_to_comp_and_field = self:get_lnum_to_comp_and_field()
 
-  -- First line is task name, successive lines are task params
-  -- If cursor is on the task params, make sure it's past the label
-  if cur[1] > 1 and cur[1] <= #Task.ordered_params + 1 then
-    local param_name = Task.ordered_params[cur[1] - 1]
-    local schema = Task.params[param_name]
-    local label = form_utils.render_field(schema, "", param_name, "")
-    if cur[2] < string.len(label) then
-      cur[2] = string.len(label)
-      vim.api.nvim_win_set_cursor(0, cur)
-    end
+  local comp_and_field = lnum_to_comp_and_field[lnum]
+  if not comp_and_field then
     return
   end
+  local comp, field_name = comp_and_field[1], comp_and_field[2]
 
-  if not self.line_to_comp[cur[1]] then
-    return
-  end
-  local comp, param_name = unpack(self.line_to_comp[cur[1]])
-
-  if param_name then
-    local schema = comp.params[param_name]
-    local label = form_utils.render_field(schema, "  ", param_name, "")
-    if cur[2] < string.len(label) then
-      cur[2] = string.len(label)
-    end
+  if comp and field_name then
+    local schema = comp.params[field_name]
     if schema.desc then
-      vim.api.nvim_buf_set_extmark(self.bufnr, vtext_ns, cur[1] - 1, 0, {
+      vim.api.nvim_buf_set_extmark(self.bufnr, vtext_ns, lnum - 1, 0, {
         virt_text = { { schema.desc, "Comment" } },
       })
     end
@@ -201,55 +203,78 @@ function Editor:on_cursor_move()
       or completion_schema.choices
     vim.api.nvim_buf_set_var(0, "overseer_choices", choices)
   end
-  if cur[1] ~= original_cur[1] or cur[2] ~= original_cur[2] then
-    vim.api.nvim_win_set_cursor(0, cur)
-  end
 end
 
 function Editor:render()
   local ns = vim.api.nvim_create_namespace("overseer")
   vim.api.nvim_buf_clear_namespace(self.bufnr, ns, 0, -1)
-  self.line_to_comp = {}
   local lines = { self.task_name }
   local highlights = { { "OverseerTask", 1, 0, -1 } }
+  local ext_idx_to_comp_and_schema_field_name = {}
+  local extmarks = {}
 
-  for _, k in ipairs(Task.ordered_params) do
-    local schema = Task.params[k]
+  for _, k in ipairs(task_editable_params) do
+    local schema = task_builtin_params[k]
     local value = self.task_data[k]
-    table.insert(lines, form_utils.render_field(schema, "", k, value))
-    if form_utils.validate_field(schema, value) then
-      table.insert(highlights, { "OverseerField", #lines, 0, string.len(k) })
-    else
-      table.insert(highlights, { "DiagnosticError", #lines, 0, string.len(k) })
-    end
+    table.insert(lines, tostring(form_utils.render_value(schema, value)))
+    local hl = form_utils.validate_field(schema, value) and "OverseerField" or "DiagnosticError"
+    table.insert(extmarks, {
+      #lines,
+      0,
+      {
+        virt_text = { { k, hl }, { ": ", "NormalFloat" } },
+        virt_text_pos = "inline",
+        undo_restore = false,
+        invalidate = true,
+      },
+    })
+    ext_idx_to_comp_and_schema_field_name[#extmarks] = { nil, k }
   end
 
   for _, params in ipairs(self.components) do
     local comp = assert(component.get(params[1]))
-    local line = comp.name
-    table.insert(highlights, { "OverseerComponent", #lines + 1, 0, string.len(comp.name) })
+    table.insert(lines, "")
+    local desc
     if comp.desc then
-      local prev_len = string.len(line)
-      line = string.format("%s (%s)", line, comp.desc)
-      table.insert(highlights, { "Comment", #lines + 1, prev_len + 1, -1 })
+      desc = { string.format(" (%s)", comp.desc), "Comment" }
     end
-    table.insert(lines, line)
-    self.line_to_comp[#lines] = { comp, nil }
+    table.insert(extmarks, {
+      #lines,
+      0,
+      {
+        virt_text = { { comp.name, "OverseerComponent" }, desc },
+        virt_text_pos = "overlay",
+        invalidate = true,
+        undo_restore = false,
+      },
+    })
+    ext_idx_to_comp_and_schema_field_name[#extmarks] = { comp, nil }
 
     local schema = comp.params
     if schema then
       for k, param_schema in pairs(schema) do
         local value = params[k]
-        table.insert(lines, form_utils.render_field(param_schema, "  ", k, value))
-        if form_utils.validate_field(param_schema, value) then
-          table.insert(highlights, { "OverseerField", #lines, 0, 2 + string.len(k) })
-        else
-          table.insert(highlights, { "DiagnosticError", #lines, 0, 2 + string.len(k) })
+        table.insert(lines, tostring(form_utils.render_value(param_schema, value)))
+        local field_hl = "OverseerField"
+        if not form_utils.validate_field(param_schema, value) then
+          field_hl = "DiagnosticError"
         end
-        self.line_to_comp[#lines] = { comp, k }
+        table.insert(extmarks, {
+          #lines,
+          0,
+          {
+            virt_text = { { "  " .. k, field_hl }, { ": ", "NormalFloat" } },
+            virt_text_pos = "inline",
+            undo_restore = false,
+            invalidate = true,
+          },
+        })
+        ext_idx_to_comp_and_schema_field_name[#extmarks] = { comp, k }
       end
     end
   end
+
+  -- When in insert mode, don't overwrite whatever in-progress value the user is typing
   if self.cur_line and vim.api.nvim_get_mode().mode == "i" then
     local lnum, line = unpack(self.cur_line)
     lines[lnum] = line
@@ -262,9 +287,15 @@ function Editor:render()
       virt_text = { { "Task name is required", "DiagnosticError" } },
     })
   end
+  for i, mark in ipairs(extmarks) do
+    local lnum, col, opts = unpack(mark)
+    local ext_id = vim.api.nvim_buf_set_extmark(self.bufnr, ns, lnum - 1, col, opts)
+    self.ext_id_to_comp_and_schema_field_name[ext_id] = ext_idx_to_comp_and_schema_field_name[i]
+  end
   self:on_cursor_move()
 end
 
+---@param insert_position integer
 function Editor:add_new_component(insert_position)
   self.disable_close_on_leave = true
   self.cur_line = nil
@@ -274,6 +305,7 @@ function Editor:add_new_component(insert_position)
   end
 
   local options = {}
+  local longest_option = 1
   local existing = {}
   for _, comp in ipairs(self.components) do
     existing[comp[1]] = true
@@ -281,11 +313,13 @@ function Editor:add_new_component(insert_position)
   for _, v in ipairs(component.list_editable()) do
     if not existing[v] then
       table.insert(options, v)
+      longest_option = math.max(longest_option, vim.api.nvim_strwidth(v))
     end
   end
   for _, v in ipairs(component.list_aliases()) do
     if not v:match("^default") then
       table.insert(options, v)
+      longest_option = math.max(longest_option, vim.api.nvim_strwidth(v))
     end
   end
   table.sort(options)
@@ -294,15 +328,16 @@ function Editor:add_new_component(insert_position)
     prompt = "New component",
     kind = "overseer_new_component",
     format_item = function(item)
+      local name = util.align(item, longest_option, "left")
       local comp = component.get(item)
       if comp then
         if comp.desc then
-          return string.format("%s - %s", item, comp.desc)
+          return string.format("%s %s", name, comp.desc)
         else
           return item
         end
       else
-        return string.format("%s [%s]", item, component.stringify_alias(item))
+        return string.format("%s [%s]", name, component.stringify_alias(item))
       end
     end,
   }, function(result)
@@ -317,7 +352,7 @@ function Editor:add_new_component(insert_position)
           else
             compdef = vim.tbl_deep_extend("force", component.create_default_params(v[1]), v)
           end
-          table.insert(self.components, insert_position - 1 + i, compdef)
+          table.insert(self.components, insert_position + i, compdef)
         end
       else
         local params = component.create_default_params(result)
@@ -329,68 +364,43 @@ function Editor:add_new_component(insert_position)
 end
 
 function Editor:parse()
-  self.task_name = vim.api.nvim_buf_get_lines(self.bufnr, 0, 1, true)[1]
-  local offset = 1
-  local buflines = vim.api.nvim_buf_get_lines(self.bufnr, offset, -1, true)
+  local lines = vim.api.nvim_buf_get_lines(self.bufnr, 0, -1, true)
+  self.task_name = lines[1]
+  local lnum_to_comp_and_field = self:get_lnum_to_comp_and_field()
   local comp_map = {}
-  local comp_idx = {}
-  for i, v in ipairs(self.components) do
+  for _, v in ipairs(self.components) do
     comp_map[v[1]] = v
-    comp_idx[v[1]] = i
   end
 
-  local insert_position = #self.components + 1
-  for i, line in ipairs(buflines) do
-    if line:match("^%s*$") then
-      local comp = self.line_to_comp[i + offset]
-      if comp then
-        insert_position = comp_idx[comp[1].name]
-      elseif i < #buflines / 2 then
-        insert_position = 1
-      end
-      self:add_new_component(insert_position)
+  local new_comp_insert_pos = 1
+  local seen_components = {}
+  -- Skip the first line, which is the task name
+  for i = 2, #lines do
+    local line = lines[i]
+    local comp_and_field = lnum_to_comp_and_field[i]
+    -- If this line doesn't map to a task param, component name, or component field, then it is a
+    -- new blank line and we should insert a new component
+    if not comp_and_field then
+      self:add_new_component(new_comp_insert_pos)
       return
     end
-  end
+    local comp, field_name = comp_and_field[1], comp_and_field[2]
 
-  local seen_comps = {}
-  local comp
-  local last_idx = 0
-  for _, line in ipairs(buflines) do
-    local prefix, name, text = line:match("^(%s*)([^%s]+): ?(.*)$")
-    if name and comp and prefix == "  " then
-      local param_schema = comp.params[name]
-      if param_schema then
-        local parsed, value = form_utils.parse_value(param_schema, text)
-        if parsed then
-          comp_map[comp.name][name] = value
-        end
+    if not comp and field_name then
+      -- This is a task param
+      local param_schema = task_builtin_params[field_name]
+      local parsed, value = form_utils.parse_value(param_schema, line)
+      if parsed then
+        self.task_data[field_name] = value
       end
-    elseif name and prefix == "" then
-      local param_schema = Task.params[name]
-      if param_schema then
-        local parsed, value = form_utils.parse_value(param_schema, text)
-        if parsed then
-          self.task_data[name] = value
-        end
-      end
-    else
-      local comp_name = line:match("^([^%s]+) ")
-      if comp_name then
-        comp = component.get(comp_name)
-        if comp then
-          if not comp_map[comp_name] then
-            -- This is a new component we need to insert
-            last_idx = last_idx + 1
-            local params = component.create_default_params(comp_name)
-            comp_map[comp_name] = params
-            comp_idx[comp_name] = last_idx
-            table.insert(self.components, last_idx, params)
-          else
-            last_idx = comp_idx[comp_name]
-          end
-          seen_comps[comp_name] = true
-        end
+    elseif comp and not field_name then
+      new_comp_insert_pos = new_comp_insert_pos + 1
+      seen_components[comp.name] = true
+    elseif comp then
+      local param_schema = comp.params[field_name]
+      local parsed, value = form_utils.parse_value(param_schema, line)
+      if parsed then
+        comp_map[comp.name][field_name] = value
       end
     end
   end
@@ -398,7 +408,7 @@ function Editor:parse()
   -- Remove all the components that we didn't see
   local to_remove = {}
   for i, v in ipairs(self.components) do
-    if not seen_comps[v[1]] then
+    if not seen_components[v[1]] then
       table.insert(to_remove, 1, i)
     end
   end

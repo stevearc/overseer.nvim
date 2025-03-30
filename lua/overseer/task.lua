@@ -31,17 +31,6 @@ local Task = {}
 
 local next_id = 1
 
-Task.ordered_params = { "cmd", "cwd" }
----@type overseer.Params
-Task.params = {
-  -- It's kind of a hack to specify a delimiter without type = 'list'. This is
-  -- so the task editor displays nicely if the value is a list OR a string
-  cmd = { delimiter = " " },
-  cwd = {
-    optional = true,
-  },
-}
-
 ---@class (exact) overseer.TaskDefinition
 ---@field cmd string|string[] Command to run. If it's a string it is run in the shell; a table is run directly
 ---@field args? string[] Arguments to pass to the command
