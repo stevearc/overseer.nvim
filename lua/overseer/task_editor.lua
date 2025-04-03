@@ -1,4 +1,3 @@
-local Task = require("overseer.task")
 local binding_util = require("overseer.binding_util")
 local component = require("overseer.component")
 local config = require("overseer.config")
@@ -367,10 +366,6 @@ function Editor:parse()
   local lines = vim.api.nvim_buf_get_lines(self.bufnr, 0, -1, true)
   self.task_name = lines[1]
   local lnum_to_comp_and_field = self:get_lnum_to_comp_and_field()
-  local comp_map = {}
-  for _, v in ipairs(self.components) do
-    comp_map[v[1]] = v
-  end
 
   local new_comp_insert_pos = 1
   local seen_components = {}
@@ -396,12 +391,6 @@ function Editor:parse()
     elseif comp and not field_name then
       new_comp_insert_pos = new_comp_insert_pos + 1
       seen_components[comp.name] = true
-    elseif comp then
-      local param_schema = comp.params[field_name]
-      local parsed, value = form_utils.parse_value(param_schema, line)
-      if parsed then
-        comp_map[comp.name][field_name] = value
-      end
     end
   end
 

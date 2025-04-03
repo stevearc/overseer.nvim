@@ -237,15 +237,6 @@ return {
         -- Will be called IFF on_init was called, and will be called exactly once.
         -- This is a good place to free resources (e.g. timers, files, etc)
       end,
-      ---@param lines string[] The list of lines to render into
-      ---@param highlights table[] List of highlights to apply after rendering
-      ---@param detail number The detail level of the task. Ranges from 1 to 3.
-      render = function(self, task, lines, highlights, detail)
-        -- Called from the task list. This can be used to display information there.
-        table.insert(lines, "Here is a line of output")
-        -- The format is {highlight_group, lnum, col_start, col_end}
-        table.insert(highlights, { "Title", #lines, 0, -1 })
-      end,
     }
   end,
 }

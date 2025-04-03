@@ -65,34 +65,6 @@ M = {
     end,
   },
   {
-    desc = "Increase task detail level",
-    plug = "<Plug>OverseerTask:IncreaseDetail",
-    rhs = function(sidebar)
-      sidebar:change_task_detail(1)
-    end,
-  },
-  {
-    desc = "Decrease task detail level",
-    plug = "<Plug>OverseerTask:DecreaseDetail",
-    rhs = function(sidebar)
-      sidebar:change_task_detail(-1)
-    end,
-  },
-  {
-    desc = "Increase all task detail levels",
-    plug = "<Plug>OverseerTask:IncreaseAllDetail",
-    rhs = function(sidebar)
-      sidebar:change_default_detail(1)
-    end,
-  },
-  {
-    desc = "Decrease all task detail levels",
-    plug = "<Plug>OverseerTask:DecreaseAllDetail",
-    rhs = function(sidebar)
-      sidebar:change_default_detail(-1)
-    end,
-  },
-  {
     desc = "Decrease window width",
     plug = "<Plug>OverseerTask:DecreaseWidth",
     rhs = function()

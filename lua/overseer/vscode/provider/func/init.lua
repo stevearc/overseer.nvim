@@ -2,7 +2,6 @@
 -- VS Code task definition provided by https://github.com/microsoft/vscode-azurefunctions
 -- Reference implementation: https://github.com/microsoft/vscode-azurefunctions/blob/411ece5f9453af075c1ff48c70aec349f5942a47/src/debug/FuncTaskProvider.ts#L101
 local log = require("overseer.log")
-local vs_util = require("overseer.vscode.vs_util")
 local M = {}
 
 M.problem_patterns = {

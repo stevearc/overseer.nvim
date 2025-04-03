@@ -16,7 +16,7 @@ return {
   desc = "Use nvim-notify to show notification with task output summary for long-running tasks",
 
   long_desc = vim.trim([[
-Works like on_complete_notify but, for long-running commands, also shows real-time output summary (like on_output_summarize).
+Works like on_complete_notify but, for long-running commands, also shows real-time output summary.
 Requires nvim-notify to modify the last notification window when new output arrives instead of creating new notification.
   ]]),
 

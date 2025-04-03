@@ -115,16 +115,6 @@ M.render_value = function(schema, value)
 end
 
 ---@param schema overseer.Param
----@param prefix string
----@param name string
----@param value any
----@return string
-M.render_field = function(schema, prefix, name, value)
-  local str_value = M.render_value(schema, value)
-  return string.format("%s%s: %s", prefix, name, str_value)
-end
-
----@param schema overseer.Param
 ---@param value any
 ---@return boolean
 local function validate_type(schema, value)

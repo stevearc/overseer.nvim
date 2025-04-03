@@ -3,8 +3,6 @@ local default_config = {
   dap = true,
   -- Configure the task list
   task_list = {
-    -- Default detail level for tasks. Can be 1-3.
-    default_detail = 1,
     -- Width dimensions can be integers or a float between 0 and 1 (e.g. 0.4 for 40%)
     -- min_width and max_width can be a single value or a list of mixed integer/float types.
     -- max_width = {100, 0.2} means "the lesser of 100 columns or 20% of total"
@@ -17,7 +15,14 @@ local default_config = {
     min_height = 8,
     height = nil,
     -- String that separates tasks
-    separator = "────────────────────────────────────────",
+    separator = "━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━",
+    -- Indentation for child tasks
+    child_indent = { "┃ ", "┣━", "┗━" },
+    -- Function that renders tasks. See lua/overseer/render.lua for built-in options
+    -- and for useful functions if you want to build your own.
+    render = function(task)
+      return require("overseer.render").format_standard(task)
+    end,
     -- Default direction. Can be "left", "right", or "bottom"
     direction = "bottom",
     -- Set keymap to false to remove default behavior
@@ -33,10 +38,6 @@ local default_config = {
       ["<C-f>"] = "OpenFloat",
       ["<C-q>"] = "OpenQuickFix",
       ["p"] = "TogglePreview",
-      ["<C-l>"] = "IncreaseDetail",
-      ["<C-h>"] = "DecreaseDetail",
-      ["L"] = "IncreaseAllDetail",
-      ["H"] = "DecreaseAllDetail",
       ["["] = "DecreaseWidth",
       ["]"] = "IncreaseWidth",
       ["{"] = "PrevTask",
@@ -122,8 +123,6 @@ local default_config = {
   component_aliases = {
     -- Most tasks are initialized with the default components
     default = {
-      { "display_duration", detail_level = 2 },
-      "on_output_summarize",
       "on_exit_set_status",
       "on_complete_notify",
       { "on_complete_dispose", require_view = { "SUCCESS", "FAILURE" } },
@@ -225,7 +224,6 @@ end
 ---@field log? table[]
 
 ---@class (exact) overseer.ConfigTaskList
----@field default_detail? 1|2|3 Default detail level for tasks. Can be 1-3.
 ---@field max_width? number|number[] Width dimensions can be integers or a float between 0 and 1 (e.g. 0.4 for 40%). min_width and max_width can be a single value or a list of mixed integer/float types. max_width = {100, 0.2} means "the lesser of 100 columns or 20% of total"
 ---@field min_width? number|number[] min_width = {40, 0.1} means "the greater of 40 columns or 10% of total"
 ---@field width? number optionally define an integer/float for the exact width of the task list

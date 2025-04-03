@@ -1,6 +1,5 @@
 local component = require("overseer.component")
 local constants = require("overseer.constants")
-local form_utils = require("overseer.form.utils")
 local layout = require("overseer.layout")
 local log = require("overseer.log")
 local shell = require("overseer.shell")
@@ -25,6 +24,8 @@ local STATUS = constants.STATUS
 ---@field exit_code? number
 ---@field components overseer.Component[]
 ---@field parent_id? integer ID of parent task. Used only to visually group tasks in the task list
+---@field time_start? integer
+---@field time_end? integer
 ---@field private prev_bufnr? integer
 ---@field private _subscribers table<string, function[]>
 local Task = {}
@@ -123,85 +124,6 @@ function Task.new(opts)
     vim.b[bufnr].overseer_task = task.id
   end
   return task
-end
-
-local function stringify_result(res)
-  if type(res) == "table" then
-    if vim.tbl_isempty(res) then
-      return "{}"
-    else
-      return string.format("{<%d items>}", vim.tbl_count(res))
-    end
-  else
-    return string.format("%s", res)
-  end
-end
-
-function Task:render(lines, highlights, detail)
-  vim.validate({
-    lines = { lines, "t" },
-    detail = { detail, "n" },
-  })
-  table.insert(lines, string.format("%s: %s", self.status, self.name))
-  table.insert(highlights, { "Overseer" .. self.status, #lines, 0, string.len(self.status) })
-  table.insert(highlights, { "OverseerTask", #lines, string.len(self.status) + 2, -1 })
-
-  if detail > 1 and self.cmd then
-    local cmd = self.cmd
-    local cmd_str
-    if type(cmd) == "string" then
-      cmd_str = cmd
-    else
-      cmd_str = table.concat(cmd, " ")
-    end
-    table.insert(lines, cmd_str)
-  end
-
-  -- Render components
-  if detail >= 3 then
-    for _, comp in ipairs(self.components) do
-      if comp.desc then
-        table.insert(lines, string.format("%s (%s)", comp.name, comp.desc))
-        table.insert(highlights, { "OverseerComponent", #lines, 0, string.len(comp.name) })
-        table.insert(highlights, { "Comment", #lines, string.len(comp.name) + 1, -1 })
-      else
-        table.insert(lines, comp.name)
-      end
-
-      local comp_def = assert(component.get(comp.name))
-      for k, v in pairs(comp.params) do
-        if k ~= 1 then
-          table.insert(lines, form_utils.render_field(comp_def.params[k], "  ", k, v))
-        end
-      end
-
-      if comp.render then
-        comp:render(self, lines, highlights, detail)
-      end
-    end
-  else
-    for _, comp in ipairs(self.components) do
-      if comp.render then
-        comp:render(self, lines, highlights, detail)
-      end
-    end
-  end
-
-  -- Render the result
-  if self.result and not vim.tbl_isempty(self.result) then
-    if detail == 1 then
-      local pieces = {}
-      for k, v in pairs(self.result) do
-        table.insert(pieces, string.format("%s=%s", k, stringify_result(v)))
-      end
-      table.insert(lines, "Result: " .. table.concat(pieces, ", "))
-    else
-      table.insert(lines, "Result:")
-      for k, v in pairs(self.result) do
-        table.insert(lines, string.format("  %s = %s", k, stringify_result(v)))
-      end
-    end
-  end
 end
 
 ---Check if task should be included when saving "all" tasks to a bundle file
@@ -452,6 +374,8 @@ function Task:reset()
     error(string.format("Cannot reset %s task", self.status))
     return
   end
+  self.time_start = nil
+  self.time_end = nil
   self.result = nil
   self.exit_code = nil
   self.status = STATUS.PENDING
@@ -518,6 +442,7 @@ function Task:finalize(status)
     log.error("Task %s finalize passed invalid status %s", self.name, status)
     return
   end
+  self.time_end = os.time()
   self.status = status
   local results = self:dispatch("on_pre_result")
   if not vim.tbl_isempty(results) then
@@ -663,6 +588,7 @@ function Task:start()
     log.error("Strategy '%s' failed to start for task '%s': %s", self.strategy.name, self.name, err)
     return false
   end
+  self.time_start = os.time()
   self.status = STATUS.RUNNING
   self:dispatch("on_status", self.status)
   self:dispatch("on_start")

@@ -23,7 +23,6 @@
   - [register_alias(name, components)](#register_aliasname-components)
 - [Components](#components)
   - [dependencies](components.md#dependencies)
-  - [display_duration](components.md#display_duration)
   - [on_complete_dispose](components.md#on_complete_dispose)
   - [on_complete_notify](components.md#on_complete_notify)
   - [on_complete_restart](components.md#on_complete_restart)
@@ -31,7 +30,6 @@
   - [on_output_notify](components.md#on_output_notify)
   - [on_output_parse](components.md#on_output_parse)
   - [on_output_quickfix](components.md#on_output_quickfix)
-  - [on_output_summarize](components.md#on_output_summarize)
   - [on_output_write_file](components.md#on_output_write_file)
   - [on_result_diagnostics](components.md#on_result_diagnostics)
   - [on_result_diagnostics_quickfix](components.md#on_result_diagnostics_quickfix)
@@ -78,8 +76,6 @@ require("overseer").setup({
   dap = true,
   -- Configure the task list
   task_list = {
-    -- Default detail level for tasks. Can be 1-3.
-    default_detail = 1,
     -- Width dimensions can be integers or a float between 0 and 1 (e.g. 0.4 for 40%)
     -- min_width and max_width can be a single value or a list of mixed integer/float types.
     -- max_width = {100, 0.2} means "the lesser of 100 columns or 20% of total"
@@ -108,10 +104,6 @@ require("overseer").setup({
       ["<C-f>"] = "OpenFloat",
       ["<C-q>"] = "OpenQuickFix",
       ["p"] = "TogglePreview",
-      ["<C-l>"] = "IncreaseDetail",
-      ["<C-h>"] = "DecreaseDetail",
-      ["L"] = "IncreaseAllDetail",
-      ["H"] = "DecreaseAllDetail",
       ["["] = "DecreaseWidth",
       ["]"] = "IncreaseWidth",
       ["{"] = "PrevTask",
@@ -197,8 +189,6 @@ require("overseer").setup({
   component_aliases = {
     -- Most tasks are initialized with the default components
     default = {
-      { "display_duration", detail_level = 2 },
-      "on_output_summarize",
       "on_exit_set_status",
       "on_complete_notify",
       { "on_complete_dispose", require_view = { "SUCCESS", "FAILURE" } },
@@ -209,6 +199,10 @@ require("overseer").setup({
       "on_result_diagnostics",
     },
   },
+  -- List of other directories to search for task templates.
+  -- This will search under the runtimepath, so for example
+  -- "foo/bar" will search "<runtimepath>/lua/foo/bar/*"
+  template_dirs = {},
   -- For template providers, how long to wait (in ms) before timing out.
   -- Set to 0 to wait forever.
   template_timeout = 3000,
@@ -546,7 +540,6 @@ require("overseer").register_alias("my_plugin", { "default", "on_output_quickfix
 <!-- TOC.components -->
 
 - [dependencies](components.md#dependencies)
-- [display_duration](components.md#display_duration)
 - [on_complete_dispose](components.md#on_complete_dispose)
 - [on_complete_notify](components.md#on_complete_notify)
 - [on_complete_restart](components.md#on_complete_restart)
@@ -554,7 +547,6 @@ require("overseer").register_alias("my_plugin", { "default", "on_output_quickfix
 - [on_output_notify](components.md#on_output_notify)
 - [on_output_parse](components.md#on_output_parse)
 - [on_output_quickfix](components.md#on_output_quickfix)
-- [on_output_summarize](components.md#on_output_summarize)
 - [on_output_write_file](components.md#on_output_write_file)
 - [on_result_diagnostics](components.md#on_result_diagnostics)
 - [on_result_diagnostics_quickfix](components.md#on_result_diagnostics_quickfix)

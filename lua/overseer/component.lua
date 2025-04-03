@@ -35,7 +35,6 @@ local M = {}
 ---@field on_exit? fun(self: overseer.Component, task: overseer.Task, code: number) called when the process exits
 ---@field on_dispose? fun(self: overseer.Component, task: overseer.Task) called when the task is disposed or the component is removed. Guaranteed to be called if on_init was called.
 ---@field on_status? fun(self: overseer.Component, task: overseer.Task, status: overseer.Status) Called when the task status changes
----@field render? fun(self: overseer.Component, task: overseer.Task, lines: string[], highlights: table[], detail: number)
 
 ---An instantiated component that is attached to a Task
 ---@class overseer.Component : overseer.ComponentSkeleton
@@ -46,28 +45,6 @@ local M = {}
 ---@field editable boolean
 
 local registry = {}
-
-local builtin_components = {
-  "dependencies",
-  "display_duration",
-  "on_complete_dispose",
-  "on_complete_notify",
-  "on_complete_restart",
-  "on_exit_set_status",
-  "on_output_parse",
-  "on_output_quickfix",
-  "on_output_summarize",
-  "on_output_write_file",
-  "on_result_diagnostics",
-  "on_result_diagnostics_quickfix",
-  "on_result_diagnostics_trouble",
-  "on_result_notify",
-  "open_output",
-  "restart_on_save",
-  "run_after",
-  "timeout",
-  "unique",
-}
 
 ---@param name string
 ---@param opts overseer.ComponentDefinition
@@ -103,12 +80,6 @@ local function validate_component(name, opts)
     comp.editable = true
   end
   comp.name = name
-  if opts.deprecated_message then
-    vim.notify_once(
-      string.format("Overseer component %s is deprecated: %s", name, opts.deprecated_message),
-      vim.log.levels.WARN
-    )
-  end
   return comp
 end
 
@@ -119,15 +90,33 @@ M.alias = function(name, components)
 end
 
 ---@param name string
----@return overseer.ComponentDefinition?
-M.get = function(name)
+local function load(name)
   if not registry[name] then
     local ok, mod = pcall(require, string.format("overseer.component.%s", name))
     if ok then
       registry[name] = validate_component(name, mod)
     end
   end
-  return registry[name]
+end
+
+---@param name string
+---@return overseer.ComponentDefinition?
+M.get = function(name)
+  if not registry[name] then
+    load(name)
+    local ok, mod = pcall(require, string.format("overseer.component.%s", name))
+    if ok then
+      registry[name] = validate_component(name, mod)
+    end
+  end
+  local comp = registry[name]
+  if comp and comp.deprecated_message then
+    vim.notify_once(
+      string.format("Overseer component %s is deprecated: %s", name, comp.deprecated_message),
+      vim.log.levels.WARN
+    )
+  end
+  return comp
 end
 
 ---@param name string
@@ -162,7 +151,7 @@ local function preload_components()
   local comp_files = vim.api.nvim_get_runtime_file("lua/overseer/component/*.lua", true)
   for _, abspath in ipairs(comp_files) do
     local module_name = abspath:match("^.*overseer/component/(.*)%.lua$")
-    M.get(module_name)
+    load(module_name)
   end
 end
 
@@ -348,13 +337,15 @@ M.get_all_descriptions = function()
   local names = vim.tbl_keys(registry)
   table.sort(names)
   for _, name in ipairs(names) do
-    local defn = assert(M.get(name))
-    table.insert(ret, {
-      name = name,
-      desc = defn.desc,
-      long_desc = defn.long_desc,
-      params = simplify_params(defn.params),
-    })
+    local defn = registry[name]
+    if not defn.deprecated_message then
+      table.insert(ret, {
+        name = name,
+        desc = defn.desc,
+        long_desc = defn.long_desc,
+        params = simplify_params(defn.params),
+      })
+    end
   end
   return ret
 end
