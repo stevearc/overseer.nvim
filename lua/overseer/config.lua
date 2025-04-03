@@ -134,6 +134,10 @@ local default_config = {
       "on_result_diagnostics",
     },
   },
+  -- List of other directories to search for task templates.
+  -- This will search under the runtimepath, so for example
+  -- "foo/bar" will search "<runtimepath>/lua/foo/bar/*"
+  template_dirs = {},
   -- For template providers, how long to wait (in ms) before timing out.
   -- Set to 0 to wait forever.
   template_timeout = 3000,
@@ -195,6 +199,11 @@ M.setup = function(opts)
     M[k] = v
   end
 
+  for i, dir in ipairs(M.template_dirs) do
+    -- for backwards compatibility, we used to allow module paths
+    M.template_dirs[i] = dir:gsub("%.", "/")
+  end
+
   M.actions = merge_actions(require("overseer.task_list.actions"), newconf.actions)
 end
 
@@ -212,6 +221,7 @@ end
 ---@field component_aliases? table<string, overseer.Serialized[]> Aliases for bundles of components. Redefine the builtins, or create your own.
 ---@field template_timeout? integer For template providers, how long to wait (in ms) before timing out. Set to 0 to disable timeouts.
 ---@field template_cache_threshold? integer Cache template provider results if the provider takes longer than this to run. Time is in ms. Set to 0 to disable caching.
+---@field template_dirs? string[] List of other directories to search for task templates.
 ---@field log? table[]
 
 ---@class (exact) overseer.ConfigTaskList

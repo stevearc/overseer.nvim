@@ -89,25 +89,29 @@ local function get_providers()
   file_providers = {}
   last_rtp = vim.o.runtimepath
 
-  local task_files = vim.api.nvim_get_runtime_file("lua/overseer/template/**/*.lua", true)
-  for _, abspath in ipairs(task_files) do
-    local module_name = abspath:match("^.*(overseer/template/.*)%.lua$"):gsub("/", ".")
-    local tmpl = load_template(module_name)
-    if tmpl then
-      if tmpl.generator then
-        table.insert(file_providers, tmpl)
-      else
-        local provider = {
-          name = tmpl.module,
-          module = tmpl.module,
-          condition = tmpl.condition,
-          generator = function()
-            return { tmpl }
-          end,
-        }
-        ---@cast provider overseer.TemplateProvider
-        validate_template_provider(provider)
-        table.insert(file_providers, provider)
+  local all_dirs = vim.list_extend({ "overseer/template" }, config.template_dirs)
+  for _, dir in ipairs(all_dirs) do
+    local path = vim.fs.joinpath("lua", dir, "**", "*.lua")
+    local task_files = vim.api.nvim_get_runtime_file(path, true)
+    for _, abspath in ipairs(task_files) do
+      local module_name = abspath:match("^.*(overseer/template/.*)%.lua$"):gsub("/", ".")
+      local tmpl = load_template(module_name)
+      if tmpl then
+        if tmpl.generator then
+          table.insert(file_providers, tmpl)
+        else
+          local provider = {
+            name = tmpl.module,
+            module = tmpl.module,
+            condition = tmpl.condition,
+            generator = function()
+              return { tmpl }
+            end,
+          }
+          ---@cast provider overseer.TemplateProvider
+          validate_template_provider(provider)
+          table.insert(file_providers, provider)
+        end
       end
     end
   end
