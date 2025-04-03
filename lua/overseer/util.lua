@@ -157,6 +157,41 @@ M.add_highlights = function(bufnr, ns, highlights)
   end
 end
 
+---@param bufnr integer
+---@param ns integer
+---@param lines overseer.TextChunk[][]
+M.render_buf_chunks = function(bufnr, ns, lines)
+  if not bufnr or not vim.api.nvim_buf_is_valid(bufnr) then
+    return
+  end
+  vim.api.nvim_buf_clear_namespace(bufnr, ns, 0, -1)
+  local new_lines = {}
+  local extmarks = {}
+  for _, chunks in ipairs(lines) do
+    local line = {}
+    local i = 0
+    for _, chunk in ipairs(chunks) do
+      ---@cast chunk overseer.TextChunk
+      local text, hl = chunk[1], chunk[2]
+      assert(type(text) == "string", "Text chunk must have a string as the first element")
+      table.insert(line, text)
+      if hl then
+        table.insert(extmarks, { #new_lines, i, { hl_group = hl, end_col = i + #text } })
+      end
+      i = i + #text
+    end
+    local line_text = table.concat(line, ""):gsub("\n", " ")
+    table.insert(new_lines, line_text)
+  end
+  vim.bo[bufnr].modifiable = true
+  vim.api.nvim_buf_set_lines(bufnr, 0, -1, false, new_lines)
+  vim.bo[bufnr].modifiable = false
+  vim.bo[bufnr].modified = false
+  for _, extmark in ipairs(extmarks) do
+    vim.api.nvim_buf_set_extmark(bufnr, ns, extmark[1], extmark[2], extmark[3])
+  end
+end
+
 ---@param text string
 ---@param size number
 ---@return string
@@ -542,6 +577,35 @@ M.format_duration = function(duration)
   end
   time = string.format("%s%02d:%02d", time, mins, secs)
   return time
+end
+
+---@param time integer
+---@return string
+M.format_relative_timestamp = function(time)
+  local from_now = time - os.time()
+  local suffix = ""
+  if from_now <= 0 and from_now > -5 then
+    return "just now"
+  elseif from_now > 0 and from_now <= 5 then
+    return "a few seconds"
+  end
+  if from_now < 0 then
+    from_now = -from_now
+    suffix = " ago"
+  end
+  local secs = from_now % 60
+  local days = math.floor(from_now / day_s)
+  local hours = math.floor((from_now % day_s) / hour_s)
+  local mins = math.floor((from_now % hour_s) / minute_s)
+  if days > 0 then
+    return string.format("%d day%s%s", days, days > 1 and "s" or "", suffix)
+  elseif hours > 0 then
+    return string.format("%d hour%s%s", hours, hours > 1 and "s" or "", suffix)
+  elseif mins > 0 then
+    return string.format("%d minute%s%s", mins, mins > 1 and "s" or "", suffix)
+  else
+    return string.format("%d second%s%s", secs, secs > 1 and "s" or "", suffix)
+  end
 end
 
 ---@param name_or_config string|table

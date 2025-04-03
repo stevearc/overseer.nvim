@@ -11,9 +11,7 @@ local M = {}
 
 ---@class overseer.Sidebar
 ---@field bufnr integer
----@field default_detail integer
----@field private task_lines {[1]: integer, [2]: overseer.Task}[]
----@field private task_detail table<integer, integer>
+---@field private task_lines {[1]: integer, [2]: integer, [3]: overseer.Task}[]
 ---@field private preview? overseer.TaskView
 ---@field private focused_task_id? integer
 local Sidebar = {}
@@ -37,9 +35,6 @@ M.get = function()
   end
 end
 
-local MIN_DETAIL = 1
-local MAX_DETAIL = 3
-
 function Sidebar.new()
   local bufnr = vim.api.nvim_create_buf(false, true)
 
@@ -52,8 +47,6 @@ function Sidebar.new()
 
   local self = setmetatable({
     bufnr = bufnr,
-    default_detail = config.task_list.default_detail,
-    task_detail = {},
     task_lines = {},
     preview = nil,
   }, { __index = Sidebar })
@@ -82,6 +75,9 @@ function Sidebar:init()
     nested = true,
     callback = function()
       local task = self:get_task_from_line()
+      if task then
+        print(task.name)
+      end
       self:set_task_focused(task and task.id)
     end,
   })
@@ -144,8 +140,8 @@ function Sidebar:get_task_from_line(lnum)
   end
 
   for _, v in ipairs(self.task_lines) do
-    local end_lnum, task = v[1], v[2]
-    if end_lnum >= lnum then
+    local last_lnum, task = v[2], v[3]
+    if lnum <= last_lnum then
       return task
     end
   end
@@ -157,15 +153,13 @@ function Sidebar:focus_task_id(task_id)
   if not winid then
     return
   end
-  local start_lnum = 1
   for _, v in ipairs(self.task_lines) do
-    local end_lnum, task = v[1], v[2]
+    local start_line, task = v[1], v[3]
     if task.id == task_id then
-      vim.api.nvim_win_set_cursor(winid, { start_lnum, 0 })
+      vim.api.nvim_win_set_cursor(winid, { start_line, 0 })
       self:set_task_focused(task_id)
       return
     end
-    start_lnum = end_lnum + 2
   end
 end
 
@@ -244,26 +238,6 @@ function Sidebar:toggle_preview()
   util.scroll_to_end(winid)
 end
 
-function Sidebar:change_task_detail(delta)
-  local task = self:get_task_from_line()
-  if not task then
-    return
-  end
-  local detail = self.task_detail[task.id] or self.default_detail
-  self.task_detail[task.id] = math.max(MIN_DETAIL, math.min(MAX_DETAIL, detail + delta))
-  task_list.update(task)
-end
-
-function Sidebar:change_default_detail(delta)
-  self.default_detail = math.max(MIN_DETAIL, math.min(MAX_DETAIL, self.default_detail + delta))
-  for i, v in pairs(self.task_detail) do
-    if (delta < 0 and v > self.default_detail) or (delta > 0 and v < self.default_detail) then
-      self.task_detail[i] = nil
-    end
-  end
-  task_list.update()
-end
-
 ---@private
 ---@return integer[]
 function Sidebar:get_output_wins()
@@ -285,36 +259,31 @@ function Sidebar:highlight_focused()
     return
   end
 
-  local start_lnum = 1
   for _, v in ipairs(self.task_lines) do
-    local end_lnum, task = v[1], v[2]
+    local start_lnum, end_lnum, task = v[1], v[2], v[3]
     if task.id == self.focused_task_id then
       vim.api.nvim_buf_set_extmark(self.bufnr, ns, start_lnum - 1, 0, {
         line_hl_group = "CursorLine",
         end_row = end_lnum - 1,
       })
     end
-    start_lnum = end_lnum + 2
   end
 end
 
 function Sidebar:jump(direction)
   local lnum = vim.api.nvim_win_get_cursor(0)[1]
-  local prev = 1
-  local cur = 1
-  for _, v in ipairs(self.task_lines) do
-    local end_lnum = v[1]
-    local next = end_lnum + 2
-    if end_lnum >= lnum then
-      if direction < 0 then
-        vim.api.nvim_win_set_cursor(0, { prev, 0 })
-      else
-        pcall(vim.api.nvim_win_set_cursor, 0, { next, 0 })
+  for i, v in ipairs(self.task_lines) do
+    local first_line = v[1]
+    if first_line <= lnum then
+      if direction < 0 and i > 1 then
+        local new_lnum = self.task_lines[i - 1][1]
+        vim.api.nvim_win_set_cursor(0, { new_lnum, 0 })
+      elseif direction > 0 and i < #self.task_lines then
+        local new_lnum = self.task_lines[i + 1][1]
+        vim.api.nvim_win_set_cursor(0, { new_lnum, 0 })
       end
       return
     end
-    prev = cur
-    cur = next
   end
 end
 
@@ -358,48 +327,44 @@ function Sidebar:render(tasks)
   vim.api.nvim_buf_clear_namespace(self.bufnr, ns, 0, -1)
 
   local lines = {}
-  local highlights = {}
+  local extmarks = {}
   self.task_lines = {}
-  local subtask_prefix = "▐ "
+  -- virtual text lines for separating processes
+  local border = "OverseerTaskBorder"
+  local tl = config.task_list
+  local sep_lines = { { { tl.separator, border } } }
+  local child_indent = { tl.child_indent[1], border }
+  local child_sep_1 = { { { tl.child_indent[2], border }, { tl.separator, border } } }
+  local child_sep_2 = { { { tl.child_indent[3], border }, { tl.separator, border } } }
+
   -- Iterate backwards so we show most recent tasks first
   for i = #tasks, 1, -1 do
     local task = tasks[i]
-    local detail = self.task_detail[task.id] or self.default_detail
-    local start_idx = #lines + 1
-    local hl_start_idx = #highlights + 1
-    task:render(lines, highlights, detail)
+    local line_start = #lines + 1
+    local task_lines = config.task_list.render(task)
 
     -- Indent subtasks
     if task.parent_id then
-      for j = start_idx, #lines do
-        lines[j] = subtask_prefix .. lines[j]
-      end
-      for j = hl_start_idx, #highlights do
-        local hl = highlights[j]
-        hl[3] = hl[3] + subtask_prefix:len()
-        if hl[4] ~= -1 then
-          hl[4] = hl[4] + subtask_prefix:len()
-        end
-        highlights[j] = hl
-      end
-      for j = start_idx, #lines do
-        table.insert(highlights, { "OverseerTaskBorder", j, 0, subtask_prefix:len() })
+      for j = 1, #task_lines do
+        table.insert(task_lines[j], 1, child_indent)
       end
     end
-    table.insert(self.task_lines, { #lines, task })
-    if i > 1 then
-      if tasks[i - 1].parent_id then
-        table.insert(lines, subtask_prefix .. vim.fn.strcharpart(config.task_list.separator, 2))
-      else
-        table.insert(lines, config.task_list.separator)
-      end
-      table.insert(highlights, { "OverseerTaskBorder", #lines, 0, -1 })
-    end
-  end
 
-  -- Attempting to render a newline within a line will cause a crash
-  for i, line in ipairs(lines) do
-    lines[i] = line:gsub("\n", " ")
+    vim.list_extend(lines, task_lines)
+    table.insert(self.task_lines, { line_start, #lines, task })
+
+    -- task separator
+    if i > 1 then
+      local prev_is_child = i < #tasks and tasks[i + 1].parent_id ~= nil
+      local next_is_child = tasks[i - 1].parent_id ~= nil
+      if next_is_child then
+        table.insert(extmarks, { #lines - 1, 0, { virt_lines = child_sep_1 } })
+      elseif prev_is_child then
+        table.insert(extmarks, { #lines - 1, 0, { virt_lines = child_sep_2 } })
+      else
+        table.insert(extmarks, { #lines - 1, 0, { virt_lines = sep_lines } })
+      end
+    end
   end
 
   local sidebar_winid = self:get_winid()
@@ -409,11 +374,10 @@ function Sidebar:render(tasks)
       view = vim.fn.winsaveview()
     end)
   end
-  vim.bo[self.bufnr].modifiable = true
-  vim.api.nvim_buf_set_lines(self.bufnr, 0, -1, true, lines)
-  vim.bo[self.bufnr].modifiable = false
-  vim.bo[self.bufnr].modified = false
-  util.add_highlights(self.bufnr, ns, highlights)
+  util.render_buf_chunks(self.bufnr, ns, lines)
+  for _, extmark in ipairs(extmarks) do
+    vim.api.nvim_buf_set_extmark(self.bufnr, ns, extmark[1], extmark[2], extmark[3])
+  end
 
   if sidebar_winid then
     if view then

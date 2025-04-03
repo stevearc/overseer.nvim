@@ -46,8 +46,6 @@ OPTIONS                                                         *overseer-option
       dap = true,
       -- Configure the task list
       task_list = {
-        -- Default detail level for tasks. Can be 1-3.
-        default_detail = 1,
         -- Width dimensions can be integers or a float between 0 and 1 (e.g. 0.4 for 40%)
         -- min_width and max_width can be a single value or a list of mixed integer/float types.
         -- max_width = {100, 0.2} means "the lesser of 100 columns or 20% of total"
@@ -76,10 +74,6 @@ OPTIONS                                                         *overseer-option
           ["<C-f>"] = "OpenFloat",
           ["<C-q>"] = "OpenQuickFix",
           ["p"] = "TogglePreview",
-          ["<C-l>"] = "IncreaseDetail",
-          ["<C-h>"] = "DecreaseDetail",
-          ["L"] = "IncreaseAllDetail",
-          ["H"] = "DecreaseAllDetail",
           ["["] = "DecreaseWidth",
           ["]"] = "IncreaseWidth",
           ["{"] = "PrevTask",
@@ -165,8 +159,6 @@ OPTIONS                                                         *overseer-option
       component_aliases = {
         -- Most tasks are initialized with the default components
         default = {
-          { "display_duration", detail_level = 2 },
-          "on_output_summarize",
           "on_exit_set_status",
           "on_complete_notify",
           { "on_complete_dispose", require_view = { "SUCCESS", "FAILURE" } },
@@ -177,6 +169,10 @@ OPTIONS                                                         *overseer-option
           "on_result_diagnostics",
         },
       },
+      -- List of other directories to search for task templates.
+      -- This will search under the runtimepath, so for example
+      -- "foo/bar" will search "<runtimepath>/lua/foo/bar/*"
+      template_dirs = {},
       -- For template providers, how long to wait (in ms) before timing out.
       -- Set to 0 to wait forever.
       template_timeout = 3000,
@@ -482,13 +478,6 @@ dependencies                                                        *dependencie
                    tables (template name with params, e.g. {"mytask", foo =
                    "bar"}), or tables (raw task params, e.g. {cmd = "sleep 10"})
 
-display_duration                                                *display_duration*
-    Display the run duration
-
-    Parameters:
-      {detail_level} `integer` Show the duration at this detail level (default
-                     `1`)
-
 on_complete_dispose                                          *on_complete_dispose*
     After task is completed, dispose it after a timeout
 
@@ -532,9 +521,9 @@ on_exit_set_status                                            *on_exit_set_statu
 on_output_notify                                                *on_output_notify*
     Use nvim-notify to show notification with task output summary for long-running tasks
     Works like on_complete_notify but, for long-running commands, also shows
-    real-time output summary (like on_output_summarize). Requires nvim-notify to
-    modify the last notification window when new output arrives instead of
-    creating new notification.
+    real-time output summary. Requires nvim-notify to modify the last
+    notification window when new output arrives instead of creating new
+    notification.
 
     Parameters:
       {delay_ms}  `number` Time in milliseconds to wait before displaying the
@@ -589,13 +578,6 @@ on_output_quickfix                                            *on_output_quickfi
                         `true`) This may cause unexpected results for commands
                         that produce "fancy" output using terminal escape codes
                         (e.g. animated progress indicators)
-
-on_output_summarize                                          *on_output_summarize*
-    Summarize task output in the task list
-
-    Parameters:
-      {max_lines} `integer` Number of lines of output to show when detail > 1
-                  (default `4`)
 
 on_output_write_file                                        *on_output_write_file*
     Write task output to a file

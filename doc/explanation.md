@@ -55,9 +55,8 @@ tasks](guides.md#custom-tasks) for more.
 Control the task list with `:OverseerOpen`, `:OverseerClose`, and `:OverseerToggle`.
 
 The task list displays all tasks that have been created. It shows the task status, name, and a
-summary of the task output (controlled by the `on_output_summarize` component). You can show more or
-less detail for a single task with `<C-l>` and `<C-h>` (by default), or for all tasks with `L` and
-`H`.
+summary of the task output. You can customize the display by passing in a custom `task_list.render`
+function in the setup opts.
 
 `?` will show you a list of all the keybindings, and `<CR>` will open up a menu of all
 [actions](guides.md#actions) that you can perform on the selected task.

@@ -3,7 +3,6 @@
 <!-- TOC -->
 
 - [dependencies](#dependencies)
-- [display_duration](#display_duration)
 - [on_complete_dispose](#on_complete_dispose)
 - [on_complete_notify](#on_complete_notify)
 - [on_complete_restart](#on_complete_restart)
@@ -11,7 +10,6 @@
 - [on_output_notify](#on_output_notify)
 - [on_output_parse](#on_output_parse)
 - [on_output_quickfix](#on_output_quickfix)
-- [on_output_summarize](#on_output_summarize)
 - [on_output_write_file](#on_output_write_file)
 - [on_result_diagnostics](#on_result_diagnostics)
 - [on_result_diagnostics_quickfix](#on_result_diagnostics_quickfix)
@@ -37,16 +35,6 @@ Set dependencies for task
 | tasks      | `list[string]` |         | Names of dependency task templates |
 
 - **tasks:** This can be a list of strings (template names, e.g. "cargo build"), tables (template name with params, e.g. {"mytask", foo = "bar"}), or tables (raw task params, e.g. {cmd = "sleep 10"})
-
-## display_duration
-
-[display_duration.lua](../lua/overseer/component/display_duration.lua)
-
-Display the run duration
-
-| Param        | Type      | Default | Desc                                   |
-| ------------ | --------- | ------- | -------------------------------------- |
-| detail_level | `integer` | `1`     | Show the duration at this detail level |
 
 ## on_complete_dispose
 
@@ -101,9 +89,9 @@ Sets final task status based on exit code
 
 Use nvim-notify to show notification with task output summary for long-running tasks
 
-Works like on_complete_notify but, for long-running commands, also shows real-time output summary
-(like on_output_summarize). Requires nvim-notify to modify the last notification window when new
-output arrives instead of creating new notification.
+Works like on_complete_notify but, for long-running commands, also shows real-time output summary.
+Requires nvim-notify to modify the last notification window when new output arrives instead of
+creating new notification.
 
 | Param              | Type      | Default | Desc                                                                                     |
 | ------------------ | --------- | ------- | ---------------------------------------------------------------------------------------- |
@@ -151,16 +139,6 @@ Set all task output into the quickfix (on complete)
 | tail               | `boolean` | `true`    | Update the quickfix with task output as it happens, instead of waiting until completion |
 
 - **tail:** This may cause unexpected results for commands that produce "fancy" output using terminal escape codes (e.g. animated progress indicators)
-
-## on_output_summarize
-
-[on_output_summarize.lua](../lua/overseer/component/on_output_summarize.lua)
-
-Summarize task output in the task list
-
-| Param     | Type      | Default | Desc                                              |
-| --------- | --------- | ------- | ------------------------------------------------- |
-| max_lines | `integer` | `4`     | Number of lines of output to show when detail > 1 |
 
 ## on_output_write_file
 

@@ -33,21 +33,14 @@ M.is_win_supported = function(winid, bufnr)
 end
 
 M.save_win = function(winid)
-  local sidebar = require("overseer.task_list.sidebar")
-  local sb = sidebar.get()
-  return {
-    default_detail = sb.default_detail,
-  }
+  return {}
 end
 
 M.load_win = function(winid, data)
   local sidebar = require("overseer.task_list.sidebar")
   local window = require("overseer.window")
   window.open({ winid = winid })
-  local sb = sidebar.get_or_create()
-  if data.default_detail then
-    sb:change_default_detail(data.default_detail - sb.default_detail)
-  end
+  sidebar.get_or_create()
 end
 
 return M

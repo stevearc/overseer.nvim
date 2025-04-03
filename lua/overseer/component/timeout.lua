@@ -42,12 +42,6 @@ return {
           self.timer = nil
         end
       end,
-      render = function(self, task, lines, highlights, detail)
-        if self.canceled then
-          table.insert(lines, "Task timed out")
-          table.insert(highlights, { "DiagnosticWarn", #lines, 0, -1 })
-        end
-      end,
     }
   end,
 }

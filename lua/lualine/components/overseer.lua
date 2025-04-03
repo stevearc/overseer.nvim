@@ -41,7 +41,6 @@
 
 local M = require("lualine.component"):extend()
 local constants = require("overseer.constants")
-local overseer = require("overseer")
 local task_list = require("overseer.task_list")
 local util = require("overseer.util")
 local utils = require("lualine.utils.utils")
