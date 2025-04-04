@@ -42,7 +42,7 @@ M = {
     run = function(task)
       task_editor.open(task, function(t)
         if t then
-          task_list.update(t)
+          task_list.touch(t)
         end
       end)
     end,
@@ -84,7 +84,7 @@ M = {
         end
         params[1] = "restart_on_save"
         task:set_component(params)
-        task_list.update(task)
+        task_list.touch(task)
       end)
     end,
   },

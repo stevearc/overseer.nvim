@@ -17,7 +17,7 @@ M.run_task_action = function(task, name)
     end,
     post_action = function()
       task:dec_reference()
-      task_list.update(task)
+      task_list.touch(task)
     end,
   }, task)
 end

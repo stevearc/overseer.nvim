@@ -109,7 +109,7 @@ M.output_lines = function(task, opts)
   opts = vim.tbl_extend(
     "keep",
     opts or {},
-    { num_lines = 1, prefix = "out: ", prefix_hl_group = "Comment" }
+    { num_lines = 1, prefix = "> ", prefix_hl_group = "Comment" }
   )
   local bufnr = task:get_bufnr()
   if not bufnr or not vim.api.nvim_buf_is_valid(bufnr) then

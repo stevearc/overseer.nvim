@@ -124,6 +124,7 @@ function Task.new(opts)
   if bufnr then
     vim.b[bufnr].overseer_task = task.id
   end
+  task:subscribe("on_status", task_list.on_task_updated)
   return task
 end
 
@@ -376,7 +377,6 @@ function Task:reset()
   self.status = STATUS.PENDING
   self:dispatch("on_status", self.status)
   self.strategy:reset()
-  task_list.touch_task(self)
   self:dispatch("on_reset")
 end
 
@@ -420,7 +420,7 @@ function Task:dispatch(name, ...)
     end
   end
   if self.id and not self:is_disposed() then
-    task_list.update(self)
+    task_list.touch(self)
   end
   return ret
 end

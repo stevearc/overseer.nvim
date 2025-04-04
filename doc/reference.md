@@ -96,6 +96,10 @@ require("overseer").setup({
     render = function(task)
       return require("overseer.render").format_standard(task)
     end,
+    -- The sort function for tasks
+    sort = function(a, b)
+      return require("overseer.task_list").default_sort(a, b)
+    end,
     -- Default direction. Can be "left", "right", or "bottom"
     direction = "bottom",
     -- Set keymap to false to remove default behavior
@@ -334,14 +338,13 @@ Close the task list
 `list_tasks(opts): overseer.Task[]` \
 List all tasks
 
-| Param         | Type                                      | Desc                                                |
-| ------------- | ----------------------------------------- | --------------------------------------------------- |
-| opts          | `nil\|overseer.ListTaskOpts`              |                                                     |
-| >unique       | `nil\|boolean`                            | Deduplicates non-running tasks by name              |
-| >status       | `nil\|overseer.Status\|overseer.Status[]` | Only list tasks with this status or statuses        |
-| >recent_first | `nil\|boolean`                            | The most recent tasks are first in the list         |
-| >bundleable   | `nil\|boolean`                            | Only list tasks that should be included in a bundle |
-| >filter       | `nil\|fun(task: overseer.Task): boolean`  |                                                     |
+| Param       | Type                                      | Desc                                                |
+| ----------- | ----------------------------------------- | --------------------------------------------------- |
+| opts        | `nil\|overseer.ListTaskOpts`              |                                                     |
+| >unique     | `nil\|boolean`                            | Deduplicates non-running tasks by name              |
+| >status     | `nil\|overseer.Status\|overseer.Status[]` | Only list tasks with this status or statuses        |
+| >bundleable | `nil\|boolean`                            | Only list tasks that should be included in a bundle |
+| >filter     | `nil\|fun(task: overseer.Task): boolean`  |                                                     |
 
 ### run_task(opts, callback)
 
@@ -389,12 +392,12 @@ end)
 `preload_task_cache(opts, cb)` \
 Preload templates for run_task
 
-| Param | Type          | Desc                               |
-| ----- | ------------- | ---------------------------------- |
-| opts  | `nil\|table`  |                                    |
-| >dir  | `string`      |                                    |
-| >ft   | `nil\|string` |                                    |
-| cb    | `nil\|fun()`  | Called when preloading is complete |
+| Param | Type                         | Desc                               |
+| ----- | ---------------------------- | ---------------------------------- |
+| opts  | `nil\|overseer.SearchParams` |                                    |
+| >dir  | `string`                     |                                    |
+| >ft   | `nil\|string`                |                                    |
+| cb    | `nil\|fun()`                 | Called when preloading is complete |
 
 **Note:**
 <pre>
