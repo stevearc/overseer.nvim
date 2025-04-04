@@ -1,7 +1,6 @@
 ---@mod overseer.parser.debug
 ---Provides an environment for writing and debugging parsers
 local parser = require("overseer.parser")
-local util = require("overseer.util")
 local M = {}
 
 local source_buf
@@ -95,18 +94,27 @@ local function render_parser(input_lnum)
   local rem = p:get_remainder()
   if rem then
     table.insert(lines, "ITEM:")
-    table.insert(highlights, { "Title", #lines, 0, -1 })
+    table.insert(highlights, { "Title", #lines, 0, #lines[#lines] })
     vim.list_extend(lines, vim.split(vim.inspect(rem), "\n"))
   end
   table.insert(lines, "RESULT:")
-  table.insert(highlights, { "Title", #lines, 0, -1 })
+  table.insert(highlights, { "Title", #lines, 0, #lines[#lines] })
   local results = p:get_result()
   vim.list_extend(lines, vim.split(vim.inspect(results), "\n"))
 
   vim.bo[bufnr].modifiable = true
   vim.api.nvim_buf_set_lines(bufnr, 0, -1, true, lines)
   vim.bo[bufnr].modifiable = false
-  util.add_highlights(bufnr, ns, highlights)
+  for _, hl in ipairs(highlights) do
+    local group, lnum, col_start, col_end = unpack(hl)
+    vim.api.nvim_buf_set_extmark(
+      bufnr,
+      ns,
+      lnum - 1,
+      col_start,
+      { hl_group = group, end_col = col_end }
+    )
+  end
 end
 
 local function create_source_bufnr()

@@ -53,10 +53,8 @@ function SetDefaults.new(opts, child)
     values = {},
     hoist_item = true,
   })
-  vim.validate({
-    values = { opts.values, "t" },
-    hoist_item = { opts.hoist_item, "b" },
-  })
+  vim.validate("values", opts.values, "table")
+  vim.validate("hoist_item", opts.hoist_item, "boolean")
   return setmetatable({
     default_values = opts.values,
     hoist_item = opts.hoist_item,

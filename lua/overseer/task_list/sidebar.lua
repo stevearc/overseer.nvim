@@ -307,7 +307,6 @@ function Sidebar:scroll_output(direction)
 end
 
 function Sidebar:run_action(name)
-  vim.validate({ name = { name, "s", true } })
   local task = self:get_task_from_line()
   if not task then
     return

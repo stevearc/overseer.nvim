@@ -19,9 +19,7 @@ end
 
 ---@param data table|nil A parser or parser definition
 M.hydrate = function(data)
-  vim.validate({
-    data = { data, "t", true },
-  })
+  vim.validate("data", data, "table", true)
   if not data then
     return nil
   end
@@ -36,9 +34,7 @@ end
 
 ---@param list table[]
 M.hydrate_list = function(list)
-  vim.validate({
-    list = { list, "t" },
-  })
+  vim.validate("list", list, "table")
   local ret = {}
   for _, v in ipairs(list) do
     table.insert(ret, M.hydrate(v))

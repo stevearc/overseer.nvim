@@ -50,11 +50,9 @@ local hooks = {}
 
 ---@param defn overseer.TemplateProvider
 local function validate_template_provider(defn)
-  vim.validate({
-    name = { defn.name, "s" },
-    generator = { defn.generator, "f" },
-    cache_key = { defn.cache_key, "f", true },
-  })
+  vim.validate("name", defn.name, "string")
+  vim.validate("generator", defn.generator, "function")
+  vim.validate("cache_key", defn.cache_key, "function", true)
 end
 
 ---@param name string
@@ -201,12 +199,10 @@ end
 ---@param defn overseer.TemplateDefinition
 local function validate_template_definition(defn)
   defn.params = defn.params or {}
-  vim.validate({
-    name = { defn.name, "s" },
-    desc = { defn.desc, "s", true },
-    tags = { defn.tags, "t", true },
-    builder = { defn.builder, "f" },
-  })
+  vim.validate("name", defn.name, "string")
+  vim.validate("desc", defn.desc, "string", true)
+  vim.validate("tags", defn.tags, "table", true)
+  vim.validate("builder", defn.builder, "function")
   local params = defn.params
   if type(params) == "table" then
     form_utils.validate_params(params)
@@ -367,9 +363,7 @@ end
 ---@param opts overseer.TemplateBuildOpts
 ---@param callback fun(task: overseer.TaskDefinition|nil, err: string|nil)
 M.build_task_args = function(tmpl, opts, callback)
-  vim.validate({
-    params = { opts.params, "t" },
-  })
+  vim.validate("params", opts.params, "table")
   local param_schema = tmpl.params or {}
   if type(param_schema) == "function" then
     param_schema = param_schema()
@@ -427,11 +421,9 @@ end
 ---@param opts overseer.SearchParams
 ---@param cb fun(templates: overseer.TemplateDefinition[], report: overseer.Report)
 M.list = function(opts, cb)
-  vim.validate({
-    tags = { opts.tags, "t", true },
-    dir = { opts.dir, "s" },
-    filetype = { opts.filetype, "s", true },
-  })
+  vim.validate("tags", opts.tags, "table", true)
+  vim.validate("dir", opts.dir, "string")
+  vim.validate("filetype", opts.filetype, "string", true)
   -- Make sure the search dir is an absolute path
   opts.dir = vim.fn.fnamemodify(opts.dir, ":p")
 

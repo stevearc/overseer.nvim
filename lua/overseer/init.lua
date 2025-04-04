@@ -123,9 +123,9 @@ M.called_setup = false
 ---@param opts overseer.Config|nil Configuration options
 M.setup = function(opts)
   M.called_setup = true
-  if vim.fn.has("nvim-0.10") == 0 then
+  if vim.fn.has("nvim-0.11") == 0 then
     vim.notify_once(
-      "overseer has dropped support for Neovim <0.10. Please use a different branch or upgrade Neovim",
+      "overseer has dropped support for Neovim <0.11. Please use a different branch or upgrade Neovim",
       vim.log.levels.ERROR
     )
     return

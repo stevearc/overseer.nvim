@@ -23,13 +23,11 @@ M.run_task_action = function(task, name)
 end
 
 M.run_action = function(opts, ...)
-  vim.validate({
-    actions = { opts.actions, "t" },
-    name = { opts.name, "s", true },
-    prompt = { opts.prompt, "s" },
-    pre_action = { opts.post_action, "f", true },
-    post_action = { opts.post_action, "f", true },
-  })
+  vim.validate("actions", opts.actions, "table")
+  vim.validate("name", opts.name, "string", true)
+  vim.validate("prompt", opts.prompt, "string")
+  vim.validate("pre_action", opts.post_action, "function", true)
+  vim.validate("post_action", opts.post_action, "function", true)
   local args = vim.F.pack_len(...)
   local viable = {}
   local longest_name = 1

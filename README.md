@@ -62,7 +62,7 @@ A task runner and job management plugin for Neovim
 
 ## Requirements
 
-- Neovim 0.10+ (for older versions, use a [nvim-0.x branch](https://github.com/stevearc/overseer.nvim/branches))
+- Neovim 0.11+ (for older versions, use a [nvim-0.x branch](https://github.com/stevearc/overseer.nvim/branches))
 
 ## Installation
 
@@ -84,11 +84,13 @@ overseer supports all the usual plugin managers
   <summary>Packer</summary>
 
 ```lua
-require('packer').startup(function()
-    use {
-      'stevearc/overseer.nvim',
-      config = function() require('overseer').setup() end
-    }
+require("packer").startup(function()
+  use({
+    "stevearc/overseer.nvim",
+    config = function()
+      require("overseer").setup()
+    end,
+  })
 end)
 ```
 
@@ -98,9 +100,9 @@ end)
   <summary>Paq</summary>
 
 ```lua
-require "paq" {
-    {'stevearc/overseer.nvim'};
-}
+require("paq")({
+  { "stevearc/overseer.nvim" },
+})
 ```
 
 </details>
@@ -147,7 +149,7 @@ git clone --depth=1 https://github.com/stevearc/overseer.nvim.git \
 Add the following to your init.lua
 
 ```lua
-require('overseer').setup()
+require("overseer").setup()
 ```
 
 To get started, all you need to know is `:OverseerRun` to select and start a task, and `:OverseerToggle` to open the task list.

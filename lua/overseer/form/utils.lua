@@ -69,12 +69,10 @@ M.validate_params = function(params)
     if name:match("%s") then
       error(string.format("Param '%s' cannot contain whitespace", name))
     end
-    vim.validate({
-      name = { param.name, "s", true },
-      desc = { param.desc, "s", true },
-      optional = { param.optional, "b", true },
-      -- default = any type
-    })
+    vim.validate("name", param.name, "string", true)
+    vim.validate("desc", param.desc, "string", true)
+    vim.validate("optional", param.optional, "boolean", true)
+    -- default = any type
     local default = default_schema[param.type]
     if default then
       for k, v in pairs(default) do
@@ -259,10 +257,8 @@ local registered_cmp = false
 ---@return fun() set_layout
 M.open_form_win = function(bufnr, opts)
   opts = opts or {}
-  vim.validate({
-    on_resize = { opts.on_resize, "f", true },
-    get_preferred_dim = { opts.get_preferred_dim, "f", true },
-  })
+  vim.validate("on_resize", opts.on_resize, "function", true)
+  vim.validate("get_preferred_dim", opts.get_preferred_dim, "function", true)
   local function calc_layout()
     local desired_width
     local desired_height

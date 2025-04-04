@@ -70,12 +70,8 @@ local OrchestratorStrategy = {}
 ---   },
 --- })
 function OrchestratorStrategy.new(opts)
-  vim.validate({
-    opts = { opts, "t" },
-  })
-  vim.validate({
-    tasks = { opts.tasks, "t" },
-  })
+  vim.validate("opts", opts, "table")
+  vim.validate("opts.tasks", opts.tasks, "table")
   -- Each entry in tasks can be either a task definition, OR a list of task definitions.
   -- Convert it to each entry being a list of task definitions.
   local task_defns = {}
@@ -106,9 +102,6 @@ function OrchestratorStrategy:render_buf()
   local ns = vim.api.nvim_create_namespace("overseer")
   vim.api.nvim_buf_clear_namespace(self.bufnr, ns, 0, -1)
 
-  local lines = {}
-  local highlights = {}
-
   local columns = {}
   local col_widths = {}
   local max_row = 0
@@ -126,34 +119,25 @@ function OrchestratorStrategy:render_buf()
     max_row = math.max(max_row, #columns[i])
   end
 
+  local lines = {}
   for i = 1, max_row do
     local line = {}
-    local col_start = 0
     for j, column in ipairs(columns) do
       local task = column[i]
-      if task then
-        table.insert(
-          line,
-          util.ljust(string.format("%s %s", task.status, task.name), col_widths[j])
-        )
-        local col_end = col_start + task.status:len()
-        table.insert(
-          highlights,
-          { string.format("Overseer%s", task.status), #lines + 1, col_start, col_end }
-        )
-      else
-        table.insert(line, string.rep(" ", col_widths[j]))
+      if j > 1 then
+        table.insert(line, { " -> " })
       end
-      col_start = col_start + line[#line]:len() + 4
+      if task then
+        table.insert(line, { task.status, string.format("Overseer%s", task.status) })
+        table.insert(line, { util.ljust(" " .. task.name, col_widths[j] - #task.status) })
+      else
+        table.insert(line, { string.rep(" ", col_widths[j]) })
+      end
     end
-    table.insert(lines, table.concat(line, " -> "))
+    table.insert(lines, line)
   end
 
-  vim.bo[self.bufnr].modifiable = true
-  vim.api.nvim_buf_set_lines(self.bufnr, 0, -1, true, lines)
-  vim.bo[self.bufnr].modifiable = false
-  vim.bo[self.bufnr].modified = false
-  util.add_highlights(self.bufnr, ns, highlights)
+  util.render_buf_chunks(self.bufnr, ns, lines)
 end
 
 function OrchestratorStrategy:reset()

@@ -66,10 +66,8 @@ function Sequence.new(opts, ...)
       children = vim.F.pack_len(...)
     end
   end
-  vim.validate({
-    break_on_first_failure = { opts.break_on_first_failure, "b", true },
-    break_on_first_success = { opts.break_on_first_success, "b", true },
-  })
+  vim.validate("break_on_first_failure", opts.break_on_first_failure, "boolean", true)
+  vim.validate("break_on_first_success", opts.break_on_first_success, "boolean", true)
   opts = vim.tbl_deep_extend("keep", opts, {
     break_on_first_failure = true,
     break_on_first_success = false,

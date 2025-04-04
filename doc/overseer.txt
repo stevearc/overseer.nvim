@@ -58,7 +58,14 @@ OPTIONS                                                         *overseer-option
         min_height = 8,
         height = nil,
         -- String that separates tasks
-        separator = "────────────────────────────────────────",
+        separator = "━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━",
+        -- Indentation for child tasks
+        child_indent = { "┃ ", "┣━", "┗━" },
+        -- Function that renders tasks. See lua/overseer/render.lua for built-in options
+        -- and for useful functions if you want to build your own.
+        render = function(task)
+          return require("overseer.render").format_standard(task)
+        end,
         -- Default direction. Can be "left", "right", or "bottom"
         direction = "bottom",
         -- Set keymap to false to remove default behavior

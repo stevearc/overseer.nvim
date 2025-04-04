@@ -45,9 +45,7 @@ function SkipUntil.new(opts, ...)
   else
     patterns = { ... }
   end
-  vim.validate({
-    skip_matching_line = { opts.skip_matching_line, "b", true },
-  })
+  vim.validate("skip_matching_line", opts.skip_matching_line, "boolean", true)
   if opts.skip_matching_line == nil then
     opts.skip_matching_line = true
   end

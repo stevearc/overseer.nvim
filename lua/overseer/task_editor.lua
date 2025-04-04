@@ -208,9 +208,13 @@ function Editor:render()
   local ns = vim.api.nvim_create_namespace("overseer")
   vim.api.nvim_buf_clear_namespace(self.bufnr, ns, 0, -1)
   local lines = { self.task_name }
-  local highlights = { { "OverseerTask", 1, 0, -1 } }
   local ext_idx_to_comp_and_schema_field_name = {}
   local extmarks = {}
+  table.insert(extmarks, {
+    1,
+    0,
+    { hl_group = "OverseerTask", end_col = #lines[1] },
+  })
 
   for _, k in ipairs(task_editable_params) do
     local schema = task_builtin_params[k]
@@ -280,7 +284,6 @@ function Editor:render()
   end
 
   vim.api.nvim_buf_set_lines(self.bufnr, 0, -1, true, lines)
-  util.add_highlights(self.bufnr, ns, highlights)
   if self.task_name:match("^%s*$") then
     vim.api.nvim_buf_set_extmark(self.bufnr, ns, 0, 0, {
       virt_text = { { "Task name is required", "DiagnosticError" } },
