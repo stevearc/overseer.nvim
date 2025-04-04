@@ -158,7 +158,7 @@ M.list_editable = function()
   local ret = {}
   preload_components()
   for k, v in pairs(registry) do
-    if v.editable then
+    if v.editable and not v.deprecated_message then
       table.insert(ret, k)
     end
   end
