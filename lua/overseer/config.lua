@@ -23,6 +23,10 @@ local default_config = {
     render = function(task)
       return require("overseer.render").format_standard(task)
     end,
+    -- The sort function for tasks
+    sort = function(a, b)
+      return require("overseer.task_list").default_sort(a, b)
+    end,
     -- Default direction. Can be "left", "right", or "bottom"
     direction = "bottom",
     -- Set keymap to false to remove default behavior

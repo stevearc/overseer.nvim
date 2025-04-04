@@ -1,7 +1,10 @@
+local config = require("overseer.config")
 local util = require("overseer.util")
 local M = {}
 
+---@type overseer.Task[]
 local tasks = {}
+---@type table<integer, overseer.Task>
 local lookup = {}
 
 ---@return integer
@@ -10,54 +13,61 @@ M.get_or_create_bufnr = function()
   return sidebar.bufnr
 end
 
-M.rerender = function()
+local function dispatch()
   vim.api.nvim_exec_autocmds("User", { pattern = "OverseerListUpdate", modeline = false })
 end
 
-local function group_parents_and_children()
-  local order = {}
-  for i, task in ipairs(tasks) do
-    order[task.id] = i
-  end
+local function resort()
+  local child_groups = {}
+  local top_level = {}
   for _, task in ipairs(tasks) do
     if task.parent_id then
-      order[task.id] = order[task.parent_id] - 0.5
+      local group = child_groups[task.parent_id]
+      if not group then
+        group = {}
+        child_groups[task.parent_id] = group
+      end
+      table.insert(group, task)
+    else
+      table.insert(top_level, task)
     end
   end
-  table.sort(tasks, function(a, b)
-    return order[a.id] < order[b.id]
-  end)
+
+  table.sort(top_level, config.task_list.sort)
+  for _, children in pairs(child_groups) do
+    table.sort(children, config.task_list.sort)
+  end
+
+  local ret = {}
+  for _, task in ipairs(top_level) do
+    table.insert(ret, task)
+    local children = child_groups[task.id]
+    if children then
+      for _, child in ipairs(children) do
+        table.insert(ret, child)
+      end
+    end
+  end
+  tasks = ret
 end
 
+---Trigger a re-render without re-sorting the tasks
 ---@param task? overseer.Task
-M.update = function(task)
-  if not task then
-    M.rerender()
-    return
-  end
-  if task:is_disposed() then
+M.touch = function(task)
+  if not task or task:is_disposed() then
     return
   end
   if not lookup[task.id] then
     lookup[task.id] = task
     table.insert(tasks, task)
-    group_parents_and_children()
+    resort()
   end
-  M.rerender()
+  dispatch()
 end
 
----@param task overseer.Task
-M.touch_task = function(task)
-  if not lookup[task.id] then
-    return
-  end
-  local idx = util.tbl_index(tasks, task.id, function(t)
-    return t.id
-  end)
-  table.remove(tasks, idx)
-  table.insert(tasks, task)
-  group_parents_and_children()
-  M.rerender()
+M.on_task_updated = function()
+  resort()
+  dispatch()
 end
 
 ---@param task overseer.Task
@@ -69,7 +79,7 @@ M.remove = function(task)
       break
     end
   end
-  M.rerender()
+  dispatch()
 end
 
 ---@param id number
@@ -88,17 +98,9 @@ M.get_by_name = function(name)
   end
 end
 
--- 1-indexed, most recent first
----@param index number
----@return overseer.Task|nil
-M.get_by_index = function(index)
-  return tasks[#tasks + 1 - index]
-end
-
 ---@class overseer.ListTaskOpts
 ---@field unique? boolean Deduplicates non-running tasks by name
 ---@field status? overseer.Status|overseer.Status[] Only list tasks with this status or statuses
----@field recent_first? boolean The most recent tasks are first in the list
 ---@field bundleable? boolean Only list tasks that should be included in a bundle
 ---@field filter? fun(task: overseer.Task): boolean
 
@@ -110,7 +112,6 @@ M.list_tasks = function(opts)
   vim.validate("status", opts.status, function(n)
     return type(n) == "string" or type(n) == "table"
   end, true)
-  vim.validate("recent_first", opts.recent_first, "boolean", true)
   vim.validate("bundleable", opts.bundleable, "boolean", true)
   vim.validate("filter", opts.filter, "function", true)
   local status = util.list_to_map(opts.status or {})
@@ -138,10 +139,35 @@ M.list_tasks = function(opts)
       end
     end
   end
-  if opts.recent_first then
-    util.tbl_reverse(ret)
-  end
   return ret
+end
+
+---@param a overseer.Task
+---@param b overseer.Task
+---@return boolean
+M.default_sort = function(a, b)
+  -- Running processes first
+  if a.status ~= b.status then
+    if a.status == "RUNNING" then
+      return true
+    elseif b.status == "RUNNING" then
+      return false
+    end
+  end
+
+  if a.time_start == nil then
+    if b.time_start == nil then
+      -- fall back to sort by name
+      return a.name < b.name
+    else
+      return true
+    end
+  elseif b.time_start == nil then
+    return false
+  end
+
+  -- Sort newest first
+  return a.time_start > b.time_start
 end
 
 return M

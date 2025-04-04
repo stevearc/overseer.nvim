@@ -1,5 +1,3 @@
----@diagnostic disable: undefined-doc-param
-
 local M = {}
 
 ---@alias overseer.Serialized string|{[1]: string, [string]: any}
@@ -222,10 +220,10 @@ M.run_template = function(opts, callback)
 end
 
 ---Preload templates for run_task
----@param opts nil|table
+---@param opts? overseer.SearchParams
 ---    dir string
 ---    ft nil|string
----@param cb nil|fun() Called when preloading is complete
+---@param cb? fun() Called when preloading is complete
 ---@note
 --- Typically this would be done to prevent a long wait time for :OverseerRun when using a slow
 --- template provider.
@@ -235,8 +233,8 @@ end
 ---   local cwd = vim.v.cwd or vim.fn.getcwd()
 ---   require("overseer").preload_task_cache({ dir = cwd })
 --- })
-M.preload_task_cache = function()
-  return require("overseer.commands").preload_cache()
+M.preload_task_cache = function(opts, cb)
+  return require("overseer.commands").preload_cache(opts, cb)
 end
 ---Clear cached templates for run_task
 ---@param opts? overseer.SearchParams

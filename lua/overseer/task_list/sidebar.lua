@@ -24,7 +24,7 @@ M.get_or_create = function()
   if not sb then
     ref = Sidebar.new()
     sb = ref
-    sb:render(task_list.list_tasks())
+    sb:render()
   end
   return sb, created
 end
@@ -75,9 +75,6 @@ function Sidebar:init()
     nested = true,
     callback = function()
       local task = self:get_task_from_line()
-      if task then
-        print(task.name)
-      end
       self:set_task_focused(task and task.id)
     end,
   })
@@ -85,9 +82,22 @@ function Sidebar:init()
     pattern = "OverseerListUpdate",
     desc = "[Overseer] Update task list when tasks change",
     callback = function()
-      self:render(task_list.list_tasks())
+      self:render()
     end,
   })
+
+  local periodic_update
+  periodic_update = function()
+    if not vim.api.nvim_buf_is_valid(self.bufnr) then
+      return
+    end
+    -- only rerender if the buffer is visible
+    if self:get_winid() then
+      self:render()
+    end
+    vim.defer_fn(periodic_update, 1000) -- update every second
+  end
+  periodic_update()
 
   binding_util.create_plug_bindings(self.bufnr, bindings, self)
   binding_util.create_bindings_to_plug(self.bufnr, "n", config.task_list.bindings, "OverseerTask:")
@@ -130,33 +140,36 @@ end
 
 ---@private
 ---@return nil|overseer.Task
+---@return nil|integer offset
 function Sidebar:get_task_from_line(lnum)
   if not lnum then
     local winid = self:get_winid()
     if not winid then
-      return nil
+      return nil, nil
     end
     lnum = vim.api.nvim_win_get_cursor(winid)[1]
   end
 
   for _, v in ipairs(self.task_lines) do
-    local last_lnum, task = v[2], v[3]
+    local start_lnum, last_lnum, task = v[1], v[2], v[3]
     if lnum <= last_lnum then
-      return task
+      return task, lnum - start_lnum
     end
   end
 end
 
 ---@param task_id integer
-function Sidebar:focus_task_id(task_id)
+---@param offset? integer
+function Sidebar:focus_task_id(task_id, offset)
   local winid = self:get_winid()
   if not winid then
     return
   end
+  offset = offset or 0
   for _, v in ipairs(self.task_lines) do
     local start_line, task = v[1], v[3]
     if task.id == task_id then
-      vim.api.nvim_win_set_cursor(winid, { start_line, 0 })
+      vim.api.nvim_win_set_cursor(winid, { start_line + offset, 0 })
       self:set_task_focused(task_id)
       return
     end
@@ -315,13 +328,14 @@ function Sidebar:run_action(name)
   action_util.run_task_action(task, name)
 end
 
-function Sidebar:render(tasks)
+function Sidebar:render()
   if not vim.api.nvim_buf_is_valid(self.bufnr) then
     return false
   end
-  local prev_num_lines = vim.api.nvim_buf_line_count(self.bufnr)
+  local tasks = task_list.list_tasks()
   local prev_first_task = self:get_task_from_line(1)
   local prev_first_task_id = prev_first_task and prev_first_task.id
+  local focused_task, offset = self:get_task_from_line()
   local ns = vim.api.nvim_create_namespace("overseer")
   vim.api.nvim_buf_clear_namespace(self.bufnr, ns, 0, -1)
 
@@ -337,8 +351,7 @@ function Sidebar:render(tasks)
   local child_sep_2 = { { { tl.child_indent[3], border }, { tl.separator, border } } }
 
   -- Iterate backwards so we show most recent tasks first
-  for i = #tasks, 1, -1 do
-    local task = tasks[i]
+  for i, task in ipairs(tasks) do
     local line_start = #lines + 1
     local task_lines = config.task_list.render(task)
 
@@ -353,9 +366,9 @@ function Sidebar:render(tasks)
     table.insert(self.task_lines, { line_start, #lines, task })
 
     -- task separator
-    if i > 1 then
-      local prev_is_child = i < #tasks and tasks[i + 1].parent_id ~= nil
-      local next_is_child = tasks[i - 1].parent_id ~= nil
+    if i < #tasks then
+      local prev_is_child = i > 1 and tasks[i - 1].parent_id ~= nil
+      local next_is_child = tasks[i + 1].parent_id ~= nil
       if next_is_child then
         table.insert(extmarks, { #lines - 1, 0, { virt_lines = child_sep_1 } })
       elseif prev_is_child then
@@ -385,22 +398,22 @@ function Sidebar:render(tasks)
       end)
     end
 
-    local new_first_task = tasks[#tasks]
+    local new_first_task = tasks[1]
     local new_first_task_id = new_first_task and new_first_task.id
-    local new_line_count = vim.api.nvim_buf_line_count(self.bufnr)
 
     local in_sidebar = vim.api.nvim_get_current_win() == sidebar_winid
     local in_output_win = vim.b.overseer_task ~= nil
+    local sidebar_focused = in_sidebar or in_output_win
+    local focused_task_id = focused_task and focused_task.id
     if
-      not in_sidebar
-      and not in_output_win
+      (not sidebar_focused or focused_task_id == prev_first_task_id)
       and prev_first_task_id ~= new_first_task_id
       and new_first_task_id
     then
       self:focus_task_id(new_first_task_id)
-    elseif prev_num_lines ~= new_line_count then
+    elseif focused_task_id then
       -- Make sure our cursor stays on the previously focused task, even if it's moved
-      self:focus_task_id(self.focused_task_id)
+      self:focus_task_id(focused_task_id, offset)
     end
   end
 
