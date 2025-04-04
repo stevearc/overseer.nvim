@@ -128,6 +128,9 @@ end
 local function condition_matches(condition, tags, search, match_tags)
   condition = condition or {}
   if condition.filetype then
+    if not search.filetype then
+      return false, string.format("Does not match filetype %s", vim.inspect(condition.filetype))
+    end
     local search_fts = vim.split(search.filetype, ".", { plain = true })
     local any_ft_match = false
     for _, ft in util.iter_as_list(condition.filetype) do

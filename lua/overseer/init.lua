@@ -216,6 +216,7 @@ end
 ---Use overseer.run_task
 ---@deprecated
 M.run_template = function(opts, callback)
+  vim.deprecate("overseer.run_template", "overseer.run_task", "2026-01-01", "overseer.nvim")
   return M.run_task(opts, callback)
 end
 
