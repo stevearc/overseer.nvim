@@ -97,10 +97,7 @@ end
 
 ---@class overseer.ListTaskOpts
 ---@field unique? boolean Deduplicates non-running tasks by name
----@field name? string|string[] Only list tasks with this name or names
----@field name_not? boolean Invert the name search (tasks *without* that name)
 ---@field status? overseer.Status|overseer.Status[] Only list tasks with this status or statuses
----@field status_not? boolean Invert the status search
 ---@field recent_first? boolean The most recent tasks are first in the list
 ---@field bundleable? boolean Only list tasks that should be included in a bundle
 ---@field filter? fun(task: overseer.Task): boolean
@@ -110,29 +107,18 @@ end
 M.list_tasks = function(opts)
   opts = opts or {}
   vim.validate("unique", opts.unique, "boolean", true)
-  vim.validate("name", opts.name, function(n)
-    return type(n) == "string" or type(n) == "table"
-  end, true)
-  vim.validate("name_not", opts.name_not, "boolean", true)
   vim.validate("status", opts.status, function(n)
     return type(n) == "string" or type(n) == "table"
   end, true)
-  vim.validate("status_not", opts.status_not, "boolean", true)
   vim.validate("recent_first", opts.recent_first, "boolean", true)
   vim.validate("bundleable", opts.bundleable, "boolean", true)
   vim.validate("filter", opts.filter, "function", true)
-  local name = util.list_to_map(opts.name or {})
   local status = util.list_to_map(opts.status or {})
   local seen = {}
   local ret = {}
   for _, task in ipairs(tasks) do
     if
-      (
-        not opts.name
-        or (name[task.name] and not opts.name_not)
-        or (not name[task.name] and opts.name_not)
-      )
-      and (not opts.status or (status[task.status] and not opts.status_not) or (not status[task.status] and opts.status_not))
+      (not opts.status or status[task.status])
       and (not opts.bundleable or task:should_include_in_bundle())
       and (not opts.filter or opts.filter(task))
     then

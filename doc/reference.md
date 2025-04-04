@@ -338,10 +338,7 @@ List all tasks
 | ------------- | ----------------------------------------- | --------------------------------------------------- |
 | opts          | `nil\|overseer.ListTaskOpts`              |                                                     |
 | >unique       | `nil\|boolean`                            | Deduplicates non-running tasks by name              |
-| >name         | `nil\|string\|string[]`                   | Only list tasks with this name or names             |
-| >name_not     | `nil\|boolean`                            | Invert the name search (tasks *without* that name)  |
 | >status       | `nil\|overseer.Status\|overseer.Status[]` | Only list tasks with this status or statuses        |
-| >status_not   | `nil\|boolean`                            | Invert the status search                            |
 | >recent_first | `nil\|boolean`                            | The most recent tasks are first in the list         |
 | >bundleable   | `nil\|boolean`                            | Only list tasks that should be included in a bundle |
 | >filter       | `nil\|fun(task: overseer.Task): boolean`  |                                                     |
