@@ -46,9 +46,7 @@ return {
   },
   constructor = function(opts)
     opts = opts or {}
-    vim.validate({
-      timeout = { opts.timeout, "n" },
-    })
+    vim.validate("timeout", opts.timeout, "number")
     return {
       timer = nil,
 

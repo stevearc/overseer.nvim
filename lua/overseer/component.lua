@@ -50,13 +50,11 @@ local registry = {}
 ---@param opts overseer.ComponentDefinition
 ---@return overseer.Component
 local function validate_component(name, opts)
-  vim.validate({
-    desc = { opts.desc, "s", true },
-    params = { opts.params, "t", true },
-    constructor = { opts.constructor, "f" },
-    editable = { opts.editable, "b", true },
-    serializable = { opts.serializable, "b", true },
-  })
+  vim.validate("opts.desc", opts.desc, "string", true)
+  vim.validate("opts.params", opts.params, "table", true)
+  vim.validate("opts.constructor", opts.constructor, "function")
+  vim.validate("opts.editable", opts.editable, "boolean", true)
+  vim.validate("opts.serializable", opts.serializable, "boolean", true)
   ---@type overseer.Component
   local comp = vim.deepcopy(opts) ---@diagnostic disable-line: assign-type-mismatch
   if comp.serializable == nil then
@@ -270,10 +268,8 @@ end
 ---@param existing nil|overseer.Serialized[] A list of instantiated components or component params
 ---@return overseer.Serialized[]
 M.resolve = function(components, existing)
-  vim.validate({
-    components = { components, "t" },
-    existing = { existing, "t", true },
-  })
+  vim.validate("components", components, "table")
+  vim.validate("existing", existing, "table", true)
   local seen = {}
   if existing then
     for _, comp in ipairs(existing) do

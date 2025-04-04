@@ -280,9 +280,7 @@ end
 ---@param config table
 ---@return overseer.Parser
 M.new = function(config)
-  vim.validate({
-    config = { config, "t" },
-  })
+  vim.validate("config", config, "table")
   if vim.islist(config) or M.util.is_parser(config) then
     return ListParser.new(config)
   else

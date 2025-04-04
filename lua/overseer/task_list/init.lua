@@ -109,16 +109,18 @@ end
 ---@return overseer.Task[]
 M.list_tasks = function(opts)
   opts = opts or {}
-  vim.validate({
-    unique = { opts.unique, "b", true },
-    -- name is string or list
-    name_not = { opts.name_not, "b", true },
-    -- status is string or list
-    status_not = { opts.status_not, "b", true },
-    recent_first = { opts.recent_first, "b", true },
-    bundleable = { opts.bundleable, "b", true },
-    filter = { opts.filter, "f", true },
-  })
+  vim.validate("unique", opts.unique, "boolean", true)
+  vim.validate("name", opts.name, function(n)
+    return type(n) == "string" or type(n) == "table"
+  end, true)
+  vim.validate("name_not", opts.name_not, "boolean", true)
+  vim.validate("status", opts.status, function(n)
+    return type(n) == "string" or type(n) == "table"
+  end, true)
+  vim.validate("status_not", opts.status_not, "boolean", true)
+  vim.validate("recent_first", opts.recent_first, "boolean", true)
+  vim.validate("bundleable", opts.bundleable, "boolean", true)
+  vim.validate("filter", opts.filter, "function", true)
   local name = util.list_to_map(opts.name or {})
   local status = util.list_to_map(opts.status or {})
   local seen = {}

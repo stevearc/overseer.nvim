@@ -48,16 +48,17 @@ local next_id = 1
 function Task.new(opts)
   opts = opts or {}
   log.trace("New task: %s", opts)
-  vim.validate({
-    -- cmd can be table or string
-    args = { opts.args, "t", true },
-    cwd = { opts.cwd, "s", true },
-    env = { opts.env, "t", true },
-    name = { opts.name, "s", true },
-    components = { opts.components, "t", true },
-    metadata = { opts.metadata, "t", true },
-    default_component_params = { opts.default_component_params, "t", true },
-  })
+  -- cmd can be table or string
+  vim.validate("cmd", opts.name, function(v)
+    return type(v) == "string" or type(v) == "table"
+  end, true)
+  vim.validate("args", opts.args, "table", true)
+  vim.validate("cwd", opts.cwd, "string", true)
+  vim.validate("env", opts.env, "table", true)
+  vim.validate("name", opts.name, "string", true)
+  vim.validate("components", opts.components, "table", true)
+  vim.validate("metadata", opts.metadata, "table", true)
+  vim.validate("default_component_params", opts.default_component_params, "table", true)
   if opts.env and vim.tbl_isempty(opts.env) then
     -- For some reason termopen() doesn't like an empty env table
     opts.env = nil
@@ -162,14 +163,14 @@ function Task:clone()
   return Task.new(self:serialize())
 end
 
+---@param comp overseer.Serialized
 function Task:add_component(comp)
   self:add_components({ comp })
 end
 
+---@param components overseer.Serialized[]
 function Task:add_components(components)
-  vim.validate({
-    components = { components, "t" },
-  })
+  vim.validate("components", components, "table")
   local new_comps = component.resolve(components, self.components)
   for _, v in ipairs(component.load(new_comps, self.default_component_params)) do
     table.insert(self.components, v)
@@ -180,15 +181,15 @@ function Task:add_components(components)
   end
 end
 
+---@param comp overseer.Serialized
 function Task:set_component(comp)
   self:set_components({ comp })
 end
 
--- Add components, overwriting any existing
+---Add components, overwriting any existing
+---@param components overseer.Serialized[]
 function Task:set_components(components)
-  vim.validate({
-    components = { components, "t" },
-  })
+  vim.validate("components", components, "table")
   for _, new_comp in ipairs(component.load(components, self.default_component_params)) do
     local found = false
     local replaced = false
@@ -218,9 +219,7 @@ end
 ---@param name string
 ---@return overseer.Component?
 function Task:get_component(name)
-  vim.validate({
-    name = { name, "s" },
-  })
+  vim.validate("name", name, "string")
   for _, v in ipairs(self.components) do
     if v.name == name then
       return v
@@ -230,17 +229,13 @@ end
 
 ---@param name string
 function Task:remove_component(name)
-  vim.validate({
-    name = { name, "s" },
-  })
+  vim.validate("name", name, "string")
   return self:remove_components({ name })
 end
 
 ---@param names string[]
 function Task:remove_components(names)
-  vim.validate({
-    names = { names, "t" },
-  })
+  vim.validate("names", names, "table")
   local lookup = {}
   for _, name in ipairs(names) do
     lookup[name] = true
@@ -267,7 +262,7 @@ end
 ---@param name string
 ---@return boolean
 function Task:has_component(name)
-  vim.validate({ name = { name, "s" } })
+  vim.validate("name", name, "string")
   local new_comps = component.resolve({ name }, self.components)
   return vim.tbl_isempty(new_comps)
 end
@@ -432,9 +427,7 @@ end
 
 ---@param status overseer.Status
 function Task:finalize(status)
-  vim.validate({
-    status = { status, "s" },
-  })
+  vim.validate("status", status, "string")
   if not self:is_running() then
     log.warn("Task %s cannot change status from %s to %s", self.name, self.status, status)
     return
@@ -458,9 +451,7 @@ end
 
 ---@param data? table
 function Task:set_result(data)
-  vim.validate({
-    data = { data, "t" },
-  })
+  vim.validate("data", data, "table", true)
   if not self:is_running() then
     return
   end
@@ -483,9 +474,7 @@ end
 ---@param force? boolean When true, will dispose even with a nonzero refcount or when buffer is visible
 ---@return boolean disposed
 function Task:dispose(force)
-  vim.validate({
-    force = { force, "b", true },
-  })
+  vim.validate("force", force, "boolean", true)
   if self:is_disposed() then
     return false
   end
@@ -531,7 +520,7 @@ end
 ---@param force_stop? boolean If true, restart the Task even if it is currently running
 ---@return boolean
 function Task:restart(force_stop)
-  vim.validate({ force_stop = { force_stop, "b", true } })
+  vim.validate("force_stop", force_stop, "boolean", true)
   log.debug("Restart task %s", self.name)
   if self:is_running() then
     if force_stop then

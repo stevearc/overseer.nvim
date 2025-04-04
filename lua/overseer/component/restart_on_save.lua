@@ -37,9 +37,7 @@ return {
     },
   },
   constructor = function(opts)
-    vim.validate({
-      delay = { opts.delay, "n" },
-    })
+    vim.validate("delay", opts.delay, "number")
 
     local function is_watching_file(path)
       if not opts.paths then

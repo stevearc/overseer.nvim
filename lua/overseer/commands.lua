@@ -116,15 +116,13 @@ M.run_template = function(opts, callback)
   opts = vim.tbl_deep_extend("keep", opts or {}, {
     autostart = true,
   })
-  vim.validate({
-    name = { opts.name, "s", true },
-    tags = { opts.tags, "t", true },
-    autostart = { opts.autostart, "b", true },
-    first = { opts.first, "b", true },
-    disallow_prompt = { opts.disallow_prompt, "b", true },
-    params = { opts.params, "t", true },
-    callback = { callback, "f", true },
-  })
+  vim.validate("name", opts.name, "string", true)
+  vim.validate("tags", opts.tags, "table", true)
+  vim.validate("autostart", opts.autostart, "boolean", true)
+  vim.validate("first", opts.first, "boolean", true)
+  vim.validate("disallow_prompt", opts.disallow_prompt, "boolean", true)
+  vim.validate("params", opts.params, "table", true)
+  vim.validate("callback", callback, "function", true)
   if opts.first == nil then
     opts.first = opts.name ~= nil or not vim.tbl_isempty(opts.tags or {})
   end

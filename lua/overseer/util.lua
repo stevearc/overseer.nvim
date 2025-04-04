@@ -147,16 +147,6 @@ M.scroll_to_end = function(winid)
   vim.api.nvim_set_option_value("scrolloff", scrolloff, { scope = "local", win = winid })
 end
 
----@param bufnr number
----@param ns number
----@param highlights table
-M.add_highlights = function(bufnr, ns, highlights)
-  for _, hl in ipairs(highlights) do
-    local group, lnum, col_start, col_end = unpack(hl)
-    vim.api.nvim_buf_add_highlight(bufnr, ns, group, lnum - 1, col_start, col_end)
-  end
-end
-
 ---@param bufnr integer
 ---@param ns integer
 ---@param lines overseer.TextChunk[][]
@@ -527,10 +517,8 @@ end
 ---@param func fun(...: any)
 ---@param opts? {reset_timer_on_call: nil|boolean, delay: nil|integer|fun(...: any): integer}
 M.debounce = function(func, opts)
-  vim.validate({
-    func = { func, "f" },
-    opts = { opts, "t", true },
-  })
+  vim.validate("func", func, "function")
+  vim.validate("opts", opts, "table", true)
   opts = opts or {}
   local delay = opts.delay or 300
   local timer = nil
@@ -645,7 +633,7 @@ M.run_in_fullscreen_win = function(bufnr, callback)
   })
   local ok, err = xpcall(callback, debug.traceback)
   if not ok then
-    vim.api.nvim_err_writeln(err)
+    vim.api.nvim_echo({ { err } }, true, { err = true })
   end
   pcall(vim.api.nvim_win_close, winid, true)
   vim.api.nvim_set_current_win(start_winid)
@@ -663,7 +651,7 @@ M.run_in_cwd = function(cwd, callback)
   vim.cmd.lcd({ args = { cwd }, mods = { emsg_silent = true, noautocmd = true } })
   local ok, err = xpcall(callback, debug.traceback)
   if not ok then
-    vim.api.nvim_err_writeln(err)
+    vim.api.nvim_echo({ { err } }, true, { err = true })
   end
   vim.cmd.lcd({ args = { prev_cwd }, mods = { emsg_silent = true, noautocmd = true } })
 end

@@ -229,8 +229,12 @@ function Builder:render()
   local title_ns = vim.api.nvim_create_namespace("overseer_title")
   vim.api.nvim_buf_clear_namespace(self.bufnr, title_ns, 0, -1)
   local lines = { util.align(self.title, vim.api.nvim_win_get_width(0), "center") }
-  local highlights = { { "OverseerTask", 1, 0, -1 } }
   local extmarks = {}
+  table.insert(extmarks, {
+    0,
+    0,
+    { hl_group = "OverseerTask", end_col = #lines[1] },
+  })
   local extmark_idx_to_name = {}
   for _, name in ipairs(self.schema_keys) do
     local prefix = self.schema[name].optional and "" or "*"
@@ -278,7 +282,6 @@ function Builder:render()
     lines[lnum] = line
   end
   vim.api.nvim_buf_set_lines(self.bufnr, 0, -1, true, lines)
-  util.add_highlights(self.bufnr, title_ns, highlights)
   self.ext_id_to_schema_field_name = {}
   for i, mark in ipairs(extmarks) do
     local line, col, opts = unpack(mark)

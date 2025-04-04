@@ -47,11 +47,9 @@ function Parallel.new(opts, ...)
   else
     children = vim.F.pack_len(...)
   end
-  vim.validate({
-    break_on_first_failure = { opts.break_on_first_failure, "b", true },
-    break_on_first_success = { opts.break_on_first_success, "b", true },
-    reset_children = { opts.reset_children, "b", true },
-  })
+  vim.validate("break_on_first_failure", opts.break_on_first_failure, "boolean", true)
+  vim.validate("break_on_first_success", opts.break_on_first_success, "boolean", true)
+  vim.validate("reset_children", opts.reset_children, "boolean", true)
   opts = vim.tbl_deep_extend("keep", opts, {
     break_on_first_failure = true,
     break_on_first_success = false,

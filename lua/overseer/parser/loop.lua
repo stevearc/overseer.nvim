@@ -37,10 +37,8 @@ function Loop.new(opts, child)
     child = opts
     opts = {}
   end
-  vim.validate({
-    ignore_failure = { opts.ignore_failure, "b", true },
-    repetitions = { opts.repetitions, "n", true },
-  })
+  vim.validate("ignore_failure", opts.ignore_failure, "boolean", true)
+  vim.validate("repetitions", opts.repetitions, "number", true)
   return setmetatable({
     ignore_failure = opts.ignore_failure,
     repetitions = opts.repetitions,
