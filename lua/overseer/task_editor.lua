@@ -45,7 +45,7 @@ local task_builtin_params = {
 ---@field cur_line? {[1]: number, [2]: string}
 ---@field bufnr integer
 ---@field private components overseer.ComponentDefinition[]
----@field private ext_id_to_comp_and_schema_field_name table<integer, {[1]: overseer.ComponentDefinition?, [2]: string?}>
+---@field private ext_id_to_comp_idx_and_schema_field_name table<integer, {[1]: integer?, [2]: string?}>
 ---@field private task overseer.Task
 ---@field private task_data table<string, any>
 ---@field private callback fun(task?: overseer.Task)
@@ -89,7 +89,7 @@ function Editor.new(task, task_cb)
     task_name = task.name,
     task_data = task_data,
     disable_close_on_leave = false,
-    ext_id_to_comp_and_schema_field_name = {},
+    ext_id_to_comp_idx_and_schema_field_name = {},
     layout = layout,
     cleanup = cleanup,
   }, { __index = Editor })
@@ -155,14 +155,14 @@ function Editor.new(task, task_cb)
 end
 
 ---@private
----@return table<integer, {[1]: overseer.ComponentDefinition?, [2]: string}>
-function Editor:get_lnum_to_comp_and_field()
+---@return table<integer, {[1]: integer?, [2]: string}>
+function Editor:get_lnum_to_comp_idx_and_field()
   local ns = vim.api.nvim_create_namespace("overseer")
   local extmarks = vim.api.nvim_buf_get_extmarks(self.bufnr, ns, 0, -1, { type = "virt_text" })
   local lnum_to_field_name = {}
   for _, extmark in ipairs(extmarks) do
     local ext_id, row = extmark[1], extmark[2]
-    local comp_and_field = self.ext_id_to_comp_and_schema_field_name[ext_id]
+    local comp_and_field = self.ext_id_to_comp_idx_and_schema_field_name[ext_id]
     if comp_and_field then
       lnum_to_field_name[row + 1] = comp_and_field
     end
@@ -182,15 +182,16 @@ function Editor:on_cursor_move()
   end
   local vtext_ns = vim.api.nvim_create_namespace("overseer_vtext")
   vim.api.nvim_buf_clear_namespace(self.bufnr, vtext_ns, 0, -1)
-  local lnum_to_comp_and_field = self:get_lnum_to_comp_and_field()
+  local lnum_to_comp_and_field = self:get_lnum_to_comp_idx_and_field()
 
   local comp_and_field = lnum_to_comp_and_field[lnum]
   if not comp_and_field then
     return
   end
-  local comp, field_name = comp_and_field[1], comp_and_field[2]
+  local comp_idx, field_name = comp_and_field[1], comp_and_field[2]
 
-  if comp and field_name then
+  if comp_idx and field_name then
+    local comp = assert(component.get(self.components[comp_idx][1]))
     local schema = comp.params[field_name]
     if schema.desc then
       vim.api.nvim_buf_set_extmark(self.bufnr, vtext_ns, lnum - 1, 0, {
@@ -234,7 +235,7 @@ function Editor:render()
     ext_idx_to_comp_and_schema_field_name[#extmarks] = { nil, k }
   end
 
-  for _, params in ipairs(self.components) do
+  for i, params in ipairs(self.components) do
     local comp = assert(component.get(params[1]))
     table.insert(lines, "")
     local desc
@@ -251,7 +252,7 @@ function Editor:render()
         undo_restore = false,
       },
     })
-    ext_idx_to_comp_and_schema_field_name[#extmarks] = { comp, nil }
+    ext_idx_to_comp_and_schema_field_name[#extmarks] = { i, nil }
 
     local schema = comp.params
     if schema then
@@ -272,7 +273,7 @@ function Editor:render()
             invalidate = true,
           },
         })
-        ext_idx_to_comp_and_schema_field_name[#extmarks] = { comp, k }
+        ext_idx_to_comp_and_schema_field_name[#extmarks] = { i, k }
       end
     end
   end
@@ -292,7 +293,7 @@ function Editor:render()
   for i, mark in ipairs(extmarks) do
     local lnum, col, opts = unpack(mark)
     local ext_id = vim.api.nvim_buf_set_extmark(self.bufnr, ns, lnum - 1, col, opts)
-    self.ext_id_to_comp_and_schema_field_name[ext_id] = ext_idx_to_comp_and_schema_field_name[i]
+    self.ext_id_to_comp_idx_and_schema_field_name[ext_id] = ext_idx_to_comp_and_schema_field_name[i]
   end
   self:on_cursor_move()
 end
@@ -368,7 +369,7 @@ end
 function Editor:parse()
   local lines = vim.api.nvim_buf_get_lines(self.bufnr, 0, -1, true)
   self.task_name = lines[1]
-  local lnum_to_comp_and_field = self:get_lnum_to_comp_and_field()
+  local lnum_to_comp_and_field = self:get_lnum_to_comp_idx_and_field()
   if vim.tbl_isempty(lnum_to_comp_and_field) then
     -- user may have done an "undo" and removed all the extmarks
     self:render()
@@ -387,18 +388,27 @@ function Editor:parse()
       self:add_new_component(new_comp_insert_pos)
       return
     end
-    local comp, field_name = comp_and_field[1], comp_and_field[2]
+    local comp_idx, field_name = comp_and_field[1], comp_and_field[2]
 
-    if not comp and field_name then
+    if not comp_idx and field_name then
       -- This is a task param
       local param_schema = task_builtin_params[field_name]
       local parsed, value = form_utils.parse_value(param_schema, line)
       if parsed then
         self.task_data[field_name] = value
       end
-    elseif comp and not field_name then
+    elseif comp_idx and not field_name then
+      local comp_name = self.components[comp_idx][1]
       new_comp_insert_pos = new_comp_insert_pos + 1
-      seen_components[comp.name] = true
+      seen_components[comp_name] = true
+    elseif comp_idx and field_name then
+      local comp_data = self.components[comp_idx]
+      local comp = assert(component.get(comp_data[1]))
+      local param_schema = comp.params[field_name]
+      local parsed, value = form_utils.parse_value(param_schema, line)
+      if parsed then
+        comp_data[field_name] = value
+      end
     end
   end
 
