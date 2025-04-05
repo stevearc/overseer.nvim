@@ -1,7 +1,6 @@
 local commands = require("overseer.commands")
 local config = require("overseer.config")
 local log = require("overseer.log")
-local overseer = require("overseer")
 
 local M = {}
 
