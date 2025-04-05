@@ -108,24 +108,35 @@ M.enable_dap = function(enabled)
   end
 end
 
-M.called_setup = false
-
 ---Initialize overseer
 ---@param opts overseer.Config|nil Configuration options
 M.setup = function(opts)
-  M.called_setup = true
+  opts = opts or {}
+  if not M.private_setup() then
+    return
+  end
+  M.enable_dap(opts.dap)
+  require("overseer.config").setup(opts)
+end
+
+local did_setup = false
+---@private
+---@return boolean
+M.private_setup = function()
   if vim.fn.has("nvim-0.11") == 0 then
     vim.notify_once(
       "overseer has dropped support for Neovim <0.11. Please use a different branch or upgrade Neovim",
       vim.log.levels.ERROR
     )
-    return
+    return false
   end
-  opts = opts or {}
-  create_commands()
-  M.enable_dap(opts.dap)
-  require("overseer.config").setup(opts)
 
+  if did_setup then
+    return true
+  end
+  did_setup = true
+
+  create_commands()
   for _, hl in ipairs(M.get_all_highlights()) do
     vim.api.nvim_set_hl(0, hl.name, { link = hl.default, default = true })
   end
@@ -140,6 +151,7 @@ M.setup = function(opts)
       end
     end,
   })
+  return true
 end
 
 ---Create a new Task
