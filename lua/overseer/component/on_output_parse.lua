@@ -1,28 +1,46 @@
 local files = require("overseer.files")
 local log = require("overseer.log")
-local parser = require("overseer.parser")
+local parselib = require("overseer.parselib")
 local problem_matcher = require("overseer.vscode.problem_matcher")
+
+---@param cwd string
+---@param result table
+---@return table
+local function fix_relative_filenames(cwd, result)
+  if result.diagnostics then
+    -- Ensure that all relative filenames are rooted at the task cwd, not vim's current cwd
+    for _, diag in ipairs(result.diagnostics) do
+      if diag.filename and not files.is_absolute(diag.filename) then
+        diag.filename = vim.fs.joinpath(cwd, diag.filename)
+      end
+    end
+  end
+  return result
+end
 
 ---@type overseer.ComponentFileDefinition
 return {
   desc = "Parses task output and sets task result",
   params = {
     parser = {
-      desc = "Parser definition to extract values from output",
+      desc = "Parse function or overseer.OutputParser",
+      long_desc = "This can be a function that takes a line of output and (optionally) returns a quickfix-list item (see :help |setqflist-what|). For more complex parsing, this should be a class of type overseer.OutputParser.",
       type = "opaque",
       optional = true,
       order = 1,
     },
     problem_matcher = {
       desc = "VS Code-style problem matcher",
+      long_desc = "Only one of 'parser', 'problem_matcher', or 'errorformat' is allowed.",
       type = "opaque",
       optional = true,
       order = 2,
     },
-    relative_file_root = {
-      desc = "Relative filepaths will be joined to this root (instead of task cwd)",
+    errorformat = {
+      desc = "Errorformat string",
+      long_desc = "Only one of 'parser', 'problem_matcher', or 'errorformat' is allowed.",
+      type = "opaque",
       optional = true,
-      default_from_task = true,
       order = 3,
     },
     precalculated_vars = {
@@ -32,68 +50,67 @@ return {
       optional = true,
       order = 4,
     },
+    relative_file_root = {
+      desc = "Relative filepaths will be joined to this root (instead of task cwd)",
+      optional = true,
+      default_from_task = true,
+      order = 5,
+    },
   },
   constructor = function(params)
-    if params.parser and params.problem_matcher then
-      log.warn("on_output_parse: cannot specify both 'parser' and 'problem_matcher'")
-    elseif not params.parser and not params.problem_matcher then
-      log.error("on_output_parse: one of 'parser', 'problem_matcher' is required")
+    local p = { params.parser, params.problem_matcher, params.errorformat }
+    local num_parse_opts = #vim.tbl_keys(p)
+    if num_parse_opts == 0 then
+      log.error("on_output_parse: one of 'parser', 'problem_matcher', 'errorformat' is required")
+      return {}
+    elseif num_parse_opts > 1 then
+      log.error(
+        "on_output_parse: only one of 'parser', 'problem_matcher', 'errorformat' is allowed"
+      )
       return {}
     end
-    local parser_defn = params.parser
+
+    local parser
     if params.problem_matcher then
-      local pm = problem_matcher.resolve_problem_matcher(params.problem_matcher)
-      if pm then
-        parser_defn = problem_matcher.get_parser_from_problem_matcher(pm, params.precalculated_vars)
-        if parser_defn then
-          parser_defn = { diagnostics = parser_defn }
-        end
-      end
+      parser = problem_matcher.get_parser_from_problem_matcher(
+        params.problem_matcher,
+        params.precalculated_vars
+      )
+    elseif type(params.parser) == "function" then
+      parser = parselib.make_parser(params.parser)
+    elseif params.parser then
+      parser = params.parser
+    else
+      parser = parselib.parser_from_errorformat(params.errorformat)
     end
-    if not parser_defn then
+    if not parser then
+      log.error(
+        "Could not create output parser from %s",
+        params.problem_matcher or params.parser or params.errorformat
+      )
       return {}
     end
+    ---@cast parser overseer.OutputParser
+
+    local version = parser.result_version
     return {
-      on_init = function(self, task)
-        self.parser = parser.new(parser_defn)
-        self.parser_sub = function(key, result)
-          -- TODO reconsider this API for dispatching partial results
-          -- task:dispatch("on_stream_result", key, result)
-        end
-        self.parser:subscribe("new_item", self.parser_sub)
-        self.set_results_sub = function()
-          local result = self.parser:get_result()
-          if result.diagnostics then
-            -- Ensure that all relative filenames are rooted at the task cwd, not vim's current cwd
-            for _, diag in ipairs(result.diagnostics) do
-              if diag.filename and not files.is_absolute(diag.filename) then
-                diag.filename =
-                  vim.fs.joinpath(params.relative_file_root or task.cwd, diag.filename)
-              end
-            end
-          end
-          task:set_result(result)
-        end
-        self.parser:subscribe("set_results", self.set_results_sub)
-      end,
-      on_dispose = function(self)
-        if self.parser_sub then
-          self.parser:unsubscribe("new_item", self.parser_sub)
-          self.parser_sub = nil
-        end
-        if self.set_results_sub then
-          self.parser:unsubscribe("set_results", self.set_results_sub)
-          self.set_results_sub = nil
-        end
-      end,
       on_reset = function(self)
-        self.parser:reset()
+        parser:reset()
+        version = parser.result_version
       end,
       on_output_lines = function(self, task, lines)
-        self.parser:ingest(lines)
+        for _, line in ipairs(lines) do
+          parser:parse(line)
+        end
+        if version ~= parser.result_version then
+          task:set_result(
+            fix_relative_filenames(params.relative_file_root or task.cwd, parser:get_result())
+          )
+          version = parser.result_version
+        end
       end,
       on_pre_result = function(self, task)
-        return self.parser:get_result()
+        return fix_relative_filenames(params.relative_file_root or task.cwd, parser:get_result())
       end,
     }
   end,

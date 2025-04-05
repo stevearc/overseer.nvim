@@ -20,7 +20,6 @@
   - [add_template_hook(opts, hook)](#add_template_hookopts-hook)
   - [remove_template_hook(opts, hook)](#remove_template_hookopts-hook)
   - [register_template(defn)](#register_templatedefn)
-  - [debug_parser()](#debug_parser)
   - [register_alias(name, components)](#register_aliasname-components)
 - [Components](#components)
   - [dependencies](components.md#dependencies)
@@ -45,24 +44,6 @@
   - [jobstart(opts)](strategies.md#jobstartopts)
   - [orchestrator(opts)](strategies.md#orchestratoropts)
   - [test()](strategies.md#test)
-- [Parsers](#parsers)
-    - [always](parsers.md#always)
-    - [append](parsers.md#append)
-    - [dispatch](parsers.md#dispatch)
-    - [ensure](parsers.md#ensure)
-    - [extract](parsers.md#extract)
-    - [extract_efm](parsers.md#extract_efm)
-    - [extract_json](parsers.md#extract_json)
-    - [extract_multiline](parsers.md#extract_multiline)
-    - [extract_nested](parsers.md#extract_nested)
-    - [invert](parsers.md#invert)
-    - [loop](parsers.md#loop)
-    - [parallel](parsers.md#parallel)
-    - [sequence](parsers.md#sequence)
-    - [set_defaults](parsers.md#set_defaults)
-    - [skip_lines](parsers.md#skip_lines)
-    - [skip_until](parsers.md#skip_until)
-    - [test](parsers.md#test)
 - [Parameters](#parameters)
 
 <!-- /TOC -->
@@ -264,7 +245,6 @@ The official API surface includes:
 - Config options passed to `setup()`
 - [Components](explanation.md#components), including names and parameters
 - [Commands](#commands)
-- [Parsers](guides.md#parsing-output), including names and parameters
 
 <!-- API -->
 
@@ -522,12 +502,6 @@ overseer.register_template({
 })
 ```
 
-### debug_parser()
-
-`debug_parser()` \
-Open a tab with windows laid out for debugging a parser
-
-
 ### register_alias(name, components)
 
 `register_alias(name, components)` \
@@ -588,30 +562,6 @@ require("overseer").register_alias("my_plugin", { "default", "on_output_quickfix
 
 <!-- /TOC.strategies -->
 
-## Parsers
-
-<!-- TOC.parsers -->
-
-  - [always](parsers.md#always)
-  - [append](parsers.md#append)
-  - [dispatch](parsers.md#dispatch)
-  - [ensure](parsers.md#ensure)
-  - [extract](parsers.md#extract)
-  - [extract_efm](parsers.md#extract_efm)
-  - [extract_json](parsers.md#extract_json)
-  - [extract_multiline](parsers.md#extract_multiline)
-  - [extract_nested](parsers.md#extract_nested)
-  - [invert](parsers.md#invert)
-  - [loop](parsers.md#loop)
-  - [parallel](parsers.md#parallel)
-  - [sequence](parsers.md#sequence)
-  - [set_defaults](parsers.md#set_defaults)
-  - [skip_lines](parsers.md#skip_lines)
-  - [skip_until](parsers.md#skip_until)
-  - [test](parsers.md#test)
-
-<!-- /TOC.parsers -->
-
 ## Parameters
 
 Parameters are a schema-defined set of options. They are used by both [components](explanation.md#components) and [templates](explanation.md#templates) to expose customization options.
@@ -625,7 +575,7 @@ local params = {
     desc = "A detailed description",
     order = 1, -- determines order of parameters in the UI
     validate = function(value)
-      return true,
+      return true
     end,
     optional = true,
     default = "foobar",

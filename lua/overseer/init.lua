@@ -346,11 +346,6 @@ M.register_template = function(defn)
   require("overseer.template").register(defn)
 end
 
----Open a tab with windows laid out for debugging a parser
-M.debug_parser = function()
-  return require("overseer.parser.debug").start_debug_session()
-end
-
 ---Register a new component alias.
 ---@param name string
 ---@param components overseer.Serialized[]
