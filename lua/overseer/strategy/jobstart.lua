@@ -215,6 +215,7 @@ function JobstartStrategy:start(task)
       -- We manually kill processes during VimLeavePre cleanup, and we don't want to trigger user
       -- code because of that
       if vim.v.exiting == vim.NIL then
+        ---@diagnostic disable-next-line: invisible
         task:on_exit(c)
       end
     end,
