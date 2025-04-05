@@ -369,6 +369,11 @@ function Editor:parse()
   local lines = vim.api.nvim_buf_get_lines(self.bufnr, 0, -1, true)
   self.task_name = lines[1]
   local lnum_to_comp_and_field = self:get_lnum_to_comp_and_field()
+  if vim.tbl_isempty(lnum_to_comp_and_field) then
+    -- user may have done an "undo" and removed all the extmarks
+    self:render()
+    return
+  end
 
   local new_comp_insert_pos = 1
   local seen_components = {}
