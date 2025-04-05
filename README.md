@@ -216,6 +216,7 @@ If you want to define custom tasks for your project, I'd recommend starting with
 - [Lua API](doc/reference.md#lua-api)
   - [setup(opts)](doc/reference.md#setupopts)
   - [new_task(opts)](doc/reference.md#new_taskopts)
+  - [run_cmd(opts, callback)](doc/reference.md#run_cmdopts-callback)
   - [toggle(opts)](doc/reference.md#toggleopts)
   - [open(opts)](doc/reference.md#openopts)
   - [close()](doc/reference.md#close)

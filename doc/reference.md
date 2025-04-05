@@ -8,6 +8,7 @@
 - [Lua API](#lua-api)
   - [setup(opts)](#setupopts)
   - [new_task(opts)](#new_taskopts)
+  - [run_cmd(opts, callback)](#run_cmdopts-callback)
   - [toggle(opts)](#toggleopts)
   - [open(opts)](#openopts)
   - [close()](#close)
@@ -232,6 +233,7 @@ require("overseer").setup({
 | `OverseerClose`       |                     | Close the overseer window                                           |
 | `OverseerToggle[!]`   | `left/right/bottom` | Toggle the overseer window. With `!` cursor stays in current window |
 | `OverseerRun`         | `[name/tags]`       | Run a task from a template                                          |
+| `OverseerShell`       | `[command]`         | Run a shell command as an overseer task                             |
 | `OverseerQuickAction` | `[action]`          | Run an action on the most recent task, or the task under the cursor |
 | `OverseerTaskAction`  |                     | Select a task to run an action on                                   |
 
@@ -301,6 +303,16 @@ local task = overseer.new_task({
 })
 task:start()
 ```
+
+### run_cmd(opts, callback)
+
+`run_cmd(opts, callback)`
+
+| Param      | Type                                 | Desc |
+| ---------- | ------------------------------------ | ---- |
+| opts       | `nil\|overseer.RunCmdOpts`           |      |
+| >autostart | `nil\|boolean`                       |      |
+| callback   | `nil\|fun(task: nil\|overseer.Task)` |      |
 
 ### toggle(opts)
 

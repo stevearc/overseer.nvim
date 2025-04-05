@@ -50,6 +50,16 @@ local commands = {
     },
   },
   {
+    cmd = "OverseerShell",
+    args = "`[command]`",
+    func = "_run_shell",
+    def = {
+      desc = "Run a shell command as an overseer task",
+      complete = "shellcmdline",
+      nargs = "*",
+    },
+  },
+  {
     cmd = "OverseerQuickAction",
     args = "`[action]`",
     func = "_quick_action",
@@ -165,6 +175,30 @@ end
 --- task:start()
 M.new_task = function(opts)
   return require("overseer.task").new(opts)
+end
+
+---@class (exact) overseer.RunCmdOpts
+---@field autostart? boolean
+
+---@param opts? overseer.RunCmdOpts
+---@param callback? fun(task: nil|overseer.Task)
+M.run_cmd = function(opts, callback)
+  opts = vim.tbl_extend("keep", opts or {}, { autostart = true })
+  vim.ui.input({ prompt = "command", completion = "shellcmdline" }, function(cmd)
+    if not cmd then
+      if callback then
+        callback()
+      end
+      return
+    end
+    local task = M.new_task({ cmd = cmd })
+    if opts.autostart then
+      task:start()
+    end
+    if callback then
+      callback(task)
+    end
+  end)
 end
 
 ---Open or close the task list
