@@ -181,6 +181,7 @@ function OrchestratorStrategy:start_next()
         break
       elseif status == STATUS.FAILURE or status == STATUS.CANCELED then
         if self.task and self.task:is_running() then
+          ---@diagnostic disable-next-line: invisible
           self.task:finalize(status)
         end
         break
@@ -188,6 +189,7 @@ function OrchestratorStrategy:start_next()
       all_success = i == #self.tasks
     end
     if all_success then
+      ---@diagnostic disable-next-line: invisible
       self.task:finalize(STATUS.SUCCESS)
     end
   end
@@ -229,6 +231,7 @@ function OrchestratorStrategy:build_task(defn, i, j)
   template.get_by_name(name, search, function(tmpl)
     if not tmpl then
       log.error("Orchestrator could not find task '%s'", name)
+      ---@diagnostic disable-next-line: invisible
       self.task:finalize(STATUS.FAILURE)
       return
     end
@@ -242,6 +245,7 @@ function OrchestratorStrategy:build_task(defn, i, j)
       vim.schedule_wrap(function(task_defn)
         if not task_defn then
           log.warn("Canceled building task '%s'", name)
+          ---@diagnostic disable-next-line: invisible
           self.task:finalize(STATUS.FAILURE)
           return
         end

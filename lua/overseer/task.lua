@@ -425,6 +425,7 @@ function Task:dispatch(name, ...)
   return ret
 end
 
+---@private
 ---@param status overseer.Status
 function Task:finalize(status)
   vim.validate("status", status, "string")
@@ -449,6 +450,7 @@ function Task:finalize(status)
   end
 end
 
+---@private
 ---@param data? table
 function Task:set_result(data)
   vim.validate("data", data, "table", true)
@@ -536,6 +538,7 @@ function Task:restart(force_stop)
 end
 
 ---Called when the task strategy exits
+---@private
 ---@param code number
 function Task:on_exit(code)
   self.exit_code = code

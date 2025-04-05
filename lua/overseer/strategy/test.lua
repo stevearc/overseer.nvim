@@ -43,6 +43,7 @@ function TestStrategy:send_exit(code)
   -- Feed one last line end to flush the output
   self.task:dispatch("on_output", "\n")
   self.task:dispatch("on_output_lines", { "" })
+  ---@diagnostic disable-next-line: invisible
   self.task:on_exit(code or 0)
 end
 
