@@ -112,11 +112,15 @@ Parses task output and sets task result
 
 | Param              | Type     | Desc                                                                 |
 | ------------------ | -------- | -------------------------------------------------------------------- |
-| parser             | `opaque` | Parser definition to extract values from output                      |
+| parser             | `opaque` | Parse function or overseer.OutputParser                              |
 | problem_matcher    | `opaque` | VS Code-style problem matcher                                        |
+| errorformat        | `opaque` | Errorformat string                                                   |
 | precalculated_vars | `opaque` | Precalculated VS Code task variables                                 |
 | relative_file_root | `string` | Relative filepaths will be joined to this root (instead of task cwd) |
 
+- **parser:** This can be a function that takes a line of output and (optionally) returns a quickfix-list item (see :help |setqflist-what|). For more complex parsing, this should be a class of type overseer.OutputParser.
+- **problem_matcher:** Only one of 'parser', 'problem_matcher', or 'errorformat' is allowed.
+- **errorformat:** Only one of 'parser', 'problem_matcher', or 'errorformat' is allowed.
 - **precalculated_vars:** Tasks that are started from the VS Code provider precalculate certain interpolated variables (e.g. ${workspaceFolder}). We pass those in as params so they will remain stable even if Neovim's state changes in between creating and running (or restarting) the task.
 
 ## on_output_quickfix

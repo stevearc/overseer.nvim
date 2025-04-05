@@ -44,7 +44,6 @@ A task runner and job management plugin for Neovim
   - [Lua API](doc/reference.md#lua-api)
   - [Components](doc/reference.md#components)
   - [Strategies](doc/reference.md#strategies)
-  - [Parsers](doc/reference.md#parsers)
   - [Parameters](doc/reference.md#parameters)
 - [Screenshots](#screenshots)
 
@@ -228,11 +227,9 @@ If you want to define custom tasks for your project, I'd recommend starting with
   - [add_template_hook(opts, hook)](doc/reference.md#add_template_hookopts-hook)
   - [remove_template_hook(opts, hook)](doc/reference.md#remove_template_hookopts-hook)
   - [register_template(defn)](doc/reference.md#register_templatedefn)
-  - [debug_parser()](doc/reference.md#debug_parser)
   - [register_alias(name, components)](doc/reference.md#register_aliasname-components)
 - [Components](doc/reference.md#components)
 - [Strategies](doc/reference.md#strategies)
-- [Parsers](doc/reference.md#parsers)
 - [Parameters](doc/reference.md#parameters)
 
 ## Screenshots

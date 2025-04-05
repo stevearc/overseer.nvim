@@ -283,26 +283,29 @@ end)
 
 ## Parsing output
 
-The primary way of parsing output with overseer is the `on_output_parse` component.
+The primary way of parsing output with overseer is the [on_output_parse](components.md#on_output_parse) component. This can use a VS Code-style problem matcher, a function, or a vim errorformat to parse the output.
 
 ```lua
--- Definition of a component that parses output in the form of:
--- /path/to/file.txt:123: This is a message
--- You would typically use this in the components list of a task definition returned by a template
-{"on_output_parse", parser = {
-  -- Put the parser results into the 'diagnostics' field on the task result
-  diagnostics = {
-    -- Extract fields using lua patterns
-    -- To integrate with other components, items in the "diagnostics" result should match
-    -- vim's quickfix item format (:help setqflist)
-    { "extract", "^([^%s].+):(%d+): (.+)$", "filename", "lnum", "text" },
+-- Using vim errorformat
+{ "on_output_parse", errorformat = "%f:%l: %m" }
+
+-- Using VSCode problem matcher
+{ "on_output_parse", problem_matcher = "$tsc" }
+
+-- Using a function
+{ "on_output_parse", parser = function(line)
+  local fname, lnum, msg = line:match("^(.*):(%d+): (.*)$")
+  return {
+    filename = fname,
+    lnum = lnum,
+    text = msg
   }
-}}
+end }
 ```
 
-This is a simple example, but the parser library is flexible enough to parse nearly any output format. See more detailed documentation in [the parsers doc](parsers.md).
+See more detailed documentation about parsers and `on_output_parse` in [the parsers doc](parsers.md).
 
-You can of course create your own components to parse output leveraging the `on_output` or `on_output_lines` methods. The integration should be straightforward; see [on_output_parse.lua](../lua/overseer/component/on_output_parse.lua) to see how the built-in component leverages these methods.
+You can also create your own components to parse output leveraging the `on_output` or `on_output_lines` methods. The integration should be straightforward; see [on_output_parse.lua](../lua/overseer/component/on_output_parse.lua) to see how the built-in component leverages these methods.
 
 ## Running tasks sequentially
 

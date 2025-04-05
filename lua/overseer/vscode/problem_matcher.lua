@@ -1,5 +1,5 @@
 local log = require("overseer.log")
-local parser_lib = require("overseer.parser.lib")
+local parselib = require("overseer.parselib")
 local variables = require("overseer.vscode.variables")
 local M = {}
 
@@ -312,38 +312,40 @@ local match_names = {
   "code",
   "message",
 }
-local function num_field(name)
-  return {
-    name,
-    function(value, ctx)
-      return tonumber(value)
-    end,
-  }
+
+---@param n string
+---@return nil|number
+local function convert_number(n)
+  return tonumber(n)
 end
+
+---Convert VS Code match names to keys in a vim.quickfix.entry
+---@param name string
+---@return overseer.ParseField
 local function convert_match_name(name)
   if name == "file" then
     return "filename"
   elseif name == "location" then
     return {
       "lnum",
-      function(value, ctx)
+      function(value, item)
         local lnum, col, end_lnum, end_col = unpack(vim.split(value, ","))
-        ctx.item.col = tonumber(col)
-        ctx.item.end_lnum = tonumber(end_lnum)
-        ctx.item.end_col = tonumber(end_col)
+        item.col = tonumber(col)
+        item.end_lnum = tonumber(end_lnum)
+        item.end_col = tonumber(end_col)
         return tonumber(lnum)
       end,
     }
   elseif name == "line" then
-    return num_field("lnum")
+    return { "lnum", convert_number }
   elseif name == "column" then
-    return num_field("col")
+    return { "col", convert_number }
   elseif name == "character" then
-    return num_field("col")
+    return { "col", convert_number }
   elseif name == "endLine" then
-    return num_field("end_lnum")
+    return { "end_lnum", convert_number }
   elseif name == "endColumn" then
-    return num_field("end_col")
+    return { "end_col", convert_number }
   elseif name == "severity" then
     return "type"
   elseif name == "code" then
@@ -356,8 +358,35 @@ local function convert_match_name(name)
   end
 end
 
-local function convert_pattern(pattern, opts)
-  opts = opts or {}
+---@param pattern string|table
+---@return overseer.MatchFn
+local function pattern_to_match_fn(pattern)
+  if type(pattern) == "string" then
+    return parselib.make_regex_match_fn("\\v" .. pattern)
+  elseif pattern.lua_pat then
+    return parselib.make_lua_match_fn(pattern.lua_pat)
+  elseif pattern.vim_regexp then
+    return parselib.make_regex_match_fn(pattern.vim_regexp)
+  else
+    -- Fall back to trying to auto-convert the JS regex to a vim regex
+    return parselib.make_regex_match_fn("\\v" .. pattern.regexp)
+  end
+end
+
+---@param pattern? table|string
+---@return nil|overseer.TestFn
+local function pattern_to_test_fn(pattern)
+  if not pattern then
+    return nil
+  end
+  return parselib.match_to_test_fn(pattern_to_match_fn(pattern))
+end
+
+---@param pattern table
+---@param opts {append?: boolean, qf_type?: string, file_convert?: fun(file: string): string}
+---@return overseer.ParseFn
+local function pattern_to_parse_fn(pattern, opts)
+  ---@type overseer.ParseField[]
   local args = {}
   local full_line_key
   local max_arg = 0
@@ -387,36 +416,76 @@ local function convert_pattern(pattern, opts)
       args[i] = "_"
     end
   end
-  local extract_opts = {
-    append = opts.append,
-    postprocess = function(item, ctx)
+
+  local match = pattern_to_match_fn(pattern)
+  local extract = parselib.make_parse_fn(match, args)
+
+  return function(line)
+    local item = extract(line)
+    if item then
       if not item.type then
         item.type = opts.qf_type
       end
-      if full_line_key and not ctx.default_values[full_line_key] then
-        item[full_line_key] = ctx.line
+      if full_line_key then
+        item[full_line_key] = line
       end
       if opts.file_convert and item.filename then
         item.filename = opts.file_convert(item.filename)
       end
+    end
+    return item
+  end
+end
+
+---@param patterns table[]
+---@param opts {append?: boolean, qf_type?: string, file_convert?: fun(file: string): string}
+---@return overseer.OutputParser
+local function patterns_to_parser(patterns, opts)
+  local parse_fns = {}
+  for _, pattern in ipairs(patterns) do
+    local parse_fn = pattern_to_parse_fn(pattern, opts)
+    table.insert(parse_fns, parse_fn)
+  end
+  local loop_last = patterns[#patterns].loop
+  local idx = 1
+  local pending_item = {}
+  local result = {}
+
+  ---@type overseer.OutputParser
+  return {
+    parse = function(self, line)
+      local item = parse_fns[idx](line)
+      local is_last_fn = idx == #parse_fns
+      if item then
+        if is_last_fn then
+          item = vim.tbl_extend("keep", item, pending_item)
+          table.insert(result, item)
+          if not loop_last then
+            idx = 1
+          end
+        else
+          pending_item = vim.tbl_extend("force", pending_item, item)
+          idx = idx + 1
+        end
+      else
+        -- If we are in the middle of the parse funcs and the match fails, reset and try matching
+        -- again starting from the first function
+        if idx > 1 then
+          idx = 1
+          pending_item = {}
+          self:parse(line)
+        end
+      end
+    end,
+    get_result = function()
+      return { diagnostics = result }
+    end,
+    reset = function()
+      idx = 1
+      pending_item = {}
+      result = {}
     end,
   }
-  local extract_pat
-  if pattern.lua_pat then
-    extract_pat = pattern.lua_pat
-  elseif pattern.vim_regexp then
-    extract_pat = pattern.vim_regexp
-    extract_opts.regex = true
-  else
-    -- Fall back to trying to auto-convert the JS regex to a vim regex
-    extract_pat = "\\v" .. pattern.regexp
-    extract_opts.regex = true
-  end
-  local extract = { "extract", extract_opts, extract_pat, unpack(args) }
-  if pattern.loop then
-    return { "set_defaults", { "loop", extract } }
-  end
-  return extract
 end
 
 M.resolve_problem_matcher = function(problem_matcher)
@@ -453,36 +522,6 @@ M.resolve_problem_matcher = function(problem_matcher)
   return problem_matcher
 end
 
-local function pattern_to_test(pattern)
-  if not pattern then
-    return nil
-  elseif type(pattern) == "string" then
-    return { { regex = true }, "\\v" .. pattern }
-  else
-    if pattern.lua_pat then
-      return pattern.lua_pat
-    elseif pattern.vim_regexp then
-      return { { regex = true }, pattern.vim_regexp }
-    else
-      return pattern_to_test(pattern.regexp)
-    end
-  end
-end
-
-local function add_background(background, child)
-  if not background then
-    return child
-  end
-  return parser_lib.watcher_output(
-    assert(pattern_to_test(background.beginsPattern)),
-    assert(pattern_to_test(background.endsPattern)),
-    child,
-    {
-      active_on_start = background.activeOnStart,
-    }
-  )
-end
-
 -- Process file name based on "fileLocation"
 -- Valid: "absolute", "relative", "autoDetect", ["relative", "path value"], ["autoDetect", "path value"]
 local function file_converter(file_loc, precalculated_vars)
@@ -496,6 +535,7 @@ local function file_converter(file_loc, precalculated_vars)
       and variables.replace_vars(file_loc[2], {}, precalculated_vars)
     or vim.fn.getcwd()
 
+  ---@param file string
   return function(file)
     if typ == "absolute" then
       return file
@@ -509,40 +549,50 @@ local function file_converter(file_loc, precalculated_vars)
   end
 end
 
----@param problem_matcher table
+---@param parser overseer.OutputParser
+---@param background? table
+local function wrap_background_parser(parser, background)
+  if not background then
+    return parser
+  end
+  return parselib.wrap_background_parser(parser, {
+    active_on_start = background.activeOnStart,
+    start_fn = pattern_to_test_fn(background.beginsPattern),
+    end_fn = pattern_to_test_fn(background.endsPattern),
+  })
+end
+
+---@param problem_matcher? table
 ---@param precalculated_vars? table
----@return nil|table
+---@return nil|overseer.OutputParser
 M.get_parser_from_problem_matcher = function(problem_matcher, precalculated_vars)
+  problem_matcher = M.resolve_problem_matcher(problem_matcher)
   if not problem_matcher then
     return nil
   end
+
   if vim.islist(problem_matcher) then
+    -- this is a list of problem matchers
     local background
-    local children = {}
+    local all_parsers = {}
     for _, v in ipairs(problem_matcher) do
       local parser = M.get_parser_from_problem_matcher(v, precalculated_vars)
-      assert(parser, "Failed to create overseer parser from VS Code problem matcher")
-      local is_parser = type(parser[1]) == "string"
-      if is_parser then
-        table.insert(children, parser)
-      else
-        vim.list_extend(children, parser)
-      end
-      if v.background then
-        background = v.background
+      if parser then
+        assert(parser, "Failed to create overseer parser from VS Code problem matcher")
+        table.insert(all_parsers, parser)
+        if v.background then
+          background = v.background
+        end
       end
     end
-    local ret = { "parallel", { break_on_first_failure = false }, unpack(children) }
-    return add_background(background, ret)
+    return wrap_background_parser(parselib.combine_parsers(all_parsers), background)
   end
 
-  -- NOTE: we ignore matcher.owner
   local qf_type = severity_to_type[problem_matcher.severity]
   local pattern = problem_matcher.pattern
   local background = problem_matcher.background
   local convert = problem_matcher.fileLocation
     and file_converter(problem_matcher.fileLocation, precalculated_vars)
-  local ret
   if type(pattern) == "string" then
     if default_patterns[pattern] then
       pattern = vim.deepcopy(default_patterns[pattern])
@@ -552,26 +602,15 @@ M.get_parser_from_problem_matcher = function(problem_matcher, precalculated_vars
     end
   end
 
+  local ret
   if vim.islist(pattern) then
-    ret = { "sequence" }
-    for i, v in ipairs(pattern) do
-      local append = i == #pattern
-      local parse_node =
-        convert_pattern(v, { append = append, qf_type = qf_type, file_convert = convert })
-      if not parse_node then
-        return nil
-      end
-      table.insert(ret, parse_node)
-    end
+    ret = patterns_to_parser(pattern, { qf_type = qf_type, file_convert = convert })
   else
-    local parse_node = convert_pattern(pattern, { qf_type = qf_type, file_convert = convert })
-    if parse_node then
-      ret = parse_node
-    else
-      return nil
-    end
+    local parse_fn = pattern_to_parse_fn(pattern, { qf_type = qf_type, file_convert = convert })
+    ret = parselib.make_parser(parse_fn)
   end
-  return add_background(background, ret)
+
+  return wrap_background_parser(ret, background)
 end
 
 ---This is used for generating documentation

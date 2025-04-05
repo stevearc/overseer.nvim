@@ -3,7 +3,6 @@ import json
 import os
 import re
 import subprocess
-from collections import OrderedDict
 from functools import lru_cache
 from typing import Any, Dict, Iterable, List, Optional, Tuple
 
@@ -134,78 +133,11 @@ def update_components_md():
         ofile.writelines(lines)
 
 
-def get_parser_nodes() -> Dict[str, Any]:
-    names = []
-    for filename in sorted(os.listdir(os.path.join(ROOT, "lua", "overseer", "parser"))):
-        basename = os.path.splitext(filename)[0]
-        if basename != "init":
-            names.append(basename)
-    escaped_names = ", ".join([f'"{name}"' for name in names])
-    parsers_data = read_nvim_json(
-        f'require("overseer.parser").get_parser_docs({escaped_names})'
-    )
-    ret = OrderedDict()
-    for name, data in zip(names, parsers_data):
-        if data:
-            ret[name] = data
-    return ret
-
-
 def get_desc(arg: Dict) -> str:
     desc = arg["desc"]
     if "default" in arg:
         desc += " (default %s)" % json.dumps(arg["default"])
     return desc
-
-
-def format_parser_arg_table(args: List[Dict]) -> Iterable[str]:
-    rows = []
-    any_subparams = False
-    for arg in args:
-        ftype = arg["type"].replace("|", r"\|")
-        rows.append(
-            {
-                "Param": arg["name"],
-                "Type": f"`{ftype}`",
-                "Desc": get_desc(arg),
-            }
-        )
-        for subp in arg.get("fields", []):
-            any_subparams = True
-            ftype = subp["type"].replace("|", r"\|")
-            rows.append(
-                {
-                    "Type": subp["name"],
-                    "Desc": f"`{ftype}`",
-                    "": get_desc(subp),
-                }
-            )
-
-    cols = ["Param", "Type", "Desc"]
-    if any_subparams:
-        cols.append("")
-    yield from format_md_table(rows, cols)
-
-
-def format_parser_args(name: str, args: List[Dict]) -> Iterable[str]:
-    yield "```lua\n"
-
-    def arg_name(arg: Dict) -> str:
-        if arg.get("vararg"):
-            return arg["name"] + "..."
-        else:
-            return arg["name"]
-
-    required_args = ['"%s"' % name] + [
-        arg_name(arg) for arg in args if not arg.get("position_optional")
-    ]
-    yield "{" + ", ".join(required_args) + "}\n"
-    all_args = ['"%s"' % name] + [arg_name(arg) for arg in args]
-    if len(all_args) != len(required_args):
-        yield "{" + ", ".join(all_args) + "}\n"
-    yield "```\n"
-    yield "\n"
-    yield from format_parser_arg_table(args)
 
 
 def format_example_code(code: str, indentation: int = 0) -> Iterable[str]:
@@ -244,44 +176,14 @@ def updated_problem_matcher_list(doc: str):
 def update_parsers_md():
     doc = os.path.join(ROOT, "doc", "parsers.md")
     updated_problem_matcher_list(doc)
-    prefix = [
-        "\n",
-        "This is a list of the parser nodes that are built-in to overseer. They can be found in [lua/overseer/parser](../lua/overseer/parser)\n",
-        "\n",
-    ]
-    lines = []
-    for name, parser in get_parser_nodes().items():
-        lines.append(f"### {name}\n\n")
-        lines.append(f"[{name}.lua](../lua/overseer/parser/{name}.lua)\n\n")
-        lines.append(parser["desc"])
-        if parser.get("long_desc"):
-            lines[-1] += " \\\n"
-            lines.extend(wrap(parser["long_desc"], width=100))
-        else:
-            lines[-1] += "\n"
-        lines.append("\n")
-        lines.extend(format_parser_args(parser["name"], parser["doc_args"]))
-        if parser.get("examples"):
-            lines.extend(["\n", "#### Examples\n"])
-            for example in parser["examples"]:
-                lines.extend(
-                    [
-                        "\n",
-                        example["desc"] + "\n",
-                        "\n",
-                        "```lua\n",
-                    ]
-                )
-                lines.extend(format_example_code(example["code"]))
-                lines.extend(["```\n"])
-        lines.append("\n")
-    while lines[-1] == "\n":
-        lines.pop()
+    types = parse_lua()
+    funcs = types.files["overseer/parselib.lua"].functions
+    lines = ["\n"] + render_md_api2(funcs, types, level=2) + ["\n"]
     replace_section(
         doc,
-        r"^## Parser nodes",
-        None,
-        prefix + lines,
+        r"^<!-- parselib.API -->$",
+        r"^<!-- /parselib.API -->$",
+        lines,
     )
 
 
@@ -461,37 +363,6 @@ def get_strategies_vimdoc() -> "VimdocSection":
     return section
 
 
-def get_parsers_vimdoc() -> "VimdocSection":
-    section = VimdocSection("Parsers", "overseer-parsers", ["\n"])
-    for name, parser in get_parser_nodes().items():
-        section.body.append(leftright(name, f"*parser.{name}*"))
-        section.body.append(4 * " " + parser["desc"] + "\n")
-        if "long_desc" in parser:
-            section.body.extend(wrap(parser["long_desc"], 4))
-        params = []
-        for arg in parser["doc_args"]:
-            subparams = []
-            for subp in arg.get("fields", []):
-                subparams.append(LuaParam(subp["name"], subp["type"], get_desc(subp)))
-            params.append(LuaParam(arg["name"], arg["type"], get_desc(arg), subparams))
-        if params:
-            section.body.extend(["\n", "    Parameters:\n"])
-            section.body.extend(format_vimdoc_params(params, parse_lua(), 6))
-        if "examples" in parser:
-            for example in parser["examples"]:
-                section.body.extend(["\n", "    Examples:\n"])
-                section.body.extend(wrap(example["desc"], 4))
-                section.body.extend(
-                    [
-                        ">\n",
-                    ]
-                )
-                section.body.extend(format_example_code(example["code"], 4))
-                section.body.extend(["<\n"])
-        section.body.append("\n")
-    return section
-
-
 def convert_md_link(match):
     text = match[1]
     dest = match[2]
@@ -528,7 +399,6 @@ def generate_vimdoc():
             ),
             get_components_vimdoc(),
             get_strategies_vimdoc(),
-            get_parsers_vimdoc(),
             convert_md_section(
                 os.path.join(DOC, "reference.md"),
                 "^## Parameters",
@@ -663,21 +533,15 @@ def update_reference_md():
     components_toc = add_md_link_path(
         "components.md", generate_md_toc(os.path.join(DOC, "components.md"))
     )
-    parser_section = read_section(
-        os.path.join(DOC, "parsers.md"), "^## Parser nodes", None
-    )
     strategies_toc = add_md_link_path(
         "strategies.md", generate_md_toc(os.path.join(DOC, "strategies.md"))
     )
-    parsers_toc = add_md_link_path("parsers.md", generate_md_toc(parser_section, 2))
     reference_doc = os.path.join(DOC, "reference.md")
     toc = ["\n"] + generate_md_toc(reference_doc) + ["\n"]
     idx = toc.index("- [Components](#components)\n")
     toc[idx + 1 : idx + 1] = ["  " + line for line in components_toc]
     idx = toc.index("- [Strategies](#strategies)\n")
     toc[idx + 1 : idx + 1] = ["  " + line for line in strategies_toc]
-    idx = toc.index("- [Parsers](#parsers)\n")
-    toc[idx + 1 : idx + 1] = ["  " + line for line in parsers_toc]
     replace_section(
         reference_doc,
         r"^<!-- TOC -->$",
@@ -695,12 +559,6 @@ def update_reference_md():
         r"^<!-- TOC.strategies -->$",
         r"^<!-- /TOC.strategies -->$",
         ["\n"] + strategies_toc + ["\n"],
-    )
-    replace_section(
-        reference_doc,
-        r"^<!-- TOC.parsers -->$",
-        r"^<!-- /TOC.parsers -->$",
-        ["\n"] + parsers_toc + ["\n"],
     )
 
 

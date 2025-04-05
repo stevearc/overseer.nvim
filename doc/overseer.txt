@@ -9,9 +9,8 @@ CONTENTS                                                       *overseer-content
   4. Api                                                        |overseer-api|
   5. Components                                          |overseer-components|
   6. Strategies                                          |overseer-strategies|
-  7. Parsers                                                |overseer-parsers|
-  8. Parameters                                              |overseer-params|
-  9. Actions                                                |overseer-actions|
+  7. Parameters                                              |overseer-params|
+  8. Actions                                                |overseer-actions|
 
 --------------------------------------------------------------------------------
 COMMANDS                                                       *overseer-commands*
@@ -456,10 +455,6 @@ register_template({defn})                             *overseer.register_templat
       })
 <
 
-debug_parser()                                             *overseer.debug_parser*
-    Open a tab with windows laid out for debugging a parser
-
-
 register_alias({name}, {components})                     *overseer.register_alias*
     Register a new component alias.
 
@@ -554,8 +549,16 @@ on_output_parse                                                  *on_output_pars
     Parses task output and sets task result
 
     Parameters:
-      {parser}          `opaque` Parser definition to extract values from output
-      {problem_matcher} `opaque` VS Code-style problem matcher
+      {parser}          `opaque` Parse function or overseer.OutputParser This
+                        can be a function that takes a line of output and
+                        (optionally) returns a quickfix-list item (see :help
+                        |setqflist-what|). For more complex parsing, this should
+                        be a class of type overseer.OutputParser.
+      {problem_matcher} `opaque` VS Code-style problem matcher Only one of
+                        'parser', 'problem_matcher', or 'errorformat' is
+                        allowed.
+      {errorformat}     `opaque` Errorformat string Only one of 'parser',
+                        'problem_matcher', or 'errorformat' is allowed.
       {precalculated_vars} `opaque` Precalculated VS Code task variables Tasks
                         that are started from the VS Code provider precalculate
                         certain interpolated variables (e.g.
@@ -760,326 +763,6 @@ test(): overseer.Strategy                                          *strategy.tes
     Strategy used for unit testing
 
 --------------------------------------------------------------------------------
-PARSERS                                                         *overseer-parsers*
-
-always                                                             *parser.always*
-    A decorator that always returns SUCCESS
-
-    Parameters:
-      {succeed} `boolean` Set to false to always return FAILURE (default true)
-      {child}   `parser` The child parser node
-
-    Examples:
-    An extract node that returns SUCCESS even when it fails
->
-    {"always",
-      {"extract", "^([^%s].+):(%d+): (.+)$", "filename", "lnum", "text" }
-    }
-<
-
-append                                                             *parser.append*
-    Append the current item to the results list
-
-    Parameters:
-      {opts} `object` Configuration options
-          {postprocess} `function` Call this function to do post-extraction
-                        processing on the values
-
-dispatch                                                         *parser.dispatch*
-    Dispatch an event
-
-    Parameters:
-      {name} `string` Event name
-      {arg}  `any|fun()` A value to send with the event, or a function that
-             creates a value
-
-    Examples:
-    clear_results will clear all current results from the parser. Pass `true` to
-    only clear the results under the current key
->
-    {"dispatch", "clear_results"}
-<
-
-    Examples:
-    set_results is used by the on_output_parse component to immediately set the
-    current results on the task
->
-    {"dispatch", "set_results"}
-<
-
-ensure                                                             *parser.ensure*
-    Decorator that runs a child until it succeeds
-
-    Parameters:
-      {succeed} `boolean` Set to false to run child until failure (default true)
-      {child}   `parser` The child parser node
-
-    Examples:
-    An extract node that runs until it successfully parses
->
-    {"ensure",
-      {"extract", "^([^%s].+):(%d+): (.+)$", "filename", "lnum", "text" }
-    }
-<
-
-extract                                                           *parser.extract*
-    Parse a line into an object and append it to the results
-
-    Parameters:
-      {opts}    `object` Configuration options
-          {consume}     `boolean` Consumes the line of input, blocking execution
-                        until the next line is fed in (default true)
-          {append}      `boolean` After parsing, append the item to the results
-                        list. When false, the pending item will stick around.
-                        (default true)
-          {regex}       `boolean` Use vim regex instead of lua pattern (see
-                        :help pattern) (default false)
-          {postprocess} `function` Call this function to do post-extraction
-                        processing on the values
-      {pattern} `string|function|string[]` The lua pattern to use for matching.
-                Must have the same number of capture groups as there are field
-                arguments.
-      {field}   `string` The name of the extracted capture group. Use `"_"` to
-                discard.
-
-    Examples:
-    Convert a line in the format of `/path/to/file.txt:123: This is a message`
-    into an item `{filename = "/path/to/file.txt", lnum = 123, text = "This is a
-    message"}`
->
-    {"extract", "^([^%s].+):(%d+): (.+)$", "filename", "lnum", "text" }
-<
-
-    Examples:
-    The same logic, but using a vim regex
->
-    {"extract", {regex = true}, "\\v^([^:space:].+):(\\d+): (.+)$", "filename", "lnum", "text" }
-<
-
-extract_efm                                                   *parser.extract_efm*
-    Parse a line using vim's errorformat and append it to the results
-
-    Parameters:
-      {opts} `object` Configuration options
-          {efm}         `string` The errorformat string to use. Defaults to
-                        current option value.
-          {consume}     `boolean` Consumes the line of input, blocking execution
-                        until the next line is fed in (default true)
-          {append}      `boolean` After parsing, append the item to the results
-                        list. When false, the pending item will stick around.
-                        (default true)
-          {test}        `function` A function that operates on the parsed value
-                        and returns true/false for SUCCESS/FAILURE
-          {postprocess} `function` Call this function to do post-extraction
-                        processing on the values
-
-extract_json                                                 *parser.extract_json*
-    Parse a line as json and append it to the results
-
-    Parameters:
-      {opts} `object` Configuration options
-          {consume}     `boolean` Consumes the line of input, blocking execution
-                        until the next line is fed in (default true)
-          {append}      `boolean` After parsing, append the item to the results
-                        list. When false, the pending item will stick around.
-                        (default true)
-          {test}        `function` A function that operates on the parsed value
-                        and returns true/false for SUCCESS/FAILURE
-          {postprocess} `function` Call this function to do post-extraction
-                        processing on the values
-
-extract_multiline                                       *parser.extract_multiline*
-    Extract a multiline string as a single field on an item
-
-    Parameters:
-      {opts}    `object` Configuration options
-          {append} `boolean` After parsing, append the item to the results list.
-                   When false, the pending item will stick around. (default
-                   true)
-      {pattern} `string|function` The lua pattern to use for matching. As long
-                as the pattern matches, lines will continue to be appended to
-                the field.
-      {field}   `string` The name of the field to add to the item
-
-    Examples:
-    Extract all indented lines as a message
->
-    {"extract_multiline", "^(    .+)", "message"}
-<
-
-extract_nested                                             *parser.extract_nested*
-    Run a subparser and put the extracted results on the field of an item
-
-    Parameters:
-      {opts}  `object` Configuration options
-          {append}        `boolean` After parsing, append the item to the
-                          results list. When false, the pending item will stick
-                          around. (default true)
-          {fail_on_empty} `boolean` Return FAILURE if there are no results from
-                          the child (default true)
-      {field} `string` The name of the field to add to the item
-      {child} `parser` The child parser node
-
-    Examples:
-    Extract a golang test failure, then add the stacktrace to it (if present)
->
-    {"extract",
-      {
-        regex = true,
-        append = false,
-      },
-      "\\v^--- (FAIL|PASS|SKIP): ([^[:space:] ]+) \\(([0-9\\.]+)s\\)",
-      "status",
-      "name",
-      "duration",
-    },
-    {"always",
-      {"sequence",
-        {"test", "^panic:"},
-        {"skip_until", "^goroutine%s"},
-        {"extract_nested",
-          { append = false },
-          "stacktrace",
-          {"loop",
-            {"sequence",
-              {"extract",{ append = false }, { "^(.+)%(.*%)$", "^created by (.+)$" }, "text"},
-              {"extract","^%s+([^:]+.go):([0-9]+)", "filename", "lnum"}
-            }
-          }
-        }
-      }
-    }
-<
-
-invert                                                             *parser.invert*
-    A decorator that inverts the child's return value
-
-    Parameters:
-      {child} `parser` The child parser node
-
-    Examples:
-    An extract node that returns SUCCESS when it fails, and vice-versa
->
-    {"invert",
-      {"extract", "^([^%s].+):(%d+): (.+)$", "filename", "lnum", "text" }
-    }
-<
-
-loop                                                                 *parser.loop*
-    A decorator that repeats the child
-
-    Parameters:
-      {opts}  `object` Configuration options
-          {ignore_failure} `boolean` Keep looping even when the child fails
-                           (default false)
-          {repetitions}    `integer` When set, loop a set number of times then
-                           return SUCCESS
-      {child} `parser` The child parser node
-
-parallel                                                         *parser.parallel*
-    Run the child nodes in parallel
-
-    Parameters:
-      {opts}  `object` Configuration options
-          {break_on_first_failure} `boolean` Stop executing as soon as a child
-                           returns FAILURE (default true)
-          {break_on_first_success} `boolean` Stop executing as soon as a child
-                           returns SUCCESS (default false)
-          {reset_children} `boolean` Reset all children at the beginning of each
-                           iteration (default false)
-      {child} `parser` The child parser nodes. Can be passed in as varargs or as
-              a list.
-
-sequence                                                         *parser.sequence*
-    Run the child nodes sequentially
-
-    Parameters:
-      {opts}  `object` Configuration options
-          {break_on_first_failure} `boolean` Stop executing as soon as a child
-                     returns FAILURE (default true)
-          {break_on_first_success} `boolean` Stop executing as soon as a child
-                     returns SUCCESS (default false)
-      {child} `parser` The child parser nodes. Can be passed in as varargs or as
-              a list.
-
-    Examples:
-    Extract the message text from one line, then the filename and lnum from the
-    next line
->
-    {"sequence",
-      {"extract", { append = false }, { "^(.+)%(.*%)$", "^created by (.+)$" }, "text"},
-      {"extract", "^%s+([^:]+.go):([0-9]+)", "filename", "lnum"}
-    }
-<
-
-set_defaults                                                 *parser.set_defaults*
-    A decorator that adds values to any items extracted by the child
-
-    Parameters:
-      {opts}  `object` Configuration options
-          {values}     `object` Hardcoded key-value pairs to set as default
-                       values
-          {hoist_item} `boolean` Take the current pending item, and use its
-                       fields as the default key-value pairs (default true)
-      {child} `parser` The child parser node
-
-    Examples:
-    Extract the filename from a header line, then for each line of output
-    beneath it parse the test name + status, and also add the filename to each
-    item
->
-    {"sequence",
-      {"extract", {append = false}, "^Test result (.+)$", "filename"}
-      {"set_defaults",
-        {"loop",
-          {"extract", "^Test (.+): (.+)$", "test_name", "status"}
-        }
-      }
-    }
-<
-
-skip_lines                                                     *parser.skip_lines*
-    Skip over a set number of lines
-
-    Parameters:
-      {count} `integer` How many lines to skip
-
-skip_until                                                     *parser.skip_until*
-    Skip over lines until one matches
-
-    Parameters:
-      {opts}    `object` Configuration options
-          {skip_matching_line} `boolean` Consumes the line that matches. Later
-                  nodes will only see the next line. (default true)
-          {regex} `boolean` Use vim regex instead of lua pattern (see :help
-                  pattern) (default true)
-      {pattern} `string|string[]|fun(line: string): string` The lua pattern to
-                use for matching. The node succeeds if any of these patterns
-                match.
-
-    Examples:
-    Skip input until we see "Error" or "Warning"
->
-    {"skip_until", "^Error:", "^Warning:"}
-<
-
-test                                                                 *parser.test*
-    Returns SUCCESS when the line matches the pattern
-
-    Parameters:
-      {opts}    `object` Configuration options
-          {regex} `boolean` Use vim regex instead of lua pattern (see :help
-                  pattern) (default true)
-      {pattern} `string|fun(line: string): string` The lua pattern to use for
-                matching, or test function
-
-    Examples:
-    Fail until a line starts with "panic:"
->
-    {"test", "^panic:"}
-<
-
---------------------------------------------------------------------------------
 PARAMETERS                                                       *overseer-params*
 
 Parameters are a schema-defined set of options. They are used by both components
@@ -1094,7 +777,7 @@ and templates to expose customization options.
         desc = "A detailed description",
         order = 1, -- determines order of parameters in the UI
         validate = function(value)
-          return true,
+          return true
         end,
         optional = true,
         default = "foobar",
