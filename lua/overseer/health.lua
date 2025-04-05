@@ -13,11 +13,8 @@ end
 M.check = function()
   vim.health.start("overseer.nvim report")
 
-  if vim.fn.has("nvim-0.10") == 0 then
-    vim.health.error("Neovim 0.10 or later is required")
-  end
-  if not overseer.called_setup then
-    vim.health.error('require("overseer").setup() was not called')
+  if vim.fn.has("nvim-0.11") == 0 then
+    vim.health.error("Neovim 0.11 or later is required")
   end
   vim.health.info(string.format("Log file: %s", log.get_logfile()))
   vim.health.info(string.format("Log level: %s", level_map[config.log_level]))
