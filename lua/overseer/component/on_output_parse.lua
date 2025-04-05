@@ -19,17 +19,17 @@ return {
       optional = true,
       order = 2,
     },
-    relative_file_root = {
-      desc = "Relative filepaths will be joined to this root (instead of task cwd)",
-      optional = true,
-      default_from_task = true,
-      order = 3,
-    },
     precalculated_vars = {
       desc = "Precalculated VS Code task variables",
       long_desc = "Tasks that are started from the VS Code provider precalculate certain interpolated variables (e.g. ${workspaceFolder}). We pass those in as params so they will remain stable even if Neovim's state changes in between creating and running (or restarting) the task.",
       type = "opaque",
       optional = true,
+      order = 3,
+    },
+    relative_file_root = {
+      desc = "Relative filepaths will be joined to this root (instead of task cwd)",
+      optional = true,
+      default_from_task = true,
       order = 4,
     },
   },
@@ -56,11 +56,6 @@ return {
     return {
       on_init = function(self, task)
         self.parser = parser.new(parser_defn)
-        self.parser_sub = function(key, result)
-          -- TODO reconsider this API for dispatching partial results
-          -- task:dispatch("on_stream_result", key, result)
-        end
-        self.parser:subscribe("new_item", self.parser_sub)
         self.set_results_sub = function()
           local result = self.parser:get_result()
           if result.diagnostics then
@@ -77,10 +72,6 @@ return {
         self.parser:subscribe("set_results", self.set_results_sub)
       end,
       on_dispose = function(self)
-        if self.parser_sub then
-          self.parser:unsubscribe("new_item", self.parser_sub)
-          self.parser_sub = nil
-        end
         if self.set_results_sub then
           self.parser:unsubscribe("set_results", self.set_results_sub)
           self.set_results_sub = nil

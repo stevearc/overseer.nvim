@@ -356,6 +356,68 @@ local function convert_match_name(name)
   end
 end
 
+---@param pattern table
+---@param opts {append?: boolean, qf_type?: string, file_convert?: fun(file: string): string}
+---@return fun(line: string): nil|table
+local function pattern_to_parse_fn(pattern, opts)
+  local args = {}
+  local full_line_key
+  local max_arg = 0
+  for _, v in ipairs(match_names) do
+    ---@type integer
+    local i = pattern[v] ---@diagnostic disable-line: assign-type-mismatch
+    if not i then
+      i = 0
+    end
+    if i == 0 then
+      -- Technically the schema supports using 0 for other fields, but it only
+      -- really makes sense for the message
+      if v == "message" then
+        full_line_key = "text"
+      end
+    else
+      if i > max_arg then
+        max_arg = i
+      end
+      args[i] = convert_match_name(v)
+    end
+  end
+  -- We have to fill in the holes, otherwise this won't be treated as a
+  -- list-like table
+  for i = 1, max_arg do
+    if not args[i] then
+      args[i] = "_"
+    end
+  end
+
+  local putil = require("overseer.parser.util")
+  local extract
+  if pattern.lua_pat then
+    extract = putil.patterns_to_extract(pattern.lua_pat, false, args)
+  elseif pattern.vim_regexp then
+    extract = putil.patterns_to_extract(pattern.vim_regexp, true, args)
+  else
+    -- Fall back to trying to auto-convert the JS regex to a vim regex
+    extract = putil.patterns_to_extract("\\v" .. pattern.regexp, true, args)
+  end
+
+  return function(line)
+    local item = extract(line)
+    if item then
+      if not item.type then
+        item.type = opts.qf_type
+      end
+      if full_line_key then
+        item[full_line_key] = line
+      end
+      if opts.file_convert and item.filename then
+        item.filename = opts.file_convert(item.filename)
+      end
+    end
+    return item
+  end
+end
+
 local function convert_pattern(pattern, opts)
   opts = opts or {}
   local args = {}
@@ -496,6 +558,7 @@ local function file_converter(file_loc, precalculated_vars)
       and variables.replace_vars(file_loc[2], {}, precalculated_vars)
     or vim.fn.getcwd()
 
+  ---@param file string
   return function(file)
     if typ == "absolute" then
       return file
@@ -506,6 +569,69 @@ local function file_converter(file_loc, precalculated_vars)
       end
       return rel
     end
+  end
+end
+
+---@class (exact) overseer.OutputParser
+---@field parse fun(self: overseer.OutputParser, line: string)
+---@field get_result fun(self: overseer.OutputParser): table<string, any>
+---@field reset fun(self: overseer.OutputParser)
+---@field on_result fun(self: overseer.OutputParser, callback: fun(result: table<string, any>))
+
+---@param parse_fn fun(line: string): nil|table
+M.parser_from_parse_fn = function(parse_fn)
+  local result = {}
+  ---@type overseer.OutputParser
+  return {
+    parse = function(_, line)
+      local item = parse_fn(line)
+      if item then
+        table.insert(result, item)
+      end
+    end,
+    get_result = function()
+      return { diagnostics = result }
+    end,
+    reset = function()
+      result = {}
+    end,
+    on_result = function() end,
+  }
+end
+
+---@param problem_matcher table
+---@param precalculated_vars? table
+---@return nil|overseer.OutputParser
+M.new_parser_from_problem_matcher = function(problem_matcher, precalculated_vars)
+  if not problem_matcher then
+    return nil
+  end
+  if vim.islist(problem_matcher) then
+    -- FIXME
+    return nil
+  end
+
+  local qf_type = severity_to_type[problem_matcher.severity]
+  local pattern = problem_matcher.pattern
+  local background = problem_matcher.background
+  local convert = problem_matcher.fileLocation
+    and file_converter(problem_matcher.fileLocation, precalculated_vars)
+  local ret
+  if type(pattern) == "string" then
+    if default_patterns[pattern] then
+      pattern = vim.deepcopy(default_patterns[pattern])
+    else
+      log.error("Could not find problem matcher pattern '%s'", pattern)
+      return nil
+    end
+  end
+
+  if vim.islist(pattern) then
+    -- FIXME
+    return nil
+  else
+    local parse_fn = pattern_to_parse_fn(pattern, { qf_type = qf_type, file_convert = convert })
+    return M.parser_from_parse_fn(parse_fn)
   end
 end
 
