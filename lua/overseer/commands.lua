@@ -25,6 +25,17 @@ M._toggle = function(params)
   window.toggle({ enter = not params.bang, direction = args_or_nil(params.args) })
 end
 
+M._run_shell = function(params)
+  if params.args and params.args ~= "" then
+    local task = require("overseer.task").new({
+      cmd = params.args,
+    })
+    task:start()
+  else
+    require("overseer").run_cmd()
+  end
+end
+
 M._run_template = function(params)
   local name
   local tags = {}

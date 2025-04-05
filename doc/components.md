@@ -114,8 +114,8 @@ Parses task output and sets task result
 | ------------------ | -------- | -------------------------------------------------------------------- |
 | parser             | `opaque` | Parser definition to extract values from output                      |
 | problem_matcher    | `opaque` | VS Code-style problem matcher                                        |
-| relative_file_root | `string` | Relative filepaths will be joined to this root (instead of task cwd) |
 | precalculated_vars | `opaque` | Precalculated VS Code task variables                                 |
+| relative_file_root | `string` | Relative filepaths will be joined to this root (instead of task cwd) |
 
 - **precalculated_vars:** Tasks that are started from the VS Code provider precalculate certain interpolated variables (e.g. ${workspaceFolder}). We pass those in as params so they will remain stable even if Neovim's state changes in between creating and running (or restarting) the task.
 
