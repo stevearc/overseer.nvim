@@ -34,9 +34,6 @@ OverseerQuickAction `[action]`                                *:OverseerQuickAct
 OverseerTaskAction                                           *:OverseerTaskAction*
     Select a task to run an action on
 
-OverseerClearCache                                           *:OverseerClearCache*
-    Clear the task cache
-
 --------------------------------------------------------------------------------
 OPTIONS                                                         *overseer-options*
 

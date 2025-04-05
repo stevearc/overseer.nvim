@@ -64,10 +64,6 @@ M._task_action = function(params)
   M.task_action()
 end
 
-M._clear_cache = function(_params)
-  M.clear_cache()
-end
-
 ---@return overseer.SearchParams
 local function get_search_params()
   -- If we have a file open, use its parent dir as the search dir.

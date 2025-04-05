@@ -65,13 +65,6 @@ local commands = {
       desc = "Select a task to run an action on",
     },
   },
-  {
-    cmd = "OverseerClearCache",
-    func = "_clear_cache",
-    def = {
-      desc = "Clear the task cache",
-    },
-  },
 }
 
 local function create_commands()
