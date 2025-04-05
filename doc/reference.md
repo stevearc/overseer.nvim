@@ -234,7 +234,6 @@ require("overseer").setup({
 | `OverseerRun`         | `[name/tags]`       | Run a task from a template                                          |
 | `OverseerQuickAction` | `[action]`          | Run an action on the most recent task, or the task under the cursor |
 | `OverseerTaskAction`  |                     | Select a task to run an action on                                   |
-| `OverseerClearCache`  |                     | Clear the task cache                                                |
 
 ## Highlight groups
 
