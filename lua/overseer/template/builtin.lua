@@ -7,6 +7,7 @@ return {
   "tox",
   "vscode",
   "mage",
+  "mise",
   "mix",
   "deno",
   "rake",
