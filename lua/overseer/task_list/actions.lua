@@ -39,6 +39,7 @@ M = {
     end,
   },
   edit = {
+    desc = "Edit the task components directly",
     run = function(task)
       task_editor.open(task, function(t)
         if t then

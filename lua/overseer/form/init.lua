@@ -1,63 +1,15 @@
-local binding_util = require("overseer.binding_util")
-local config = require("overseer.config")
 local form_utils = require("overseer.form.utils")
 local util = require("overseer.util")
 
 local M = {}
 
-local bindings = {
-  {
-    desc = "Show default key bindings",
-    plug = "<Plug>OverseerTaskEditor:ShowHelp",
-    rhs = function(builder)
-      builder.disable_close_on_leave = true
-      binding_util.show_bindings("OverseerTaskEditor:")
-    end,
-  },
-  {
-    desc = "Move to next form field, or submit the task if on the last field",
-    plug = "<Plug>OverseerTaskEditor:NextOrSubmit",
-    rhs = function(builder)
-      builder:confirm()
-    end,
-  },
-  {
-    desc = "Submit the task",
-    plug = "<Plug>OverseerTaskEditor:Submit",
-    rhs = function(builder)
-      builder:submit()
-    end,
-  },
-  {
-    desc = "Cancel the task",
-    plug = "<Plug>OverseerTaskEditor:Cancel",
-    rhs = function(builder)
-      builder:cancel()
-    end,
-  },
-  {
-    desc = "Move to the next field",
-    plug = "<Plug>OverseerTaskEditor:Next",
-    rhs = function(builder)
-      builder:next_field()
-    end,
-  },
-  {
-    desc = "Move to the previous field",
-    plug = "<Plug>OverseerTaskEditor:Prev",
-    rhs = function(builder)
-      builder:prev_field()
-    end,
-  },
-}
-
-local Builder = {}
+local Form = {}
 
 local function line_len(bufnr, lnum)
   return string.len(vim.api.nvim_buf_get_lines(bufnr, lnum - 1, lnum, true)[1])
 end
 
-function Builder.new(title, schema, params, callback)
+function Form.new(title, schema, params, callback)
   -- Filter out the opaque types
   local keys = vim.tbl_filter(function(key)
     return schema[key].type ~= "opaque"
@@ -99,10 +51,10 @@ function Builder.new(title, schema, params, callback)
   vim.bo[bufnr].buftype = "acwrite"
   vim.api.nvim_buf_set_name(bufnr, "Overseer form")
 
-  local builder
+  local form
   local cleanup, layout = form_utils.open_form_win(bufnr, {
     on_resize = function()
-      builder:render()
+      form:render()
     end,
     get_preferred_dim = function()
       local max_len = 1
@@ -126,19 +78,26 @@ function Builder.new(title, schema, params, callback)
     buffer = bufnr,
     nested = true,
     callback = function()
-      builder.disable_close_on_leave = false
+      form.disable_close_on_leave = false
     end,
   })
   vim.bo[bufnr].filetype = "OverseerForm"
+  local called_callback = false
+  local function cb(...)
+    if not called_callback then
+      callback(...)
+      called_callback = true
+    end
+  end
 
-  builder = setmetatable({
+  form = setmetatable({
     disable_close_on_leave = false,
     cur_line = nil,
     title = title,
     schema_keys = keys,
     schema = schema,
     params = params,
-    callback = callback,
+    callback = cb,
     cleanup = cleanup,
     layout = layout,
     bufnr = bufnr,
@@ -146,20 +105,29 @@ function Builder.new(title, schema, params, callback)
     fields_ever_focused = {},
     ext_id_to_schema_field_name = {},
     ever_submitted = false,
-  }, { __index = Builder })
-  builder:init_autocmds()
-  builder:init_keymaps()
+  }, { __index = Form })
+  form:init_autocmds()
+
+  vim.keymap.set({ "i", "n" }, "<C-c>", function()
+    form:cancel()
+  end, { buffer = bufnr })
+  vim.keymap.set("n", "q", function()
+    form:cancel()
+  end, { buffer = bufnr })
+  vim.keymap.set("i", "<CR>", function()
+    form:confirm()
+  end, { buffer = bufnr })
   vim.api.nvim_create_autocmd("BufWriteCmd", {
     desc = "Submit on buffer write",
     buffer = bufnr,
     callback = function()
-      builder:submit()
+      form:submit()
     end,
   })
-  return builder
+  return form
 end
 
-function Builder:init_autocmds()
+function Form:init_autocmds()
   vim.api.nvim_create_autocmd({ "TextChanged", "TextChangedI" }, {
     desc = "Update form on change",
     buffer = self.bufnr,
@@ -199,33 +167,7 @@ function Builder:init_autocmds()
   })
 end
 
-function Builder:init_keymaps()
-  binding_util.create_plug_bindings(self.bufnr, bindings, self)
-  for mode, user_bindings in pairs(config.task_editor.bindings) do
-    binding_util.create_bindings_to_plug(self.bufnr, mode, user_bindings, "OverseerTaskEditor:")
-  end
-
-  -- Some shenanigans to make <C-u> behave the way we expect
-  vim.keymap.set("i", "<C-u>", function()
-    local cur = vim.api.nvim_win_get_cursor(0)
-    local line = vim.api.nvim_buf_get_lines(self.bufnr, cur[1] - 1, cur[1], true)[1]
-    local name = line:match("^[^%s]+: ")
-    if name then
-      local rem = string.sub(line, cur[2] + 1)
-      vim.api.nvim_buf_set_lines(
-        self.bufnr,
-        cur[1] - 1,
-        cur[1],
-        true,
-        { string.format("%s%s", name, rem) }
-      )
-      self:parse()
-      vim.api.nvim_win_set_cursor(0, { cur[1], 0 })
-    end
-  end, { buffer = self.bufnr })
-end
-
-function Builder:render()
+function Form:render()
   local title_ns = vim.api.nvim_create_namespace("overseer_title")
   vim.api.nvim_buf_clear_namespace(self.bufnr, title_ns, 0, -1)
   local lines = { util.align(self.title, vim.api.nvim_win_get_width(0), "center") }
@@ -291,7 +233,7 @@ function Builder:render()
   self:on_cursor_move()
 end
 
-function Builder:on_cursor_move()
+function Form:on_cursor_move()
   local cur = vim.api.nvim_win_get_cursor(0)
   if self.cur_line and self.cur_line[1] ~= cur[1] then
     self.cur_line = nil
@@ -350,7 +292,7 @@ end
 
 ---@private
 ---@return table<integer, string>
-function Builder:get_lnum_to_field_name()
+function Form:get_lnum_to_field_name()
   local title_ns = vim.api.nvim_create_namespace("overseer_title")
   local extmarks =
     vim.api.nvim_buf_get_extmarks(self.bufnr, title_ns, 0, -1, { type = "virt_text" })
@@ -365,7 +307,7 @@ function Builder:get_lnum_to_field_name()
   return lnum_to_field_name
 end
 
-function Builder:parse()
+function Form:parse()
   local buflines = vim.api.nvim_buf_get_lines(self.bufnr, 0, -1, true)
   local lnum_to_field_name = self:get_lnum_to_field_name()
   for i, line in ipairs(buflines) do
@@ -381,12 +323,12 @@ function Builder:parse()
   self:render()
 end
 
-function Builder:cancel()
-  self.cleanup()
+function Form:cancel()
   self.callback(nil)
+  self.cleanup()
 end
 
-function Builder:submit()
+function Form:submit()
   local first_submit = not self.ever_submitted
   self.ever_submitted = true
   for i, name in pairs(self.schema_keys) do
@@ -403,11 +345,11 @@ function Builder:submit()
       return
     end
   end
-  self.cleanup()
   self.callback(self.params)
+  self.cleanup()
 end
 
-function Builder:next_field()
+function Form:next_field()
   local lnum = vim.api.nvim_win_get_cursor(0)[1]
   if lnum == vim.api.nvim_buf_line_count(0) then
     return false
@@ -417,7 +359,7 @@ function Builder:next_field()
   end
 end
 
-function Builder:prev_field()
+function Form:prev_field()
   local lnum = vim.api.nvim_win_get_cursor(0)[1]
   if lnum == 1 then
     return false
@@ -426,7 +368,7 @@ function Builder:prev_field()
   end
 end
 
-function Builder:confirm()
+function Form:confirm()
   if not self:next_field() then
     self:submit()
   end
@@ -443,8 +385,8 @@ M.open = function(title, schema, params, callback)
     callback(params)
     return
   end
-  local builder = Builder.new(title, schema, params, callback)
-  builder:render()
+  local form = Form.new(title, schema, params, callback)
+  form:render()
 
   vim.defer_fn(function()
     vim.cmd([[startinsert!]])

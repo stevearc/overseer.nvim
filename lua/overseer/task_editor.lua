@@ -1,34 +1,7 @@
-local binding_util = require("overseer.binding_util")
 local component = require("overseer.component")
-local config = require("overseer.config")
 local form_utils = require("overseer.form.utils")
 local util = require("overseer.util")
 local M = {}
-
-local bindings = {
-  {
-    desc = "Show default key bindings",
-    plug = "<Plug>OverseerLauncher:ShowHelp",
-    rhs = function(editor)
-      editor.disable_close_on_leave = true
-      binding_util.show_bindings("OverseerLauncher:")
-    end,
-  },
-  {
-    desc = "Submit the task",
-    plug = "<Plug>OverseerLauncher:Submit",
-    rhs = function(editor)
-      editor:submit()
-    end,
-  },
-  {
-    desc = "Cancel editing the task",
-    plug = "<Plug>OverseerLauncher:Cancel",
-    rhs = function(editor)
-      editor:cancel()
-    end,
-  },
-}
 
 local task_editable_params = { "cmd", "cwd" }
 ---@type overseer.Params
@@ -94,10 +67,12 @@ function Editor.new(task, task_cb)
     cleanup = cleanup,
   }, { __index = Editor })
 
-  binding_util.create_plug_bindings(bufnr, bindings, self)
-  for mode, user_bindings in pairs(config.task_launcher.bindings) do
-    binding_util.create_bindings_to_plug(bufnr, mode, user_bindings, "OverseerLauncher:")
-  end
+  vim.keymap.set({ "i", "n" }, "<C-c>", function()
+    self:cancel()
+  end, { buffer = bufnr })
+  vim.keymap.set("n", "q", function()
+    self:cancel()
+  end, { buffer = bufnr })
   vim.api.nvim_create_autocmd("BufWriteCmd", {
     desc = "Submit on buffer write",
     buffer = bufnr,
