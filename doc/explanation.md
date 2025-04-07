@@ -110,8 +110,8 @@ disposed.
 
 **Q: How can I debug when something goes wrong?**
 
-Run `:OverseerInfo` to view the available tasks and information about why certain tasks are not
-available. It will also show you the location of the log file. If you need, you can crank up the
+Run `:checkhealth overseer` to view the available tasks and information about why certain tasks are
+not available. It will also show you the location of the log file. If you need, you can crank up the
 detail of the logs by adjusting the level:
 
 ```lua
