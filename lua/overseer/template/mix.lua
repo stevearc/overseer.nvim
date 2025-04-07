@@ -1,3 +1,4 @@
+local overseer = require("overseer")
 ---@param opts overseer.SearchParams
 ---@return nil|string
 local function get_mix_file(opts)
@@ -17,7 +18,7 @@ return {
     end
     local mix_folder = vim.fs.dirname(mix_file)
     local ret = {}
-    vim.system(
+    overseer.builtin.system(
       { "mix", "help" },
       {
         cwd = mix_folder,

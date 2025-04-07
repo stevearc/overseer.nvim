@@ -1,4 +1,5 @@
 local log = require("overseer.log")
+local overseer = require("overseer")
 
 ---@param name string
 ---@return boolean
@@ -28,7 +29,7 @@ local tmpl = {
     end
     local cwd = vim.fs.dirname(justfile)
     local ret = {}
-    vim.system(
+    overseer.builtin.system(
       { "just", "--unstable", "--dump", "--dump-format", "json" },
       {
         cwd = cwd,

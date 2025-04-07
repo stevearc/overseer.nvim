@@ -1,5 +1,6 @@
 local constants = require("overseer.constants")
 local json = require("overseer.json")
+local overseer = require("overseer")
 local TAG = constants.TAG
 
 ---@param opts overseer.SearchParams
@@ -11,7 +12,7 @@ end
 ---@param cwd string
 ---@param cb fun(error: nil|string, workspace_root: nil|string)
 local function get_workspace_root(cwd, cb)
-  vim.system({ "cargo", "metadata", "--no-deps", "--format-version", "1" }, {
+  overseer.builtin.system({ "cargo", "metadata", "--no-deps", "--format-version", "1" }, {
     cwd = cwd,
     text = true,
   }, function(out)

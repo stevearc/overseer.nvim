@@ -1,5 +1,6 @@
 local files = require("overseer.files")
 local log = require("overseer.log")
+local overseer = require("overseer")
 
 local Notifier = { focused = true }
 
@@ -40,7 +41,6 @@ function Notifier.new(opts)
 end
 
 local function system_notify(message, level)
-  local job_id
   if files.is_windows then
     -- TODO
     log.warn("System notifications are not supported on Windows yet")
@@ -49,28 +49,21 @@ local function system_notify(message, level)
     local cmd = {
       "osascript",
       "-e",
-      string.format('display notification "%s" with title "%s"', "Overseer task complete", message),
+      string.format('display notification "Overseer task complete" with title "%s"', message),
     }
     if vim.fn.executable("reattach-to-user-namespace") == 1 then
       table.insert(cmd, 1, "reattach-to-user-namespace")
     end
-    job_id = vim.fn.jobstart(cmd, {
-      stdin = "null",
-    })
+    overseer.builtin.system(cmd, {})
   else
     local urgency = level == vim.log.levels.INFO and "normal" or "critical"
-    job_id = vim.fn.jobstart({
+    overseer.builtin.system({
       "notify-send",
       "-u",
       urgency,
       "Overseer task complete",
       message,
-    }, {
-      stdin = "null",
-    })
-  end
-  if job_id <= 0 then
-    log.warn("Error performing system notification")
+    }, {})
   end
 end
 

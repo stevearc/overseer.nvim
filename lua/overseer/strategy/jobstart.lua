@@ -1,4 +1,5 @@
 local log = require("overseer.log")
+local overseer = require("overseer")
 local util = require("overseer.util")
 
 local cleanup_autocmd
@@ -42,13 +43,16 @@ end
 ---@field bufnr nil|integer
 ---@field job_id nil|integer
 ---@field term_id nil|integer
----@field opts table
+---@field opts overseer.JobstartStrategyOpts
 local JobstartStrategy = {}
 
+---@class (exact) overseer.JobstartStrategyOpts
+---@field preserve_output? boolean If true, don't clear the buffer when tasks restart
+---@field use_terminal? boolean If false, use a normal non-terminal buffer to store the output. This may produce unwanted results if the task outputs terminal escape sequences.
+---@field wrap_opts? table Opts that were passed to jobstart(). We should wrap them
+
 ---Run tasks using jobstart()
----@param opts nil|table
----    preserve_output boolean If true, don't clear the buffer when tasks restart
----    use_terminal boolean If false, use a normal non-terminal buffer to store the output. This may produce unwanted results if the task outputs terminal escape sequences.
+---@param opts nil|overseer.JobstartStrategyOpts
 ---@return overseer.Strategy
 function JobstartStrategy.new(opts)
   opts = vim.tbl_extend("keep", opts or {}, {
@@ -72,7 +76,7 @@ function JobstartStrategy:reset()
     self.bufnr = nil
     self.term_id = nil
   end
-  if self.job_id then
+  if self.job_id and self.job_id > 0 then
     vim.fn.jobstop(self.job_id)
     self.job_id = nil
   end
@@ -82,52 +86,65 @@ function JobstartStrategy:get_bufnr()
   return self.bufnr
 end
 
----@param task overseer.Task
-function JobstartStrategy:start(task)
-  if not self.bufnr then
-    self.bufnr = vim.api.nvim_create_buf(false, true)
-    if self.opts.use_terminal then
-      local mode = vim.api.nvim_get_mode().mode
-      local term_id
-      util.run_in_fullscreen_win(self.bufnr, function()
-        term_id = vim.api.nvim_open_term(self.bufnr, {
-          on_input = function(_, _, _, data)
-            pcall(vim.api.nvim_chan_send, self.job_id, data)
-            vim.defer_fn(function()
-              util.terminal_tail_hack(self.bufnr)
-            end, 10)
-          end,
-        })
-      end)
-      self.term_id = term_id
-      -- Set the scrollback to max
-      vim.bo[self.bufnr].scrollback = 100000
-      util.hack_around_termopen_autocmd(mode)
-    else
-      vim.bo[self.bufnr].modifiable = false
-      local function open_input()
-        local prompt = vim.api.nvim_buf_get_lines(self.bufnr, -2, -1, true)[1]
-        if prompt:match("^%s*$") then
-          prompt = "Input: "
+function JobstartStrategy:_init_buffer()
+  self.bufnr = vim.api.nvim_create_buf(false, true)
+  if self.opts.use_terminal then
+    local mode = vim.api.nvim_get_mode().mode
+    local term_id
+    util.run_in_fullscreen_win(self.bufnr, function()
+      term_id = vim.api.nvim_open_term(self.bufnr, {
+        on_input = function(_, _, _, data)
+          pcall(vim.api.nvim_chan_send, self.job_id, data)
+          vim.defer_fn(function()
+            util.terminal_tail_hack(self.bufnr)
+          end, 10)
+        end,
+      })
+    end)
+    self.term_id = term_id
+    -- Set the scrollback to max
+    vim.bo[self.bufnr].scrollback = 100000
+    util.hack_around_termopen_autocmd(mode)
+  else
+    vim.bo[self.bufnr].modifiable = false
+    local function open_input()
+      local prompt = vim.api.nvim_buf_get_lines(self.bufnr, -2, -1, true)[1]
+      if prompt:match("^%s*$") then
+        prompt = "Input: "
+      end
+      vim.ui.input({ prompt = prompt }, function(text)
+        if text then
+          pcall(vim.api.nvim_chan_send, self.job_id, text .. "\r")
         end
-        vim.ui.input({ prompt = prompt }, function(text)
-          if text then
-            pcall(vim.api.nvim_chan_send, self.job_id, text .. "\r")
-          end
-        end)
-      end
-      for _, lhs in ipairs({ "i", "I", "a", "A", "o", "O" }) do
-        vim.keymap.set("n", lhs, open_input, { buffer = self.bufnr })
-      end
+      end)
+    end
+    for _, lhs in ipairs({ "i", "I", "a", "A", "o", "O" }) do
+      vim.keymap.set("n", lhs, open_input, { buffer = self.bufnr })
     end
   end
+end
 
-  local job_id
+---@param task overseer.Task
+function JobstartStrategy:start(task)
+  local wrap_term = self.opts.wrap_opts and self.opts.wrap_opts.term
+  local wrap = self.opts.wrap_opts or {}
+
+  if wrap_term then
+    -- If we are wrapping jobstart() and the user passed `term = true`, then they are intending to
+    -- use the current buffer as the output display.
+    self.bufnr = vim.api.nvim_get_current_buf()
+  end
+  if not self.bufnr then
+    self:_init_buffer()
+  end
+
   local stdout_iter = util.get_stdout_line_iter()
 
   local function on_stdout(data)
     -- Update the buffer
-    if self.opts.use_terminal then
+    if wrap_term then
+      -- don't do anything
+    elseif self.opts.use_terminal then
       pcall(vim.api.nvim_chan_send, self.term_id, table.concat(data, "\r\n"))
       vim.defer_fn(function()
         util.terminal_tail_hack(self.bufnr)
@@ -166,25 +183,43 @@ function JobstartStrategy:start(task)
       task:dispatch("on_output_lines", lines)
     end
   end
-  job_id = vim.fn.jobstart(task.cmd, {
+
+  local function coalesce(a, b)
+    if a == nil then
+      return b
+    else
+      return a
+    end
+  end
+
+  local opts = vim.tbl_extend("force", wrap, {
     cwd = task.cwd,
     env = task.env,
-    pty = self.opts.use_terminal,
+    pty = coalesce(wrap.pty, self.opts.use_terminal),
     -- Take 4 off the total width so it looks nice in the floating window
-    width = vim.o.columns - 4,
-    on_stdout = function(j, d)
+    width = coalesce(wrap.width, vim.o.columns - 4),
+    on_stdout = function(j, d, m)
+      if wrap.on_stdout then
+        wrap.on_stdout(j, d, m)
+      end
       if self.job_id ~= j then
         return
       end
       on_stdout(d)
     end,
-    on_stderr = function(j, d)
+    on_stderr = function(j, d, m)
+      if wrap.on_stderr then
+        wrap.on_stderr(j, d, m)
+      end
       if self.job_id ~= j then
         return
       end
       on_stdout(d)
     end,
-    on_exit = function(j, c)
+    on_exit = function(j, c, m)
+      if wrap.on_exit then
+        wrap.on_exit(j, c, m)
+      end
       unregister(j)
       if self.job_id ~= j then
         return
@@ -209,6 +244,7 @@ function JobstartStrategy:start(task)
           { string.format("[Process exited %d]", c), "" }
         )
         vim.bo[self.bufnr].modifiable = false
+        vim.bo[self.bufnr].modified = false
       end
       self.job_id = nil
       -- If we're exiting vim, don't call the on_exit handler
@@ -221,18 +257,19 @@ function JobstartStrategy:start(task)
     end,
   })
 
-  if job_id == 0 then
-    error(string.format("Invalid arguments for task '%s'", task.name))
-  elseif job_id == -1 then
-    error(string.format("Command '%s' not executable", vim.inspect(task.cmd)))
+  self.job_id = overseer.builtin.jobstart(task.cmd, opts)
+
+  if self.job_id == 0 then
+    log.error("Invalid arguments for task '%s'", task.name)
+  elseif self.job_id == -1 then
+    log.error("Command '%s' not executable", task.cmd)
   else
-    register(job_id)
-    self.job_id = job_id
+    register(self.job_id)
   end
 end
 
 function JobstartStrategy:stop()
-  if self.job_id then
+  if self.job_id and self.job_id > 0 then
     vim.fn.jobstop(self.job_id)
     self.job_id = nil
   end
