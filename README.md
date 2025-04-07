@@ -52,7 +52,7 @@ A task runner and job management plugin for Neovim
 ## Features
 
 - Built-in support for many task frameworks (make, npm, cargo, `.vscode/tasks.json`, etc)
-- Simple integration with vim.diagnostics and quickfix
+- Simple integration with `vim.diagnostic` and quickfix
 - UI for viewing and managing tasks
 - Quick controls for common actions (restart task, rerun on save, or user-defined functions)
 - Extreme customizability. Very easy to attach custom logic to tasks
