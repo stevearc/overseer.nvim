@@ -155,7 +155,7 @@ To get started, all you need to know is `:OverseerRun` to select and start a tas
 
 https://user-images.githubusercontent.com/506791/189036898-05edcd62-42e7-4bbb-ace2-746b7c8c567b.mp4
 
-If you don't see any tasks from `:OverseerRun`, it might mean that your task runner is not yet supported. There is currently support for VS Code tasks, make, npm, cargo, and some others. If yours is not supported, ([request support here](https://github.com/stevearc/overseer.nvim/issues/new/choose)).
+If you don't see any tasks from `:OverseerRun`, it might mean that your task runner is not yet supported. There is currently support for VS Code tasks, make, npm, cargo, and some others.
 
 If you want to define custom tasks for your project, I'd recommend starting with [the tutorials](doc/tutorials.md).
 
