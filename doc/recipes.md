@@ -19,11 +19,21 @@ This command restarts the most recent overseer task
 ```lua
 vim.api.nvim_create_user_command("OverseerRestartLast", function()
   local overseer = require("overseer")
-  local tasks = overseer.list_tasks({ recent_first = true })
+  local tasks = overseer.list_tasks({ status = {
+    overseer.STATUS.SUCCESS,
+    overseer.STATUS.FAILURE,
+    overseer.STATUS.CANCELED,
+  }})
   if vim.tbl_isempty(tasks) then
     vim.notify("No tasks found", vim.log.levels.WARN)
   else
-    overseer.run_action(tasks[1], "restart")
+    local most_recent = tasks[1]
+    for _, task in ipairs(tasks) do
+      if task.time_end > most_recent then
+        most_recent = task
+      end
+    end
+      overseer.run_action(most_recent, "restart")
   end
 end, {})
 ```

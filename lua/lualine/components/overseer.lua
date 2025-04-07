@@ -27,17 +27,11 @@
 -- *unique* (default: false)
 --   If true, ignore tasks with duplicate names.
 --
--- *name* (default: nil)
---   String or list of strings. Only count tasks with this name or names.
---
--- *name_not* (default: false)
---   When true, count all tasks that do *not* match the 'name' param.
---
 -- *status* (default: nil)
 --   String or list of strings. Only count tasks with this status.
 --
--- *status_not* (default: false)
---   When true, count all tasks that do *not* match the 'status' param.
+-- *filter* (default: nil)
+--   A filter function to apply to tasks. Only count tasks that pass the filter.
 
 local M = require("lualine.component"):extend()
 local constants = require("overseer.constants")

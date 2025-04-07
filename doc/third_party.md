@@ -41,10 +41,8 @@ require("lualine").setup({
           [overseer.STATUS.RUNNING] = "R:",
         },
         unique = false, -- Unique-ify non-running task count by name
-        name = nil, -- List of task names to search for
-        name_not = false, -- When true, invert the name search
         status = nil, -- List of task statuses to display
-        status_not = false, -- When true, invert the status search
+        filter = nil, -- Function to filter out tasks you don't wish to display
       },
     },
   },
