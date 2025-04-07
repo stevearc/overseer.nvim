@@ -96,6 +96,11 @@ local default_config = {
       "default",
       "on_result_diagnostics",
     },
+    -- Tasks created from vim.system or vim.fn.jobstart
+    default_builtin = {
+      "on_exit_set_status",
+      "on_complete_dispose",
+    },
   },
   -- List of other directories to search for task templates.
   -- This will search under the runtimepath, so for example
