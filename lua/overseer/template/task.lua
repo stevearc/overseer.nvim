@@ -1,6 +1,7 @@
 -- A task runner / simpler Make alternative written in Go
 -- https://taskfile.dev/
 local log = require("overseer.log")
+local overseer = require("overseer")
 
 local taskfiles = {
   "Taskfile.yml",
@@ -30,7 +31,7 @@ return {
     end
     local cwd = vim.fs.dirname(taskfile)
     local ret = {}
-    vim.system(
+    overseer.builtin.system(
       { "task", "--list-all", "--json" },
       {
         cwd = cwd,

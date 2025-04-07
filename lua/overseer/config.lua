@@ -1,8 +1,14 @@
 local default_config = {
   -- Patch nvim-dap to support preLaunchTask and postDebugTask
   dap = true,
+  -- Overseer can hook vim.system and vim.fn.jobstart and display those as tasks
+  hook_builtins = {
+    enabled = true,
+  },
   -- Configure the task list
   task_list = {
+    -- Default direction. Can be "left", "right", or "bottom"
+    direction = "bottom",
     -- Width dimensions can be integers or a float between 0 and 1 (e.g. 0.4 for 40%)
     -- min_width and max_width can be a single value or a list of mixed integer/float types.
     -- max_width = {100, 0.2} means "the lesser of 100 columns or 20% of total"
@@ -27,8 +33,6 @@ local default_config = {
     sort = function(a, b)
       return require("overseer.task_list").default_sort(a, b)
     end,
-    -- Default direction. Can be "left", "right", or "bottom"
-    direction = "bottom",
     -- Set keymap to false to remove default behavior
     -- You can add custom keymaps here as well (anything vim.keymap.set accepts)
     bindings = {
@@ -169,6 +173,7 @@ end
 ---@field strategy? overseer.Serialized Default task strategy
 ---@field auto_detect_success_color? boolean
 ---@field dap? boolean Patch nvim-dap to support preLaunchTask and postDebugTask
+---@field hook_builtins? overseer.ConfigHookBuiltins
 ---@field task_list? overseer.ConfigTaskList Configure the task list
 ---@field actions? any See :help overseer-actions
 ---@field form? overseer.ConfigFloatWin Configure the floating window used for task templates that require input and the floating window used for editing tasks
@@ -178,6 +183,9 @@ end
 ---@field template_cache_threshold? integer Cache template provider results if the provider takes longer than this to run. Time is in ms. Set to 0 to disable caching.
 ---@field template_dirs? string[] List of other directories to search for task templates.
 ---@field log? table[]
+
+---@class (exact) overseer.ConfigHookBuiltins
+---@field enabled? boolean overseer will hook vim.system and vim.fn.jobstart and display those as tasks
 
 ---@class (exact) overseer.ConfigTaskList
 ---@field max_width? number|number[] Width dimensions can be integers or a float between 0 and 1 (e.g. 0.4 for 40%). min_width and max_width can be a single value or a list of mixed integer/float types. max_width = {100, 0.2} means "the lesser of 100 columns or 20% of total"

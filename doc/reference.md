@@ -21,6 +21,7 @@
   - [remove_template_hook(opts, hook)](#remove_template_hookopts-hook)
   - [register_template(defn)](#register_templatedefn)
   - [register_alias(name, components)](#register_aliasname-components)
+  - [hook_builtins(enabled)](#hook_builtinsenabled)
 - [Components](#components)
   - [dependencies](components.md#dependencies)
   - [on_complete_dispose](components.md#on_complete_dispose)
@@ -43,6 +44,7 @@
 - [Strategies](#strategies)
   - [jobstart(opts)](strategies.md#jobstartopts)
   - [orchestrator(opts)](strategies.md#orchestratoropts)
+  - [system(opts)](strategies.md#systemopts)
   - [test()](strategies.md#test)
 - [Parameters](#parameters)
 
@@ -56,8 +58,14 @@ For speed tweakers: don't worry about lazy loading; overseer lazy-loads itself!
 require("overseer").setup({
   -- Patch nvim-dap to support preLaunchTask and postDebugTask
   dap = true,
+  -- Overseer can hook vim.system and vim.fn.jobstart and display those as tasks
+  hook_builtins = {
+    enabled = true,
+  },
   -- Configure the task list
   task_list = {
+    -- Default direction. Can be "left", "right", or "bottom"
+    direction = "bottom",
     -- Width dimensions can be integers or a float between 0 and 1 (e.g. 0.4 for 40%)
     -- min_width and max_width can be a single value or a list of mixed integer/float types.
     -- max_width = {100, 0.2} means "the lesser of 100 columns or 20% of total"
@@ -82,8 +90,6 @@ require("overseer").setup({
     sort = function(a, b)
       return require("overseer.task_list").default_sort(a, b)
     end,
-    -- Default direction. Can be "left", "right", or "bottom"
-    direction = "bottom",
     -- Set keymap to false to remove default behavior
     -- You can add custom keymaps here as well (anything vim.keymap.set accepts)
     bindings = {
@@ -268,11 +274,13 @@ Open or close the task list
 `open(opts)` \
 Open the task list
 
-| Param      | Type                       | Desc                                           |
-| ---------- | -------------------------- | ---------------------------------------------- |
-| opts       | `nil\|overseer.WindowOpts` |                                                |
-| >enter     | `boolean\|nil`             | If false, stay in current window. Default true |
-| >direction | `nil\|"left"\|"right"`     | Which direction to open the task list          |
+| Param          | Type                             | Desc                                                     |
+| -------------- | -------------------------------- | -------------------------------------------------------- |
+| opts           | `nil\|overseer.WindowOpts`       |                                                          |
+| >enter         | `nil\|boolean`                   |                                                          |
+| >direction     | `nil\|"left"\|"right"\|"bottom"` |                                                          |
+| >winid         | `nil\|integer`                   | Use this existing window instead of opening a new window |
+| >focus_task_id | `nil\|integer`                   | After opening, focus this task                           |
 
 ### close()
 
@@ -339,12 +347,13 @@ end)
 `preload_task_cache(opts, cb)` \
 Preload templates for run_task
 
-| Param | Type                         | Desc                               |
-| ----- | ---------------------------- | ---------------------------------- |
-| opts  | `nil\|overseer.SearchParams` |                                    |
-| >dir  | `string`                     |                                    |
-| >ft   | `nil\|string`                |                                    |
-| cb    | `nil\|fun()`                 | Called when preloading is complete |
+| Param     | Type                         | Desc                               |
+| --------- | ---------------------------- | ---------------------------------- |
+| opts      | `nil\|overseer.SearchParams` |                                    |
+| >filetype | `nil\|string`                |                                    |
+| >tags     | `nil\|string[]`              |                                    |
+| >dir      | `string`                     |                                    |
+| cb        | `nil\|fun()`                 | Called when preloading is complete |
 
 **Note:**
 <pre>
@@ -366,11 +375,12 @@ vim.api.nvim_create_autocmd({"VimEnter", "DirChanged"}, {
 `clear_task_cache(opts)` \
 Clear cached templates for run_task
 
-| Param | Type                         | Desc |
-| ----- | ---------------------------- | ---- |
-| opts  | `nil\|overseer.SearchParams` |      |
-| >dir  | `string`                     |      |
-| >ft   | `nil\|string`                |      |
+| Param     | Type                         | Desc |
+| --------- | ---------------------------- | ---- |
+| opts      | `nil\|overseer.SearchParams` |      |
+| >filetype | `nil\|string`                |      |
+| >tags     | `nil\|string[]`              |      |
+| >dir      | `string`                     |      |
 
 ### run_action(task, name)
 
@@ -387,14 +397,12 @@ Run an action on a task
 `add_template_hook(opts, hook)` \
 Add a hook that runs on a TaskDefinition before the task is created
 
-| Param     | Type                                                               | Desc                                                                      |
-| --------- | ------------------------------------------------------------------ | ------------------------------------------------------------------------- |
-| opts      | `nil\|overseer.HookOptions`                                        | When nil, run the hook on all templates                                   |
-| >name     | `nil\|string`                                                      | Only run if the template name matches this pattern (using string.match)   |
-| >module   | `nil\|string`                                                      | Only run if the template module matches this pattern (using string.match) |
-| >filetype | `nil\|string\|string[]`                                            | Only run if the current file is one of these filetypes                    |
-| >dir      | `nil\|string\|string[]`                                            | Only run if inside one of these directories                               |
-| hook      | `fun(task_defn: overseer.TaskDefinition, util: overseer.TaskUtil)` |                                                                           |
+| Param   | Type                                                               | Desc                                                                      |
+| ------- | ------------------------------------------------------------------ | ------------------------------------------------------------------------- |
+| opts    | `nil\|overseer.HookOptions`                                        | When nil, run the hook on all templates                                   |
+| >module | `nil\|string`                                                      | Only run if the template module matches this pattern (using string.match) |
+| >name   | `nil\|string`                                                      | Only run if the template name matches this pattern (using string.match)   |
+| hook    | `fun(task_defn: overseer.TaskDefinition, util: overseer.TaskUtil)` |                                                                           |
 
 **Examples:**
 ```lua
@@ -419,12 +427,12 @@ end)
 `remove_template_hook(opts, hook)` \
 Remove a hook that was added with add_template_hook
 
-| Param   | Type                                                               | Desc                          |
-| ------- | ------------------------------------------------------------------ | ----------------------------- |
-| opts    | `nil\|overseer.HookOptions`                                        | Same as for add_template_hook |
-| >module | `nil\|string`                                                      |                               |
-| >name   | `nil\|string`                                                      |                               |
-| hook    | `fun(task_defn: overseer.TaskDefinition, util: overseer.TaskUtil)` |                               |
+| Param   | Type                                                               | Desc                                                                      |
+| ------- | ------------------------------------------------------------------ | ------------------------------------------------------------------------- |
+| opts    | `nil\|overseer.HookOptions`                                        | Same as for add_template_hook                                             |
+| >module | `nil\|string`                                                      | Only run if the template module matches this pattern (using string.match) |
+| >name   | `nil\|string`                                                      | Only run if the template name matches this pattern (using string.match)   |
+| hook    | `fun(task_defn: overseer.TaskDefinition, util: overseer.TaskUtil)` |                                                                           |
 
 **Examples:**
 ```lua
@@ -480,6 +488,15 @@ setting a component alias that they can then use when creating tasks.
 require("overseer").register_alias("my_plugin", { "default", "on_output_quickfix" })
 ```
 
+### hook_builtins(enabled)
+
+`hook_builtins(enabled)` \
+Hook vim.system and vim.fn.jobstart to display tasks in overseer
+
+| Param   | Type           | Desc |
+| ------- | -------------- | ---- |
+| enabled | `nil\|boolean` |      |
+
 
 <!-- /API -->
 
@@ -514,6 +531,7 @@ require("overseer").register_alias("my_plugin", { "default", "on_output_quickfix
 
 - [jobstart(opts)](strategies.md#jobstartopts)
 - [orchestrator(opts)](strategies.md#orchestratoropts)
+- [system(opts)](strategies.md#systemopts)
 - [test()](strategies.md#test)
 
 <!-- /TOC.strategies -->

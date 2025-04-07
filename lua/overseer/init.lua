@@ -85,6 +85,11 @@ local function create_commands()
   end
 end
 
+M.builtin = {
+  jobstart = vim.fn.jobstart,
+  system = vim.system,
+}
+
 ---Add support for preLaunchTask/postDebugTask to nvim-dap
 ---This is enabled by default when you call overseer.setup() unless you set `dap = false`
 ---@param enabled? boolean
@@ -126,6 +131,7 @@ M.setup = function(opts)
     return
   end
   M.enable_dap(opts.dap)
+  M.hook_builtins(opts.hook_builtins and opts.hook_builtins.enabled)
   require("overseer.config").setup(opts)
 end
 
@@ -147,6 +153,7 @@ M.private_setup = function()
   did_setup = true
 
   create_commands()
+  M.hook_builtins()
   for _, hl in ipairs(M.get_all_highlights()) do
     vim.api.nvim_set_hl(0, hl.name, { link = hl.default, default = true })
   end
@@ -208,8 +215,6 @@ M.toggle = function(opts)
 end
 ---Open the task list
 ---@param opts nil|overseer.WindowOpts
----    enter boolean|nil If false, stay in current window. Default true
----    direction nil|"left"|"right" Which direction to open the task list
 M.open = function(opts)
   return require("overseer.window").open(opts)
 end
@@ -261,8 +266,6 @@ end
 
 ---Preload templates for run_task
 ---@param opts? overseer.SearchParams
----    dir string
----    ft nil|string
 ---@param cb? fun() Called when preloading is complete
 ---@note
 --- Typically this would be done to prevent a long wait time for :OverseerRun when using a slow
@@ -278,8 +281,6 @@ M.preload_task_cache = function(opts, cb)
 end
 ---Clear cached templates for run_task
 ---@param opts? overseer.SearchParams
----    dir string
----    ft nil|string
 M.clear_task_cache = function(opts)
   return require("overseer.commands").clear_cache(opts)
 end
@@ -293,10 +294,6 @@ end
 
 ---Add a hook that runs on a TaskDefinition before the task is created
 ---@param opts nil|overseer.HookOptions When nil, run the hook on all templates
----    name nil|string Only run if the template name matches this pattern (using string.match)
----    module nil|string Only run if the template module matches this pattern (using string.match)
----    filetype nil|string|string[] Only run if the current file is one of these filetypes
----    dir nil|string|string[] Only run if inside one of these directories
 ---@param hook fun(task_defn: overseer.TaskDefinition, util: overseer.TaskUtil)
 ---@example
 --- -- Add on_output_quickfix component to all "cargo" templates
@@ -357,6 +354,64 @@ end
 --- require("overseer").register_alias("my_plugin", { "default", "on_output_quickfix" })
 M.register_alias = function(name, components)
   return require("overseer.component").alias(name, components)
+end
+
+---@param cmd string|string[]
+---@param opts? table
+---@return any
+local wrapped_jobstart = function(cmd, opts)
+  opts = opts or {}
+  local task = M.new_task({
+    cmd = cmd,
+    cwd = opts.cwd,
+    env = opts.env,
+    strategy = { "jobstart", wrap_opts = opts },
+  })
+  task:set_include_in_bundle(false)
+  task:start()
+  local strat = task.strategy
+  ---@cast strat overseer.JobstartStrategy
+  return strat.job_id
+end
+---@param cmd string[]
+---@param opts? vim.SystemOpts
+---@param on_exit? fun(out: vim.SystemCompleted)
+---@return vim.SystemObj
+local wrapped_system = function(cmd, opts, on_exit)
+  opts = opts or {}
+  local task = M.new_task({
+    cmd = cmd,
+    cwd = opts.cwd,
+    ---@diagnostic disable-next-line: assign-type-mismatch
+    env = opts.env,
+    strategy = { "system", wrap_opts = opts, wrap_exit = on_exit },
+  })
+  task:set_include_in_bundle(false)
+  task:start()
+  local strat = task.strategy
+  ---@cast strat overseer.SystemStrategy
+  return strat.handle
+end
+
+local patched = false
+---Hook vim.system and vim.fn.jobstart to display tasks in overseer
+---@param enabled? boolean
+M.hook_builtins = function(enabled)
+  if enabled == nil then
+    enabled = true
+  end
+  if patched == enabled then
+    return
+  end
+  patched = enabled
+
+  if patched then
+    vim.fn.jobstart = wrapped_jobstart
+    vim.system = wrapped_system
+  else
+    vim.fn.jobstart = M.builtin.jobstart
+    vim.system = M.builtin.system
+  end
 end
 
 ---Used for documentation generation

@@ -1,3 +1,4 @@
+local overseer = require("overseer")
 -- A make/rake-like build tool using Go
 -- https://magefile.org/
 
@@ -34,7 +35,7 @@ return {
     local cwd = magefile ~= nil and vim.fs.dirname(magefile)
       or (magedir ~= nil and vim.fs.dirname(magedir) or opts.dir)
     local ret = {}
-    vim.system(
+    overseer.builtin.system(
       { "mage", "-l" },
       {
         env = { MAGEFILE_ENABLE_COLOR = "false" },

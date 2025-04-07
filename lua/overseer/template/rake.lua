@@ -1,3 +1,5 @@
+local overseer = require("overseer")
+
 ---@param opts overseer.SearchParams
 ---@return nil|string
 local function get_rakefile(opts)
@@ -19,7 +21,7 @@ return {
     end
     local cwd = vim.fs.dirname(rakefile)
     local ret = {}
-    vim.system(
+    overseer.builtin.system(
       { "rake", "-T" },
       {
         cwd = cwd,

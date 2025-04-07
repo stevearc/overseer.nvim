@@ -1,3 +1,4 @@
+local overseer = require("overseer")
 ---@param opts overseer.SearchParams
 ---@return nil|string
 local function get_makefile(opts)
@@ -20,7 +21,7 @@ return {
     local cwd = vim.fs.dirname(makefile)
 
     local ret = {}
-    vim.system(
+    overseer.builtin.system(
       { "make", "-rRpq" },
       {
         cwd = cwd,

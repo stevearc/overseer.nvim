@@ -6,6 +6,7 @@ The strategy is what controls how a task is actually run. The default, `terminal
 
 - [jobstart(opts)](#jobstartopts)
 - [orchestrator(opts)](#orchestratoropts)
+- [system(opts)](#systemopts)
 - [test()](#test)
 
 <!-- /TOC -->
@@ -17,11 +18,12 @@ The strategy is what controls how a task is actually run. The default, `terminal
 `jobstart(opts): overseer.Strategy` \
 Run tasks using jobstart()
 
-| Param            | Type         | Desc                                                                                                                                             |
-| ---------------- | ------------ | ------------------------------------------------------------------------------------------------------------------------------------------------ |
-| opts             | `nil\|table` |                                                                                                                                                  |
-| >preserve_output | `boolean`    | If true, don't clear the buffer when tasks restart                                                                                               |
-| >use_terminal    | `boolean`    | If false, use a normal non-terminal buffer to store the output. This may produce unwanted results if the task outputs terminal escape sequences. |
+| Param            | Type                                 | Desc                                                                                                                                             |
+| ---------------- | ------------------------------------ | ------------------------------------------------------------------------------------------------------------------------------------------------ |
+| opts             | `nil\|overseer.JobstartStrategyOpts` |                                                                                                                                                  |
+| >preserve_output | `nil\|boolean`                       | If true, don't clear the buffer when tasks restart                                                                                               |
+| >use_terminal    | `nil\|boolean`                       | If false, use a normal non-terminal buffer to store the output. This may produce unwanted results if the task outputs terminal escape sequences. |
+| >wrap_opts       | `nil\|table`                         | Opts that were passed to jobstart(). We should wrap them                                                                                         |
 
 ## orchestrator(opts)
 
@@ -50,6 +52,16 @@ overseer.new_task({
   },
 })
 ```
+
+## system(opts)
+
+`system(opts): overseer.Strategy`
+
+| Param      | Type                                 | Desc                                                       |
+| ---------- | ------------------------------------ | ---------------------------------------------------------- |
+| opts       | `nil\|overseer.SystemStrategyOpts`   |                                                            |
+| >wrap_opts | `nil\|vim.SystemOpts`                | Opts that were passed to vim.system(). We should wrap them |
+| >wrap_exit | `nil\|fun(out: vim.SystemCompleted)` |                                                            |
 
 ## test()
 

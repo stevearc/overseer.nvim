@@ -43,8 +43,14 @@ OPTIONS                                                         *overseer-option
     require("overseer").setup({
       -- Patch nvim-dap to support preLaunchTask and postDebugTask
       dap = true,
+      -- Overseer can hook vim.system and vim.fn.jobstart and display those as tasks
+      hook_builtins = {
+        enabled = true,
+      },
       -- Configure the task list
       task_list = {
+        -- Default direction. Can be "left", "right", or "bottom"
+        direction = "bottom",
         -- Width dimensions can be integers or a float between 0 and 1 (e.g. 0.4 for 40%)
         -- min_width and max_width can be a single value or a list of mixed integer/float types.
         -- max_width = {100, 0.2} means "the lesser of 100 columns or 20% of total"
@@ -69,8 +75,6 @@ OPTIONS                                                         *overseer-option
         sort = function(a, b)
           return require("overseer.task_list").default_sort(a, b)
         end,
-        -- Default direction. Can be "left", "right", or "bottom"
-        direction = "bottom",
         -- Set keymap to false to remove default behavior
         -- You can add custom keymaps here as well (anything vim.keymap.set accepts)
         bindings = {
@@ -241,9 +245,11 @@ open({opts})                                                       *overseer.ope
 
     Parameters:
       {opts} `nil|overseer.WindowOpts`
-          {enter}     `boolean|nil` If false, stay in current window. Default
-                      true
-          {direction} `nil|"left"|"right"` Which direction to open the task list
+          {enter}         `nil|boolean`
+          {direction}     `nil|"left"|"right"|"bottom"`
+          {winid}         `nil|integer` Use this existing window instead of
+                          opening a new window
+          {focus_task_id} `nil|integer` After opening, focus this task
 
 close()                                                           *overseer.close*
     Close the task list
@@ -312,8 +318,9 @@ preload_task_cache({opts}, {cb})                     *overseer.preload_task_cach
 
     Parameters:
       {opts} `nil|overseer.SearchParams`
-          {dir} `string`
-          {ft}  `nil|string`
+          {filetype} `nil|string`
+          {tags}     `nil|string[]`
+          {dir}      `string`
       {cb}   `nil|fun()` Called when preloading is complete
 
     Note:
@@ -333,8 +340,9 @@ clear_task_cache({opts})                               *overseer.clear_task_cach
 
     Parameters:
       {opts} `nil|overseer.SearchParams`
-          {dir} `string`
-          {ft}  `nil|string`
+          {filetype} `nil|string`
+          {tags}     `nil|string[]`
+          {dir}      `string`
 
 run_action({task}, {name})                                   *overseer.run_action*
     Run an action on a task
@@ -348,14 +356,10 @@ add_template_hook({opts}, {hook})                     *overseer.add_template_hoo
 
     Parameters:
       {opts} `nil|overseer.HookOptions` When nil, run the hook on all templates
-          {name}     `nil|string` Only run if the template name matches this
-                     pattern (using string.match)
-          {module}   `nil|string` Only run if the template module matches this
-                     pattern (using string.match)
-          {filetype} `nil|string|string[]` Only run if the current file is one
-                     of these filetypes
-          {dir}      `nil|string|string[]` Only run if inside one of these
-                     directories
+          {module} `nil|string` Only run if the template module matches this
+                   pattern (using string.match)
+          {name}   `nil|string` Only run if the template name matches this
+                   pattern (using string.match)
       {hook} `fun(task_defn: overseer.TaskDefinition, util: overseer.TaskUtil)`
 
     Examples: >lua
@@ -380,8 +384,10 @@ remove_template_hook({opts}, {hook})               *overseer.remove_template_hoo
 
     Parameters:
       {opts} `nil|overseer.HookOptions` Same as for add_template_hook
-          {module} `nil|string`
-          {name}   `nil|string`
+          {module} `nil|string` Only run if the template module matches this
+                   pattern (using string.match)
+          {name}   `nil|string` Only run if the template name matches this
+                   pattern (using string.match)
       {hook} `fun(task_defn: overseer.TaskDefinition, util: overseer.TaskUtil)`
 
     Examples: >lua
@@ -426,6 +432,12 @@ register_alias({name}, {components})                     *overseer.register_alia
     Examples: >lua
       require("overseer").register_alias("my_plugin", { "default", "on_output_quickfix" })
 <
+
+hook_builtins({enabled})                                  *overseer.hook_builtins*
+    Hook vim.system and vim.fn.jobstart to display tasks in overseer
+
+    Parameters:
+      {enabled} `nil|boolean`
 
 --------------------------------------------------------------------------------
 COMPONENTS                                                   *overseer-components*
@@ -682,13 +694,15 @@ jobstart({opts}): overseer.Strategy                            *strategy.jobstar
     Run tasks using jobstart()
 
     Parameters:
-      {opts} `nil|table`
-          {preserve_output} `boolean` If true, don't clear the buffer when tasks
-                            restart
-          {use_terminal}    `boolean` If false, use a normal non-terminal buffer
-                            to store the output. This may produce unwanted
-                            results if the task outputs terminal escape
+      {opts} `nil|overseer.JobstartStrategyOpts`
+          {preserve_output} `nil|boolean` If true, don't clear the buffer when
+                            tasks restart
+          {use_terminal}    `nil|boolean` If false, use a normal non-terminal
+                            buffer to store the output. This may produce
+                            unwanted results if the task outputs terminal escape
                             sequences.
+          {wrap_opts}       `nil|table` Opts that were passed to jobstart(). We
+                            should wrap them
 
 orchestrator({opts}): overseer.Strategy                    *strategy.orchestrator*
     Strategy for a meta-task that manage a sequence of other tasks
@@ -714,6 +728,14 @@ orchestrator({opts}): overseer.Strategy                    *strategy.orchestrato
         },
       })
 <
+
+system({opts}): overseer.Strategy                                *strategy.system*
+
+    Parameters:
+      {opts} `nil|overseer.SystemStrategyOpts`
+          {wrap_opts} `nil|vim.SystemOpts` Opts that were passed to
+                      vim.system(). We should wrap them
+          {wrap_exit} `nil|fun(out: vim.SystemCompleted)`
 
 test(): overseer.Strategy                                          *strategy.test*
     Strategy used for unit testing

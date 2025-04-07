@@ -266,8 +266,8 @@ local function build_task_args(tmpl, search, params, on_build)
 end
 
 ---@class overseer.HookOptions : overseer.SearchCondition
----@field module? string
----@field name? string
+---@field module? string Only run if the template module matches this pattern (using string.match)
+---@field name? string Only run if the template name matches this pattern (using string.match)
 
 ---@param opts nil|overseer.HookOptions
 ---@param hook fun(task_defn: overseer.TaskDefinition, util: overseer.TaskUtil)
