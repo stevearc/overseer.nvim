@@ -682,23 +682,6 @@ M.soft_delete_buf = function(bufnr)
   end
 end
 
----This is a hack so we don't end up in insert mode after starting a task
----@param prev_mode string The vim mode we were in before opening a terminal
-M.hack_around_termopen_autocmd = function(prev_mode)
-  -- It's common to have autocmds that enter insert mode when opening a terminal
-  vim.defer_fn(function()
-    local new_mode = vim.api.nvim_get_mode().mode
-    if new_mode ~= prev_mode then
-      if string.find(new_mode, "i") == 1 then
-        vim.api.nvim_feedkeys(vim.api.nvim_replace_termcodes("<ESC>", true, true, true), "n", false)
-        if string.find(prev_mode, "v") == 1 or string.find(prev_mode, "V") == 1 then
-          vim.cmd.normal({ bang = true, args = { "gv" } })
-        end
-      end
-    end
-  end, 10)
-end
-
 ---@param old_bufnr nil|integer
 ---@param new_bufnr nil|integer
 M.replace_buffer_in_wins = function(old_bufnr, new_bufnr)
