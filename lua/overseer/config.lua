@@ -56,7 +56,6 @@ local default_config = {
   -- Configure the floating window used for task templates that require input
   -- and the floating window used for editing tasks
   form = {
-    border = "rounded",
     zindex = 40,
     -- Dimensions can be integers or a float between 0 and 1 (e.g. 0.4 for 40%)
     -- min_X and max_X can be a single value or a list of mixed integer/float types.
@@ -71,57 +70,14 @@ local default_config = {
       winblend = 0,
     },
   },
-  task_launcher = {
-    -- Set keymap to false to remove default behavior
-    -- You can add custom keymaps here as well (anything vim.keymap.set accepts)
-    bindings = {
-      i = {
-        ["<C-s>"] = "Submit",
-        ["<C-c>"] = "Cancel",
-      },
-      n = {
-        ["<CR>"] = "Submit",
-        ["<C-s>"] = "Submit",
-        ["q"] = "Cancel",
-        ["?"] = "ShowHelp",
-      },
-    },
-  },
-  task_editor = {
-    -- Set keymap to false to remove default behavior
-    -- You can add custom keymaps here as well (anything vim.keymap.set accepts)
-    bindings = {
-      i = {
-        ["<CR>"] = "NextOrSubmit",
-        ["<C-s>"] = "Submit",
-        ["<Tab>"] = "Next",
-        ["<S-Tab>"] = "Prev",
-        ["<C-c>"] = "Cancel",
-      },
-      n = {
-        ["<CR>"] = "NextOrSubmit",
-        ["<C-s>"] = "Submit",
-        ["<Tab>"] = "Next",
-        ["<S-Tab>"] = "Prev",
-        ["q"] = "Cancel",
-        ["?"] = "ShowHelp",
-      },
-    },
-  },
-  -- Configuration for task floating windows
+  -- Configuration for task floating output windows
   task_win = {
     -- How much space to leave around the floating window
     padding = 2,
-    border = "rounded",
     -- Set any window options here (e.g. winhighlight)
     win_opts = {
       winblend = 0,
     },
-  },
-  -- Configuration for mapping help floating windows
-  help_win = {
-    border = "rounded",
-    win_opts = {},
   },
   -- Aliases for bundles of components. Redefine the builtins, or create your own.
   component_aliases = {
@@ -169,24 +125,23 @@ end
 
 ---If user creates a mapping for an action, remove the default mapping to that action
 ---(unless they explicitly specify that key as well)
----@param user_conf overseer.Config
-local function remove_binding_conflicts(user_conf)
-  for key, configval in pairs(user_conf) do
-    if type(configval) == "table" and configval.bindings then
-      local orig_bindings = default_config[key].bindings
-      local rev = {}
-      -- Make a reverse lookup of shortcut-to-key
-      -- e.g. ["Open"] = "o"
-      for k, v in pairs(orig_bindings) do
-        rev[v] = k
-      end
-      for k, v in pairs(configval.bindings) do
-        -- If the user is choosing to map a command to a different key, remove the original default
-        -- map (e.g. if {"u" = "Open"}, then set {"o" = false})
-        if rev[v] and rev[v] ~= k and not configval.bindings[rev[v]] then
-          configval.bindings[rev[v]] = false
-        end
-      end
+---@param task_list? overseer.ConfigTaskList
+local function remove_binding_conflicts(task_list)
+  if not task_list or not task_list.bindings then
+    return
+  end
+  local bindings = assert(task_list.bindings)
+  local rev = {}
+  -- Make a reverse lookup of shortcut-to-key
+  -- e.g. ["Open"] = "o"
+  for k, v in pairs(default_config.task_list.bindings) do
+    rev[v] = k
+  end
+  for k, v in pairs(bindings) do
+    -- If the user is choosing to map a command to a different key, remove the original default
+    -- map (e.g. if {"u" = "Open"}, then set {"o" = false})
+    if rev[v] and rev[v] ~= k and not bindings[rev[v]] then
+      bindings[rev[v]] = false
     end
   end
 end
@@ -196,7 +151,7 @@ local has_setup = false
 M.setup = function(opts)
   has_setup = true
   opts = opts or {}
-  remove_binding_conflicts(opts)
+  remove_binding_conflicts(opts.task_list)
   local newconf = vim.tbl_deep_extend("force", default_config, opts)
   for k, v in pairs(newconf) do
     M[k] = v
@@ -217,10 +172,7 @@ end
 ---@field task_list? overseer.ConfigTaskList Configure the task list
 ---@field actions? any See :help overseer-actions
 ---@field form? overseer.ConfigFloatWin Configure the floating window used for task templates that require input and the floating window used for editing tasks
----@field task_launcher? table
----@field task_editor? table
 ---@field task_win? overseer.ConfigTaskWin
----@field help_win? overseer.ConfigFloatWin
 ---@field component_aliases? table<string, overseer.Serialized[]> Aliases for bundles of components. Redefine the builtins, or create your own.
 ---@field template_timeout? integer For template providers, how long to wait (in ms) before timing out. Set to 0 to disable timeouts.
 ---@field template_cache_threshold? integer Cache template provider results if the provider takes longer than this to run. Time is in ms. Set to 0 to disable caching.
@@ -235,6 +187,7 @@ end
 ---@field min_height? number|number[]
 ---@field height? number
 ---@field separator? string String that separates tasks
+---@field child_indent? {[1]: string, [2]: string, [3]: string}
 ---@field direction? string Default direction. Can be "left", "right", or "bottom"
 ---@field bindings? table<string, string|false> Set keymap to false to remove default behavior
 

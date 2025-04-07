@@ -111,7 +111,6 @@ require("overseer").setup({
   -- Configure the floating window used for task templates that require input
   -- and the floating window used for editing tasks
   form = {
-    border = "rounded",
     zindex = 40,
     -- Dimensions can be integers or a float between 0 and 1 (e.g. 0.4 for 40%)
     -- min_X and max_X can be a single value or a list of mixed integer/float types.
@@ -126,57 +125,14 @@ require("overseer").setup({
       winblend = 0,
     },
   },
-  task_launcher = {
-    -- Set keymap to false to remove default behavior
-    -- You can add custom keymaps here as well (anything vim.keymap.set accepts)
-    bindings = {
-      i = {
-        ["<C-s>"] = "Submit",
-        ["<C-c>"] = "Cancel",
-      },
-      n = {
-        ["<CR>"] = "Submit",
-        ["<C-s>"] = "Submit",
-        ["q"] = "Cancel",
-        ["?"] = "ShowHelp",
-      },
-    },
-  },
-  task_editor = {
-    -- Set keymap to false to remove default behavior
-    -- You can add custom keymaps here as well (anything vim.keymap.set accepts)
-    bindings = {
-      i = {
-        ["<CR>"] = "NextOrSubmit",
-        ["<C-s>"] = "Submit",
-        ["<Tab>"] = "Next",
-        ["<S-Tab>"] = "Prev",
-        ["<C-c>"] = "Cancel",
-      },
-      n = {
-        ["<CR>"] = "NextOrSubmit",
-        ["<C-s>"] = "Submit",
-        ["<Tab>"] = "Next",
-        ["<S-Tab>"] = "Prev",
-        ["q"] = "Cancel",
-        ["?"] = "ShowHelp",
-      },
-    },
-  },
-  -- Configuration for task floating windows
+  -- Configuration for task floating output windows
   task_win = {
     -- How much space to leave around the floating window
     padding = 2,
-    border = "rounded",
     -- Set any window options here (e.g. winhighlight)
     win_opts = {
       winblend = 0,
     },
-  },
-  -- Configuration for mapping help floating windows
-  help_win = {
-    border = "rounded",
-    win_opts = {},
   },
   -- Aliases for bundles of components. Redefine the builtins, or create your own.
   component_aliases = {
