@@ -63,6 +63,7 @@ function JobstartStrategy.new(opts)
     bufnr = nil,
     job_id = nil,
     term_id = nil,
+    pending_output = {},
     opts = opts,
   }
   setmetatable(strategy, { __index = JobstartStrategy })
@@ -86,25 +87,75 @@ function JobstartStrategy:get_bufnr()
   return self.bufnr
 end
 
-function JobstartStrategy:_init_buffer()
-  self.bufnr = vim.api.nvim_create_buf(false, true)
-  if self.opts.use_terminal then
-    local mode = vim.api.nvim_get_mode().mode
-    local term_id
-    util.run_in_fullscreen_win(self.bufnr, function()
-      term_id = vim.api.nvim_open_term(self.bufnr, {
-        on_input = function(_, _, _, data)
-          pcall(vim.api.nvim_chan_send, self.job_id, data)
-          vim.defer_fn(function()
-            util.terminal_tail_hack(self.bufnr)
-          end, 10)
-        end,
-      })
-    end)
-    self.term_id = term_id
+---@return boolean
+local function can_create_terminal()
+  -- Only allow creating a terminal in normal mode when we are not in a floating win.
+  -- Creating the terminal will exit visual/insert mode and can cause some dialogs to close.
+  return vim.api.nvim_get_mode().mode == "n" and not util.is_floating_win(0)
+end
+
+local pending_terminal_jobs = {}
+local function render_pending_terminals()
+  if not can_create_terminal() then
+    return
+  end
+  for _, strat in ipairs(pending_terminal_jobs) do
+    strat:_create_terminal()
+  end
+  pending_terminal_jobs = {}
+end
+
+local created_autocmds = false
+---@param strat overseer.JobstartStrategy
+local function queue_terminal_creation(strat)
+  table.insert(pending_terminal_jobs, strat)
+  if created_autocmds then
+    return
+  end
+  created_autocmds = true
+  vim.api.nvim_create_autocmd("ModeChanged", {
+    pattern = "*:n",
+    callback = render_pending_terminals,
+  })
+  vim.api.nvim_create_autocmd("WinEnter", {
+    callback = render_pending_terminals,
+  })
+end
+
+function JobstartStrategy:_create_terminal()
+  if not self.bufnr or self.term_id then
+    return
+  end
+  local term_id
+  util.run_in_fullscreen_win(self.bufnr, function()
+    term_id = vim.api.nvim_open_term(self.bufnr, {
+      on_input = function(_, _, _, data)
+        pcall(vim.api.nvim_chan_send, self.job_id, data)
+        vim.defer_fn(function()
+          util.terminal_tail_hack(self.bufnr)
+        end, 10)
+      end,
+    })
     -- Set the scrollback to max
     vim.bo[self.bufnr].scrollback = 100000
-    util.hack_around_termopen_autocmd(mode)
+    for _, data in ipairs(self.pending_output) do
+      pcall(vim.api.nvim_chan_send, term_id, table.concat(data, "\r\n"))
+    end
+    self.pending_output = {}
+  end)
+  self.term_id = term_id
+end
+
+function JobstartStrategy:_init_buffer()
+  local bufnr = vim.api.nvim_create_buf(false, true)
+  self.bufnr = bufnr
+  self.pending_output = {}
+  if self.opts.use_terminal then
+    if can_create_terminal() then
+      self:_create_terminal()
+    else
+      queue_terminal_creation(self)
+    end
   else
     vim.bo[self.bufnr].modifiable = false
     local function open_input()
@@ -145,10 +196,14 @@ function JobstartStrategy:start(task)
     if wrap_term then
       -- don't do anything
     elseif self.opts.use_terminal then
-      pcall(vim.api.nvim_chan_send, self.term_id, table.concat(data, "\r\n"))
-      vim.defer_fn(function()
-        util.terminal_tail_hack(self.bufnr)
-      end, 10)
+      if self.term_id then
+        pcall(vim.api.nvim_chan_send, self.term_id, table.concat(data, "\r\n"))
+        vim.defer_fn(function()
+          util.terminal_tail_hack(self.bufnr)
+        end, 10)
+      else
+        table.insert(self.pending_output, data)
+      end
     else
       -- Track which wins we will need to scroll
       local trail_wins = {}
@@ -228,12 +283,20 @@ function JobstartStrategy:start(task)
       -- Feed one last line end to flush the output
       on_stdout({ "" })
       if self.opts.use_terminal then
-        pcall(vim.api.nvim_chan_send, self.term_id, string.format("\r\n[Process exited %d]\r\n", c))
-        -- HACK force terminal buffer to update
-        -- see https://github.com/neovim/neovim/issues/23360
-        vim.bo[self.bufnr].scrollback = vim.bo[self.bufnr].scrollback - 1
-        vim.bo[self.bufnr].scrollback = vim.bo[self.bufnr].scrollback + 1
-        util.terminal_tail_hack(self.bufnr)
+        if self.term_id then
+          pcall(
+            vim.api.nvim_chan_send,
+            self.term_id,
+            string.format("\r\n[Process exited %d]\r\n", c)
+          )
+          -- HACK force terminal buffer to update
+          -- see https://github.com/neovim/neovim/issues/23360
+          vim.bo[self.bufnr].scrollback = vim.bo[self.bufnr].scrollback - 1
+          vim.bo[self.bufnr].scrollback = vim.bo[self.bufnr].scrollback + 1
+          util.terminal_tail_hack(self.bufnr)
+        else
+          table.insert(self.pending_output, { "", string.format("[Process exited %d]", c), "" })
+        end
       else
         vim.bo[self.bufnr].modifiable = true
         vim.api.nvim_buf_set_lines(
