@@ -1,3 +1,4 @@
+local log = require("overseer.log")
 local M = {}
 
 ---@param winid? number
@@ -724,6 +725,58 @@ M.get_last_output_lines = function(bufnr, num_lines)
     end_line = end_line - need_lines
   end
   return lines
+end
+
+---@class overseer.Caller
+---@field file? string
+---@field lnum? integer
+---@field module? string
+---@field top_module? string
+
+---@return overseer.Caller
+M.get_caller = function()
+  -- 1: this function
+  -- 2: the wrapper function in init.lua
+  -- 3: the actual caller of the jobstart/system function
+  local level = 3
+  local info
+  while true do
+    info = debug.getinfo(level, "Sl")
+    if not info then
+      log.trace("No source info found: %s", debug.traceback())
+      return {}
+    end
+    if info.what ~= "C" then
+      break
+    end
+    level = level + 1
+  end
+  local file, lnum, mod, top_mod
+  if not info.source:match("^@") then
+    log.trace("Source is not file: %s\n%s", info.source, debug.traceback())
+    return {}
+  end
+
+  file = info.source:sub(2)
+  lnum = info.currentline
+  local relpath
+  for path in vim.gsplit(vim.o.runtimepath, ",", { plain = true }) do
+    path = path .. "/lua"
+    if file:find(path, 1, true) == 1 then
+      relpath = file:sub(#path + 2)
+      break
+    end
+  end
+  if relpath then
+    mod = vim.fn.fnamemodify(relpath, ":r"):gsub("[/\\]", ".")
+    local dot_idx = mod:find(".", 1, true)
+    if dot_idx then
+      top_mod = mod:sub(1, dot_idx - 1)
+    else
+      top_mod = mod
+    end
+  end
+  return { file = file, lnum = lnum, module = mod, top_module = top_mod }
 end
 
 return M

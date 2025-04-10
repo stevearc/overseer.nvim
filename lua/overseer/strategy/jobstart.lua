@@ -123,7 +123,7 @@ local function queue_terminal_creation(strat)
 end
 
 function JobstartStrategy:_create_terminal()
-  if not self.bufnr or self.term_id then
+  if not self.bufnr or not vim.api.nvim_buf_is_valid(self.bufnr) or self.term_id then
     return
   end
   local term_id
