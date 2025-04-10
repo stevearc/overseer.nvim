@@ -4,6 +4,9 @@ local default_config = {
   -- Overseer can hook vim.system and vim.fn.jobstart and display those as tasks
   hook_builtins = {
     enabled = true,
+    condition = function(cmd, caller, opts)
+      return true
+    end,
   },
   -- Configure the task list
   task_list = {
@@ -191,6 +194,7 @@ end
 
 ---@class (exact) overseer.ConfigHookBuiltins
 ---@field enabled? boolean overseer will hook vim.system and vim.fn.jobstart and display those as tasks
+---@field condition? fun(cmd: string|string[], caller: overseer.Caller, opts: table): boolean callback to determine if overseer should create a task for this jobstart/system
 
 ---@class (exact) overseer.ConfigTaskList
 ---@field max_width? number|number[] Width dimensions can be integers or a float between 0 and 1 (e.g. 0.4 for 40%). min_width and max_width can be a single value or a list of mixed integer/float types. max_width = {100, 0.2} means "the lesser of 100 columns or 20% of total"

@@ -130,9 +130,10 @@ M.setup = function(opts)
   if not M.private_setup() then
     return
   end
-  M.enable_dap(opts.dap)
-  M.hook_builtins(opts.hook_builtins and opts.hook_builtins.enabled)
-  require("overseer.config").setup(opts)
+  local config = require("overseer.config")
+  config.setup(opts)
+  M.enable_dap(config.dap)
+  M.hook_builtins(config.hook_builtins)
 end
 
 local did_setup = false
@@ -360,6 +361,12 @@ end
 ---@param opts? table
 ---@return any
 local wrapped_jobstart = function(cmd, opts)
+  local config = require("overseer.config")
+  local util = require("overseer.util")
+  local caller = util.get_caller()
+  if not config.hook_builtins.condition(cmd, caller, opts) then
+    return M.builtin.jobstart(cmd, opts)
+  end
   opts = opts or {}
   local task = M.new_task({
     cmd = cmd,
@@ -379,6 +386,12 @@ end
 ---@param on_exit? fun(out: vim.SystemCompleted)
 ---@return vim.SystemObj
 local wrapped_system = function(cmd, opts, on_exit)
+  local config = require("overseer.config")
+  local util = require("overseer.util")
+  local caller = util.get_caller()
+  if not config.hook_builtins.condition(cmd, caller, opts) then
+    return M.builtin.system(cmd, opts, on_exit)
+  end
   opts = opts or {}
   local task = M.new_task({
     cmd = cmd,
