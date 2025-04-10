@@ -61,6 +61,9 @@ require("overseer").setup({
   -- Overseer can hook vim.system and vim.fn.jobstart and display those as tasks
   hook_builtins = {
     enabled = true,
+    condition = function(cmd, caller, opts)
+      return true
+    end,
   },
   -- Configure the task list
   task_list = {
@@ -157,18 +160,19 @@ require("overseer").setup({
     default_builtin = {
       "on_exit_set_status",
       "on_complete_dispose",
+      { "unique", soft = true },
     },
   },
   -- List of other directories to search for task templates.
   -- This will search under the runtimepath, so for example
   -- "foo/bar" will search "<runtimepath>/lua/foo/bar/*"
   template_dirs = {},
-  -- For template providers, how long to wait (in ms) before timing out.
+  -- For template providers, how long to wait before timing out.
   -- Set to 0 to wait forever.
-  template_timeout = 3000,
+  template_timeout_ms = 3000,
   -- Cache template provider results if the provider takes longer than this to run.
-  -- Time is in ms. Set to 0 to disable caching.
-  template_cache_threshold = 200,
+  -- Set to 0 to disable caching.
+  template_cache_threshold_ms = 200,
   log_level = vim.log.levels.WARN,
 })
 ```

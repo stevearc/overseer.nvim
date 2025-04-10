@@ -473,8 +473,8 @@ M.list = function(opts, cb)
     local elapsed_ms = (vim.uv.now() - start_times[provider_name])
     if
       cache_key
-      and config.template_cache_threshold > 0
-      and elapsed_ms >= config.template_cache_threshold
+      and config.template_cache_threshold_ms > 0
+      and elapsed_ms >= config.template_cache_threshold_ms
       and type(tmpls_or_err) == "table"
     then
       log.debug("Caching %s: [%s] = %d", provider_name, cache_key, #tmpls_or_err)
@@ -524,7 +524,7 @@ M.list = function(opts, cb)
   end
 
   -- Timeout
-  if config.template_timeout > 0 then
+  if config.template_timeout_ms > 0 then
     vim.defer_fn(function()
       if not vim.tbl_isempty(pending) then
         timed_out = true
@@ -534,7 +534,7 @@ M.list = function(opts, cb)
         -- Make sure that the callback doesn't get called again
         cb = function() end
       end
-    end, config.template_timeout)
+    end, config.template_timeout_ms)
   end
 
   for _, provider in ipairs(get_providers()) do
