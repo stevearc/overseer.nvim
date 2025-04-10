@@ -103,6 +103,7 @@ local default_config = {
     default_builtin = {
       "on_exit_set_status",
       "on_complete_dispose",
+      { "unique", soft = true },
     },
   },
   -- List of other directories to search for task templates.

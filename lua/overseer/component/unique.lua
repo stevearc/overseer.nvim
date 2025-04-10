@@ -17,6 +17,11 @@ return {
       type = "boolean",
       default = true,
     },
+    soft = {
+      desc = "Only dispose duplicate tasks if they are completed. Implies replace = true.",
+      type = "boolean",
+      default = false,
+    },
   },
   constructor = function(params)
     return {
@@ -25,11 +30,13 @@ return {
         for _, t in ipairs(tasks) do
           if t.name == task.name and t ~= task then
             if params.replace then
-              task:subscribe("on_start", function()
-                util.replace_buffer_in_wins(t:get_bufnr(), task:get_bufnr())
-                return false
-              end)
-              t:dispose(true)
+              if t:is_complete() or not params.soft then
+                task:subscribe("on_start", function()
+                  util.replace_buffer_in_wins(t:get_bufnr(), task:get_bufnr())
+                  return false
+                end)
+                t:dispose(true)
+              end
             else
               task:dispose(true)
               t:restart(params.restart_interrupts)
