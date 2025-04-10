@@ -275,6 +275,7 @@ Ensure that this task does not have any duplicates
 | ------------------ | --------- | ------- | ----------------------------------------------------------------------------------------------------------- |
 | replace            | `boolean` | `true`  | If a prior task exists, replace it. When false, will restart the existing task and dispose the current task |
 | restart_interrupts | `boolean` | `true`  | When replace = false, should restarting the existing task interrupt it                                      |
+| soft               | `boolean` | `false` | Only dispose duplicate tasks if they are completed. Implies replace = true.                                 |
 
 - **replace:** Note that when this is false a new task that is created will restart the existing one and _dispose itself_. This can lead to unexpected behavior if you are creating a task and then trying to use that reference (to run actions on it, use it as a dependency, etc)
 

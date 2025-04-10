@@ -110,12 +110,12 @@ local default_config = {
   -- This will search under the runtimepath, so for example
   -- "foo/bar" will search "<runtimepath>/lua/foo/bar/*"
   template_dirs = {},
-  -- For template providers, how long to wait (in ms) before timing out.
+  -- For template providers, how long to wait before timing out.
   -- Set to 0 to wait forever.
-  template_timeout = 3000,
+  template_timeout_ms = 3000,
   -- Cache template provider results if the provider takes longer than this to run.
-  -- Time is in ms. Set to 0 to disable caching.
-  template_cache_threshold = 200,
+  -- Set to 0 to disable caching.
+  template_cache_threshold_ms = 200,
   log_level = vim.log.levels.WARN,
 }
 
@@ -188,8 +188,8 @@ end
 ---@field form? overseer.ConfigFloatWin Configure the floating window used for task templates that require input and the floating window used for editing tasks
 ---@field task_win? overseer.ConfigTaskWin
 ---@field component_aliases? table<string, overseer.Serialized[]> Aliases for bundles of components. Redefine the builtins, or create your own.
----@field template_timeout? integer For template providers, how long to wait (in ms) before timing out. Set to 0 to disable timeouts.
----@field template_cache_threshold? integer Cache template provider results if the provider takes longer than this to run. Time is in ms. Set to 0 to disable caching.
+---@field template_timeout_ms? integer For template providers, how long to wait (in ms) before timing out. Set to 0 to disable timeouts.
+---@field template_cache_threshold_ms? integer Cache template provider results if the provider takes longer than this to run. Time is in ms. Set to 0 to disable caching.
 ---@field template_dirs? string[] List of other directories to search for task templates.
 ---@field log? table[]
 
