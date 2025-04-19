@@ -169,7 +169,7 @@ function Sidebar:focus_task_id(task_id, offset)
   for _, v in ipairs(self.task_lines) do
     local start_line, task = v[1], v[3]
     if task.id == task_id then
-      vim.api.nvim_win_set_cursor(winid, { start_line + offset, 0 })
+      pcall(vim.api.nvim_win_set_cursor, winid, { start_line + offset, 0 })
       self:set_task_focused(task_id)
       return
     end
