@@ -620,7 +620,8 @@ end
 ---@param callback fun()
 M.run_in_fullscreen_win = function(bufnr, callback)
   if not bufnr or bufnr == 0 then
-    bufnr = vim.api.nvim_get_current_buf()
+    bufnr = vim.api.nvim_create_buf(false, true)
+    vim.bo[bufnr].bufhidden = "wipe"
   end
   local start_winid = vim.api.nvim_get_current_win()
   local eventignore = vim.o.eventignore
