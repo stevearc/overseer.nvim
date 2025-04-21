@@ -151,6 +151,13 @@ M = {
     end,
   },
   {
+    desc = "Restart task",
+    plug = "<Plug>OverseerTask:Restart",
+    rhs = function(sidebar)
+      sidebar:run_action("restart")
+    end,
+  },
+  {
     desc = "Stop task",
     plug = "<Plug>OverseerTask:Stop",
     rhs = function(sidebar)
