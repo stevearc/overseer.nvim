@@ -28,6 +28,7 @@ local tmpl = {
 }
 
 ---@param opts overseer.SearchParams
+---@return string[]
 local function get_candidate_package_files(opts)
   -- Some projects have package.json files in subfolders, which are not the main project package.json file,
   -- but rather some submodule marker. This seems prevalent in react-native projects. See this for instance:
@@ -54,10 +55,9 @@ local function get_candidate_package_files(opts)
   })
 end
 
----@param opts overseer.SearchParams
+---@param candidate_packages string[]
 ---@return string|nil
-local function get_package_file(opts)
-  local candidate_packages = get_candidate_package_files(opts)
+local function get_package_file(candidate_packages)
   -- go through candidate package files from closest to the file to least close
   for _, package in ipairs(candidate_packages) do
     local data = files.load_json_file(package)
@@ -68,27 +68,16 @@ local function get_package_file(opts)
   return nil
 end
 
-local function pick_package_manager(package_file)
-  local package_dir = vim.fs.dirname(package_file)
-  for mgr, lockfiles in pairs(mgr_lockfiles) do
-    if
-        util.list_any(lockfiles, function(lockfile)
-          return files.exists(files.join(package_dir, lockfile))
-        end)
-    then
-      return mgr
-    end
-  end
-  local matches = vim.fs.find('.git', { upward = true, type = 'directory', limit = math.huge })
-  -- If not found in the package directory, check if it's a git repo
-  -- And see if there's a lockfile in the git directory
-  -- This is common in pnpm monorepos
-  if #matches > 0 then
-    local git_dir = vim.fs.dirname(matches[1])
+---@param candidate_packages string[]
+---@return string
+local function pick_package_manager(candidate_packages)
+  -- go through candidate package files to find the nearest valid lockfile
+  for _, package_file in ipairs(candidate_packages) do
+    local package_dir = vim.fs.dirname(package_file)
     for mgr, lockfiles in pairs(mgr_lockfiles) do
       if
           util.list_any(lockfiles, function(lockfile)
-            return files.exists(files.join(git_dir, lockfile))
+            return files.exists(files.join(package_dir, lockfile))
           end)
       then
         return mgr
@@ -100,15 +89,17 @@ end
 
 return {
   cache_key = function(opts)
-    return get_package_file(opts)
+    local candidate_packages = get_candidate_package_files(opts)
+    return get_package_file(candidate_packages)
   end,
   condition = {
     callback = function(opts)
-      local package_file = get_package_file(opts)
+      local candidate_packages = get_candidate_package_files(opts)
+      local package_file = get_package_file(candidate_packages)
       if not package_file then
         return false, "No package.json file found"
       end
-      local package_manager = pick_package_manager(package_file)
+      local package_manager = pick_package_manager(candidate_packages)
       if vim.fn.executable(package_manager) == 0 then
         return false, string.format("Could not find command '%s'", package_manager)
       end
@@ -116,12 +107,13 @@ return {
     end,
   },
   generator = function(opts, cb)
-    local package = get_package_file(opts)
+    local candidate_packages = get_candidate_package_files(opts)
+    local package = get_package_file(candidate_packages)
     if not package then
       cb({})
       return
     end
-    local bin = pick_package_manager(package)
+    local bin = pick_package_manager(candidate_packages)
     local data = files.load_json_file(package)
     local ret = {}
     if data.scripts then
