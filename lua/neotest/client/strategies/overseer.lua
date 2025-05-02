@@ -1,3 +1,4 @@
+local component = require("overseer.component")
 local lib = require("neotest.lib")
 local log = require("overseer.log")
 local nio = require("nio")
@@ -100,8 +101,8 @@ end
 ---@param context neotest.StrategyContext
 ---@return neotest.Process
 local function get_strategy(spec, context)
-  if not overseer.component.get_alias("default_neotest") then
-    overseer.component.alias("default_neotest", { "default" })
+  if not component.get_alias("default_neotest") then
+    component.alias("default_neotest", { "default" })
   end
 
   local finish_future = nio.control.future()
