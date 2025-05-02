@@ -228,7 +228,7 @@ If you want to define custom tasks for your project, I'd recommend starting with
   - [remove_template_hook(opts, hook)](doc/reference.md#remove_template_hookopts-hook)
   - [register_template(defn)](doc/reference.md#register_templatedefn)
   - [register_alias(name, components)](doc/reference.md#register_aliasname-components)
-  - [hook_builtins(enabled)](doc/reference.md#hook_builtinsenabled)
+  - [wrap_builtins(enabled)](doc/reference.md#wrap_builtinsenabled)
 - [Components](doc/reference.md#components)
 - [Strategies](doc/reference.md#strategies)
 - [Parameters](doc/reference.md#parameters)
