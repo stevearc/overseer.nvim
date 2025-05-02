@@ -21,6 +21,7 @@ local STATUS = constants.STATUS
 ---@field strategy_defn string|table
 ---@field strategy overseer.Strategy
 ---@field name string
+---@field source? overseer.Caller If this task was created by wrapping jobstart/vim.system, this contains information about the callsite
 ---@field exit_code? number
 ---@field components overseer.Component[]
 ---@field parent_id? integer ID of parent task. Used only to visually group tasks in the task list
@@ -114,6 +115,8 @@ function Task.new(opts)
     -- for internal use
     ---@diagnostic disable-next-line: undefined-field
     parent_id = opts.parent_id,
+    ---@diagnostic disable-next-line: undefined-field
+    source = opts.source,
   }
   next_id = next_id + 1
   setmetatable(task, { __index = Task })

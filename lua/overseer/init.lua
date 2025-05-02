@@ -372,6 +372,7 @@ local wrapped_jobstart = function(cmd, opts)
     cmd = cmd,
     cwd = opts.cwd,
     env = opts.env,
+    source = caller,
     strategy = { "jobstart", wrap_opts = opts },
     components = { "default_builtin" },
   })
@@ -398,6 +399,7 @@ local wrapped_system = function(cmd, opts, on_exit)
     cwd = opts.cwd,
     ---@diagnostic disable-next-line: assign-type-mismatch
     env = opts.env,
+    source = caller,
     strategy = { "system", wrap_opts = opts, wrap_exit = on_exit },
     components = { "default_builtin" },
   })
