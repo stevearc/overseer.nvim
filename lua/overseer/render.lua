@@ -123,13 +123,30 @@ M.output_lines = function(task, opts)
   return ret
 end
 
+---@param task overseer.Task
+---@param opts? {hl_group?: string}
+---@return overseer.TextChunk[][]
+M.source = function(task, opts)
+  ---@type {hl_group: string}
+  opts = vim.tbl_extend("keep", opts or {}, { hl_group = "Comment" })
+  local ret = {}
+  if task.source and task.source.module then
+    table.insert(ret, { { task.source.module, opts.hl_group } })
+  end
+  return ret
+end
+
 ---The default format for tasks in the task list
 ---@type overseer.RenderFunc
 M.format_standard = function(task)
   local ret = {
     M.status_and_name(task),
-    M.join(M.duration(task), M.time_since_completed(task, { hl_group = "Comment" })),
   }
+  vim.list_extend(ret, M.source(task))
+  table.insert(
+    ret,
+    M.join(M.duration(task), M.time_since_completed(task, { hl_group = "Comment" }))
+  )
   vim.list_extend(ret, M.result_lines(task, { oneline = true }))
   vim.list_extend(ret, M.output_lines(task, { num_lines = 1 }))
   return M.remove_empty_lines(ret)

@@ -102,6 +102,7 @@ end
 ---@field unique? boolean Deduplicates non-running tasks by name
 ---@field status? overseer.Status|overseer.Status[] Only list tasks with this status or statuses
 ---@field bundleable? boolean Only list tasks that should be included in a bundle
+---@field wrapped? boolean Include tasks that were created by the jobstart/vim.system wrappers
 ---@field filter? fun(task: overseer.Task): boolean
 
 ---@param opts? overseer.ListTaskOpts
@@ -112,6 +113,7 @@ M.list_tasks = function(opts)
   vim.validate("status", opts.status, function(n)
     return type(n) == "string" or type(n) == "table"
   end, true)
+  vim.validate("wrapped", opts.wrapped, "boolean", true)
   vim.validate("bundleable", opts.bundleable, "boolean", true)
   vim.validate("filter", opts.filter, "function", true)
   local status = util.list_to_map(opts.status or {})
@@ -122,6 +124,7 @@ M.list_tasks = function(opts)
       (not opts.status or status[task.status])
       and (not opts.bundleable or task:should_include_in_bundle())
       and (not opts.filter or opts.filter(task))
+      and (opts.wrapped or not task.source)
     then
       local idx = seen[task.name]
       if idx and opts.unique then
