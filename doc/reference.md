@@ -21,7 +21,7 @@
   - [remove_template_hook(opts, hook)](#remove_template_hookopts-hook)
   - [register_template(defn)](#register_templatedefn)
   - [register_alias(name, components)](#register_aliasname-components)
-  - [hook_builtins(enabled)](#hook_builtinsenabled)
+  - [wrap_builtins(enabled)](#wrap_builtinsenabled)
 - [Components](#components)
   - [dependencies](components.md#dependencies)
   - [on_complete_dispose](components.md#on_complete_dispose)
@@ -58,9 +58,9 @@ For speed tweakers: don't worry about lazy loading; overseer lazy-loads itself!
 require("overseer").setup({
   -- Patch nvim-dap to support preLaunchTask and postDebugTask
   dap = true,
-  -- Overseer can hook vim.system and vim.fn.jobstart and display those as tasks
-  hook_builtins = {
-    enabled = true,
+  -- Overseer can wrap any call to vim.system and vim.fn.jobstart as a task.
+  wrap_builtins = {
+    enabled = false,
     condition = function(cmd, caller, opts)
       return true
     end,
@@ -302,13 +302,14 @@ Close the task list
 `list_tasks(opts): overseer.Task[]` \
 List all tasks
 
-| Param       | Type                                      | Desc                                                |
-| ----------- | ----------------------------------------- | --------------------------------------------------- |
-| opts        | `nil\|overseer.ListTaskOpts`              |                                                     |
-| >unique     | `nil\|boolean`                            | Deduplicates non-running tasks by name              |
-| >status     | `nil\|overseer.Status\|overseer.Status[]` | Only list tasks with this status or statuses        |
-| >bundleable | `nil\|boolean`                            | Only list tasks that should be included in a bundle |
-| >filter     | `nil\|fun(task: overseer.Task): boolean`  |                                                     |
+| Param       | Type                                      | Desc                                                                |
+| ----------- | ----------------------------------------- | ------------------------------------------------------------------- |
+| opts        | `nil\|overseer.ListTaskOpts`              |                                                                     |
+| >unique     | `nil\|boolean`                            | Deduplicates non-running tasks by name                              |
+| >status     | `nil\|overseer.Status\|overseer.Status[]` | Only list tasks with this status or statuses                        |
+| >bundleable | `nil\|boolean`                            | Only list tasks that should be included in a bundle                 |
+| >wrapped    | `nil\|boolean`                            | Include tasks that were created by the jobstart/vim.system wrappers |
+| >filter     | `nil\|fun(task: overseer.Task): boolean`  |                                                                     |
 
 ### run_task(opts, callback)
 
@@ -497,9 +498,9 @@ setting a component alias that they can then use when creating tasks.
 require("overseer").register_alias("my_plugin", { "default", "on_output_quickfix" })
 ```
 
-### hook_builtins(enabled)
+### wrap_builtins(enabled)
 
-`hook_builtins(enabled)` \
+`wrap_builtins(enabled)` \
 Hook vim.system and vim.fn.jobstart to display tasks in overseer
 
 | Param   | Type           | Desc |

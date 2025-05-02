@@ -133,7 +133,7 @@ M.setup = function(opts)
   local config = require("overseer.config")
   config.setup(opts)
   M.enable_dap(config.dap)
-  M.hook_builtins(config.hook_builtins)
+  M.wrap_builtins(config.wrap_builtins)
 end
 
 local did_setup = false
@@ -154,7 +154,7 @@ M.private_setup = function()
   did_setup = true
 
   create_commands()
-  M.hook_builtins()
+  M.wrap_builtins()
   for _, hl in ipairs(M.get_all_highlights()) do
     vim.api.nvim_set_hl(0, hl.name, { link = hl.default, default = true })
   end
@@ -364,7 +364,7 @@ local wrapped_jobstart = function(cmd, opts)
   local config = require("overseer.config")
   local util = require("overseer.util")
   local caller = util.get_caller()
-  if not config.hook_builtins.condition(cmd, caller, opts) then
+  if not config.wrap_builtins.condition(cmd, caller, opts) then
     return M.builtin.jobstart(cmd, opts)
   end
   opts = opts or {}
@@ -389,7 +389,7 @@ local wrapped_system = function(cmd, opts, on_exit)
   local config = require("overseer.config")
   local util = require("overseer.util")
   local caller = util.get_caller()
-  if not config.hook_builtins.condition(cmd, caller, opts) then
+  if not config.wrap_builtins.condition(cmd, caller, opts) then
     return M.builtin.system(cmd, opts, on_exit)
   end
   opts = opts or {}
@@ -411,7 +411,7 @@ end
 local patched = false
 ---Hook vim.system and vim.fn.jobstart to display tasks in overseer
 ---@param enabled? boolean
-M.hook_builtins = function(enabled)
+M.wrap_builtins = function(enabled)
   if enabled == nil then
     enabled = true
   end

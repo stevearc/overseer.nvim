@@ -43,9 +43,9 @@ OPTIONS                                                         *overseer-option
     require("overseer").setup({
       -- Patch nvim-dap to support preLaunchTask and postDebugTask
       dap = true,
-      -- Overseer can hook vim.system and vim.fn.jobstart and display those as tasks
-      hook_builtins = {
-        enabled = true,
+      -- Overseer can wrap any call to vim.system and vim.fn.jobstart as a task.
+      wrap_builtins = {
+        enabled = false,
         condition = function(cmd, caller, opts)
           return true
         end,
@@ -274,6 +274,8 @@ list_tasks({opts}): overseer.Task[]                          *overseer.list_task
                        with this status or statuses
           {bundleable} `nil|boolean` Only list tasks that should be included in
                        a bundle
+          {wrapped}    `nil|boolean` Include tasks that were created by the
+                       jobstart/vim.system wrappers
           {filter}     `nil|fun(task: overseer.Task): boolean`
 
 run_task({opts}, {callback})                                   *overseer.run_task*
@@ -442,7 +444,7 @@ register_alias({name}, {components})                     *overseer.register_alia
       require("overseer").register_alias("my_plugin", { "default", "on_output_quickfix" })
 <
 
-hook_builtins({enabled})                                  *overseer.hook_builtins*
+wrap_builtins({enabled})                                  *overseer.wrap_builtins*
     Hook vim.system and vim.fn.jobstart to display tasks in overseer
 
     Parameters:

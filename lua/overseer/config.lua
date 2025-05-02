@@ -1,9 +1,9 @@
 local default_config = {
   -- Patch nvim-dap to support preLaunchTask and postDebugTask
   dap = true,
-  -- Overseer can hook vim.system and vim.fn.jobstart and display those as tasks
-  hook_builtins = {
-    enabled = true,
+  -- Overseer can wrap any call to vim.system and vim.fn.jobstart as a task.
+  wrap_builtins = {
+    enabled = false,
     condition = function(cmd, caller, opts)
       return true
     end,
@@ -182,7 +182,7 @@ end
 ---@field strategy? overseer.Serialized Default task strategy
 ---@field auto_detect_success_color? boolean
 ---@field dap? boolean Patch nvim-dap to support preLaunchTask and postDebugTask
----@field hook_builtins? overseer.ConfigHookBuiltins
+---@field wrap_builtins? overseer.ConfigWrapBuiltins
 ---@field task_list? overseer.ConfigTaskList Configure the task list
 ---@field actions? any See :help overseer-actions
 ---@field form? overseer.ConfigFloatWin Configure the floating window used for task templates that require input and the floating window used for editing tasks
@@ -193,7 +193,7 @@ end
 ---@field template_dirs? string[] List of other directories to search for task templates.
 ---@field log? table[]
 
----@class (exact) overseer.ConfigHookBuiltins
+---@class (exact) overseer.ConfigWrapBuiltins
 ---@field enabled? boolean overseer will hook vim.system and vim.fn.jobstart and display those as tasks
 ---@field condition? fun(cmd: string|string[], caller: overseer.Caller, opts: table): boolean callback to determine if overseer should create a task for this jobstart/system
 
