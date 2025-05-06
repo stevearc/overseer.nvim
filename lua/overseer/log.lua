@@ -95,8 +95,16 @@ end
 function Log.log(level, msg, ...)
   if config.log_level <= level then
     initialize()
-    local text = format(level, msg, ...)
-    write(text)
+    if vim.in_fast_event() then
+      local splat = vim.F.pack_len(...)
+      vim.schedule(function()
+        local text = format(level, msg, vim.F.unpack_len(splat))
+        write(text)
+      end)
+    else
+      local text = format(level, msg, ...)
+      write(text)
+    end
   end
 end
 

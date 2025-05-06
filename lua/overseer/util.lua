@@ -734,6 +734,31 @@ end
 ---@field module? string
 ---@field top_module? string
 
+---@param file string
+---@param caller overseer.Caller
+local function assign_module(file, caller)
+  local relpath
+  for path in vim.gsplit(vim.o.runtimepath, ",", { plain = true }) do
+    path = path .. "/lua"
+    if file:find(path, 1, true) == 1 then
+      relpath = file:sub(#path + 2)
+      break
+    end
+  end
+  if relpath then
+    local mod = vim.fn.fnamemodify(relpath, ":r"):gsub("[/\\]", ".")
+    local top_mod
+    local dot_idx = mod:find(".", 1, true)
+    if dot_idx then
+      top_mod = mod:sub(1, dot_idx - 1)
+    else
+      top_mod = mod
+    end
+    caller.module = mod
+    caller.top_module = top_mod
+  end
+end
+
 ---@return overseer.Caller
 M.get_caller = function()
   -- 1: this function
@@ -752,7 +777,7 @@ M.get_caller = function()
     end
     level = level + 1
   end
-  local file, lnum, mod, top_mod
+  local file, lnum
   if not info.source:match("^@") then
     log.trace("Source is not file: %s\n%s", info.source, debug.traceback())
     return {}
@@ -760,24 +785,14 @@ M.get_caller = function()
 
   file = info.source:sub(2)
   lnum = info.currentline
-  local relpath
-  for path in vim.gsplit(vim.o.runtimepath, ",", { plain = true }) do
-    path = path .. "/lua"
-    if file:find(path, 1, true) == 1 then
-      relpath = file:sub(#path + 2)
-      break
-    end
+  local ret = { file = file, lnum = lnum }
+  if vim.in_fast_event() then
+    -- This reads runtimepath and uses fnamemodify, which are not safe in fast events
+    vim.schedule_wrap(assign_module)(file, ret)
+  else
+    assign_module(file, ret)
   end
-  if relpath then
-    mod = vim.fn.fnamemodify(relpath, ":r"):gsub("[/\\]", ".")
-    local dot_idx = mod:find(".", 1, true)
-    if dot_idx then
-      top_mod = mod:sub(1, dot_idx - 1)
-    else
-      top_mod = mod
-    end
-  end
-  return { file = file, lnum = lnum, module = mod, top_module = top_mod }
+  return ret
 end
 
 return M

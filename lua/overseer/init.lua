@@ -364,7 +364,8 @@ local wrapped_jobstart = function(cmd, opts)
   local config = require("overseer.config")
   local util = require("overseer.util")
   local caller = util.get_caller()
-  if not config.wrap_builtins.condition(cmd, caller, opts) then
+  -- TODO wrapping jobstart in a fast event is difficult because we call a lot of unsafe APIs
+  if vim.in_fast_event() or not config.wrap_builtins.condition(cmd, caller, opts) then
     return M.builtin.jobstart(cmd, opts)
   end
   opts = opts or {}
@@ -390,7 +391,8 @@ local wrapped_system = function(cmd, opts, on_exit)
   local config = require("overseer.config")
   local util = require("overseer.util")
   local caller = util.get_caller()
-  if not config.wrap_builtins.condition(cmd, caller, opts) then
+  -- TODO wrapping vim.system in a fast event is difficult because we call a lot of unsafe APIs
+  if vim.in_fast_event() or not config.wrap_builtins.condition(cmd, caller, opts) then
     return M.builtin.system(cmd, opts, on_exit)
   end
   opts = opts or {}
