@@ -121,21 +121,6 @@ local default_config = {
 
 local M = {}
 
-local function merge_actions(default_actions, user_actions)
-  local actions = {}
-  for k, v in pairs(default_actions) do
-    actions[k] = v
-  end
-  for k, v in pairs(user_actions or {}) do
-    if not v then
-      actions[k] = nil
-    else
-      actions[k] = v
-    end
-  end
-  return actions
-end
-
 ---If user creates a mapping for an action, remove the default mapping to that action
 ---(unless they explicitly specify that key as well)
 ---@param task_list? overseer.ConfigTaskList
@@ -174,8 +159,6 @@ M.setup = function(opts)
     -- for backwards compatibility, we used to allow module paths
     M.template_dirs[i] = dir:gsub("%.", "/")
   end
-
-  M.actions = merge_actions(require("overseer.task_list.actions"), newconf.actions)
 end
 
 ---@class (exact) overseer.Config
@@ -184,7 +167,7 @@ end
 ---@field dap? boolean Patch nvim-dap to support preLaunchTask and postDebugTask
 ---@field wrap_builtins? overseer.ConfigWrapBuiltins
 ---@field task_list? overseer.ConfigTaskList Configure the task list
----@field actions? any See :help overseer-actions
+---@field actions? table<string, false|overseer.Action> See :help overseer-actions
 ---@field form? overseer.ConfigFloatWin Configure the floating window used for task templates that require input and the floating window used for editing tasks
 ---@field task_win? overseer.ConfigTaskWin
 ---@field component_aliases? table<string, overseer.Serialized[]> Aliases for bundles of components. Redefine the builtins, or create your own.
