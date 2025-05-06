@@ -8,6 +8,12 @@ local STATUS = constants.STATUS
 
 local M
 
+---@class (exact) overseer.Action
+---@field desc? string Detailed description of what the action does
+---@field condition? fun(task: overseer.Task): boolean Function to check if the action is applicable
+---@field run fun(task: overseer.Task)
+
+---@type table<string, overseer.Action>
 M = {
   start = {
     condition = function(task)
