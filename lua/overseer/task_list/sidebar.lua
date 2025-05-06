@@ -13,6 +13,7 @@ local M = {}
 ---@field private task_lines {[1]: integer, [2]: integer, [3]: overseer.Task}[]
 ---@field private preview? overseer.TaskView
 ---@field private focused_task_id? integer
+---@field private list_task_opts overseer.ListTaskOpts
 local Sidebar = {}
 
 local ref
@@ -52,6 +53,7 @@ function Sidebar.new()
     bufnr = bufnr,
     task_lines = {},
     preview = nil,
+    list_task_opts = {},
   }, { __index = Sidebar })
   self:init()
   ---@cast self overseer.Sidebar
@@ -331,11 +333,16 @@ function Sidebar:run_action(name)
   action_util.run_task_action(task, name)
 end
 
+function Sidebar:toggle_show_wrapped()
+  self.list_task_opts.wrapped = not self.list_task_opts.wrapped
+  self:render()
+end
+
 function Sidebar:render()
   if not vim.api.nvim_buf_is_valid(self.bufnr) then
     return false
   end
-  local tasks = task_list.list_tasks()
+  local tasks = task_list.list_tasks(self.list_task_opts)
   local prev_first_task = self:get_task_from_line(1)
   local prev_first_task_id = prev_first_task and prev_first_task.id
   local focused_task, offset = self:get_task_from_line()

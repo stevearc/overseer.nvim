@@ -59,7 +59,8 @@ local default_config = {
       ["}"] = "actions.next_task",
       ["<C-k>"] = "actions.scroll_output_up",
       ["<C-j>"] = "actions.scroll_output_down",
-      ["q"] = "<CMD>close<CR>",
+      ["g."] = "actions.toggle_show_wrapped",
+      ["q"] = { "<CMD>close<CR>", desc = "Close task list" },
     },
   },
   -- See :help overseer-actions
