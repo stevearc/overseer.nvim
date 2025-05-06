@@ -38,24 +38,28 @@ local default_config = {
     end,
     -- Set keymap to false to remove default behavior
     -- You can add custom keymaps here as well (anything vim.keymap.set accepts)
-    bindings = {
-      ["?"] = "ShowHelp",
-      ["g?"] = "ShowHelp",
-      ["<CR>"] = "RunAction",
-      ["<C-e>"] = "Edit",
-      ["o"] = "Open",
-      ["<C-v>"] = "OpenVsplit",
-      ["<C-s>"] = "OpenSplit",
-      ["<C-f>"] = "OpenFloat",
-      ["<C-q>"] = "OpenQuickFix",
-      ["p"] = "TogglePreview",
-      ["["] = "DecreaseWidth",
-      ["]"] = "IncreaseWidth",
-      ["{"] = "PrevTask",
-      ["}"] = "NextTask",
-      ["<C-k>"] = "ScrollOutputUp",
-      ["<C-j>"] = "ScrollOutputDown",
-      ["q"] = "Close",
+    keymaps = {
+      ["?"] = "actions.show_help",
+      ["g?"] = "actions.show_help",
+      ["<CR>"] = "actions.run_action",
+      ["dd"] = { "actions.run_action", opts = { action = "dispose" }, desc = "Dispose task" },
+      ["<C-e>"] = { "actions.run_action", opts = { action = "edit" }, desc = "Edit task" },
+      ["o"] = "actions.open",
+      ["<C-v>"] = { "actions.open", opts = { dir = "vsplit" }, desc = "Open task output in vsplit" },
+      ["<C-s>"] = { "actions.open", opts = { dir = "split" }, desc = "Open task output in split" },
+      ["<C-t>"] = { "actions.open", opts = { dir = "tab" }, desc = "Open task output in tab" },
+      ["<C-f>"] = { "actions.open", opts = { dir = "float" }, desc = "Open task output in float" },
+      ["<C-q>"] = {
+        "actions.run_action",
+        opts = { action = "open output in quickfix" },
+        desc = "Open task output in the quickfix",
+      },
+      ["p"] = "actions.toggle_preview",
+      ["{"] = "actions.prev_task",
+      ["}"] = "actions.next_task",
+      ["<C-k>"] = "actions.scroll_output_up",
+      ["<C-j>"] = "actions.scroll_output_down",
+      ["q"] = "<CMD>close<CR>",
     },
   },
   -- See :help overseer-actions
@@ -121,38 +125,34 @@ local default_config = {
 
 local M = {}
 
----If user creates a mapping for an action, remove the default mapping to that action
----(unless they explicitly specify that key as well)
----@param task_list? overseer.ConfigTaskList
-local function remove_binding_conflicts(task_list)
-  if not task_list or not task_list.bindings then
-    return
-  end
-  local bindings = assert(task_list.bindings)
-  local rev = {}
-  -- Make a reverse lookup of shortcut-to-key
-  -- e.g. ["Open"] = "o"
-  for k, v in pairs(default_config.task_list.bindings) do
-    rev[v] = k
-  end
-  for k, v in pairs(bindings) do
-    -- If the user is choosing to map a command to a different key, remove the original default
-    -- map (e.g. if {"u" = "Open"}, then set {"o" = false})
-    if rev[v] and rev[v] ~= k and not bindings[rev[v]] then
-      bindings[rev[v]] = false
-    end
-  end
-end
-
 local has_setup = false
 ---@param opts? overseer.Config
 M.setup = function(opts)
   has_setup = true
   opts = opts or {}
-  remove_binding_conflicts(opts.task_list)
+
   local newconf = vim.tbl_deep_extend("force", default_config, opts)
   for k, v in pairs(newconf) do
     M[k] = v
+  end
+
+  if opts.task_list and opts.task_list.keymaps then
+    -- Handle keymap overrides in a case-insensitive way
+    local case_map = {}
+    for k in pairs(default_config.task_list.keymaps) do
+      case_map[k:lower()] = k
+    end
+    newconf.task_list.keymaps = vim.deepcopy(default_config.task_list.keymaps)
+    -- We don't want to deep merge the keymaps, we want any keymap defined by the user to override
+    -- everything about the default.
+    for k, v in pairs(opts.task_list.keymaps) do
+      k = case_map[k:lower()] or k
+      if v then
+        newconf.task_list.keymaps[k] = v
+      else
+        newconf.task_list.keymaps[k] = nil
+      end
+    end
   end
 
   for i, dir in ipairs(M.template_dirs) do
@@ -190,7 +190,7 @@ end
 ---@field separator? string String that separates tasks
 ---@field child_indent? {[1]: string, [2]: string, [3]: string}
 ---@field direction? string Default direction. Can be "left", "right", or "bottom"
----@field bindings? table<string, string|false> Set keymap to false to remove default behavior
+---@field keymaps? table<string, any> Set keymap to false to remove default behavior
 
 ---@class (exact) overseer.ConfigFloatWin
 ---@field border? string|table

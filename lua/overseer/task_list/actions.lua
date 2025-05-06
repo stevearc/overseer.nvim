@@ -107,7 +107,7 @@ M = {
   ["open float"] = {
     desc = "open terminal in a floating window",
     condition = function(task)
-      return task:get_bufnr()
+      return task:get_bufnr() ~= nil
     end,
     run = function(task)
       task:open_output("float")
@@ -116,7 +116,7 @@ M = {
   open = {
     desc = "open terminal in the current window",
     condition = function(task)
-      return task:get_bufnr()
+      return task:get_bufnr() ~= nil
     end,
     run = function(task)
       task:open_output()
@@ -125,7 +125,7 @@ M = {
   ["open hsplit"] = {
     desc = "open terminal in a horizontal split",
     condition = function(task)
-      return task:get_bufnr()
+      return task:get_bufnr() ~= nil
     end,
     run = function(task)
       task:open_output("horizontal")
@@ -134,7 +134,7 @@ M = {
   ["open vsplit"] = {
     desc = "open terminal in a vertical split",
     condition = function(task)
-      return task:get_bufnr()
+      return task:get_bufnr() ~= nil
     end,
     run = function(task)
       task:open_output("vertical")
@@ -143,7 +143,7 @@ M = {
   ["open tab"] = {
     desc = "open terminal in a new tab",
     condition = function(task)
-      return task:get_bufnr()
+      return task:get_bufnr() ~= nil
     end,
     run = function(task)
       task:open_output("tab")
@@ -152,7 +152,7 @@ M = {
   ["set quickfix diagnostics"] = {
     desc = "put the diagnostics results into quickfix",
     condition = function(task)
-      return task.result
+      return task.result ~= nil
         and task.result.diagnostics
         and not vim.tbl_isempty(task.result.diagnostics)
     end,
@@ -163,7 +163,7 @@ M = {
   ["set loclist diagnostics"] = {
     desc = "put the diagnostics results into loclist",
     condition = function(task)
-      return task.result
+      return task.result ~= nil
         and task.result.diagnostics
         and not vim.tbl_isempty(task.result.diagnostics)
     end,
@@ -177,15 +177,14 @@ M = {
     condition = function(task)
       local bufnr = task:get_bufnr()
       return task:is_complete()
-        and bufnr
+        and bufnr ~= nil
         and vim.api.nvim_buf_is_valid(bufnr)
         and vim.api.nvim_buf_is_loaded(bufnr)
     end,
     run = function(task)
-      local lines = vim.api.nvim_buf_get_lines(task:get_bufnr(), 0, -1, true)
+      local lines = vim.api.nvim_buf_get_lines(assert(task:get_bufnr()), 0, -1, true)
       vim.fn.setqflist({}, " ", {
         title = task.name,
-        context = task.name,
         lines = lines,
         -- Peep into the default component params to fetch the errorformat
         efm = task.default_component_params.errorformat,
