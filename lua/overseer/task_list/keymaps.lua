@@ -85,10 +85,18 @@ M.scroll_output_down = {
 }
 
 M.toggle_preview = {
-  desc = "Toggle task terminal in a preview window",
+  desc = "Toggle task output in a preview floating window",
   callback = function()
     local sb = get_sidebar()
     sb:toggle_preview()
+  end,
+}
+
+M.toggle_show_wrapped = {
+  desc = "Toggle showing wrapped builtin jobstart/vim.system tasks",
+  callback = function()
+    local sb = get_sidebar()
+    sb:toggle_show_wrapped()
   end,
 }
 
