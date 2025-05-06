@@ -1,8 +1,7 @@
 local TaskView = require("overseer.task_view")
 local action_util = require("overseer.action_util")
-local binding_util = require("overseer.binding_util")
-local bindings = require("overseer.task_list.bindings")
 local config = require("overseer.config")
+local keymap_util = require("overseer.keymap_util")
 local layout = require("overseer.layout")
 local task_list = require("overseer.task_list")
 local util = require("overseer.util")
@@ -18,23 +17,27 @@ local Sidebar = {}
 
 local ref
 
+---@return overseer.Sidebar
+---@return boolean
 M.get_or_create = function()
   local sb = M.get()
   local created = not sb
   if not sb then
-    ref = Sidebar.new()
-    sb = ref
+    sb = Sidebar.new()
+    ref = sb
     sb:render()
   end
   return sb, created
 end
 
+---@return nil|overseer.Sidebar
 M.get = function()
   if ref and vim.api.nvim_buf_is_loaded(ref.bufnr) and vim.api.nvim_buf_is_valid(ref.bufnr) then
     return ref
   end
 end
 
+---@return overseer.Sidebar
 function Sidebar.new()
   local bufnr = vim.api.nvim_create_buf(false, true)
 
@@ -51,6 +54,7 @@ function Sidebar.new()
     preview = nil,
   }, { __index = Sidebar })
   self:init()
+  ---@cast self overseer.Sidebar
   return self
 end
 
@@ -99,8 +103,7 @@ function Sidebar:init()
   end
   periodic_update()
 
-  binding_util.create_plug_bindings(self.bufnr, bindings, self)
-  binding_util.create_bindings_to_plug(self.bufnr, "n", config.task_list.bindings, "OverseerTask:")
+  keymap_util.set_keymaps(config.task_list.keymaps, self.bufnr)
 end
 
 ---@private
