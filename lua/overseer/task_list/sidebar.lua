@@ -229,7 +229,6 @@ function Sidebar:toggle_preview()
   local col = (direction == "left" and (win_width + padding) or padding)
   local winid = vim.api.nvim_open_win(0, false, {
     relative = "editor",
-    border = config.task_win.border,
     row = 1,
     col = col,
     width = width,

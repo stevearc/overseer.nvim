@@ -269,7 +269,6 @@ M.open_form_win = function(bufnr, opts)
     local height = layout.calculate_height(desired_height, config.form)
     local win_opts = {
       relative = "editor",
-      border = config.form.border,
       zindex = config.form.zindex,
       width = width,
       height = height,

@@ -73,6 +73,8 @@ overseer supports all the usual plugin managers
 ```lua
 {
   'stevearc/overseer.nvim',
+  ---@module 'overseer'
+  ---@type overseer.SetupOpts
   opts = {},
 }
 ```

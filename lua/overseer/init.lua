@@ -124,7 +124,7 @@ M.enable_dap = function(enabled)
 end
 
 ---Initialize overseer
----@param opts overseer.Config|nil Configuration options
+---@param opts overseer.SetupOpts|nil Configuration options
 M.setup = function(opts)
   opts = opts or {}
   if not M.private_setup() then
@@ -133,7 +133,7 @@ M.setup = function(opts)
   local config = require("overseer.config")
   config.setup(opts)
   M.enable_dap(config.dap)
-  M.wrap_builtins(config.wrap_builtins)
+  M.wrap_builtins(config.wrap_builtins.enabled)
 end
 
 local did_setup = false
