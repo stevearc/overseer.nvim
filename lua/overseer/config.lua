@@ -127,7 +127,7 @@ local default_config = {
 local M = {}
 
 local has_setup = false
----@param opts? overseer.Config
+---@param opts? overseer.SetupOpts
 M.setup = function(opts)
   has_setup = true
   opts = opts or {}
@@ -163,25 +163,50 @@ M.setup = function(opts)
 end
 
 ---@class (exact) overseer.Config
----@field strategy? overseer.Serialized Default task strategy
----@field auto_detect_success_color? boolean
----@field dap? boolean Patch nvim-dap to support preLaunchTask and postDebugTask
----@field wrap_builtins? overseer.ConfigWrapBuiltins
----@field task_list? overseer.ConfigTaskList Configure the task list
----@field actions? table<string, false|overseer.Action> See :help overseer-actions
----@field form? overseer.ConfigFloatWin Configure the floating window used for task templates that require input and the floating window used for editing tasks
----@field task_win? overseer.ConfigTaskWin
----@field component_aliases? table<string, overseer.Serialized[]> Aliases for bundles of components. Redefine the builtins, or create your own.
+---@field setup fun(opts: overseer.SetupOpts)
+---@field dap boolean
+---@field log_level integer
+---@field wrap_builtins overseer.ConfigWrapBuiltins
+---@field task_list overseer.ConfigTaskList
+---@field actions table<string, false|overseer.Action> See :help overseer-actions
+---@field form overseer.ConfigFloatWin
+---@field task_win overseer.ConfigTaskWin
+---@field component_aliases table<string, overseer.Serialized[]> Aliases for bundles of components. Redefine the builtins, or create your own.
+---@field template_dirs string[] List of other directories to search for task templates.
 ---@field template_timeout_ms? integer For template providers, how long to wait (in ms) before timing out. Set to 0 to disable timeouts.
 ---@field template_cache_threshold_ms? integer Cache template provider results if the provider takes longer than this to run. Time is in ms. Set to 0 to disable caching.
+
+---@class (exact) overseer.SetupOpts
+---@field dap? boolean Patch nvim-dap to support preLaunchTask and postDebugTask
+---@field log_level? integer Log level
+---@field wrap_builtins? overseer.SetupConfigWrapBuiltins
+---@field task_list? overseer.SetupConfigTaskList
+---@field actions? table<string, false|overseer.Action> See :help overseer-actions
+---@field form overseer.SetupConfigFloatWin
+---@field task_win? overseer.SetupConfigTaskWin
+---@field component_aliases? table<string, overseer.Serialized[]> Aliases for bundles of components. Redefine the builtins, or create your own.
 ---@field template_dirs? string[] List of other directories to search for task templates.
----@field log? table[]
+---@field template_timeout_ms? integer For template providers, how long to wait (in ms) before timing out. Set to 0 to disable timeouts.
+---@field template_cache_threshold_ms? integer Cache template provider results if the provider takes longer than this to run. Time is in ms. Set to 0 to disable caching.
 
 ---@class (exact) overseer.ConfigWrapBuiltins
----@field enabled? boolean overseer will hook vim.system and vim.fn.jobstart and display those as tasks
----@field condition? fun(cmd: string|string[], caller: overseer.Caller, opts: table): boolean callback to determine if overseer should create a task for this jobstart/system
+---@field enabled boolean overseer will hook vim.system and vim.fn.jobstart and display those as tasks
+---@field condition fun(cmd: string|string[], caller: overseer.Caller, opts?: table): boolean callback to determine if overseer should create a task for this jobstart/system
 
----@class (exact) overseer.ConfigTaskList
+---@class (exact) overseer.SetupConfigWrapBuiltins
+---@field enabled? boolean overseer will hook vim.system and vim.fn.jobstart and display those as tasks
+---@field condition? fun(cmd: string|string[], caller: overseer.Caller, opts?: table): boolean callback to determine if overseer should create a task for this jobstart/system
+
+---@class (exact) overseer.ConfigTaskList : overseer.LayoutOpts
+---@field direction "left"|"right"|"bottom"
+---@field separator string String that separates tasks
+---@field child_indent {[1]: string, [2]: string, [3]: string}
+---@field render fun(task: overseer.Task): string[][] Function that renders tasks
+---@field sort fun(a: overseer.Task, b: overseer.Task): boolean Function that sorts tasks
+---@field keymaps table<string, any> Set keymap to false to remove default behavior
+
+---@class (exact) overseer.SetupConfigTaskList
+---@field direction? "left"|"right"|"bottom" Direction to open task list (default "bottom")
 ---@field max_width? number|number[] Width dimensions can be integers or a float between 0 and 1 (e.g. 0.4 for 40%). min_width and max_width can be a single value or a list of mixed integer/float types. max_width = {100, 0.2} means "the lesser of 100 columns or 20% of total"
 ---@field min_width? number|number[] min_width = {40, 0.1} means "the greater of 40 columns or 10% of total"
 ---@field width? number optionally define an integer/float for the exact width of the task list
@@ -190,11 +215,15 @@ end
 ---@field height? number
 ---@field separator? string String that separates tasks
 ---@field child_indent? {[1]: string, [2]: string, [3]: string}
----@field direction? string Default direction. Can be "left", "right", or "bottom"
+---@field render? fun(task: overseer.Task): string[] Function that renders tasks
+---@field sort? fun(a: overseer.Task, b: overseer.Task): boolean Function that sorts tasks
 ---@field keymaps? table<string, any> Set keymap to false to remove default behavior
 
----@class (exact) overseer.ConfigFloatWin
----@field border? string|table
+---@class (exact) overseer.ConfigFloatWin : overseer.LayoutOpts
+---@field zindex integer
+---@field win_opts table<string, any>
+
+---@class (exact) overseer.SetupConfigFloatWin
 ---@field zindex? integer
 ---@field min_width? number|number[]
 ---@field max_width? number|number[]
@@ -203,11 +232,16 @@ end
 ---@field win_opts? table<string, any>
 
 ---@class (exact) overseer.ConfigTaskWin
----@field border? string|table
----@field padding? integer
----@field win_opts? table<string, any>
+---@field padding integer
+---@field zindex? integer
+---@field win_opts table<string, any>
 
-return setmetatable(M, {
+---@class (exact) overseer.SetupConfigTaskWin
+---@field padding? integer How much space to leave around the floating window
+---@field zindex? integer
+---@field win_opts? table<string, any> Set any window options here (e.g. winhighlight)
+
+setmetatable(M, {
   -- If the user hasn't called setup() yet, make sure we correctly set up the config object so there
   -- aren't random crashes.
   __index = function(self, key)
@@ -217,3 +251,6 @@ return setmetatable(M, {
     return rawget(self, key)
   end,
 })
+
+---@cast M overseer.Config
+return M

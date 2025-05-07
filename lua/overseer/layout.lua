@@ -139,7 +139,6 @@ M.open_fullscreen_float = function(bufnr)
     col = col,
     width = width,
     height = height,
-    border = conf.border,
     zindex = conf.zindex,
     style = "minimal",
   })
