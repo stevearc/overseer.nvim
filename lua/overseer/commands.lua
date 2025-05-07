@@ -153,20 +153,12 @@ M.run_template = function(opts, callback)
       search = search_opts,
       disallow_prompt = opts.disallow_prompt,
       on_build = opts.on_build,
+      env = opts.env,
+      cwd = opts.cwd,
     }
-    template.build_task_args(tmpl, build_opts, function(task_defn)
-      local task = nil
-      if task_defn then
-        if opts.cwd then
-          task_defn.cwd = opts.cwd
-        end
-        if task_defn.env or opts.env then
-          task_defn.env = vim.tbl_deep_extend("force", task_defn.env or {}, opts.env or {})
-        end
-        task = Task.new(task_defn)
-        if opts.autostart then
-          task:start()
-        end
+    template.build_task(tmpl, build_opts, function(_, task)
+      if task and opts.autostart then
+        task:start()
       end
       if callback then
         callback(task)

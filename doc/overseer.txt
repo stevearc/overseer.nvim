@@ -80,24 +80,29 @@ OPTIONS                                                         *overseer-option
         end,
         -- Set keymap to false to remove default behavior
         -- You can add custom keymaps here as well (anything vim.keymap.set accepts)
-        bindings = {
-          ["?"] = "ShowHelp",
-          ["g?"] = "ShowHelp",
-          ["<CR>"] = "RunAction",
-          ["<C-e>"] = "Edit",
-          ["o"] = "Open",
-          ["<C-v>"] = "OpenVsplit",
-          ["<C-s>"] = "OpenSplit",
-          ["<C-f>"] = "OpenFloat",
-          ["<C-q>"] = "OpenQuickFix",
-          ["p"] = "TogglePreview",
-          ["["] = "DecreaseWidth",
-          ["]"] = "IncreaseWidth",
-          ["{"] = "PrevTask",
-          ["}"] = "NextTask",
-          ["<C-k>"] = "ScrollOutputUp",
-          ["<C-j>"] = "ScrollOutputDown",
-          ["q"] = "Close",
+        keymaps = {
+          ["?"] = "actions.show_help",
+          ["g?"] = "actions.show_help",
+          ["<CR>"] = "actions.run_action",
+          ["dd"] = { "actions.run_action", opts = { action = "dispose" }, desc = "Dispose task" },
+          ["<C-e>"] = { "actions.run_action", opts = { action = "edit" }, desc = "Edit task" },
+          ["o"] = "actions.open",
+          ["<C-v>"] = { "actions.open", opts = { dir = "vsplit" }, desc = "Open task output in vsplit" },
+          ["<C-s>"] = { "actions.open", opts = { dir = "split" }, desc = "Open task output in split" },
+          ["<C-t>"] = { "actions.open", opts = { dir = "tab" }, desc = "Open task output in tab" },
+          ["<C-f>"] = { "actions.open", opts = { dir = "float" }, desc = "Open task output in float" },
+          ["<C-q>"] = {
+            "actions.run_action",
+            opts = { action = "open output in quickfix" },
+            desc = "Open task output in the quickfix",
+          },
+          ["p"] = "actions.toggle_preview",
+          ["{"] = "actions.prev_task",
+          ["}"] = "actions.next_task",
+          ["<C-k>"] = "actions.scroll_output_up",
+          ["<C-j>"] = "actions.scroll_output_down",
+          ["g."] = "actions.toggle_show_wrapped",
+          ["q"] = { "<CMD>close<CR>", desc = "Close task list" },
         },
       },
       -- See :help overseer-actions
@@ -202,7 +207,7 @@ setup({opts})                                                     *overseer.setu
     Initialize overseer
 
     Parameters:
-      {opts} `overseer.Config|nil` Configuration options
+      {opts} `overseer.SetupOpts|nil` Configuration options
 
 new_task({opts}): overseer.Task                                *overseer.new_task*
     Create a new Task

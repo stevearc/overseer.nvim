@@ -27,6 +27,7 @@ local STATUS = constants.STATUS
 ---@field parent_id? integer ID of parent task. Used only to visually group tasks in the task list
 ---@field time_start? integer
 ---@field time_end? integer
+---@field private from_template? overseer.TemplateSource
 ---@field private prev_bufnr? integer
 ---@field private _subscribers table<string, function[]>
 local Task = {}
@@ -43,6 +44,13 @@ local next_id = 1
 ---@field metadata? table Arbitrary metadata for your own use
 ---@field default_component_params? table<string, any> Default values for component params
 ---@field components? overseer.Serialized[] List of components to attach. Defaults to `{"default"}`
+---@field private from_template? overseer.TemplateSource
+
+---@class (exact) overseer.TemplateSource
+---@field name string Name of the template
+---@field env? table<string, string>
+---@field params table
+---@field search overseer.SearchParams
 
 ---@param opts overseer.TaskDefinition
 ---@return overseer.Task
@@ -113,6 +121,8 @@ function Task.new(opts)
     prev_bufnr = nil,
     components = {},
     -- for internal use
+    ---@diagnostic disable-next-line: invisible
+    from_template = opts.from_template,
     ---@diagnostic disable-next-line: undefined-field
     parent_id = opts.parent_id,
     ---@diagnostic disable-next-line: undefined-field
@@ -159,6 +169,7 @@ function Task:serialize()
     env = self.env,
     strategy = self.strategy_defn,
     components = components,
+    from_template = self.from_template,
   }
 end
 

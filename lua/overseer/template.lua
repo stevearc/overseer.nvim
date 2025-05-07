@@ -1,3 +1,4 @@
+local Task = require("overseer.task")
 local component = require("overseer.component")
 local config = require("overseer.config")
 local files = require("overseer.files")
@@ -364,7 +365,7 @@ end
 
 ---@param tmpl overseer.TemplateDefinition
 ---@param opts overseer.TemplateBuildOpts
----@param callback fun(task: overseer.TaskDefinition|nil, err: string|nil)
+---@param callback fun(err: string|nil, task: overseer.TaskDefinition|nil, params: table|nil)
 M.build_task_args = function(tmpl, opts, callback)
   vim.validate("params", opts.params, "table")
   local param_schema = tmpl.params or {}
@@ -374,10 +375,10 @@ M.build_task_args = function(tmpl, opts, callback)
   end
   local show_prompt, err = M._should_prompt(opts.disallow_prompt, param_schema, opts.params)
   if err then
-    return callback(nil, err)
+    return callback(err)
   end
   if not show_prompt then
-    callback(build_task_args(tmpl, opts.search, opts.params, opts.on_build))
+    callback(nil, build_task_args(tmpl, opts.search, opts.params, opts.on_build), opts.params)
     return
   end
 
@@ -387,10 +388,45 @@ M.build_task_args = function(tmpl, opts, callback)
   end
   form.open(tmpl.name, schema, opts.params, function(final_params)
     if final_params then
-      callback(build_task_args(tmpl, opts.search, final_params, opts.on_build))
+      callback(nil, build_task_args(tmpl, opts.search, final_params, opts.on_build), final_params)
     else
       callback()
     end
+  end)
+end
+
+---@class overseer.TaskBuildOpts : overseer.TemplateBuildOpts
+---@field cwd? string
+---@field env? table<string, string>
+
+---@param tmpl overseer.TemplateDefinition
+---@param opts overseer.TaskBuildOpts
+---@param callback fun(err: string|nil, task: overseer.Task|nil)
+M.build_task = function(tmpl, opts, callback)
+  M.build_task_args(tmpl, opts, function(err, task_defn, params)
+    if err then
+      return callback(err)
+    end
+    assert(task_defn)
+    assert(params)
+    local task = nil
+    if opts.cwd then
+      task_defn.cwd = opts.cwd
+    end
+    if task_defn.env or opts.env then
+      task_defn.env = vim.tbl_deep_extend("force", task_defn.env or {}, opts.env or {})
+    end
+
+    ---@diagnostic disable-next-line: invisible
+    task_defn.from_template = {
+      name = tmpl.name,
+      env = opts.env,
+      params = params or {},
+      search = opts.search,
+    }
+
+    task = Task.new(task_defn)
+    callback(nil, task)
   end)
 end
 
