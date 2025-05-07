@@ -182,7 +182,45 @@ end
 --- })
 --- task:start()
 M.new_task = function(opts)
-  return require("overseer.task").new(opts)
+  ---@diagnostic disable-next-line: invisible
+  local data = opts.from_template
+  if data then
+    local template = require("overseer.template")
+    local tmpl
+    local done = false
+    template.get_by_name(data.name, data.search, function(t)
+      tmpl = t
+      done = true
+    end)
+    vim.wait(2000, function()
+      return done
+    end)
+    if not tmpl then
+      error(string.format("Could not find template '%s'", data.name))
+    end
+    local task
+    done = false
+    local build_opts = {
+      params = data.params,
+      env = data.env,
+      cwd = opts.cwd,
+      search = data.search,
+      disallow_prompt = true,
+    }
+    template.build_task(tmpl, build_opts, function(_, t)
+      done = true
+      task = t
+    end)
+    vim.wait(500, function()
+      return done
+    end)
+    if not task then
+      error(string.format("Error building task from template '%s'", data.name))
+    end
+    return task
+  else
+    return require("overseer.task").new(opts)
+  end
 end
 
 ---@class (exact) overseer.RunCmdOpts

@@ -1,18 +1,25 @@
 local M = {}
 
--- TODO split out autostart_on_load from list_tasks opts
+---@class (exact) overseer.ResessionConfig
+---@field autostart_on_load boolean Whether to start tasks when loading (default true)
+---@field filter overseer.ListTaskOpts Options to use when listing tasks to save
 local conf = {}
 
+---@param data? overseer.ResessionConfig
 M.config = function(data)
-  conf = data or {}
+  conf = vim.tbl_extend("keep", data or {}, {
+    autostart_on_load = true,
+    filter = {
+      bundleable = true,
+    },
+  })
 end
 
 M.on_save = function()
   local task_list = require("overseer.task_list")
-  local opts = vim.tbl_deep_extend("keep", conf, { bundleable = true })
   local serialized = vim.tbl_map(function(task)
     return task:serialize()
-  end, task_list.list_tasks(opts))
+  end, task_list.list_tasks(conf.filter))
   if #serialized > 0 then
     return serialized
   end
