@@ -1,3 +1,5 @@
+local util = require("overseer.util")
+
 -- Looks for a result value of 'diagnostics' that is a list of quickfix items
 ---@type overseer.ComponentFileDefinition
 return {
@@ -67,8 +69,10 @@ return {
           end
         elseif params.open then
           local winid = vim.api.nvim_get_current_win()
-          vim.cmd(conf.open_cmd)
-          vim.api.nvim_set_current_win(winid)
+          util.eventignore_call(function()
+            vim.cmd(conf.open_cmd)
+            vim.api.nvim_set_current_win(winid)
+          end)
         end
       end,
     }

@@ -642,6 +642,17 @@ M.run_in_fullscreen_win = function(bufnr, callback)
   vim.o.eventignore = eventignore
 end
 
+---@param callback fun()
+M.eventignore_call = function(callback)
+  local eventignore = vim.o.eventignore
+  vim.o.eventignore = "all"
+  local ok, err = xpcall(callback, debug.traceback)
+  vim.o.eventignore = eventignore
+  if not ok then
+    error(err)
+  end
+end
+
 ---Run a function in the context of a current directory
 ---@param cwd? string
 ---@param callback fun()

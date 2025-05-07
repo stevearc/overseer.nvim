@@ -182,7 +182,7 @@ end
 ---@field wrap_builtins? overseer.SetupConfigWrapBuiltins
 ---@field task_list? overseer.SetupConfigTaskList
 ---@field actions? table<string, false|overseer.Action> See :help overseer-actions
----@field form overseer.SetupConfigFloatWin
+---@field form? overseer.SetupConfigFloatWin
 ---@field task_win? overseer.SetupConfigTaskWin
 ---@field component_aliases? table<string, overseer.Serialized[]> Aliases for bundles of components. Redefine the builtins, or create your own.
 ---@field template_dirs? string[] List of other directories to search for task templates.
