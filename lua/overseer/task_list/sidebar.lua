@@ -210,7 +210,7 @@ local function detect_direction(bufnr, winlayout)
 end
 
 function Sidebar:toggle_preview()
-  if self.preview and not self.preview:is_disposed() then
+  if self.preview and not self.preview:is_win_closed() then
     self.preview:dispose()
     return
   end

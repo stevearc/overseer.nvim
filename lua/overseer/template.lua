@@ -407,6 +407,9 @@ M.build_task = function(tmpl, opts, callback)
     if err then
       return callback(err)
     end
+    if not task_defn then
+      return callback()
+    end
     assert(task_defn)
     assert(params)
     local task = nil

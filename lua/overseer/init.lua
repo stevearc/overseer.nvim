@@ -395,6 +395,26 @@ M.register_alias = function(name, components)
   return require("overseer.component").alias(name, components)
 end
 
+---Set a window to display the output of a dynamically-chosen task
+---@param winid? integer The window to use for displaying the task output
+---@param opts? overseer.TaskViewOpts
+---@example
+--- -- Always show the output from the most recent Neotest task in this window.
+--- -- Close it automatically when all test tasks are disposed.
+--- overseer.create_task_output_view(0, {
+---   select = function(self, tasks, task_under_cursor)
+---     for _, task in ipairs(tasks) do
+---       if task.metadata.neotest_group_id then
+---         return task
+---       end
+---     end
+---     self:dispose()
+---   end,
+--- })
+M.create_task_output_view = function(winid, opts)
+  require("overseer.task_view").new(winid, opts)
+end
+
 ---@param cmd string|string[]
 ---@param opts? table
 ---@return any

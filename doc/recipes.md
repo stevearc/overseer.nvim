@@ -9,6 +9,7 @@ Have a cool recipe to share? Open a pull request and add it to this doc!
 - [Directory-local tasks with exrc](#directory-local-tasks-with-exrc)
 - [:Make similar to vim-dispatch](#make-similar-to-vim-dispatch)
 - [Asynchronous :Grep command](#asynchronous-grep-command)
+- [Create a window that displays the most recent task output](#create-a-window-that-displays-the-most-recent-task-output)
 
 <!-- /TOC -->
 
@@ -144,4 +145,25 @@ vim.api.nvim_create_user_command("Grep", function(params)
   })
   task:start()
 end, { nargs = "*", bang = true, complete = "file" })
+```
+
+## Create a window that displays the most recent task output
+
+You can use `overseer.create_task_output_view` to create a dynamic view of task output based on any
+criteria. This example will show the output of the most recently started task.
+
+```lua
+overseer.create_task_output_view(0, {
+  list_task_opts = {
+    filter = function(task)
+      return task.time_start ~= nil
+    end,
+  }
+  select = function(self, tasks, task_under_cursor)
+    table.sort(tasks, function(a, b)
+      return a.time_start > b.time_start
+    end)
+    return tasks[1]
+  end,
+})
 ```

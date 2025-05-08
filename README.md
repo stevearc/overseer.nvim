@@ -37,6 +37,7 @@ A task runner and job management plugin for Neovim
   - [Directory-local tasks with exrc](doc/recipes.md#directory-local-tasks-with-exrc)
   - [:Make similar to vim-dispatch](doc/recipes.md#make-similar-to-vim-dispatch)
   - [Asynchronous :Grep command](doc/recipes.md#asynchronous-grep-command)
+  - [Create a window that displays the most recent task output](doc/recipes.md#create-a-window-that-displays-the-most-recent-task-output)
 - [Reference](#reference)
   - [Setup options](doc/reference.md#setup-options)
   - [Commands](doc/reference.md#commands)
@@ -208,6 +209,7 @@ If you want to define custom tasks for your project, I'd recommend starting with
 - [Directory-local tasks with exrc](doc/recipes.md#directory-local-tasks-with-exrc)
 - [:Make similar to vim-dispatch](doc/recipes.md#make-similar-to-vim-dispatch)
 - [Asynchronous :Grep command](doc/recipes.md#asynchronous-grep-command)
+- [Create a window that displays the most recent task output](doc/recipes.md#create-a-window-that-displays-the-most-recent-task-output)
 
 ## Reference
 
@@ -230,6 +232,7 @@ If you want to define custom tasks for your project, I'd recommend starting with
   - [remove_template_hook(opts, hook)](doc/reference.md#remove_template_hookopts-hook)
   - [register_template(defn)](doc/reference.md#register_templatedefn)
   - [register_alias(name, components)](doc/reference.md#register_aliasname-components)
+  - [create_task_output_view(winid, opts)](doc/reference.md#create_task_output_viewwinid-opts)
   - [wrap_builtins(enabled)](doc/reference.md#wrap_builtinsenabled)
 - [Components](doc/reference.md#components)
 - [Strategies](doc/reference.md#strategies)
