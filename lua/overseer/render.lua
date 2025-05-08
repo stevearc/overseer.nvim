@@ -5,24 +5,28 @@ local M = {}
 ---@alias overseer.TextChunk {[1]: string, [2]: nil|string}
 ---@alias overseer.RenderFunc fun(task: overseer.Task): overseer.TextChunk[][]
 
+---Text chunks that display the status of a task
 ---@param task overseer.Task
 ---@return overseer.TextChunk[]
 M.status = function(task)
   return { { task.status, "Overseer" .. task.status } }
 end
 
+---Text chunks that display the name of a task
 ---@param task overseer.Task
 ---@return overseer.TextChunk[]
 M.name = function(task)
   return { { task.name, "OverseerTask" } }
 end
 
+---Text chunks that display the status and name of a task
 ---@param task overseer.Task
 ---@return overseer.TextChunk[]
 M.status_and_name = function(task)
   return M.join(M.status(task), M.name(task), ": ")
 end
 
+---Text chunks that display the command that was run
 ---@param task overseer.Task
 ---@return overseer.TextChunk[]
 M.cmd = function(task)
@@ -48,6 +52,7 @@ local function stringify_result(res)
   end
 end
 
+---Lines that display the result of a task
 ---@param task overseer.Task
 ---@param opts? {oneline?: boolean}
 ---@return overseer.TextChunk[][]
@@ -73,6 +78,7 @@ M.result_lines = function(task, opts)
   return ret
 end
 
+---Text chunks that display how long a task has been running / ran for
 ---@param task overseer.Task
 ---@param opts? {hl_group?: string}
 ---@return overseer.TextChunk[]
@@ -90,6 +96,7 @@ M.duration = function(task, opts)
   return { { util.format_duration(duration), opts.hl_group } }
 end
 
+---Text chunks that display the time since a task was completed
 ---@param task overseer.Task
 ---@param opts? {hl_group?: string}
 ---@return overseer.TextChunk[]
@@ -101,6 +108,7 @@ M.time_since_completed = function(task, opts)
   return { { util.format_relative_timestamp(task.time_end), opts.hl_group } }
 end
 
+---Lines that display the last few lines of output from a task
 ---@param task overseer.Task
 ---@param opts? {num_lines?: integer, prefix?: string, prefix_hl_group?: string}
 ---@return overseer.TextChunk[][]
@@ -123,10 +131,11 @@ M.output_lines = function(task, opts)
   return ret
 end
 
+---Lines that display the source of a wrapped builtin task
 ---@param task overseer.Task
 ---@param opts? {hl_group?: string}
 ---@return overseer.TextChunk[][]
-M.source = function(task, opts)
+M.source_lines = function(task, opts)
   ---@type {hl_group: string}
   opts = vim.tbl_extend("keep", opts or {}, { hl_group = "Comment" })
   local ret = {}
@@ -142,7 +151,7 @@ M.format_standard = function(task)
   local ret = {
     M.status_and_name(task),
   }
-  vim.list_extend(ret, M.source(task))
+  vim.list_extend(ret, M.source_lines(task))
   table.insert(
     ret,
     M.join(M.duration(task), M.time_since_completed(task, { hl_group = "Comment" }))
@@ -173,6 +182,7 @@ M.format_verbose = function(task)
   return M.remove_empty_lines(ret)
 end
 
+---Join two lists of text chunks together with a separator
 ---@param a overseer.TextChunk[]
 ---@param b overseer.TextChunk[]
 ---@param sep? string|overseer.TextChunk
@@ -199,6 +209,7 @@ M.join = function(a, b, sep)
   return ret
 end
 
+---Removes empty lines from a list of lines (each line is a list of text chunks)
 ---@param lines overseer.TextChunk[][]
 ---@return overseer.TextChunk[][]
 M.remove_empty_lines = function(lines)
