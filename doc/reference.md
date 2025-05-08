@@ -76,11 +76,8 @@ require("overseer").setup({
     max_width = { 100, 0.2 },
     -- min_width = {40, 0.1} means "the greater of 40 columns or 10% of total"
     min_width = { 40, 0.1 },
-    -- optionally define an integer/float for the exact width of the task list
-    width = nil,
-    max_height = { 20, 0.1 },
+    max_height = { 20, 0.2 },
     min_height = 8,
-    height = nil,
     -- String that separates tasks
     separator = "━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━",
     -- Indentation for child tasks
@@ -121,7 +118,7 @@ require("overseer").setup({
       ["q"] = { "<CMD>close<CR>", desc = "Close task list" },
     },
   },
-  -- See :help overseer-actions
+  -- Custom actions for tasks. See :help overseer-actions
   actions = {},
   -- Configure the floating window used for task templates that require input
   -- and the floating window used for editing tasks
@@ -131,23 +128,17 @@ require("overseer").setup({
     -- min_X and max_X can be a single value or a list of mixed integer/float types.
     min_width = 80,
     max_width = 0.9,
-    width = nil,
     min_height = 10,
     max_height = 0.9,
-    height = nil,
     -- Set any window options here (e.g. winhighlight)
-    win_opts = {
-      winblend = 0,
-    },
+    win_opts = {},
   },
   -- Configuration for task floating output windows
   task_win = {
     -- How much space to leave around the floating window
     padding = 2,
     -- Set any window options here (e.g. winhighlight)
-    win_opts = {
-      winblend = 0,
-    },
+    win_opts = {},
   },
   -- Aliases for bundles of components. Redefine the builtins, or create your own.
   component_aliases = {
@@ -279,7 +270,7 @@ Open or close the task list
 | Param          | Type                             | Desc                                                     |
 | -------------- | -------------------------------- | -------------------------------------------------------- |
 | opts           | `nil\|overseer.WindowOpts`       |                                                          |
-| >enter         | `nil\|boolean`                   |                                                          |
+| >enter         | `nil\|boolean`                   | Focus the task list window after opening (default true)  |
 | >direction     | `nil\|"left"\|"right"\|"bottom"` |                                                          |
 | >winid         | `nil\|integer`                   | Use this existing window instead of opening a new window |
 | >focus_task_id | `nil\|integer`                   | After opening, focus this task                           |
@@ -292,7 +283,7 @@ Open the task list
 | Param          | Type                             | Desc                                                     |
 | -------------- | -------------------------------- | -------------------------------------------------------- |
 | opts           | `nil\|overseer.WindowOpts`       |                                                          |
-| >enter         | `nil\|boolean`                   |                                                          |
+| >enter         | `nil\|boolean`                   | Focus the task list window after opening (default true)  |
 | >direction     | `nil\|"left"\|"right"\|"bottom"` |                                                          |
 | >winid         | `nil\|integer`                   | Use this existing window instead of opening a new window |
 | >focus_task_id | `nil\|integer`                   | After opening, focus this task                           |
