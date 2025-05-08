@@ -21,6 +21,7 @@
   - [remove_template_hook(opts, hook)](#remove_template_hookopts-hook)
   - [register_template(defn)](#register_templatedefn)
   - [register_alias(name, components)](#register_aliasname-components)
+  - [create_task_output_view(winid, opts)](#create_task_output_viewwinid-opts)
   - [wrap_builtins(enabled)](#wrap_builtinsenabled)
 - [Components](#components)
   - [dependencies](components.md#dependencies)
@@ -501,6 +502,40 @@ setting a component alias that they can then use when creating tasks.
 **Examples:**
 ```lua
 require("overseer").register_alias("my_plugin", { "default", "on_output_quickfix" })
+```
+
+### create_task_output_view(winid, opts)
+
+`create_task_output_view(winid, opts)` \
+Set a window to display the output of a dynamically-chosen task
+
+| Param                | Type                                                                                                               | Desc                                                                             |
+| -------------------- | ------------------------------------------------------------------------------------------------------------------ | -------------------------------------------------------------------------------- |
+| winid                | `nil\|integer`                                                                                                     | The window to use for displaying the task output                                 |
+| opts                 | `nil\|overseer.TaskViewOpts`                                                                                       |                                                                                  |
+| >select              | `nil\|fun(self: overseer.TaskView, tasks: overseer.Task[], task_under_cursor?: overseer.Task): nil\|overseer.Task` | Select which task in the task list to display the output of                      |
+| >close_on_list_close | `nil\|boolean`                                                                                                     | Close the window when the task list is closed                                    |
+| >list_task_opts      | `nil\|overseer.ListTaskOpts`                                                                                       | Passed to list_tasks() to get the list of tasks to pass to the select() function |
+| >>unique             | `nil\|boolean`                                                                                                     | Deduplicates non-running tasks by name                                           |
+| >>status             | `nil\|overseer.Status\|overseer.Status[]`                                                                          | Only list tasks with this status or statuses                                     |
+| >>bundleable         | `nil\|boolean`                                                                                                     | Only list tasks that should be included in a bundle                              |
+| >>wrapped            | `nil\|boolean`                                                                                                     | Include tasks that were created by the jobstart/vim.system wrappers              |
+| >>filter             | `nil\|fun(task: overseer.Task): boolean`                                                                           |                                                                                  |
+
+**Examples:**
+```lua
+-- Always show the output from the most recent Neotest task in this window.
+-- Close it automatically when all test tasks are disposed.
+overseer.create_task_output_view(0, {
+  select = function(self, tasks, task_under_cursor)
+    for _, task in ipairs(tasks) do
+      if task.metadata.neotest_group_id then
+        return task
+      end
+    end
+    self:dispose()
+  end,
+})
 ```
 
 ### wrap_builtins(enabled)

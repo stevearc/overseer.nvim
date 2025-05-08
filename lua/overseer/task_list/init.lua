@@ -98,7 +98,7 @@ M.get_by_name = function(name)
   end
 end
 
----@class overseer.ListTaskOpts
+---@class (exact) overseer.ListTaskOpts
 ---@field unique? boolean Deduplicates non-running tasks by name
 ---@field status? overseer.Status|overseer.Status[] Only list tasks with this status or statuses
 ---@field bundleable? boolean Only list tasks that should be included in a bundle

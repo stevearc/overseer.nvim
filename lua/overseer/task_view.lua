@@ -18,21 +18,23 @@ local function set_minimal_win_opts(winid)
 end
 
 ---@class (exact) overseer.TaskViewOpts
----@field select? fun(self: overseer.TaskView, tasks: overseer.Task[], task_under_cursor: overseer.Task?): overseer.Task?
+---@field select? fun(self: overseer.TaskView, tasks: overseer.Task[], task_under_cursor?: overseer.Task): nil|overseer.Task Select which task in the task list to display the output of
 ---@field close_on_list_close? boolean Close the window when the task list is closed
+---@field list_task_opts? overseer.ListTaskOpts Passed to list_tasks() to get the list of tasks to pass to the select() function
 
 ---@class overseer.TaskView
 ---@field winid integer
 ---@field private select fun(self: overseer.TaskView, tasks: overseer.Task[], task_under_cursor: overseer.Task?): overseer.Task?
 ---@field private autocmd_ids integer[]
+---@field private list_task_opts? overseer.ListTaskOpts
 local TaskView = {}
 
----@param winid integer
+---@param winid? integer
 ---@param opts? overseer.TaskViewOpts
 ---@return overseer.TaskView
 function TaskView.new(winid, opts)
   opts = opts or {}
-  if winid == 0 then
+  if not winid or winid == 0 then
     winid = vim.api.nvim_get_current_win()
   end
   set_minimal_win_opts(winid)
@@ -41,6 +43,7 @@ function TaskView.new(winid, opts)
     select = opts.select or function(self, tasks)
       return tasks[1]
     end,
+    list_task_opts = opts.list_task_opts,
     autocmd_ids = {},
   }
   setmetatable(self, { __index = TaskView })
@@ -117,7 +120,7 @@ function TaskView.new(winid, opts)
 end
 
 ---@return boolean
-function TaskView:is_disposed()
+function TaskView:is_win_closed()
   return not vim.api.nvim_win_is_valid(self.winid)
 end
 
@@ -134,7 +137,8 @@ local function get_empty_bufnr()
 end
 
 function TaskView:update()
-  if self:is_disposed() then
+  if self:is_win_closed() then
+    self:dispose()
     return
   end
 
@@ -142,10 +146,10 @@ function TaskView:update()
     TaskView.task_under_cursor = nil
   end
 
-  local tasks = task_list.list_tasks({ recent_first = true })
+  local tasks = task_list.list_tasks(self.list_task_opts)
   local task = self.select(self, tasks, TaskView.task_under_cursor)
   -- select() function can call dispose()
-  if self:is_disposed() then
+  if self:is_win_closed() then
     return
   end
 
