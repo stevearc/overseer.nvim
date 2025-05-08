@@ -18,11 +18,8 @@ local default_config = {
     max_width = { 100, 0.2 },
     -- min_width = {40, 0.1} means "the greater of 40 columns or 10% of total"
     min_width = { 40, 0.1 },
-    -- optionally define an integer/float for the exact width of the task list
-    width = nil,
-    max_height = { 20, 0.1 },
+    max_height = { 20, 0.2 },
     min_height = 8,
-    height = nil,
     -- String that separates tasks
     separator = "━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━",
     -- Indentation for child tasks
@@ -63,7 +60,7 @@ local default_config = {
       ["q"] = { "<CMD>close<CR>", desc = "Close task list" },
     },
   },
-  -- See :help overseer-actions
+  -- Custom actions for tasks. See :help overseer-actions
   actions = {},
   -- Configure the floating window used for task templates that require input
   -- and the floating window used for editing tasks
@@ -73,23 +70,17 @@ local default_config = {
     -- min_X and max_X can be a single value or a list of mixed integer/float types.
     min_width = 80,
     max_width = 0.9,
-    width = nil,
     min_height = 10,
     max_height = 0.9,
-    height = nil,
     -- Set any window options here (e.g. winhighlight)
-    win_opts = {
-      winblend = 0,
-    },
+    win_opts = {},
   },
   -- Configuration for task floating output windows
   task_win = {
     -- How much space to leave around the floating window
     padding = 2,
     -- Set any window options here (e.g. winhighlight)
-    win_opts = {
-      winblend = 0,
-    },
+    win_opts = {},
   },
   -- Aliases for bundles of components. Redefine the builtins, or create your own.
   component_aliases = {
@@ -209,10 +200,8 @@ end
 ---@field direction? "left"|"right"|"bottom" Direction to open task list (default "bottom")
 ---@field max_width? number|number[] Width dimensions can be integers or a float between 0 and 1 (e.g. 0.4 for 40%). min_width and max_width can be a single value or a list of mixed integer/float types. max_width = {100, 0.2} means "the lesser of 100 columns or 20% of total"
 ---@field min_width? number|number[] min_width = {40, 0.1} means "the greater of 40 columns or 10% of total"
----@field width? number optionally define an integer/float for the exact width of the task list
 ---@field max_height? number|number[]
 ---@field min_height? number|number[]
----@field height? number
 ---@field separator? string String that separates tasks
 ---@field child_indent? {[1]: string, [2]: string, [3]: string}
 ---@field render? fun(task: overseer.Task): string[] Function that renders tasks

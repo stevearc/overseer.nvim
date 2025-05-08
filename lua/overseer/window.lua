@@ -80,7 +80,7 @@ M.is_open = function()
 end
 
 ---@class overseer.WindowOpts
----@field enter? boolean
+---@field enter? boolean Focus the task list window after opening (default true)
 ---@field direction? "left"|"right"|"bottom"
 ---@field winid? integer Use this existing window instead of opening a new window
 ---@field focus_task_id? integer After opening, focus this task
