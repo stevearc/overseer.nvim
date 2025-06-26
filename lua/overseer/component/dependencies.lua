@@ -80,7 +80,7 @@ return {
           local dep_task = task_list.get(task_id)
           if dep_task then
             dep_task:stop()
-            dep_task:dispose()
+            dep_task:dispose(true)
           end
         end
       end,
