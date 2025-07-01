@@ -81,6 +81,7 @@ local comp = {
               col = item.col or 0,
               end_col = item.end_col,
               source = task.name,
+              code = item.code,
             })
           end
           local bufnr = vim.fn.bufadd(filename)
