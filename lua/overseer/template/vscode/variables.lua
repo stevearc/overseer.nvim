@@ -31,8 +31,7 @@ M.get_selected_text = function()
 end
 
 local function get_workspace_folder(path)
-  local vscode_dir =
-    vim.fs.find(".vscode", { upward = true, type = "directory", path = path })[1]
+  local vscode_dir = vim.fs.find(".vscode", { upward = true, type = "directory", path = path })[1]
   if vscode_dir then
     return vim.fs.dirname(vscode_dir)
   else
