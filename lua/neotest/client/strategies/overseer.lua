@@ -76,13 +76,13 @@ local function get_or_create_task(spec, context, output_path)
     opts.cmd = spec.command
     opts.env = spec.env
     opts.cwd = spec.cwd
+    opts.ephemeral = true
     opts.metadata = {
       neotest_group_id = current_group_id,
     }
     ---@cast opts overseer.TaskDefinition
     task = overseer.new_task(opts)
     log.debug("Created new neotest task %s group %s", task.id, current_group_id)
-    task:set_include_in_bundle(false)
     task:subscribe("on_dispose", function(disposed_task)
       local tasks = tasks_by_group[disposed_task.metadata.group_id]
       if tasks then

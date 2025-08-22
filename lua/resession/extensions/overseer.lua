@@ -9,9 +9,7 @@ local conf = {}
 M.config = function(data)
   conf = vim.tbl_extend("keep", data or {}, {
     autostart_on_load = true,
-    filter = {
-      bundleable = true,
-    },
+    filter = {},
   })
 end
 

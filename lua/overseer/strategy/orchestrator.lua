@@ -209,9 +209,6 @@ function OrchestratorStrategy:build_task(defn, i, j)
   ---@param task overseer.Task
   local function finalize_subtask(task)
     task:add_component("orchestrator.on_status_broadcast")
-    -- Don't include child tasks when saving to bundle. We will re-create them when the
-    -- orchestration task is loaded.
-    task:set_include_in_bundle(false)
     self.tasks[i][j] = task.id
     if self:section_complete(1) then
       self:start_next()
@@ -219,7 +216,7 @@ function OrchestratorStrategy:build_task(defn, i, j)
   end
 
   if type(defn) == "table" and defn[1] == nil then
-    defn = vim.tbl_extend("error", { parent_id = self.task.id }, defn)
+    defn = vim.tbl_extend("error", { parent_id = self.task.id, ephemeral = true }, defn)
     ---@cast defn overseer.TaskDefinition
     local task = require("overseer").new_task(defn)
     finalize_subtask(task)

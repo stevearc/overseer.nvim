@@ -432,10 +432,10 @@ local wrapped_jobstart = function(cmd, opts)
     cwd = opts.cwd,
     env = opts.env,
     source = caller,
+    ephemeral = true,
     strategy = { "jobstart", wrap_opts = opts },
     components = { "default_builtin" },
   })
-  task:set_include_in_bundle(false)
   task:start()
   local strat = task.strategy
   ---@cast strat overseer.JobstartStrategy
@@ -460,10 +460,10 @@ local wrapped_system = function(cmd, opts, on_exit)
     ---@diagnostic disable-next-line: assign-type-mismatch
     env = opts.env,
     source = caller,
+    ephemeral = true,
     strategy = { "system", wrap_opts = opts, wrap_exit = on_exit },
     components = { "default_builtin" },
   })
-  task:set_include_in_bundle(false)
   task:start()
   local strat = task.strategy
   ---@cast strat overseer.SystemStrategy

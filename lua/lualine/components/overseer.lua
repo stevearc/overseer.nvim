@@ -56,6 +56,7 @@ local default_no_icons = {
 function M:init(options)
   M.super.init(self, options)
 
+  self.options.include_ephemeral = self.options.include_ephemeral ~= false
   self.options.label = self.options.label or ""
   if self.options.colored == nil then
     self.options.colored = true

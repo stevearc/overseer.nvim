@@ -101,7 +101,7 @@ end
 ---@class (exact) overseer.ListTaskOpts
 ---@field unique? boolean Deduplicates non-running tasks by name
 ---@field status? overseer.Status|overseer.Status[] Only list tasks with this status or statuses
----@field bundleable? boolean Only list tasks that should be included in a bundle
+---@field include_ephemeral? boolean Include ephemeral tasks
 ---@field wrapped? boolean Include tasks that were created by the jobstart/vim.system wrappers
 ---@field filter? fun(task: overseer.Task): boolean
 
@@ -114,7 +114,7 @@ M.list_tasks = function(opts)
     return type(n) == "string" or type(n) == "table"
   end, true)
   vim.validate("wrapped", opts.wrapped, "boolean", true)
-  vim.validate("bundleable", opts.bundleable, "boolean", true)
+  vim.validate("include_ephemeral", opts.include_ephemeral, "boolean", true)
   vim.validate("filter", opts.filter, "function", true)
   local status = util.list_to_map(opts.status or {})
   local seen = {}
@@ -122,7 +122,7 @@ M.list_tasks = function(opts)
   for _, task in ipairs(tasks) do
     if
       (not opts.status or status[task.status])
-      and (not opts.bundleable or task:should_include_in_bundle())
+      and (opts.include_ephemeral or not task.ephemeral)
       and (not opts.filter or opts.filter(task))
       and (opts.wrapped or not task.source)
     then

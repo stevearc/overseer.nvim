@@ -53,7 +53,7 @@ function Sidebar.new()
     bufnr = bufnr,
     task_lines = {},
     preview = nil,
-    list_task_opts = {},
+    list_task_opts = { include_ephemeral = true },
   }, { __index = Sidebar })
   self:init()
   ---@cast self overseer.Sidebar
@@ -241,6 +241,7 @@ function Sidebar:toggle_preview()
   end
   self.preview = TaskView.new(winid, {
     close_on_list_close = true,
+    list_task_opts = self.list_task_opts,
     select = function(_, tasks, task_under_cursor)
       return task_under_cursor or tasks[1]
     end,

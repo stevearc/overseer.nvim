@@ -83,7 +83,7 @@ local Overseer = {
     return package.loaded.overseer
   end,
   init = function(self)
-    local tasks = require("overseer.task_list").list_tasks({ unique = true })
+    local tasks = require("overseer.task_list").list_tasks({ unique = true, include_ephemeral = true })
     local tasks_by_status = require("overseer.util").tbl_group_by(tasks, "status")
     self.tasks = tasks_by_status
   end,
@@ -213,7 +213,7 @@ For example, to integrate with [auto-session](https://github.com/rmagatti/auto-s
 require("auto-session").setup({
   pre_save_cmds = {
     function()
-      local tasks = require("overseer.task_list").list_tasks({ bundleable = true })
+      local tasks = require("overseer.task_list").list_tasks()
       local cmds = {}
       for _, task in ipairs(tasks) do
         local json = vim.json.encode(task:serialize())

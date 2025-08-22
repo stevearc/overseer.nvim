@@ -71,9 +71,7 @@ return {
                 self.task_lookup[i] = new_task.id
                 table.insert(self.all_tasks, new_task.id)
               end
-              -- Don't include after tasks when saving to bundle.
-              -- We will re-create them when this task runs again
-              new_task:set_include_in_bundle(false)
+              new_task.ephemeral = true
               new_task:start()
             end)
           end

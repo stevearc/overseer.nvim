@@ -43,7 +43,7 @@ function TaskView.new(winid, opts)
     select = opts.select or function(self, tasks)
       return tasks[1]
     end,
-    list_task_opts = opts.list_task_opts,
+    list_task_opts = opts.list_task_opts or { include_ephemeral = true },
     autocmd_ids = {},
   }
   setmetatable(self, { __index = TaskView })
