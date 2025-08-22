@@ -356,13 +356,6 @@ def get_components_vimdoc() -> "VimdocSection":
     return section
 
 
-def get_strategies_vimdoc() -> "VimdocSection":
-    section = VimdocSection("Strategies", "overseer-strategies", ["\n"])
-    new_funcs = get_strategy_funcs()
-    section.body += render_vimdoc_api2("strategy", new_funcs, parse_lua())
-    return section
-
-
 def convert_md_link(match):
     text = match[1]
     dest = match[2]
@@ -398,7 +391,6 @@ def generate_vimdoc():
                 "API", "overseer-api", render_vimdoc_api2("overseer", funcs, types)
             ),
             get_components_vimdoc(),
-            get_strategies_vimdoc(),
             convert_md_section(
                 os.path.join(DOC, "reference.md"),
                 "^## Parameters",
