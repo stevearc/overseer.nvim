@@ -1,5 +1,6 @@
 return {
   "cargo",
+  "devenv",
   "just",
   "make",
   "npm",
