@@ -429,12 +429,14 @@ register_template({defn})                             *overseer.register_templat
       })
 <
 
-register_alias({name}, {components})                     *overseer.register_alias*
+register_alias({name}, {components}, {override})         *overseer.register_alias*
     Register a new component alias.
 
     Parameters:
       {name}       `string`
       {components} `overseer.Serialized[]`
+      {override}   `nil|boolean` When true, override any existing alias with the
+                   same name
 
     Note:
       This is intended to be used by plugin authors that wish to build on top of overseer. They do not
@@ -484,12 +486,6 @@ create_task_output_view({winid}, {opts})        *overseer.create_task_output_vie
         end,
       })
 <
-
-wrap_builtins({enabled})                                  *overseer.wrap_builtins*
-    Hook vim.system and vim.fn.jobstart to display tasks in overseer
-
-    Parameters:
-      {enabled} `nil|boolean`
 
 --------------------------------------------------------------------------------
 COMPONENTS                                                   *overseer-components*

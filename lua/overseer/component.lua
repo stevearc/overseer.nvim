@@ -83,8 +83,11 @@ end
 
 ---@param name string
 ---@param components string[]
-M.alias = function(name, components)
-  config.component_aliases[name] = components
+---@param override? boolean
+M.alias = function(name, components, override)
+  if override or not config.component_aliases[name] then
+    config.component_aliases[name] = components
+  end
 end
 
 ---@param name string

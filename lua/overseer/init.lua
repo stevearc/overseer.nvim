@@ -361,14 +361,15 @@ end
 ---Register a new component alias.
 ---@param name string
 ---@param components overseer.Serialized[]
+---@param override? boolean When true, override any existing alias with the same name
 ---@note
 --- This is intended to be used by plugin authors that wish to build on top of overseer. They do not
 --- have control over the call to overseer.setup(), so this provides an alternative method of
 --- setting a component alias that they can then use when creating tasks.
 ---@example
 --- require("overseer").register_alias("my_plugin", { "default", "on_output_quickfix" })
-M.register_alias = function(name, components)
-  return require("overseer.component").alias(name, components)
+M.register_alias = function(name, components, override)
+  return require("overseer.component").alias(name, components, override)
 end
 
 ---Set a window to display the output of a dynamically-chosen task
@@ -448,6 +449,7 @@ end
 
 local patched = false
 ---Hook vim.system and vim.fn.jobstart to display tasks in overseer
+---@private
 ---@param enabled? boolean
 M.wrap_builtins = function(enabled)
   if enabled == nil then

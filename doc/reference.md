@@ -19,9 +19,8 @@
   - [add_template_hook(opts, hook)](#add_template_hookopts-hook)
   - [remove_template_hook(opts, hook)](#remove_template_hookopts-hook)
   - [register_template(defn)](#register_templatedefn)
-  - [register_alias(name, components)](#register_aliasname-components)
+  - [register_alias(name, components, override)](#register_aliasname-components-override)
   - [create_task_output_view(winid, opts)](#create_task_output_viewwinid-opts)
-  - [wrap_builtins(enabled)](#wrap_builtinsenabled)
 - [Components](#components)
   - [dependencies](components.md#dependencies)
   - [on_complete_dispose](components.md#on_complete_dispose)
@@ -471,15 +470,16 @@ overseer.register_template({
 })
 ```
 
-### register_alias(name, components)
+### register_alias(name, components, override)
 
-`register_alias(name, components)` \
+`register_alias(name, components, override)` \
 Register a new component alias.
 
-| Param      | Type                    | Desc |
-| ---------- | ----------------------- | ---- |
-| name       | `string`                |      |
-| components | `overseer.Serialized[]` |      |
+| Param      | Type                    | Desc                                                      |
+| ---------- | ----------------------- | --------------------------------------------------------- |
+| name       | `string`                |                                                           |
+| components | `overseer.Serialized[]` |                                                           |
+| override   | `nil\|boolean`          | When true, override any existing alias with the same name |
 
 **Note:**
 <pre>
@@ -527,15 +527,6 @@ overseer.create_task_output_view(0, {
   end,
 })
 ```
-
-### wrap_builtins(enabled)
-
-`wrap_builtins(enabled)` \
-Hook vim.system and vim.fn.jobstart to display tasks in overseer
-
-| Param   | Type           | Desc |
-| ------- | -------------- | ---- |
-| enabled | `nil\|boolean` |      |
 
 
 <!-- /API -->
