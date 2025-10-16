@@ -345,9 +345,6 @@ function Sidebar:render()
     return false
   end
   local tasks = task_list.list_tasks(self.list_task_opts)
-  local prev_first_task = self:get_task_from_line(1)
-  local prev_first_task_id = prev_first_task and prev_first_task.id
-  local focused_task, offset = self:get_task_from_line()
   local ns = vim.api.nvim_create_namespace("overseer")
   vim.api.nvim_buf_clear_namespace(self.bufnr, ns, 0, -1)
 
@@ -391,41 +388,17 @@ function Sidebar:render()
     end
   end
 
-  local sidebar_winid = self:get_winid()
-  local view
-  if sidebar_winid then
-    vim.api.nvim_win_call(sidebar_winid, function()
-      view = vim.fn.winsaveview()
-    end)
-  end
   util.render_buf_chunks(self.bufnr, ns, lines)
   for _, extmark in ipairs(extmarks) do
     vim.api.nvim_buf_set_extmark(self.bufnr, ns, extmark[1], extmark[2], extmark[3])
   end
 
+  local sidebar_winid = self:get_winid()
   if sidebar_winid then
-    if view then
-      vim.api.nvim_win_call(sidebar_winid, function()
-        vim.fn.winrestview(view)
-      end)
-    end
-
-    local new_first_task = tasks[1]
-    local new_first_task_id = new_first_task and new_first_task.id
-
-    local in_sidebar = vim.api.nvim_get_current_win() == sidebar_winid
-    local in_output_win = vim.b.overseer_task ~= nil
-    local sidebar_focused = in_sidebar or in_output_win
-    local focused_task_id = focused_task and focused_task.id
-    if
-      (not sidebar_focused or focused_task_id == prev_first_task_id)
-      and prev_first_task_id ~= new_first_task_id
-      and new_first_task_id
-    then
-      self:focus_task_id(new_first_task_id)
-    elseif focused_task_id then
-      -- Make sure our cursor stays on the previously focused task, even if it's moved
-      self:focus_task_id(focused_task_id, offset)
+    local cursor = vim.api.nvim_win_get_cursor(sidebar_winid)
+    local task, offset = self:get_task_from_line(cursor[1])
+    if task then
+      self:focus_task_id(task.id, offset)
     end
   end
 
