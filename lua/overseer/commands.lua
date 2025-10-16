@@ -32,7 +32,12 @@ M._run_shell = function(params)
     })
     task:start()
   else
-    require("overseer").run_cmd()
+    vim.ui.input({ prompt = "command", completion = "shellcmdline" }, function(cmd)
+      if cmd then
+        local task = require("overseer.task").new({ cmd = cmd })
+        task:start()
+      end
+    end)
   end
 end
 

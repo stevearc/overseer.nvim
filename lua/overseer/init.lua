@@ -223,31 +223,6 @@ M.new_task = function(opts)
   end
 end
 
----@class (exact) overseer.RunCmdOpts
----@field autostart? boolean
-
----Prompt the user for a shell command and run it as a task
----@param opts? overseer.RunCmdOpts
----@param callback? fun(task: nil|overseer.Task)
-M.run_cmd = function(opts, callback)
-  opts = vim.tbl_extend("keep", opts or {}, { autostart = true })
-  vim.ui.input({ prompt = "command", completion = "shellcmdline" }, function(cmd)
-    if not cmd then
-      if callback then
-        callback()
-      end
-      return
-    end
-    local task = M.new_task({ cmd = cmd })
-    if opts.autostart then
-      task:start()
-    end
-    if callback then
-      callback(task)
-    end
-  end)
-end
-
 ---Open or close the task list
 ---@param opts nil|overseer.WindowOpts
 M.toggle = function(opts)

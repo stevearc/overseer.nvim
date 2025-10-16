@@ -8,7 +8,6 @@
 - [Lua API](#lua-api)
   - [setup(opts)](#setupopts)
   - [new_task(opts)](#new_taskopts)
-  - [run_cmd(opts, callback)](#run_cmdopts-callback)
   - [toggle(opts)](#toggleopts)
   - [open(opts)](#openopts)
   - [close()](#close)
@@ -259,17 +258,6 @@ local task = overseer.new_task({
 })
 task:start()
 ```
-
-### run_cmd(opts, callback)
-
-`run_cmd(opts, callback)` \
-Prompt the user for a shell command and run it as a task
-
-| Param      | Type                                 | Desc |
-| ---------- | ------------------------------------ | ---- |
-| opts       | `nil\|overseer.RunCmdOpts`           |      |
-| >autostart | `nil\|boolean`                       |      |
-| callback   | `nil\|fun(task: nil\|overseer.Task)` |      |
 
 ### toggle(opts)
 
