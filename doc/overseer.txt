@@ -229,6 +229,7 @@ new_task({opts}): overseer.Task                                *overseer.new_tas
 <
 
 run_cmd({opts}, {callback})                                     *overseer.run_cmd*
+    Prompt the user for a shell command and run it as a task
 
     Parameters:
       {opts}     `nil|overseer.RunCmdOpts`

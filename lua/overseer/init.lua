@@ -136,6 +136,12 @@ M.setup = function(opts)
   M.wrap_builtins(config.experimental_wrap_builtins.enabled)
 end
 
+local function create_highlights()
+  for _, hl in ipairs(M.get_all_highlights()) do
+    vim.api.nvim_set_hl(0, hl.name, { link = hl.default, default = true })
+  end
+end
+
 local did_setup = false
 ---@private
 ---@return boolean
@@ -155,19 +161,13 @@ M.private_setup = function()
 
   create_commands()
   M.wrap_builtins()
-  for _, hl in ipairs(M.get_all_highlights()) do
-    vim.api.nvim_set_hl(0, hl.name, { link = hl.default, default = true })
-  end
+  create_highlights()
   local aug = vim.api.nvim_create_augroup("Overseer", {})
   vim.api.nvim_create_autocmd("ColorScheme", {
     pattern = "*",
     group = aug,
     desc = "Update Overseer highlights",
-    callback = function()
-      for _, hl in ipairs(M.get_all_highlights()) do
-        vim.api.nvim_set_hl(0, hl.name, { link = hl.default, default = true })
-      end
-    end,
+    callback = create_highlights,
   })
   return true
 end
@@ -226,6 +226,7 @@ end
 ---@class (exact) overseer.RunCmdOpts
 ---@field autostart? boolean
 
+---Prompt the user for a shell command and run it as a task
 ---@param opts? overseer.RunCmdOpts
 ---@param callback? fun(task: nil|overseer.Task)
 M.run_cmd = function(opts, callback)

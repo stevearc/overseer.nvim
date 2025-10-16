@@ -255,7 +255,8 @@ task:start()
 
 ### run_cmd(opts, callback)
 
-`run_cmd(opts, callback)`
+`run_cmd(opts, callback)` \
+Prompt the user for a shell command and run it as a task
 
 | Param      | Type                                 | Desc |
 | ---------- | ------------------------------------ | ---- |
