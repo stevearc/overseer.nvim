@@ -296,14 +296,15 @@ Close the task list
 `list_tasks(opts): overseer.Task[]` \
 List all tasks
 
-| Param              | Type                                      | Desc                                                                |
-| ------------------ | ----------------------------------------- | ------------------------------------------------------------------- |
-| opts               | `nil\|overseer.ListTaskOpts`              |                                                                     |
-| >unique            | `nil\|boolean`                            | Deduplicates non-running tasks by name                              |
-| >status            | `nil\|overseer.Status\|overseer.Status[]` | Only list tasks with this status or statuses                        |
-| >include_ephemeral | `nil\|boolean`                            | Include ephemeral tasks                                             |
-| >wrapped           | `nil\|boolean`                            | Include tasks that were created by the jobstart/vim.system wrappers |
-| >filter            | `nil\|fun(task: overseer.Task): boolean`  |                                                                     |
+| Param              | Type                                                    | Desc                                                                |
+| ------------------ | ------------------------------------------------------- | ------------------------------------------------------------------- |
+| opts               | `nil\|overseer.ListTaskOpts`                            |                                                                     |
+| >unique            | `nil\|boolean`                                          | Deduplicates non-running tasks by name                              |
+| >status            | `nil\|overseer.Status\|overseer.Status[]`               | Only list tasks with this status or statuses                        |
+| >include_ephemeral | `nil\|boolean`                                          | Include ephemeral tasks                                             |
+| >wrapped           | `nil\|boolean`                                          | Include tasks that were created by the jobstart/vim.system wrappers |
+| >filter            | `nil\|fun(task: overseer.Task): boolean`                | Only include tasks where this function returns true                 |
+| >sort              | `nil\|fun(a: overseer.Task, b: overseer.Task): boolean` | Function that sorts tasks                                           |
 
 ### run_task(opts, callback)
 
@@ -508,7 +509,8 @@ Set a window to display the output of a dynamically-chosen task
 | >>status             | `nil\|overseer.Status\|overseer.Status[]`                                                                          | Only list tasks with this status or statuses                                     |
 | >>include_ephemeral  | `nil\|boolean`                                                                                                     | Include ephemeral tasks                                                          |
 | >>wrapped            | `nil\|boolean`                                                                                                     | Include tasks that were created by the jobstart/vim.system wrappers              |
-| >>filter             | `nil\|fun(task: overseer.Task): boolean`                                                                           |                                                                                  |
+| >>filter             | `nil\|fun(task: overseer.Task): boolean`                                                                           | Only include tasks where this function returns true                              |
+| >>sort               | `nil\|fun(a: overseer.Task, b: overseer.Task): boolean`                                                            | Function that sorts tasks                                                        |
 
 **Examples:**
 ```lua

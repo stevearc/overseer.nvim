@@ -274,7 +274,10 @@ list_tasks({opts}): overseer.Task[]                          *overseer.list_task
           {include_ephemeral} `nil|boolean` Include ephemeral tasks
           {wrapped} `nil|boolean` Include tasks that were created by the
                     jobstart/vim.system wrappers
-          {filter}  `nil|fun(task: overseer.Task): boolean`
+          {filter}  `nil|fun(task: overseer.Task): boolean` Only include tasks
+                    where this function returns true
+          {sort}    `nil|fun(a: overseer.Task, b: overseer.Task): boolean` Funct
+                    ion that sorts tasks
 
 run_task({opts}, {callback})                                   *overseer.run_task*
     Run a task from a template
@@ -462,7 +465,10 @@ create_task_output_view({winid}, {opts})        *overseer.create_task_output_vie
               {include_ephemeral} `nil|boolean` Include ephemeral tasks
               {wrapped} `nil|boolean` Include tasks that were created by the
                         jobstart/vim.system wrappers
-              {filter}  `nil|fun(task: overseer.Task): boolean`
+              {filter}  `nil|fun(task: overseer.Task): boolean` Only include
+                        tasks where this function returns true
+              {sort}    `nil|fun(a: overseer.Task, b: overseer.Task): boolean` F
+                        unction that sorts tasks
 
     Examples: >lua
       -- Always show the output from the most recent Neotest task in this window.

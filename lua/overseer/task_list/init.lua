@@ -1,4 +1,3 @@
-local config = require("overseer.config")
 local util = require("overseer.util")
 local M = {}
 
@@ -6,6 +5,8 @@ local M = {}
 local tasks = {}
 ---@type table<integer, overseer.Task>
 local lookup = {}
+---@type table<function, overseer.Task[]>
+local sorted_cache = {}
 
 ---@return integer
 M.get_or_create_bufnr = function()
@@ -14,10 +15,19 @@ M.get_or_create_bufnr = function()
 end
 
 local function dispatch()
+  sorted_cache = {}
   vim.api.nvim_exec_autocmds("User", { pattern = "OverseerListUpdate", modeline = false })
 end
 
-local function resort()
+---@param sort? fun(a: overseer.Task, b: overseer.Task): boolean Function that sorts tasks
+local function get_sorted_tasks(sort)
+  if not sort then
+    sort = M.sort_newest_first
+  end
+  if sorted_cache[sort] then
+    return sorted_cache[sort]
+  end
+
   local child_groups = {}
   local top_level = {}
   for _, task in ipairs(tasks) do
@@ -33,9 +43,9 @@ local function resort()
     end
   end
 
-  table.sort(top_level, config.task_list.sort)
+  table.sort(top_level, sort)
   for _, children in pairs(child_groups) do
-    table.sort(children, config.task_list.sort)
+    table.sort(children, sort)
   end
 
   local ret = {}
@@ -48,7 +58,9 @@ local function resort()
       end
     end
   end
-  tasks = ret
+
+  sorted_cache[sort] = ret
+  return ret
 end
 
 ---Trigger a re-render without re-sorting the tasks
@@ -60,13 +72,11 @@ M.touch = function(task)
   if not lookup[task.id] then
     lookup[task.id] = task
     table.insert(tasks, task)
-    resort()
   end
   dispatch()
 end
 
 M.on_task_updated = function()
-  resort()
   dispatch()
 end
 
@@ -103,7 +113,8 @@ end
 ---@field status? overseer.Status|overseer.Status[] Only list tasks with this status or statuses
 ---@field include_ephemeral? boolean Include ephemeral tasks
 ---@field wrapped? boolean Include tasks that were created by the jobstart/vim.system wrappers
----@field filter? fun(task: overseer.Task): boolean
+---@field filter? fun(task: overseer.Task): boolean Only include tasks where this function returns true
+---@field sort? fun(a: overseer.Task, b: overseer.Task): boolean Function that sorts tasks
 
 ---@param opts? overseer.ListTaskOpts
 ---@return overseer.Task[]
@@ -116,10 +127,12 @@ M.list_tasks = function(opts)
   vim.validate("wrapped", opts.wrapped, "boolean", true)
   vim.validate("include_ephemeral", opts.include_ephemeral, "boolean", true)
   vim.validate("filter", opts.filter, "function", true)
+  vim.validate("sort", opts.sort, "function", true)
+
   local status = util.list_to_map(opts.status or {})
   local seen = {}
   local ret = {}
-  for _, task in ipairs(tasks) do
+  for _, task in ipairs(get_sorted_tasks(opts.sort)) do
     if
       (not opts.status or status[task.status])
       and (opts.include_ephemeral or not task.ephemeral)
@@ -145,19 +158,34 @@ M.list_tasks = function(opts)
   return ret
 end
 
+---General purpose sort by status and start/end time
 ---@param a overseer.Task
 ---@param b overseer.Task
 ---@return boolean
 M.default_sort = function(a, b)
-  -- Running processes first
-  if a.status ~= b.status then
-    if a.status == "RUNNING" then
-      return true
-    elseif b.status == "RUNNING" then
-      return false
-    end
+  if (a.time_end == nil) ~= (b.time_end == nil) then
+    -- If only one of the tasks has already ended, put the other one first
+    return a.time_end == nil
+  elseif (a.time_start ~= nil) ~= (b.time_start ~= nil) then
+    -- If only one of the tasks has started, put the other one first
+    return a.time_start == nil
+  elseif a.time_end ~= nil and a.time_end ~= b.time_end then
+    -- If both tasks have ended, sort by end time (most recent first)
+    return a.time_end > b.time_end
+  elseif a.time_start ~= nil and a.time_start ~= b.time_start then
+    -- If both tasks have started, sort by start time (most recent first)
+    return a.time_start > b.time_start
   end
 
+  -- fall back to sort by name
+  return a.name < b.name
+end
+
+---A sort function that puts the newest tasks first
+---@param a overseer.Task
+---@param b overseer.Task
+---@return boolean
+M.sort_newest_first = function(a, b)
   if a.time_start == nil then
     if b.time_start == nil then
       -- fall back to sort by name

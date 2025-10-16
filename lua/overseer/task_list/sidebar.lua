@@ -53,7 +53,7 @@ function Sidebar.new()
     bufnr = bufnr,
     task_lines = {},
     preview = nil,
-    list_task_opts = { include_ephemeral = true },
+    list_task_opts = { include_ephemeral = true, sort = config.task_list.sort },
   }, { __index = Sidebar })
   self:init()
   ---@cast self overseer.Sidebar

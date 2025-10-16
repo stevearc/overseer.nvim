@@ -1,3 +1,4 @@
+local config = require("overseer.config")
 local task_list = require("overseer.task_list")
 
 local min_win_opts = {
@@ -43,7 +44,8 @@ function TaskView.new(winid, opts)
     select = opts.select or function(self, tasks)
       return tasks[1]
     end,
-    list_task_opts = opts.list_task_opts or { include_ephemeral = true },
+    list_task_opts = opts.list_task_opts
+      or { include_ephemeral = true, sort = config.task_list.sort },
     autocmd_ids = {},
   }
   setmetatable(self, { __index = TaskView })
