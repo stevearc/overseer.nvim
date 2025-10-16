@@ -182,7 +182,7 @@ function Sidebar:focus_task_id(task_id, offset)
 end
 
 ---@param bufnr integer
----@param winlayout nil|any
+---@param winlayout? vim.fn.winlayout.branch|vim.fn.winlayout.leaf|vim.fn.winlayout.empty
 ---@return nil|"left"|"right"|"bottom"
 local function detect_direction(bufnr, winlayout)
   if not winlayout then
@@ -190,12 +190,14 @@ local function detect_direction(bufnr, winlayout)
   end
   local type = winlayout[1]
   if type == "leaf" then
+    ---@cast winlayout vim.fn.winlayout.leaf
     if vim.api.nvim_win_get_buf(winlayout[2]) == bufnr then
       return "left"
     else
       return nil
     end
   else
+    ---@cast winlayout vim.fn.winlayout.branch
     for i, nested in ipairs(winlayout[2]) do
       local dir = detect_direction(bufnr, nested)
       if dir then
