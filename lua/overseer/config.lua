@@ -1,13 +1,6 @@
 local default_config = {
   -- Patch nvim-dap to support preLaunchTask and postDebugTask
   dap = true,
-  -- Overseer can wrap any call to vim.system and vim.fn.jobstart as a task.
-  wrap_builtins = {
-    enabled = false,
-    condition = function(cmd, caller, opts)
-      return true
-    end,
-  },
   -- Configure the task list
   task_list = {
     -- Default direction. Can be "left", "right", or "bottom"
@@ -95,7 +88,7 @@ local default_config = {
       "default",
       "on_result_diagnostics",
     },
-    -- Tasks created from vim.system or vim.fn.jobstart
+    -- Tasks created from experimental_wrap_builtins
     default_builtin = {
       "on_exit_set_status",
       "on_complete_dispose",
@@ -113,6 +106,13 @@ local default_config = {
   -- Set to 0 to disable caching.
   template_cache_threshold_ms = 200,
   log_level = vim.log.levels.WARN,
+  -- Overseer can wrap any call to vim.system and vim.fn.jobstart as a task.
+  experimental_wrap_builtins = {
+    enabled = false,
+    condition = function(cmd, caller, opts)
+      return true
+    end,
+  },
 }
 
 local M = {}
@@ -157,7 +157,7 @@ end
 ---@field setup fun(opts: overseer.SetupOpts)
 ---@field dap boolean
 ---@field log_level integer
----@field wrap_builtins overseer.ConfigWrapBuiltins
+---@field experimental_wrap_builtins overseer.ConfigWrapBuiltins
 ---@field task_list overseer.ConfigTaskList
 ---@field actions table<string, false|overseer.Action> See :help overseer-actions
 ---@field form overseer.ConfigFloatWin
@@ -170,7 +170,7 @@ end
 ---@class (exact) overseer.SetupOpts
 ---@field dap? boolean Patch nvim-dap to support preLaunchTask and postDebugTask
 ---@field log_level? integer Log level
----@field wrap_builtins? overseer.SetupConfigWrapBuiltins
+---@field experimental_wrap_builtins? overseer.SetupConfigWrapBuiltins
 ---@field task_list? overseer.SetupConfigTaskList
 ---@field actions? table<string, false|overseer.Action> See :help overseer-actions
 ---@field form? overseer.SetupConfigFloatWin

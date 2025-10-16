@@ -133,7 +133,7 @@ M.setup = function(opts)
   local config = require("overseer.config")
   config.setup(opts)
   M.enable_dap(config.dap)
-  M.wrap_builtins(config.wrap_builtins.enabled)
+  M.wrap_builtins(config.experimental_wrap_builtins.enabled)
 end
 
 local did_setup = false
@@ -423,7 +423,7 @@ local wrapped_jobstart = function(cmd, opts)
   local util = require("overseer.util")
   local caller = util.get_caller()
   -- TODO wrapping jobstart in a fast event is difficult because we call a lot of unsafe APIs
-  if vim.in_fast_event() or not config.wrap_builtins.condition(cmd, caller, opts) then
+  if vim.in_fast_event() or not config.experimental_wrap_builtins.condition(cmd, caller, opts) then
     return M.builtin.jobstart(cmd, opts)
   end
   opts = opts or {}
@@ -450,7 +450,7 @@ local wrapped_system = function(cmd, opts, on_exit)
   local util = require("overseer.util")
   local caller = util.get_caller()
   -- TODO wrapping vim.system in a fast event is difficult because we call a lot of unsafe APIs
-  if vim.in_fast_event() or not config.wrap_builtins.condition(cmd, caller, opts) then
+  if vim.in_fast_event() or not config.experimental_wrap_builtins.condition(cmd, caller, opts) then
     return M.builtin.system(cmd, opts, on_exit)
   end
   opts = opts or {}

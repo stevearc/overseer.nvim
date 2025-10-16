@@ -59,13 +59,6 @@ For speed tweakers: don't worry about lazy loading; overseer lazy-loads itself!
 require("overseer").setup({
   -- Patch nvim-dap to support preLaunchTask and postDebugTask
   dap = true,
-  -- Overseer can wrap any call to vim.system and vim.fn.jobstart as a task.
-  wrap_builtins = {
-    enabled = false,
-    condition = function(cmd, caller, opts)
-      return true
-    end,
-  },
   -- Configure the task list
   task_list = {
     -- Default direction. Can be "left", "right", or "bottom"
@@ -153,7 +146,7 @@ require("overseer").setup({
       "default",
       "on_result_diagnostics",
     },
-    -- Tasks created from vim.system or vim.fn.jobstart
+    -- Tasks created from experimental_wrap_builtins
     default_builtin = {
       "on_exit_set_status",
       "on_complete_dispose",
@@ -171,6 +164,13 @@ require("overseer").setup({
   -- Set to 0 to disable caching.
   template_cache_threshold_ms = 200,
   log_level = vim.log.levels.WARN,
+  -- Overseer can wrap any call to vim.system and vim.fn.jobstart as a task.
+  experimental_wrap_builtins = {
+    enabled = false,
+    condition = function(cmd, caller, opts)
+      return true
+    end,
+  },
 })
 ```
 
