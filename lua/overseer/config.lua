@@ -1,6 +1,13 @@
 local default_config = {
   -- Patch nvim-dap to support preLaunchTask and postDebugTask
   dap = true,
+  -- Configure the task output buffer and window
+  output = {
+    -- Use a terminal buffer to display output. If false, a normal buffer is used
+    use_terminal = true,
+    -- If true, don't clear the buffer when a task restarts
+    preserve_output = false,
+  },
   -- Configure the task list
   task_list = {
     -- Default direction. Can be "left", "right", or "bottom"
@@ -158,6 +165,7 @@ end
 ---@field dap boolean
 ---@field log_level integer
 ---@field experimental_wrap_builtins overseer.ConfigWrapBuiltins
+---@field output overseer.ConfigOutput
 ---@field task_list overseer.ConfigTaskList
 ---@field actions table<string, false|overseer.Action> See :help overseer-actions
 ---@field form overseer.ConfigFloatWin
@@ -171,6 +179,7 @@ end
 ---@field dap? boolean Patch nvim-dap to support preLaunchTask and postDebugTask
 ---@field log_level? integer Log level
 ---@field experimental_wrap_builtins? overseer.SetupConfigWrapBuiltins
+---@field output? overseer.SetupConfigOutput
 ---@field task_list? overseer.SetupConfigTaskList
 ---@field actions? table<string, false|overseer.Action> See :help overseer-actions
 ---@field form? overseer.SetupConfigFloatWin
@@ -187,6 +196,14 @@ end
 ---@class (exact) overseer.SetupConfigWrapBuiltins
 ---@field enabled? boolean overseer will hook vim.system and vim.fn.jobstart and display those as tasks
 ---@field condition? fun(cmd: string|string[], caller: overseer.Caller, opts?: table): boolean callback to determine if overseer should create a task for this jobstart/system
+
+---@class (exact) overseer.ConfigOutput
+---@field preserve_output? boolean
+---@field use_terminal? boolean
+
+---@class (exact) overseer.SetupConfigOutput
+---@field preserve_output? boolean Use a terminal buffer to display output. If false, a normal buffer is used.
+---@field use_terminal? boolean If true, don't clear the buffer when a task restarts
 
 ---@class (exact) overseer.ConfigTaskList : overseer.LayoutOpts
 ---@field direction "left"|"right"|"bottom"

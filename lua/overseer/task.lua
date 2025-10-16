@@ -1,4 +1,5 @@
 local component = require("overseer.component")
+local config = require("overseer.config")
 local constants = require("overseer.constants")
 local layout = require("overseer.layout")
 local log = require("overseer.log")
@@ -100,7 +101,11 @@ function Task.new(opts)
   name = name:gsub("\n", " ")
 
   if not opts.strategy then
-    opts.strategy = "jobstart"
+    opts.strategy = {
+      "jobstart",
+      use_terminal = config.output.use_terminal,
+      preserve_output = config.output.preserve_output,
+    }
   end
 
   -- Build the instance data for the task

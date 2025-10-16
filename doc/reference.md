@@ -59,6 +59,13 @@ For speed tweakers: don't worry about lazy loading; overseer lazy-loads itself!
 require("overseer").setup({
   -- Patch nvim-dap to support preLaunchTask and postDebugTask
   dap = true,
+  -- Configure the task output buffer and window
+  output = {
+    -- Use a terminal buffer to display output. If false, a normal buffer is used
+    use_terminal = true,
+    -- If true, don't clear the buffer when a task restarts
+    preserve_output = false,
+  },
   -- Configure the task list
   task_list = {
     -- Default direction. Can be "left", "right", or "bottom"
