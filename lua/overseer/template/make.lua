@@ -49,10 +49,9 @@ return {
                 local target = line:sub(1, idx - 1)
                 table.insert(ret, {
                   name = string.format("make %s", target),
-                  builder = function(params)
+                  builder = function()
                     return {
                       cmd = { "make", target },
-                      args = params.args,
                       cwd = cwd,
                     }
                   end,
