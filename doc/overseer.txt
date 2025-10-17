@@ -30,9 +30,6 @@ OverseerShell[!] `[command]`                                        *:OverseerSh
     Run a shell command as an overseer task. With `!` the task is created but
     not started
 
-OverseerQuickAction `[action]`                                *:OverseerQuickAction*
-    Run an action on the most recent task, or the task under the cursor
-
 OverseerTaskAction                                           *:OverseerTaskAction*
     Select a task to run an action on
 

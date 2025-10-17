@@ -181,15 +181,14 @@ require("overseer").setup({
 
 ## Commands
 
-| Command               | Args                | Description                                                                           |
-| --------------------- | ------------------- | ------------------------------------------------------------------------------------- |
-| `OverseerOpen[!]`     | `left/right/bottom` | Open the overseer window. With `!` cursor stays in current window                     |
-| `OverseerClose`       |                     | Close the overseer window                                                             |
-| `OverseerToggle[!]`   | `left/right/bottom` | Toggle the overseer window. With `!` cursor stays in current window                   |
-| `OverseerRun`         | `[name/tags]`       | Run a task from a template                                                            |
-| `OverseerShell[!]`    | `[command]`         | Run a shell command as an overseer task. With `!` the task is created but not started |
-| `OverseerQuickAction` | `[action]`          | Run an action on the most recent task, or the task under the cursor                   |
-| `OverseerTaskAction`  |                     | Select a task to run an action on                                                     |
+| Command              | Args                | Description                                                                           |
+| -------------------- | ------------------- | ------------------------------------------------------------------------------------- |
+| `OverseerOpen[!]`    | `left/right/bottom` | Open the overseer window. With `!` cursor stays in current window                     |
+| `OverseerClose`      |                     | Close the overseer window                                                             |
+| `OverseerToggle[!]`  | `left/right/bottom` | Toggle the overseer window. With `!` cursor stays in current window                   |
+| `OverseerRun`        | `[name/tags]`       | Run a task from a template                                                            |
+| `OverseerShell[!]`   | `[command]`         | Run a shell command as an overseer task. With `!` the task is created but not started |
+| `OverseerTaskAction` |                     | Select a task to run an action on                                                     |
 
 ## Highlight groups
 

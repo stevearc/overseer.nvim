@@ -61,15 +61,6 @@ local commands = {
     },
   },
   {
-    cmd = "OverseerQuickAction",
-    args = "`[action]`",
-    func = "_quick_action",
-    def = {
-      nargs = "?",
-      desc = "Run an action on the most recent task, or the task under the cursor",
-    },
-  },
-  {
     cmd = "OverseerTaskAction",
     func = "_task_action",
     def = {

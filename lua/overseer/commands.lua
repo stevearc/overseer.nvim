@@ -72,14 +72,6 @@ M._run_template = function(params)
   end)
 end
 
-M._quick_action = function(params)
-  local action_name = params.fargs[1]
-  if action_name == "" then
-    action_name = nil
-  end
-  M.quick_action(action_name)
-end
-
 M._task_action = function(params)
   M.task_action()
 end
@@ -206,25 +198,6 @@ M.run_template = function(opts, callback)
       end
     end)
   end
-end
-
----@param name? string Name of action to run
-M.quick_action = function(name)
-  if vim.bo.filetype == "OverseerList" then
-    local sb = sidebar.get_or_create()
-    sb:run_action(name)
-    return
-  end
-  local tasks =
-    task_list.list_tasks({ sort = task_list.sort_finished_recently, include_ephemeral = true })
-  local task
-  if #tasks == 0 then
-    vim.notify("No tasks available", vim.log.levels.WARN)
-    return
-  else
-    task = tasks[1]
-  end
-  action_util.run_task_action(task, name)
 end
 
 M.task_action = function()
