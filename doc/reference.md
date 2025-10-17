@@ -393,7 +393,7 @@ Run an action on a task
 | Param | Type            | Desc                                               |
 | ----- | --------------- | -------------------------------------------------- |
 | task  | `overseer.Task` |                                                    |
-| name  | `string\|nil`   | Name of action. When omitted, prompt user to pick. |
+| name  | `nil\|string`   | Name of action. When omitted, prompt user to pick. |
 
 ### add_template_hook(opts, hook)
 

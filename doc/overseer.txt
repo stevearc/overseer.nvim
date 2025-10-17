@@ -359,7 +359,7 @@ run_action({task}, {name})                                   *overseer.run_actio
 
     Parameters:
       {task} `overseer.Task`
-      {name} `string|nil` Name of action. When omitted, prompt user to pick.
+      {name} `nil|string` Name of action. When omitted, prompt user to pick.
 
 add_template_hook({opts}, {hook})                     *overseer.add_template_hook*
     Add a hook that runs on a TaskDefinition before the task is created

@@ -294,7 +294,7 @@ end
 
 ---Run an action on a task
 ---@param task overseer.Task
----@param name string|nil Name of action. When omitted, prompt user to pick.
+---@param name? string Name of action. When omitted, prompt user to pick.
 M.run_action = function(task, name)
   return require("overseer.action_util").run_task_action(task, name)
 end

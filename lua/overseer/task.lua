@@ -55,6 +55,7 @@ local next_id = 1
 ---@field params table
 ---@field search overseer.SearchParams
 
+---Create a new Task
 ---@param opts overseer.TaskDefinition
 ---@return overseer.Task
 function Task.new(opts)
@@ -169,16 +170,19 @@ function Task:serialize()
   }
 end
 
+---Create a deep copy of this task
 ---@return overseer.Task
 function Task:clone()
   return Task.new(self:serialize())
 end
 
+---Add a component, no-op if it already exists
 ---@param comp overseer.Serialized
 function Task:add_component(comp)
   self:add_components({ comp })
 end
 
+---Add components, skipping any that already exist
 ---@param components overseer.Serialized[]
 function Task:add_components(components)
   vim.validate("components", components, "table")
@@ -192,6 +196,7 @@ function Task:add_components(components)
   end
 end
 
+---Add component, overwriting any existing
 ---@param comp overseer.Serialized
 function Task:set_component(comp)
   self:set_components({ comp })
@@ -239,12 +244,14 @@ function Task:get_component(name)
 end
 
 ---@param name string
+---@return overseer.Component?
 function Task:remove_component(name)
   vim.validate("name", name, "string")
-  return self:remove_components({ name })
+  return self:remove_components({ name })[1]
 end
 
 ---@param names string[]
+---@return overseer.Component[]
 function Task:remove_components(names)
   vim.validate("names", names, "table")
   local lookup = {}
@@ -372,11 +379,10 @@ function Task:open_output(direction)
   end
 end
 
+---Put the task back in PENDING state.
+---Cannot be called on running or disposed tasks.
 function Task:reset()
-  if self:is_disposed() then
-    error(string.format("Cannot reset %s task", self.status))
-    return
-  elseif self:is_running() then
+  if self:is_disposed() or self:is_running() then
     error(string.format("Cannot reset %s task", self.status))
     return
   end
