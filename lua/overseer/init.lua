@@ -54,8 +54,9 @@ local commands = {
     args = "`[command]`",
     func = "_run_shell",
     def = {
-      desc = "Run a shell command as an overseer task",
+      desc = "Run a shell command as an overseer task. With `!` the task is created but not started",
       complete = "shellcmdline",
+      bang = true,
       nargs = "*",
     },
   },
