@@ -32,10 +32,11 @@ A task runner and job management plugin for Neovim
   - [DAP](doc/third_party.md#dap)
   - [Session managers](doc/third_party.md#session-managers)
 - [Recipes](#recipes)
+  - [Run a quick command like with `:!` or `:term`](doc/recipes.md#run-a-quick-command-like-with--or-term)
   - [Restart last task](doc/recipes.md#restart-last-task)
   - [Run shell scripts in the current directory](doc/recipes.md#run-shell-scripts-in-the-current-directory)
   - [Directory-local tasks with exrc](doc/recipes.md#directory-local-tasks-with-exrc)
-  - [:Make similar to vim-dispatch](doc/recipes.md#make-similar-to-vim-dispatch)
+  - [Asynchronous :Make similar to vim-dispatch](doc/recipes.md#asynchronous-make-similar-to-vim-dispatch)
   - [Asynchronous :Grep command](doc/recipes.md#asynchronous-grep-command)
   - [Create a window that displays the most recent task output](doc/recipes.md#create-a-window-that-displays-the-most-recent-task-output)
 - [Reference](#reference)
@@ -204,10 +205,11 @@ If you want to define custom tasks for your project, I'd recommend starting with
 
 ## Recipes
 
+- [Run a quick command like with `:!` or `:term`](doc/recipes.md#run-a-quick-command-like-with--or-term)
 - [Restart last task](doc/recipes.md#restart-last-task)
 - [Run shell scripts in the current directory](doc/recipes.md#run-shell-scripts-in-the-current-directory)
 - [Directory-local tasks with exrc](doc/recipes.md#directory-local-tasks-with-exrc)
-- [:Make similar to vim-dispatch](doc/recipes.md#make-similar-to-vim-dispatch)
+- [Asynchronous :Make similar to vim-dispatch](doc/recipes.md#asynchronous-make-similar-to-vim-dispatch)
 - [Asynchronous :Grep command](doc/recipes.md#asynchronous-grep-command)
 - [Create a window that displays the most recent task output](doc/recipes.md#create-a-window-that-displays-the-most-recent-task-output)
 

@@ -4,14 +4,25 @@ Have a cool recipe to share? Open a pull request and add it to this doc!
 
 <!-- TOC -->
 
+- [Run a quick command like with `:!` or `:term`](#run-a-quick-command-like-with--or-term)
 - [Restart last task](#restart-last-task)
 - [Run shell scripts in the current directory](#run-shell-scripts-in-the-current-directory)
 - [Directory-local tasks with exrc](#directory-local-tasks-with-exrc)
-- [:Make similar to vim-dispatch](#make-similar-to-vim-dispatch)
+- [Asynchronous :Make similar to vim-dispatch](#asynchronous-make-similar-to-vim-dispatch)
 - [Asynchronous :Grep command](#asynchronous-grep-command)
 - [Create a window that displays the most recent task output](#create-a-window-that-displays-the-most-recent-task-output)
 
 <!-- /TOC -->
+
+## Run a quick command like with `:!` or `:term`
+
+The `:OverseerShell` command allows you to run a shell command as an overseer task. It's a bit much to type, so we can create an abbreviation for that:
+
+```lua
+vim.cmd.cnoreabbrev("OS OverseerShell")
+```
+
+Now you can easily start a new task by simply typing `:OS <command to run>`
 
 ## Restart last task
 
@@ -91,7 +102,7 @@ require("overseer").register_template({
 })
 ```
 
-## :Make similar to vim-dispatch
+## Asynchronous :Make similar to vim-dispatch
 
 The venerable vim-dispatch provides several commands, but the main `:Make` command can be mimicked fairly easily:
 
