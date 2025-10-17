@@ -1,5 +1,4 @@
-local actions = require("overseer.task_list.keymaps")
-local config = require("overseer.config")
+local keymaps = require("overseer.task_list.keymaps")
 local layout = require("overseer.layout")
 local util = require("overseer.util")
 
@@ -10,9 +9,9 @@ local M = {}
 ---@return table opts
 ---@return string|nil mode
 local function resolve(rhs)
-  if type(rhs) == "string" and vim.startswith(rhs, "actions.") then
+  if type(rhs) == "string" and vim.startswith(rhs, "keymap.") then
     local action_name = vim.split(rhs, ".", { plain = true })[2]
-    local action = actions[action_name]
+    local action = keymaps[action_name]
     if not action then
       vim.notify("[overseer.nvim] Unknown action name: " .. action_name, vim.log.levels.ERROR)
     end
