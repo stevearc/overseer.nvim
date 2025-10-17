@@ -215,7 +215,8 @@ M.quick_action = function(name)
     sb:run_action(name)
     return
   end
-  local tasks = task_list.list_tasks({ recent_first = true, include_ephemeral = true })
+  local tasks =
+    task_list.list_tasks({ sort = task_list.sort_finished_recently, include_ephemeral = true })
   local task
   if #tasks == 0 then
     vim.notify("No tasks available", vim.log.levels.WARN)
@@ -227,13 +228,13 @@ M.quick_action = function(name)
 end
 
 M.task_action = function()
-  local tasks =
-    task_list.list_tasks({ unique = true, recent_first = true, include_ephemeral = true })
+  local tasks = task_list.list_tasks({
+    unique = true,
+    sort = task_list.sort_finished_recently,
+    include_ephemeral = true,
+  })
   if #tasks == 0 then
     vim.notify("No tasks available", vim.log.levels.WARN)
-    return
-  elseif #tasks == 1 then
-    action_util.run_task_action(tasks[1])
     return
   end
 

@@ -201,4 +201,23 @@ M.sort_newest_first = function(a, b)
   return a.time_start > b.time_start
 end
 
+---A sort function that puts tasks that finished most recently first
+---@param a overseer.Task
+---@param b overseer.Task
+---@return boolean
+M.sort_finished_recently = function(a, b)
+  if (a.time_end == nil) ~= (b.time_end == nil) then
+    return a.time_end ~= nil
+  elseif a.time_end ~= nil and a.time_end ~= b.time_end then
+    return a.time_end > b.time_end
+  elseif (a.time_start == nil) ~= (b.time_start == nil) then
+    return a.time_start ~= nil
+  elseif a.time_start ~= nil and a.time_start ~= b.time_start then
+    return a.time_start > b.time_start
+  else
+    -- fall back to sort by name
+    return a.name < b.name
+  end
+end
+
 return M
