@@ -6,6 +6,7 @@
 - [Function](#function)
 - [Parser](#parser)
 - [make_lua_match_fn(pattern)](#make_lua_match_fnpattern)
+- [make_lua_test_fn(pattern)](#make_lua_test_fnpattern)
 - [make_regex_match_fn(pattern)](#make_regex_match_fnpattern)
 - [match_to_test_fn(match)](#match_to_test_fnmatch)
 - [make_parse_fn(match, fields)](#make_parse_fnmatch-fields)
@@ -42,7 +43,7 @@ For simple single-line formats, you can pass in a function to do the parsing.
   if fname then
     return {
       filename = fname,
-      lnum = lnum,
+      lnum = tonumber(lnum),
       text = msg
     }
   end
@@ -55,21 +56,32 @@ The most complex type of custom parser you can create with the most control is t
 
 ```lua
 local parser = {
+  _result = {},
   ---Parse a single line of output
   ---@param line string
   parse = function(self, line)
-    -- parse one line of output and store the result
+    local fname, lnum, msg = line:match("^(.*):(%d+): (.*)$")
+    if fname
+      table.insert(self._result, {
+        filename = fname,
+        lnum = tonumber(lnum),
+        text = msg
+      })
+    end
   end,
   ---Get the results for the task
   ---@return table<string, any>
   get_result = function(self)
-    -- The other methods automatically set the 'diagnostics' key, but this value is merged in to the
-    -- task result directly, so you will usually want to set 'diagnostics' here.
-    return { diagnostics = {} }
+    -- The task result is an arbitrary key-value table, but most of the time for output parsing
+    -- you will want to set the `diagnostics` key. This is the special key that interacts with
+    -- all of the diagnostics-related components.
+    -- Note that the other parser types (function, problem matcher, errorformat) automatically put
+    -- their results in the `diagnostics` key.
+    return { diagnostics = self._result }
   end,
   ---This is called when the task is reset
   reset = function(self)
-    -- clear state
+    self._result = {}
   end,
 }
 ```
@@ -87,6 +99,27 @@ Create a match function from a lua pattern
 | ------- | -------- | ----------- |
 | pattern | `string` | lua pattern |
 
+**Examples:**
+```lua
+local match_fn = parselib.make_lua_match_fn("^(%S+):(%d+):(%d+): (.+)$")
+local parse_fn = parselib.make_parse_fn(match_fn, {"filename", "lnum", "col", "text"})
+local parser = parselib.make_parser(parse_fn)
+```
+
+## make_lua_test_fn(pattern)
+
+`make_lua_test_fn(pattern): overseer.TestFn` \
+Create a test function (returns true/false) from a lua pattern
+
+| Param   | Type     | Desc        |
+| ------- | -------- | ----------- |
+| pattern | `string` | lua pattern |
+
+**Examples:**
+```lua
+local test_fn = parselib.make_lua_test_fn("^File change detected")
+```
+
 ## make_regex_match_fn(pattern)
 
 `make_regex_match_fn(pattern): overseer.MatchFn` \
@@ -96,14 +129,27 @@ Create a match function from a vim regex
 | ------- | -------- | ------------------------------------- |
 | pattern | `string` | vim regex, passed to vim.fn.matchlist |
 
+**Examples:**
+```lua
+local match_fn = parselib.make_regex_match_fn("\\v^(\\S+):(\\d+):(\\d+): (.+)$")
+local parse_fn = parselib.make_parse_fn(match_fn, {"filename", "lnum", "col", "text"})
+local parser = parselib.make_parser(parse_fn)
+```
+
 ## match_to_test_fn(match)
 
 `match_to_test_fn(match): overseer.TestFn` \
 Create a test function (returns true/false) from a match function
 
-| Param | Type               | Desc |
-| ----- | ------------------ | ---- |
-| match | `overseer.MatchFn` |      |
+| Param | Type               | Desc                                              |
+| ----- | ------------------ | ------------------------------------------------- |
+| match | `overseer.MatchFn` | function that parses a line into a list of values |
+
+**Examples:**
+```lua
+local match_fn = parselib.make_lua_match_fn("^(%S+):(%d+):(%d+): (.+)$")
+local test_fn = parselib.match_to_test_fn(match_fn)
+```
 
 ## make_parse_fn(match, fields)
 
@@ -112,17 +158,29 @@ Create a function that parses a line into a quickfix entry
 
 | Param  | Type                    | Desc                                                        |
 | ------ | ----------------------- | ----------------------------------------------------------- |
-| match  | `overseer.MatchFn`      |                                                             |
+| match  | `overseer.MatchFn`      | function that parses a line into a list of values           |
 | fields | `overseer.ParseField[]` | list of field names, or {field_name, postprocess_fn} tuples |
+
+**Examples:**
+```lua
+local match_fn = parselib.make_lua_match_fn("^(%S+):(%d+):(%d+): (.+)$")
+local parse_fn = parselib.make_parse_fn(match_fn, {"filename", "lnum", "col", "text"})
+local parser = parselib.make_parser(parse_fn)
+```
 
 ## parser_from_errorformat(errorformat)
 
 `parser_from_errorformat(errorformat): overseer.OutputParser` \
 Create a parser from a vim errorformat
 
-| Param       | Type     | Desc |
-| ----------- | -------- | ---- |
-| errorformat | `string` |      |
+| Param       | Type     | Desc                   |
+| ----------- | -------- | ---------------------- |
+| errorformat | `string` | vim errorformat string |
+
+**Examples:**
+```lua
+local parser = parselib.parser_from_errorformat("%f:%l: %m")
+```
 
 ## make_parser(parse_fn, results_key)
 
@@ -131,8 +189,15 @@ Create a parser from a parse function
 
 | Param       | Type               | Desc                                                                   |
 | ----------- | ------------------ | ---------------------------------------------------------------------- |
-| parse_fn    | `overseer.ParseFn` |                                                                        |
+| parse_fn    | `overseer.ParseFn` | function that parses a line into a quickfix entry                      |
 | results_key | `nil\|string`      | The key to put matches in the results table. defaults to "diagnostics" |
+
+**Examples:**
+```lua
+local match_fn = parselib.make_lua_match_fn("^(%S+):(%d+):(%d+): (.+)$")
+local parse_fn = parselib.make_parse_fn(match_fn, {"filename", "lnum", "col", "text"})
+local parser = parselib.make_parser(parse_fn)
+```
 
 ## combine_parsers(parsers)
 
@@ -143,19 +208,40 @@ Combine multiple parsers into a single one (will merge the results)
 | ------- | ------------------------- | ---- |
 | parsers | `overseer.OutputParser[]` |      |
 
+**Examples:**
+```lua
+local match_fn = parselib.make_lua_match_fn("^(%S+):(%d+):(%d+): (.+)$")
+local parse_fn = parselib.make_parse_fn(match_fn, {"filename", "lnum", "col", "text"})
+local parser1 = parselib.make_parser(parse_fn)
+local parser2 = parselib.parser_from_errorformat("%f:%l: %m")
+local combined_parser = parselib.combine_parsers({parser1, parser2})
+```
+
 ## wrap_background_parser(parser, opts)
 
 `wrap_background_parser(parser, opts): overseer.OutputParser` \
 Wrap a parser and only activate it in between a matching start and end lines
 
-| Param           | Type                                                                                | Desc                                                                                                                                         |
-| --------------- | ----------------------------------------------------------------------------------- | -------------------------------------------------------------------------------------------------------------------------------------------- |
-| parser          | `overseer.OutputParser`                                                             |                                                                                                                                              |
-| >parse          | `fun(self: overseer.OutputParser, line: string)`                                    |                                                                                                                                              |
-| >get_result     | `fun(self: overseer.OutputParser): table<string, any>`                              |                                                                                                                                              |
-| >reset          | `fun(self: overseer.OutputParser)`                                                  |                                                                                                                                              |
-| >result_version | `nil\|number`                                                                       | For background parsers only, this number should be bumped to indicate that the task should set the result while the process is still running |
-| opts            | `{active_on_start?: boolean, start_fn?: overseer.TestFn, end_fn?: overseer.TestFn}` |                                                                                                                                              |
+| Param            | Type                                                   | Desc                                                                                                                                         |
+| ---------------- | ------------------------------------------------------ | -------------------------------------------------------------------------------------------------------------------------------------------- |
+| parser           | `overseer.OutputParser`                                |                                                                                                                                              |
+| >parse           | `fun(self: overseer.OutputParser, line: string)`       | Called repeatedly with each line of output                                                                                                   |
+| >get_result      | `fun(self: overseer.OutputParser): table<string, any>` | Mapping of result keys to parsed values. Usually contains a "diagnostics" key with a list of quickfix entries.                               |
+| >reset           | `fun(self: overseer.OutputParser)`                     | Reset the parser to its initial state                                                                                                        |
+| >result_version  | `nil\|number`                                          | For background parsers only, this number should be bumped to indicate that the task should set the result while the process is still running |
+| opts             | `overseer.BackgroundParserOpts`                        |                                                                                                                                              |
+| >active_on_start | `nil\|boolean`                                         | Whether the parser should be active immediately or wait for the start_fn to begin parsing                                                    |
+| >start_fn        | `nil\|overseer.TestFn`                                 | Function that tests whether to start parsing                                                                                                 |
+| >end_fn          | `nil\|overseer.TestFn`                                 | Function that tests whether to stop parsing                                                                                                  |
+
+**Examples:**
+```lua
+local base_parser = parselib.parser_from_errorformat("%f:%l: %m")
+local parser = parselib.wrap_background_parser(base_parser, {
+  start_fn = parselib.make_lua_test_fn("^Starting analysis...$"),
+  end_fn = parselib.make_lua_test_fn("^Analysis complete.$"),
+})
+```
 
 
 <!-- /parselib.API -->
@@ -170,6 +256,7 @@ Since Overseer supports VS Code's task format, it also has support for parsing o
   fileLocation = { "relative", "${cwd}" },
   pattern = {
     regexp = "^([^\\s].*)[\\(:](\\d+)[,:](\\d+)(?:\\):\\s+|\\s+-\\s+)(error|warning|info)\\s+TS(\\d+)\\s*:\\s*(.*)$",
+    -- It is recommended to specify either vim_regexp or lua_pat because vim doesn't fully support javascript regex format
     -- Optionally specify a vim-compatible regex for matching:
     vim_regexp = "\\v^([^[:space:]].*)[\\(:](\\d+)[,:](\\d+)(\\):\\s+|\\s+-\\s+)(error|warning|info)\\s+TS(\\d+)\\s*:\\s*(.*)$",
     -- Optionally specify a lua pattern for matching:
@@ -194,25 +281,6 @@ For convenience, you can also use the built-in problem matcher definitions in `o
 
 ## Built-in problem matchers
 
-Patterns:
-
-<!-- problem_matcher_patterns -->
-
-- `$cpp`
-- `$csc`
-- `$eslint-compact`
-- `$eslint-stylish`
-- `$go`
-- `$gulp-tsc`
-- `$jshint`
-- `$jshint-stylish`
-- `$lessCompile`
-- `$msCompile`
-- `$nvcc-location`
-- `$tsc`
-- `$vb`
-<!-- /problem_matcher_patterns -->
-
 Problem matchers:
 
 <!-- problem_matchers -->
@@ -232,3 +300,22 @@ Problem matchers:
 - `$tsc`
 - `$tsc-watch`
 <!-- /problem_matchers -->
+
+Patterns:
+
+<!-- problem_matcher_patterns -->
+
+- `$cpp`
+- `$csc`
+- `$eslint-compact`
+- `$eslint-stylish`
+- `$go`
+- `$gulp-tsc`
+- `$jshint`
+- `$jshint-stylish`
+- `$lessCompile`
+- `$msCompile`
+- `$nvcc-location`
+- `$tsc`
+- `$vb`
+<!-- /problem_matcher_patterns -->

@@ -295,11 +295,13 @@ The primary way of parsing output with overseer is the [on_output_parse](compone
 -- Using a function
 { "on_output_parse", parser = function(line)
   local fname, lnum, msg = line:match("^(.*):(%d+): (.*)$")
-  return {
-    filename = fname,
-    lnum = lnum,
-    text = msg
-  }
+  if fname then
+    return {
+      filename = fname,
+      lnum = tonumber(lnum),
+      text = msg
+    }
+  end
 end }
 ```
 

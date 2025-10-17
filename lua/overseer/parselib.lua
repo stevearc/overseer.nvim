@@ -1,9 +1,9 @@
 local M = {}
 
 ---@class (exact) overseer.OutputParser
----@field parse fun(self: overseer.OutputParser, line: string)
----@field get_result fun(self: overseer.OutputParser): table<string, any>
----@field reset fun(self: overseer.OutputParser)
+---@field parse fun(self: overseer.OutputParser, line: string) Called repeatedly with each line of output
+---@field get_result fun(self: overseer.OutputParser): table<string, any> Mapping of result keys to parsed values. Usually contains a "diagnostics" key with a list of quickfix entries.
+---@field reset fun(self: overseer.OutputParser) Reset the parser to its initial state
 ---@field result_version? number For background parsers only, this number should be bumped to indicate that the task should set the result while the process is still running
 
 ---@alias overseer.TestFn fun(line: string): boolean
@@ -29,6 +29,10 @@ end
 ---Create a match function from a lua pattern
 ---@param pattern string lua pattern
 ---@return overseer.MatchFn
+---@example
+--- local match_fn = parselib.make_lua_match_fn("^(%S+):(%d+):(%d+): (.+)$")
+--- local parse_fn = parselib.make_parse_fn(match_fn, {"filename", "lnum", "col", "text"})
+--- local parser = parselib.make_parser(parse_fn)
 M.make_lua_match_fn = function(pattern)
   return function(line)
     local ret = { line:match(pattern) }
@@ -39,9 +43,25 @@ M.make_lua_match_fn = function(pattern)
   end
 end
 
+---Create a test function (returns true/false) from a lua pattern
+---@param pattern string lua pattern
+---@return overseer.TestFn
+---@example
+--- local test_fn = parselib.make_lua_test_fn("^File change detected")
+M.make_lua_test_fn = function(pattern)
+  return function(line)
+    local matched = line:match(pattern)
+    return matched ~= nil
+  end
+end
+
 ---Create a match function from a vim regex
 ---@param pattern string vim regex, passed to vim.fn.matchlist
 ---@return overseer.MatchFn
+---@example
+--- local match_fn = parselib.make_regex_match_fn("\\v^(\\S+):(\\d+):(\\d+): (.+)$")
+--- local parse_fn = parselib.make_parse_fn(match_fn, {"filename", "lnum", "col", "text"})
+--- local parser = parselib.make_parser(parse_fn)
 M.make_regex_match_fn = function(pattern)
   return function(line)
     local result = vim.fn.matchlist(line, pattern)
@@ -61,8 +81,11 @@ M.make_regex_match_fn = function(pattern)
 end
 
 ---Create a test function (returns true/false) from a match function
----@param match overseer.MatchFn
+---@param match overseer.MatchFn function that parses a line into a list of values
 ---@return overseer.TestFn
+---@example
+--- local match_fn = parselib.make_lua_match_fn("^(%S+):(%d+):(%d+): (.+)$")
+--- local test_fn = parselib.match_to_test_fn(match_fn)
 M.match_to_test_fn = function(match)
   return function(line)
     local ret = match(line)
@@ -71,9 +94,13 @@ M.match_to_test_fn = function(match)
 end
 
 ---Create a function that parses a line into a quickfix entry
----@param match overseer.MatchFn
+---@param match overseer.MatchFn function that parses a line into a list of values
 ---@param fields overseer.ParseField[] list of field names, or {field_name, postprocess_fn} tuples
 ---@return overseer.ParseFn
+---@example
+--- local match_fn = parselib.make_lua_match_fn("^(%S+):(%d+):(%d+): (.+)$")
+--- local parse_fn = parselib.make_parse_fn(match_fn, {"filename", "lnum", "col", "text"})
+--- local parser = parselib.make_parser(parse_fn)
 M.make_parse_fn = function(match, fields)
   return function(line)
     local result = match(line)
@@ -105,8 +132,10 @@ M.make_parse_fn = function(match, fields)
 end
 
 ---Create a parser from a vim errorformat
----@param errorformat string
+---@param errorformat string vim errorformat string
 ---@return overseer.OutputParser
+---@example
+--- local parser = parselib.parser_from_errorformat("%f:%l: %m")
 M.parser_from_errorformat = function(errorformat)
   local result = {}
   local pending_lines = {}
@@ -149,9 +178,13 @@ M.parser_from_errorformat = function(errorformat)
 end
 
 ---Create a parser from a parse function
----@param parse_fn overseer.ParseFn
+---@param parse_fn overseer.ParseFn function that parses a line into a quickfix entry
 ---@param results_key? string The key to put matches in the results table. defaults to "diagnostics"
 ---@return overseer.OutputParser
+---@example
+--- local match_fn = parselib.make_lua_match_fn("^(%S+):(%d+):(%d+): (.+)$")
+--- local parse_fn = parselib.make_parse_fn(match_fn, {"filename", "lnum", "col", "text"})
+--- local parser = parselib.make_parser(parse_fn)
 M.make_parser = function(parse_fn, results_key)
   if not results_key then
     results_key = "diagnostics"
@@ -177,6 +210,12 @@ end
 ---Combine multiple parsers into a single one (will merge the results)
 ---@param parsers overseer.OutputParser[]
 ---@return overseer.OutputParser
+---@example
+--- local match_fn = parselib.make_lua_match_fn("^(%S+):(%d+):(%d+): (.+)$")
+--- local parse_fn = parselib.make_parse_fn(match_fn, {"filename", "lnum", "col", "text"})
+--- local parser1 = parselib.make_parser(parse_fn)
+--- local parser2 = parselib.parser_from_errorformat("%f:%l: %m")
+--- local combined_parser = parselib.combine_parsers({parser1, parser2})
 M.combine_parsers = function(parsers)
   ---@type overseer.OutputParser
   return {
@@ -219,10 +258,21 @@ M.combine_parsers = function(parsers)
   }
 end
 
+---@class overseer.BackgroundParserOpts
+---@field active_on_start? boolean Whether the parser should be active immediately or wait for the start_fn to begin parsing
+---@field start_fn? overseer.TestFn Function that tests whether to start parsing
+---@field end_fn? overseer.TestFn Function that tests whether to stop parsing
+
 ---Wrap a parser and only activate it in between a matching start and end lines
 ---@param parser overseer.OutputParser
----@param opts {active_on_start?: boolean, start_fn?: overseer.TestFn, end_fn?: overseer.TestFn}
+---@param opts overseer.BackgroundParserOpts
 ---@return overseer.OutputParser
+---@example
+--- local base_parser = parselib.parser_from_errorformat("%f:%l: %m")
+--- local parser = parselib.wrap_background_parser(base_parser, {
+---   start_fn = parselib.make_lua_test_fn("^Starting analysis...$"),
+---   end_fn = parselib.make_lua_test_fn("^Analysis complete.$"),
+--- })
 M.wrap_background_parser = function(parser, opts)
   local is_active = opts.active_on_start
   ---@type overseer.OutputParser
