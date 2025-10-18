@@ -1,0 +1,21 @@
+name: v2.0 Discussion
+description: Conversation topic about the upcoming v2.0 release
+title: "discussion: "
+labels: [v2.0 discussion]
+body:
+  - type: markdown
+    attributes:
+      value: |
+        Before starting a discussion, make sure to search for [existing threads](https://github.com/stevearc/overseer.nvim/issues?q=state%3Aopen%20label%3A%22v2.0%20discussion%22)
+  - type: checkboxes
+    attributes:
+      label: Did you check existing requests?
+      options:
+        - label: I have searched the existing issues
+          required: true
+  - type: textarea
+    attributes:
+      label: Content
+      description: The floor is yours!
+    validations:
+      required: true
