@@ -412,7 +412,7 @@ M.build_task = function(tmpl, opts, callback)
     end
     assert(task_defn)
     assert(params)
-    local task = nil
+    local task
     if opts.cwd then
       task_defn.cwd = opts.cwd
     end
