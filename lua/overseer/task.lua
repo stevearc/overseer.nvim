@@ -354,13 +354,24 @@ function Task:open_output(direction)
     util.set_term_window_opts()
     util.scroll_to_end(0)
   elseif direction == "vertical" then
+    -- If we're currently in the task list or any other fixed-height panel,
+    -- open a split in the nearest other window
+    if vim.wo.winfixheight then
+      for _, winid in ipairs(util.get_fixed_wins()) do
+        if not vim.wo[winid].winfixheight then
+          util.go_win_no_au(winid)
+          break
+        end
+      end
+    end
     vim.cmd.vsplit()
     vim.api.nvim_win_set_buf(0, bufnr)
     util.set_term_window_opts()
     util.scroll_to_end(0)
   elseif direction == "horizontal" then
-    -- If we're currently in the task list, open a split in the nearest other window
-    if vim.bo.filetype == "OverseerList" then
+    -- If we're currently in the task list or any other fixed-width side panel,
+    -- open a split in the nearest other window
+    if vim.wo.winfixwidth then
       for _, winid in ipairs(util.get_fixed_wins()) do
         if not vim.wo[winid].winfixwidth then
           util.go_win_no_au(winid)
@@ -373,6 +384,15 @@ function Task:open_output(direction)
     util.set_term_window_opts()
     util.scroll_to_end(0)
   else
+    -- If we're currently in the task list, open in a different window
+    if vim.bo.filetype == "OverseerList" then
+      for _, winid in ipairs(util.get_fixed_wins()) do
+        if not vim.wo[winid].winfixwidth then
+          util.go_win_no_au(winid)
+          break
+        end
+      end
+    end
     vim.cmd.normal({ args = { "m'" }, bang = true })
     vim.api.nvim_win_set_buf(0, bufnr)
     util.scroll_to_end(0)
