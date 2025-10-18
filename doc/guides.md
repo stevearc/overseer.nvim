@@ -10,6 +10,7 @@
   - [Component aliases](#component-aliases)
   - [Task result](#task-result)
 - [Customizing built-in tasks](#customizing-built-in-tasks)
+- [Customizing the task appearance in the task list](#customizing-the-task-appearance-in-the-task-list)
 - [Parsing output](#parsing-output)
 - [Running tasks sequentially](#running-tasks-sequentially)
 - [VS Code tasks](#vs-code-tasks)
@@ -280,6 +281,26 @@ overseer.add_template_hook({
   util.add_component(task_defn, { "on_output_quickfix", open = true })
 end)
 ```
+
+## Customizing the task appearance in the task list
+
+The task appearance can be customized via the `task_list.render` function in the [config](reference.md#setupopts). The render function is just a function that takes a task and returns a list of lines, where each line is a list of `[text, hl_group]` "chunks" (`:help nvim_echo` uses the same format).
+
+```lua
+require("overseer").setup({
+  task_list = {
+    render = function(task)
+      -- There are a few different built-in format functions
+      -- return require("overseer.render").format_compact(task)
+      -- return require("overseer.render").format_verbose(task)
+      return require("overseer.render").format_standard(task)
+    end,
+  },
+})
+```
+
+
+See more detailed documentation about rendering in [the rendering doc](rendering.md).
 
 ## Parsing output
 

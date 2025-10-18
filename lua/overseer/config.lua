@@ -209,7 +209,7 @@ end
 ---@field direction "left"|"right"|"bottom"
 ---@field separator string String that separates tasks
 ---@field child_indent {[1]: string, [2]: string, [3]: string}
----@field render fun(task: overseer.Task): string[][] Function that renders tasks
+---@field render fun(task: overseer.Task): overseer.TextChunk[][] Function that renders tasks
 ---@field sort fun(a: overseer.Task, b: overseer.Task): boolean Function that sorts tasks
 ---@field keymaps table<string, any> Set keymap to false to remove default behavior
 
@@ -221,7 +221,7 @@ end
 ---@field min_height? number|number[]
 ---@field separator? string String that separates tasks
 ---@field child_indent? {[1]: string, [2]: string, [3]: string}
----@field render? fun(task: overseer.Task): string[] Function that renders tasks
+---@field render? fun(task: overseer.Task): overseer.TextChunk[][] Function that renders tasks
 ---@field sort? fun(a: overseer.Task, b: overseer.Task): boolean Function that sorts tasks
 ---@field keymaps? table<string, any> Set keymap to false to remove default behavior
 

@@ -3,11 +3,86 @@ local util = require("overseer.util")
 local M = {}
 
 ---@alias overseer.TextChunk {[1]: string, [2]: nil|string}
----@alias overseer.RenderFunc fun(task: overseer.Task): overseer.TextChunk[][]
+
+---The default format for tasks in the task list
+---@param task overseer.Task
+---@return overseer.TextChunk[][]
+---@example
+--- require("overseer").setup({
+---   task_list = {
+---     render = function(task)
+---       return require("overseer.render").format_standard(task)
+---     end,
+---   },
+--- })
+M.format_standard = function(task)
+  local ret = {
+    M.status_and_name(task),
+  }
+  vim.list_extend(ret, M.source_lines(task))
+  table.insert(
+    ret,
+    M.join(M.duration(task), M.time_since_completed(task, { hl_group = "Comment" }))
+  )
+  vim.list_extend(ret, M.result_lines(task, { oneline = true }))
+  vim.list_extend(ret, M.output_lines(task, { num_lines = 1 }))
+  return M.remove_empty_lines(ret)
+end
+
+---A more compact format for tasks
+---@param task overseer.Task
+---@return overseer.TextChunk[][]
+---@example
+--- require("overseer").setup({
+---   task_list = {
+---     render = function(task)
+---       return require("overseer.render").format_compact(task)
+---     end,
+---   },
+--- })
+M.format_compact = function(task)
+  return {
+    M.status_and_name(task),
+    M.join(M.duration(task), M.time_since_completed(task, { hl_group = "Comment" })),
+  }
+end
+
+---A more verbose format for tasks
+---@param task overseer.Task
+---@return overseer.TextChunk[][]
+---@example
+--- require("overseer").setup({
+---   task_list = {
+---     render = function(task)
+---       return require("overseer.render").format_verbose(task)
+---     end,
+---   },
+--- })
+M.format_verbose = function(task)
+  local ret = {
+    M.status_and_name(task),
+    M.join(M.duration(task), M.time_since_completed(task, { hl_group = "Comment" })),
+  }
+  vim.list_extend(ret, M.result_lines(task, { oneline = true }))
+  vim.list_extend(ret, M.output_lines(task, { num_lines = 4 }))
+  return M.remove_empty_lines(ret)
+end
 
 ---Text chunks that display the status of a task
 ---@param task overseer.Task
 ---@return overseer.TextChunk[]
+---@example
+--- require("overseer").setup({
+---   task_list = {
+---     render = function(task)
+---       local render = require("overseer.render")
+---       return {
+---         render.status(task),
+---         { { task.name, "OverseerTask" } },
+---       }
+---     end,
+---   },
+--- })
 M.status = function(task)
   return { { task.status, "Overseer" .. task.status } }
 end
@@ -15,6 +90,17 @@ end
 ---Text chunks that display the name of a task
 ---@param task overseer.Task
 ---@return overseer.TextChunk[]
+---@example
+--- require("overseer").setup({
+---   task_list = {
+---     render = function(task)
+---       local render = require("overseer.render")
+---       return {
+---         render.name(task),
+---       }
+---     end,
+---   },
+--- })
 M.name = function(task)
   return { { task.name, "OverseerTask" } }
 end
@@ -22,6 +108,17 @@ end
 ---Text chunks that display the status and name of a task
 ---@param task overseer.Task
 ---@return overseer.TextChunk[]
+---@example
+--- require("overseer").setup({
+---   task_list = {
+---     render = function(task)
+---       local render = require("overseer.render")
+---       return {
+---         render.status_and_name(task),
+---       }
+---     end,
+---   },
+--- })
 M.status_and_name = function(task)
   return M.join(M.status(task), M.name(task), ": ")
 end
@@ -29,6 +126,18 @@ end
 ---Text chunks that display the command that was run
 ---@param task overseer.Task
 ---@return overseer.TextChunk[]
+---@example
+--- require("overseer").setup({
+---   task_list = {
+---     render = function(task)
+---       local render = require("overseer.render")
+---       return {
+---         { { task.name, "OverseerTask" } },
+---         render.cmd(task),
+---       }
+---     end,
+---   },
+--- })
 M.cmd = function(task)
   local cmd = task.cmd
   if not cmd then
@@ -56,6 +165,17 @@ end
 ---@param task overseer.Task
 ---@param opts? {oneline?: boolean}
 ---@return overseer.TextChunk[][]
+---@example
+--- require("overseer").setup({
+---   task_list = {
+---     render = function(task)
+---       local render = require("overseer.render")
+---       return vim.list_extend({
+---         { { task.name, "OverseerTask" } },
+---       }, render.result_lines(task, { oneline = false }))
+---     end,
+---   },
+--- })
 M.result_lines = function(task, opts)
   ---@type {oneline: boolean}
   opts = vim.tbl_extend("keep", opts or {}, { oneline = false })
@@ -82,6 +202,18 @@ end
 ---@param task overseer.Task
 ---@param opts? {hl_group?: string}
 ---@return overseer.TextChunk[]
+---@example
+--- require("overseer").setup({
+---   task_list = {
+---     render = function(task)
+---       local render = require("overseer.render")
+---       return {
+---         { { task.name, "OverseerTask" } },
+---         render.duration(task),
+---       }
+---     end,
+---   },
+--- })
 M.duration = function(task, opts)
   opts = opts or {}
   if not task.time_start then
@@ -100,6 +232,18 @@ end
 ---@param task overseer.Task
 ---@param opts? {hl_group?: string}
 ---@return overseer.TextChunk[]
+---@example
+--- require("overseer").setup({
+---   task_list = {
+---     render = function(task)
+---       local render = require("overseer.render")
+---       return {
+---         { { task.name, "OverseerTask" } },
+---         render.time_since_completed(task),
+---       }
+---     end,
+---   },
+--- })
 M.time_since_completed = function(task, opts)
   opts = opts or {}
   if not task.time_end then
@@ -112,6 +256,17 @@ end
 ---@param task overseer.Task
 ---@param opts? {num_lines?: integer, prefix?: string, prefix_hl_group?: string}
 ---@return overseer.TextChunk[][]
+---@example
+--- require("overseer").setup({
+---   task_list = {
+---     render = function(task)
+---       local render = require("overseer.render")
+---       return vim.list_extend({
+---         { { task.name, "OverseerTask" } },
+---       }, render.output_lines(task, { num_lines = 3, prefix = "$ " }))
+---     end,
+---   },
+--- })
 M.output_lines = function(task, opts)
   ---@type {num_lines: integer, prefix: string, prefix_hl_group: string}
   opts = vim.tbl_extend(
@@ -131,10 +286,21 @@ M.output_lines = function(task, opts)
   return ret
 end
 
----Lines that display the source of a wrapped builtin task
+---Lines that display the source of a wrapped vim.system or vim.fn.jobstart task
 ---@param task overseer.Task
 ---@param opts? {hl_group?: string}
 ---@return overseer.TextChunk[][]
+---@example
+--- require("overseer").setup({
+---   task_list = {
+---     render = function(task)
+---       local render = require("overseer.render")
+---       return vim.list_extend({
+---         { { task.name, "OverseerTask" } },
+---       }, render.source_lines(task, { num_lines = 3, prefix = "$ " }))
+---     end,
+---   },
+--- })
 M.source_lines = function(task, opts)
   ---@type {hl_group: string}
   opts = vim.tbl_extend("keep", opts or {}, { hl_group = "Comment" })
@@ -145,48 +311,22 @@ M.source_lines = function(task, opts)
   return ret
 end
 
----The default format for tasks in the task list
----@type overseer.RenderFunc
-M.format_standard = function(task)
-  local ret = {
-    M.status_and_name(task),
-  }
-  vim.list_extend(ret, M.source_lines(task))
-  table.insert(
-    ret,
-    M.join(M.duration(task), M.time_since_completed(task, { hl_group = "Comment" }))
-  )
-  vim.list_extend(ret, M.result_lines(task, { oneline = true }))
-  vim.list_extend(ret, M.output_lines(task, { num_lines = 1 }))
-  return M.remove_empty_lines(ret)
-end
-
----A more compact format for tasks
----@type overseer.RenderFunc
-M.format_compact = function(task)
-  return {
-    M.status_and_name(task),
-    M.join(M.duration(task), M.time_since_completed(task, { hl_group = "Comment" })),
-  }
-end
-
----A more verbose format for tasks
----@type overseer.RenderFunc
-M.format_verbose = function(task)
-  local ret = {
-    M.status_and_name(task),
-    M.join(M.duration(task), M.time_since_completed(task, { hl_group = "Comment" })),
-  }
-  vim.list_extend(ret, M.result_lines(task, { oneline = true }))
-  vim.list_extend(ret, M.output_lines(task, { num_lines = 4 }))
-  return M.remove_empty_lines(ret)
-end
-
 ---Join two lists of text chunks together with a separator
 ---@param a overseer.TextChunk[]
 ---@param b overseer.TextChunk[]
 ---@param sep? string|overseer.TextChunk
 ---@return overseer.TextChunk[]
+---@example
+--- require("overseer").setup({
+---   task_list = {
+---     render = function(task)
+---       local render = require("overseer.render")
+---       return {
+---         render.join(render.status(task), render.name(task), ": "),
+---       }
+---     end,
+---   },
+--- })
 M.join = function(a, b, sep)
   if not sep then
     sep = " "
@@ -212,6 +352,18 @@ end
 ---Removes empty lines from a list of lines (each line is a list of text chunks)
 ---@param lines overseer.TextChunk[][]
 ---@return overseer.TextChunk[][]
+---@example
+--- require("overseer").setup({
+---   task_list = {
+---     render = function(task)
+---       local render = require("overseer.render")
+---       local ret = vim.list_extend({
+---         { { task.name, "OverseerTask" } },
+---       }, render.output_lines(task, { num_lines = 3, prefix = "$ " }))
+---       return render.remove_empty_lines(ret)
+---     end,
+---   },
+--- })
 M.remove_empty_lines = function(lines)
   local i = 1
   while i <= #lines do

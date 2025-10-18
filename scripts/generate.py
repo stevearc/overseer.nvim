@@ -174,7 +174,7 @@ def updated_problem_matcher_list(doc: str):
 
 
 def update_parsers_md():
-    doc = os.path.join(ROOT, "doc", "parsers.md")
+    doc = os.path.join(DOC, "parsers.md")
     updated_problem_matcher_list(doc)
     types = parse_lua()
     funcs = types.files["overseer/parselib.lua"].functions
@@ -185,6 +185,21 @@ def update_parsers_md():
         r"^<!-- /parselib.API -->$",
         lines,
     )
+    update_md_toc(doc, 2)
+
+
+def update_rendering_md():
+    doc = os.path.join(DOC, "rendering.md")
+    types = parse_lua()
+    funcs = types.files["overseer/render.lua"].functions
+    lines = ["\n"] + render_md_api2(funcs, types, level=2) + ["\n"]
+    replace_section(
+        doc,
+        r"^<!-- render.API -->$",
+        r"^<!-- /render.API -->$",
+        lines,
+    )
+    update_md_toc(doc, 2)
 
 
 def update_commands_md():
@@ -560,7 +575,7 @@ def main() -> None:
     update_strategies_md()
     update_md_toc(os.path.join(DOC, "strategies.md"), 2)
     update_parsers_md()
-    update_md_toc(os.path.join(DOC, "parsers.md"), 2)
+    update_rendering_md()
     update_components_md()
     update_md_toc(os.path.join(DOC, "components.md"))
     update_reference_md()
