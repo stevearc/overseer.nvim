@@ -7,9 +7,10 @@ CONTENTS                                                       *overseer-content
   2. Options                                                |overseer-options|
   3. Highlights                                          |overseer-highlights|
   4. Api                                                        |overseer-api|
-  5. Components                                          |overseer-components|
-  6. Parameters                                              |overseer-params|
-  7. Actions                                                |overseer-actions|
+  5. Keymaps                                                |overseer-keymaps|
+  6. Components                                          |overseer-components|
+  7. Parameters                                              |overseer-params|
+  8. Actions                                                |overseer-actions|
 
 --------------------------------------------------------------------------------
 COMMANDS                                                       *overseer-commands*
@@ -484,6 +485,77 @@ create_task_output_view({winid}, {opts})        *overseer.create_task_output_vie
         end,
       })
 <
+
+--------------------------------------------------------------------------------
+KEYMAPS                                                         *overseer-keymaps*
+
+The `task_list.keymaps` option in `overseer.setup` allow you to create mappings
+using all the same parameters as |vim.keymap.set|.
+>lua
+    keymaps = {
+        -- Mappings can be a string
+        ["<CR>"] = "keymap.run_action",
+        -- Mappings can be a function
+        gd = function()
+            for _, task in ipairs(require("overseer").list_tasks()) do
+                task:dispose()
+            end
+        end,
+        -- You can pass additional opts to vim.keymap.set by using
+        -- a table with the mapping as the first element.
+        gd = {
+            function()
+                for _, task in ipairs(require("overseer").list_tasks()) do
+                    task:dispose()
+                end
+            end,
+            mode = "n",
+            nowait = true,
+            desc = "Dispose all tasks"
+        },
+        -- Mappings that are a string starting with "keymap." will be
+        -- one of the built-in keymaps, documented below.
+        p = "keymap.toggle_preview",
+        -- Some keymaps have parameters. These are passed in via the `opts` key.
+        dd = { "keymap.run_action", opts = { action = "dispose" }, desc = "Dispose task" },
+    }
+
+Below are the mappings that can be used in the `keymaps` section of config
+options. You can refer to them as strings (e.g. "keymaps.<map_name>")
+
+next_task                                                      *keymaps.next_task*
+    Jump to next task
+
+open                                                                *keymaps.open*
+    Open task output
+
+    Parameters:
+      {dir} `"split"|"vsplit"|"tab"|"float"` type of window to open the task
+            output in
+
+prev_task                                                      *keymaps.prev_task*
+    Jump to previous task
+
+run_action                                                    *keymaps.run_action*
+    Run an action on the current task
+
+    Parameters:
+      {action} `string` Run an action on the current task
+
+scroll_output_down                                    *keymaps.scroll_output_down*
+    Scroll down in the task output window
+
+scroll_output_up                                        *keymaps.scroll_output_up*
+    Scroll up in the task output window
+
+show_help                                                      *keymaps.show_help*
+    Show default keymaps
+
+toggle_preview                                            *keymaps.toggle_preview*
+    Toggle task output in a preview floating window
+
+toggle_show_wrapped                                  *keymaps.toggle_show_wrapped*
+    Toggle showing wrapped builtin jobstart/vim.system tasks
 
 --------------------------------------------------------------------------------
 COMPONENTS                                                   *overseer-components*

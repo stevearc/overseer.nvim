@@ -48,6 +48,7 @@ M.open = {
   parameters = {
     dir = {
       type = '"split"|"vsplit"|"tab"|"float"',
+      desc = "type of window to open the task output in",
     },
   },
 }
@@ -99,5 +100,22 @@ M.toggle_show_wrapped = {
     sb:toggle_show_wrapped()
   end,
 }
+
+---List keymaps for documentation generation
+---@private
+M._get_keymaps = function()
+  local ret = {}
+  for name, keymap in pairs(M) do
+    if type(keymap) == "table" and keymap.desc then
+      table.insert(ret, {
+        name = name,
+        desc = keymap.desc,
+        deprecated = keymap.deprecated,
+        parameters = keymap.parameters,
+      })
+    end
+  end
+  return ret
+end
 
 return M

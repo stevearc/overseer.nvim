@@ -330,6 +330,76 @@ def get_highlights_vimdoc() -> "VimdocSection":
     return section
 
 
+def load_params(params: Dict[str, Any]) -> List[LuaParam]:
+    ret = []
+    for name, data in sorted(params.items()):
+        ret.append(LuaParam(name, data["type"], data["desc"]))
+    return ret
+
+
+def get_keymaps_vimdoc() -> "VimdocSection":
+    section = VimdocSection("Keymaps", "overseer-keymaps", ["\n"])
+    section.body.append(
+        """The `task_list.keymaps` option in `overseer.setup` allow you to create mappings
+using all the same parameters as |vim.keymap.set|.
+>lua
+    keymaps = {
+        -- Mappings can be a string
+        ["<CR>"] = "<CMD>lua require('overseer').run_action()<CR>",
+        -- Mappings can be a function
+        gd = function()
+            for _, task in ipairs(require("overseer").list_tasks()) do
+                task:dispose()
+            end
+        end,
+        -- You can pass additional opts to vim.keymap.set by using
+        -- a table with the mapping as the first element.
+        gd = {
+            function()
+                for _, task in ipairs(require("overseer").list_tasks()) do
+                    task:dispose()
+                end
+            end,
+            mode = "n",
+            nowait = true,
+            desc = "Dispose all tasks"
+        },
+        -- Mappings that are a string starting with "keymap." will be
+        -- one of the built-in keymaps, documented below.
+        p = "keymap.toggle_preview",
+        -- Some keymaps have parameters. These are passed in via the `opts` key.
+        dd = { "keymap.run_action", opts = { action = "dispose" }, desc = "Dispose task" },
+    }
+"""
+    )
+    section.body.append("\n")
+    section.body.extend(
+        wrap(
+            """Below are the mappings that can be used in the `keymaps` section of config options. You can refer to them as strings (e.g. "keymaps.<map_name>")"""
+        )
+    )
+    section.body.append("\n")
+    keymaps = read_nvim_json('require("overseer.task_list.keymaps")._get_keymaps()')
+    keymaps.sort(key=lambda a: a["name"])
+    for keymap in keymaps:
+        if keymap.get("deprecated"):
+            continue
+        name = keymap["name"]
+        desc = keymap["desc"]
+        section.body.append(leftright(name, f"*keymaps.{name}*"))
+        section.body.extend(wrap(desc, 4))
+        params = keymap.get("parameters")
+        if params:
+            section.body.append("\n")
+            section.body.append("    Parameters:\n")
+            section.body.extend(
+                format_vimdoc_params(load_params(params), LuaTypes(), 6)
+            )
+
+        section.body.append("\n")
+    return section
+
+
 def get_components_vimdoc() -> "VimdocSection":
     section = VimdocSection("Components", "overseer-components", ["\n"])
     components = read_nvim_json('require("overseer.component").get_all_descriptions()')
@@ -405,6 +475,7 @@ def generate_vimdoc():
             VimdocSection(
                 "API", "overseer-api", render_vimdoc_api2("overseer", funcs, types)
             ),
+            get_keymaps_vimdoc(),
             get_components_vimdoc(),
             convert_md_section(
                 os.path.join(DOC, "reference.md"),
