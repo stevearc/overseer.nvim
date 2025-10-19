@@ -9,6 +9,7 @@
 - [Custom components](#custom-components)
   - [Component aliases](#component-aliases)
   - [Task result](#task-result)
+- [Task events](#task-events)
 - [Customizing built-in tasks](#customizing-built-in-tasks)
 - [Customizing the task appearance in the task list](#customizing-the-task-appearance-in-the-task-list)
 - [Parsing output](#parsing-output)
@@ -289,6 +290,37 @@ A note on the Task result table: there is technically no schema for it, as the o
 
 **diagnostics**: This key is used for diagnostics. It should be a list of quickfix items (see `:help setqflist`) \
 **error**: This key will be set when there is an internal overseer error when running the task
+
+## Task events
+
+A lighter-weight alternative to custom components is directly subscribing to task events. Once you create a task you can call `task:subscribe("event", function() ... end)` to process the same events that get handled by components. For example, to run a function when a task completes:
+
+```lua
+local task = overseer.new_task({ cmd = {"echo", "hello", "world"} })
+-- on_complete gets called with the same arguments as it does for components
+task:subscribe("on_complete", function(_task, status, result)
+  print("Task", task.name, "finished with status", status)
+end)
+task:start()
+```
+
+To unsubscribe from an event, you can either pass the same function in to `task:unsubscribe()` or you can return a truthy value from the function.
+
+```lua
+local task = overseer.new_task({ cmd = { "build_and_serve.sh" } })
+task:subscribe("on_output_lines", function(_task, lines)
+  for _, line in ipairs(lines) do
+    local address = line:match("^Serving at (http.*)")
+    if address then
+      vim.ui.open(address)
+      return true
+    end
+  end
+end)
+task:start()
+```
+
+Note that when a task is serialized it cannot save the subscriptions.
 
 ## Customizing built-in tasks
 
