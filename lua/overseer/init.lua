@@ -6,6 +6,9 @@ local M = {}
 
 local setup_callbacks = {}
 
+local BREAKING_CHANGES_NOTICE =
+  [[ATTN: overseer.nvim will experience breaking changes soon. Pin to version v1.6.0 or earlier to avoid disruption.
+See: https://github.com/stevearc/overseer.nvim/pull/448]]
 local initialized = false
 local pending_opts
 local function do_setup()
@@ -17,6 +20,7 @@ local function do_setup()
       pending_opts = {}
     end
   end
+  vim.notify_once(BREAKING_CHANGES_NOTICE, vim.log.levels.WARN)
   local config = require("overseer.config")
   local log = require("overseer.log")
   config.setup(pending_opts)
