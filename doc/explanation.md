@@ -5,6 +5,7 @@
 - [Architecture](#architecture)
   - [Tasks](#tasks)
   - [Components](#components)
+  - [Serializability](#serializability)
   - [Templates](#templates)
 - [Task list](#task-list)
 - [Task editor](#task-editor)
@@ -27,8 +28,8 @@ convenient to create them using [templates](#templates).
 Tasks are built using an [entity component
 system](https://en.wikipedia.org/wiki/Entity_component_system). By itself, all a task does is run a
 command in a terminal. Components are used to add more functionality. There are components to
-display a summary of the output in the [task list](#task-list), to show a notification when the task
-finishes running, and to set the task results into neovim diagnostics.
+parse and handle output, to show a notification when the task
+finishes running, and to re-run the task when files change.
 
 Components are designed to be easy to remove, customize, or replace. If you want to customize some
 aspect or behavior of a task, it's likely that it will be done through components.
@@ -36,8 +37,15 @@ aspect or behavior of a task, it's likely that it will be done through component
 See [custom components](guides.md#custom-components) for how to customize them or define your own,
 and [components](components.md) for a list of built-in components.
 
-**Note**: both tasks and components are designed to be serializable. They avoid putting things like
-functions in their constructors, and as a result can easily be serialized and saved to disk.
+### Serializability
+
+Both tasks and components are designed to be serializable. They generally avoid putting
+unserializable structures like functions in their constructors, and as a result can easily be
+serialized and saved to disk. However, even if they use functions they can still sometimes be
+serializable. For tasks that are created from a template, instead of serializing the raw task and
+component data, we serialize the values that will find and create the same task when passed to
+`overseer.run_task`. So if a task template passes a function to a task, that task _can_ still be
+serialized and saved to disk.
 
 ### Templates
 

@@ -823,11 +823,13 @@ params.
 --------------------------------------------------------------------------------
 ACTIONS                                                         *overseer-actions*
 
-Actions can be performed on tasks by using the `RunAction` keybinding in the
-task list, or by the `OverseerQuickAction` and `OverseerTaskAction` commands.
-They are simply a custom function that will do something to or with a task.
+Actions can be performed on tasks by using the `keymap.run_action` keybinding in
+the task list, or
+by the `OverseerTaskAction` command. Actions are simply custom functions that
+will do something to
+or with a task.
 
-Browse the set of built-in actions at lua/overseer/task_list/actions.lua
+Browse the set of built-in actions at lua/overseer/task_list/actions.lua.
 
 You can define your own or disable any of the built-in actions in the call to
 setup():
@@ -857,8 +859,8 @@ setup():
       -- It will always be available in the "RunAction" menu, but it may be
       -- worth mapping it directly if you use it often.
       task_list = {
-        bindings = {
-          ["P"] = "<CMD>OverseerQuickAction My custom action<CR>",
+        keymaps = {
+          ["P"] = { "keymap.run_action", opts = { action = "my action" }, desc = "Do something cool" },
         },
       },
     })

@@ -31,7 +31,7 @@ overseer.register_template({
 
 **2) as a module**
 
-Similar to [custom components](#custom-components), templates can be lazy-loaded from a module in the `overseer.template` namespace. It is recommended that you namespace your tasks inside of a folder (e.g. `overseer/template/myplugin/first_task.lua`, referenced as `myplugin.first_task`). Overseer will automatically detect and load them.
+Similar to [custom components](#custom-components), templates can be lazy-loaded from a module in the `overseer.template` namespace. So if you put a task inside `<runtimepath>/lua/overseer/template/first_task.lua`, overseer will automatically detect and load it.
 
 ### Template definition
 
@@ -97,12 +97,12 @@ them in a lua file). The structure is as follows:
 ```lua
 ---@type overseer.TemplateFileProvider
 return {
-  generator = function(search, cb)
+  generator = function(search)
+    if not is_task_available() then
+      return "Task is not available for reason X"
+    end
     -- return a list of tasks
     return {...}
-    -- Or if you need to do some async work, pass a list of templates to the callback.
-    -- See the built-in providers for make or npm for an example
-    cb({...})
   end,
   -- Optional. Same as template.condition
   condition = {
@@ -117,11 +117,32 @@ return {
 }
 ```
 
+If you want to do some asynchronous work while listing tasks (such as running a command with
+`vim.system`), you can use the `callback` argument to the generator function.
+
+```lua
+---@type overseer.TemplateFileProvider
+return {
+  generator = function(search, callback)
+    do_some_work(function(err)
+      if err then
+        callback(err)
+        return
+      end
+      -- Pass a list of tasks to the callback
+      callback({...})
+    end)
+  end,
+}
+```
+
 ## Actions
 
-Actions can be performed on tasks by using the `RunAction` keybinding in the task list, or by the `OverseerQuickAction` and `OverseerTaskAction` commands. They are simply a custom function that will do something to or with a task.
+Actions can be performed on tasks by using the `keymap.run_action` keybinding in the task list, or
+by the `OverseerTaskAction` command. Actions are simply custom functions that will do something to
+or with a task.
 
-Browse the set of built-in actions at [lua/overseer/task_list/actions.lua](../lua/overseer/task_list/actions.lua)
+Browse the set of built-in actions at [lua/overseer/task_list/actions.lua](../lua/overseer/task_list/actions.lua).
 
 You can define your own or disable any of the built-in actions in the call to setup():
 
@@ -150,8 +171,8 @@ overseer.setup({
   -- It will always be available in the "RunAction" menu, but it may be
   -- worth mapping it directly if you use it often.
   task_list = {
-    bindings = {
-      ["P"] = "<CMD>OverseerQuickAction My custom action<CR>",
+    keymaps = {
+      ["P"] = { "keymap.run_action", opts = { action = "my action" }, desc = "Do something cool" },
     },
   },
 })
@@ -278,7 +299,13 @@ overseer.add_template_hook({
   dir = "/path/to/my/project",
   module = "^cargo$",
 }, function(task_defn, util)
+  -- The `util` parameter is just a namespace that exposes some useful functions
+  -- for mutating a task definition
   util.add_component(task_defn, { "on_output_quickfix", open = true })
+  util.remove_component(task_defn, "on_complete_dispose")
+  if util.has_component(task_defn, "timeout") then
+    -- ...
+  end
 end)
 ```
 

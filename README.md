@@ -189,6 +189,7 @@ If you want to define custom tasks for your project, I'd recommend starting with
 - [Architecture](doc/explanation.md#architecture)
   - [Tasks](doc/explanation.md#tasks)
   - [Components](doc/explanation.md#components)
+  - [Serializability](doc/explanation.md#serializability)
   - [Templates](doc/explanation.md#templates)
 - [Task list](doc/explanation.md#task-list)
 - [Task editor](doc/explanation.md#task-editor)

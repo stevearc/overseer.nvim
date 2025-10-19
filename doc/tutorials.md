@@ -58,6 +58,8 @@ return {
     local cmd = { file }
     if vim.bo.filetype == "go" then
       cmd = { "go", "run", file }
+    elseif vim.bo.filetype == "python" then
+      cmd = { "python", file }
     end
     return {
       cmd = cmd,
@@ -76,7 +78,7 @@ return {
 }
 ```
 
-Now open up a shell script or go file and run `:OverseerRun`. Select "run script".
+Now open up a shell script, go, or python file and run `:OverseerRun`. Select "run script".
 
 If you want a test file to use, try the following go script:
 
@@ -101,17 +103,18 @@ echo "Hello world"
 ```
 
 The next step is to display the output in a vertical split. For that, we are going to use
-[actions](guides.md#actions). Run `:OverseerQuickAction` and select "open vsplit". This will open
+[actions](guides.md#actions). Run `:OverseerTaskAction`, select your task, and select "open vsplit". This will open
 the output in a vertical split next to your file.
 
 ![Screenshot from 2022-09-04 12-40-04](https://user-images.githubusercontent.com/506791/188330767-d680d200-0938-48d1-86ab-8e993745551d.png)
 
-Try changing your script to have an error, then restart the task. The output should be updated, and you should see inline diagnostics for the error (see `:help vim.diagnostic`).
+Try changing your script to have an error, then restart the task (`:OverseerTaskAction` > task > restart).
+The output should be updated, and you should see inline diagnostics for the error (see `:help vim.diagnostic`).
 
 ![Screenshot from 2022-09-04 12-41-51](https://user-images.githubusercontent.com/506791/188330827-d54af448-aedb-4652-a5f2-8d3d94e1cb31.png)
 
 Lastly, we would like to restart this task every time we save the file. Once more use
-`:OverseerQuickAction` and this time select "watch". It will prompt you for a path to watch, you
+`:OverseerTaskAction` and this time select "watch". It will prompt you for a path to watch, you
 should enter the path to the file. Now every time you `:w` the file it should re-run and update the
 output!
 
@@ -134,4 +137,4 @@ end, {})
 
 Now you can do `:WatchRun` on any supported file and it will run the file, open the output in a split, and re-run on save.
 
-Final note: to stop watching the file use the "dispose" action from `:OverseerQuickAction`.
+Final note: to stop watching the file use the "dispose" action from `:OverseerTaskAction`.
