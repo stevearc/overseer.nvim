@@ -447,7 +447,8 @@ function Task:dispatch(name, ...)
       local ok, err = pcall(cb, self, ...)
       if not ok then
         log.error("Task %s dispatch callback %s: %s", self.name, name, err)
-      elseif err == false then
+      elseif err then
+        -- A truthy return value means unsubscribe
         table.insert(to_unsub, cb)
       end
     end
