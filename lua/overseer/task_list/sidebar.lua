@@ -416,7 +416,8 @@ function Sidebar:render(tasks)
     end)
   end
   vim.bo[self.bufnr].modifiable = true
-  vim.api.nvim_buf_set_lines(self.bufnr, 0, -1, true, lines)
+  -- pcall as updating buffer text in the background could fail with E565
+  pcall(vim.api.nvim_buf_set_lines, self.bufnr, 0, -1, true, lines)
   vim.bo[self.bufnr].modifiable = false
   vim.bo[self.bufnr].modified = false
   util.add_highlights(self.bufnr, ns, highlights)
