@@ -21,6 +21,33 @@
   - [register_template(defn)](#register_templatedefn)
   - [register_alias(name, components, override)](#register_aliasname-components-override)
   - [create_task_output_view(winid, opts)](#create_task_output_viewwinid-opts)
+  - [Task](#task)
+    - [Task:serialize()](#taskserialize)
+    - [Task:clone()](#taskclone)
+    - [Task:add_component(comp)](#taskadd_componentcomp)
+    - [Task:add_components(components)](#taskadd_componentscomponents)
+    - [Task:set_component(comp)](#taskset_componentcomp)
+    - [Task:set_components(components)](#taskset_componentscomponents)
+    - [Task:get_component(name)](#taskget_componentname)
+    - [Task:remove_component(name)](#taskremove_componentname)
+    - [Task:remove_components(names)](#taskremove_componentsnames)
+    - [Task:has_component(name)](#taskhas_componentname)
+    - [Task:subscribe(event, callback)](#tasksubscribeevent-callback)
+    - [Task:unsubscribe(event, callback)](#taskunsubscribeevent-callback)
+    - [Task:is_pending()](#taskis_pending)
+    - [Task:is_running()](#taskis_running)
+    - [Task:is_complete()](#taskis_complete)
+    - [Task:is_disposed()](#taskis_disposed)
+    - [Task:get_bufnr()](#taskget_bufnr)
+    - [Task:open_output(direction)](#taskopen_outputdirection)
+    - [Task:broadcast(name)](#taskbroadcastname)
+    - [Task:dispatch(name)](#taskdispatchname)
+    - [Task:inc_reference()](#taskinc_reference)
+    - [Task:dec_reference()](#taskdec_reference)
+    - [Task:dispose(force)](#taskdisposeforce)
+    - [Task:restart(force_stop)](#taskrestartforce_stop)
+    - [Task:start()](#taskstart)
+    - [Task:stop()](#taskstop)
 - [Components](#components)
   - [dependencies](components.md#dependencies)
   - [on_complete_dispose](components.md#on_complete_dispose)
@@ -529,6 +556,237 @@ overseer.create_task_output_view(0, {
 
 
 <!-- /API -->
+
+### Task
+
+The Task class and its associated methods
+
+<!-- Task API -->
+
+#### Task:serialize()
+
+`Task:serialize(): overseer.TaskDefinition` \
+Returns the arguments require to create a clone of this task when passed to overseer.new_task
+
+
+#### Task:clone()
+
+`Task:clone(): overseer.Task` \
+Create a deep copy of this task
+
+
+#### Task:add_component(comp)
+
+`Task:add_component(comp)` \
+Add a component, no-op if it already exists
+
+| Param | Type                  | Desc |
+| ----- | --------------------- | ---- |
+| comp  | `overseer.Serialized` |      |
+
+#### Task:add_components(components)
+
+`Task:add_components(components)` \
+Add components, skipping any that already exist
+
+| Param      | Type                    | Desc |
+| ---------- | ----------------------- | ---- |
+| components | `overseer.Serialized[]` |      |
+
+#### Task:set_component(comp)
+
+`Task:set_component(comp)` \
+Add component, overwriting any existing
+
+| Param | Type                  | Desc |
+| ----- | --------------------- | ---- |
+| comp  | `overseer.Serialized` |      |
+
+#### Task:set_components(components)
+
+`Task:set_components(components)` \
+Add components, overwriting any existing
+
+| Param      | Type                    | Desc |
+| ---------- | ----------------------- | ---- |
+| components | `overseer.Serialized[]` |      |
+
+#### Task:get_component(name)
+
+`Task:get_component(name): nil|overseer.Component`
+
+| Param | Type     | Desc |
+| ----- | -------- | ---- |
+| name  | `string` |      |
+
+#### Task:remove_component(name)
+
+`Task:remove_component(name): nil|overseer.Component`
+
+| Param | Type     | Desc |
+| ----- | -------- | ---- |
+| name  | `string` |      |
+
+#### Task:remove_components(names)
+
+`Task:remove_components(names): overseer.Component[]`
+
+| Param | Type       | Desc |
+| ----- | ---------- | ---- |
+| names | `string[]` |      |
+
+#### Task:has_component(name)
+
+`Task:has_component(name): boolean`
+
+| Param | Type     | Desc |
+| ----- | -------- | ---- |
+| name  | `string` |      |
+
+#### Task:subscribe(event, callback)
+
+`Task:subscribe(event, callback)` \
+Subscribe to events on this task
+
+| Param    | Type                                               | Desc                                                     |
+| -------- | -------------------------------------------------- | -------------------------------------------------------- |
+| event    | `string`                                           |                                                          |
+| callback | `fun(task: overseer.Task, ...: any): nil\|boolean` | Callback can return a truthy value to unsubscribe itself |
+
+**Note:**
+<pre>
+Listeners cannot be serialized, so will not be saved when saving task to disk and will not be
+copied when cloning the task.
+</pre>
+
+#### Task:unsubscribe(event, callback)
+
+`Task:unsubscribe(event, callback)` \
+Unsubscribe from an event that was previously subscribed to
+
+| Param    | Type                                 | Desc |
+| -------- | ------------------------------------ | ---- |
+| event    | `string`                             |      |
+| callback | `fun(task: overseer.Task, ...: any)` |      |
+
+#### Task:is_pending()
+
+`Task:is_pending(): boolean` \
+Returns true if the task is PENDING
+
+
+#### Task:is_running()
+
+`Task:is_running(): boolean` \
+Returns true if the task is RUNNING
+
+
+#### Task:is_complete()
+
+`Task:is_complete(): boolean` \
+Returns true if the task is complete (not PENDING or RUNNING)
+
+
+#### Task:is_disposed()
+
+`Task:is_disposed(): boolean` \
+Returns true if the task is DISPOSED
+
+
+#### Task:get_bufnr()
+
+`Task:get_bufnr(): number|nil` \
+Get the buffer containing the task output. Will be nil if task is PENDING.
+
+
+#### Task:open_output(direction)
+
+`Task:open_output(direction)` \
+Open the task output in a window
+
+| Param     | Type                                            | Desc |
+| --------- | ----------------------------------------------- | ---- |
+| direction | `nil\|"float"\|"tab"\|"vertical"\|"horizontal"` |      |
+
+**Note:**
+<pre>
+You can also use get_bufnr() to get the buffer and open it however you like.
+</pre>
+
+#### Task:broadcast(name)
+
+`Task:broadcast(name)` \
+Dispatch an event to all other tasks
+
+| Param | Type     | Desc |
+| ----- | -------- | ---- |
+| name  | `string` |      |
+
+#### Task:dispatch(name)
+
+`Task:dispatch(name): any[]` \
+Dispatch an event to all components
+
+| Param | Type     | Desc |
+| ----- | -------- | ---- |
+| name  | `string` |      |
+
+#### Task:inc_reference()
+
+`Task:inc_reference()` \
+Increment the refcount for this Task, preventing it from being disposed (unless force=true)
+
+
+#### Task:dec_reference()
+
+`Task:dec_reference()` \
+Decrement the refcount for this Task
+
+
+#### Task:dispose(force)
+
+`Task:dispose(force): boolean` \
+Cleans up resources, removes from task list, and deletes buffer.
+
+| Param | Type           | Desc                                                                           |
+| ----- | -------------- | ------------------------------------------------------------------------------ |
+| force | `nil\|boolean` | When true, will dispose even with a nonzero refcount or when buffer is visible |
+
+Returns:
+
+| Type    | Desc                               |
+| ------- | ---------------------------------- |
+| boolean | disposed True if task was disposed |
+
+#### Task:restart(force_stop)
+
+`Task:restart(force_stop): boolean` \
+Reset and re-run the task
+
+| Param      | Type           | Desc                                                      |
+| ---------- | -------------- | --------------------------------------------------------- |
+| force_stop | `nil\|boolean` | If true, restart the Task even if it is currently running |
+
+#### Task:start()
+
+`Task:start()` \
+Start a pending task
+
+
+#### Task:stop()
+
+`Task:stop(): boolean` \
+Stop a running task
+
+
+Returns:
+
+| Type    | Desc                                 |
+| ------- | ------------------------------------ |
+| boolean | stopped True if the task was stopped |
+
+
+<!-- /Task API -->
 
 ## Components
 

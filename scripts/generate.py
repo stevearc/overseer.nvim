@@ -330,6 +330,25 @@ def get_highlights_vimdoc() -> "VimdocSection":
     return section
 
 
+def get_api_vimdoc() -> "VimdocSection":
+    types = parse_lua()
+    funcs = types.files["overseer/init.lua"].functions
+    section = VimdocSection(
+        "API", "overseer-api", render_vimdoc_api2("overseer", funcs, types)
+    )
+    funcs = types.files["overseer/task.lua"].functions
+    # Strip out Task.new because it's duplicative of overseer.new_task
+    funcs.pop(0)
+    section.body.append(
+        "overseer.Task                                                      *overseer.Task*\n"
+    )
+    section.body.append("The task class and methods\n")
+    section.body.append("\n")
+    section.body.extend(render_vimdoc_api2("overseer", funcs, types))
+    section.body.append("\n")
+    return section
+
+
 def load_params(params: Dict[str, Any]) -> List[LuaParam]:
     ret = []
     for name, data in sorted(params.items()):
@@ -465,16 +484,12 @@ def convert_md_section(
 
 def generate_vimdoc():
     doc = Vimdoc("overseer.txt", "overseer")
-    types = parse_lua()
-    funcs = types.files["overseer/init.lua"].functions
     doc.sections.extend(
         [
             get_commands_vimdoc(),
             get_options_vimdoc(),
             get_highlights_vimdoc(),
-            VimdocSection(
-                "API", "overseer-api", render_vimdoc_api2("overseer", funcs, types)
-            ),
+            get_api_vimdoc(),
             get_keymaps_vimdoc(),
             get_components_vimdoc(),
             convert_md_section(
@@ -507,6 +522,17 @@ def update_md_api():
         os.path.join(DOC, "reference.md"),
         r"^<!-- API -->$",
         r"^<!-- /API -->$",
+        lines,
+    )
+
+    funcs = types.files["overseer/task.lua"].functions
+    # Strip out Task.new because it's duplicative of overseer.new_task
+    funcs.pop(0)
+    lines = ["\n"] + render_md_api2(funcs, types, level=4) + ["\n"]
+    replace_section(
+        os.path.join(DOC, "reference.md"),
+        r"^<!-- Task API -->$",
+        r"^<!-- /Task API -->$",
         lines,
     )
 

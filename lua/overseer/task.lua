@@ -149,7 +149,7 @@ function Task.new(opts)
   return task
 end
 
--- Returns the arguments require to create a clone of this task
+---Returns the arguments require to create a clone of this task when passed to overseer.new_task
 ---@return overseer.TaskDefinition
 function Task:serialize()
   local components = {}
@@ -233,7 +233,7 @@ function Task:set_components(components)
 end
 
 ---@param name string
----@return overseer.Component?
+---@return nil|overseer.Component
 function Task:get_component(name)
   vim.validate("name", name, "string")
   for _, v in ipairs(self.components) do
@@ -244,7 +244,7 @@ function Task:get_component(name)
 end
 
 ---@param name string
----@return overseer.Component?
+---@return nil|overseer.Component
 function Task:remove_component(name)
   vim.validate("name", name, "string")
   return self:remove_components({ name })[1]
@@ -286,10 +286,11 @@ function Task:has_component(name)
 end
 
 ---Subscribe to events on this task
----Listeners cannot be serialized, so will not be saved when saving task to disk and will not be
----copied when cloning the task.
 ---@param event string
----@param callback fun(task: overseer.Task, ...: any): nil|boolean Callback can return false to unsubscribe itself
+---@param callback fun(task: overseer.Task, ...: any): nil|boolean Callback can return a truthy value to unsubscribe itself
+---@note
+--- Listeners cannot be serialized, so will not be saved when saving task to disk and will not be
+--- copied when cloning the task.
 function Task:subscribe(event, callback)
   if not self._subscribers[event] then
     self._subscribers[event] = {}
@@ -297,6 +298,7 @@ function Task:subscribe(event, callback)
   table.insert(self._subscribers[event], callback)
 end
 
+---Unsubscribe from an event that was previously subscribed to
 ---@param event string
 ---@param callback fun(task: overseer.Task, ...: any)
 function Task:unsubscribe(event, callback)
@@ -310,26 +312,31 @@ function Task:unsubscribe(event, callback)
   end
 end
 
+---Returns true if the task is PENDING
 ---@return boolean
 function Task:is_pending()
   return self.status == STATUS.PENDING
 end
 
+---Returns true if the task is RUNNING
 ---@return boolean
 function Task:is_running()
   return self.status == STATUS.RUNNING
 end
 
+---Returns true if the task is complete (not PENDING or RUNNING)
 ---@return boolean
 function Task:is_complete()
   return self.status ~= STATUS.PENDING and self.status ~= STATUS.RUNNING
 end
 
+---Returns true if the task is DISPOSED
 ---@return boolean
 function Task:is_disposed()
   return self.status == STATUS.DISPOSED
 end
 
+---Get the buffer containing the task output. Will be nil if task is PENDING.
 ---@return number|nil
 function Task:get_bufnr()
   local bufnr = self.strategy:get_bufnr()
@@ -338,7 +345,10 @@ function Task:get_bufnr()
   end
 end
 
+---Open the task output in a window
 ---@param direction? "float"|"tab"|"vertical"|"horizontal"
+---@note
+--- You can also use get_bufnr() to get the buffer and open it however you like.
 function Task:open_output(direction)
   local bufnr = self:get_bufnr()
   if not bufnr then
@@ -400,7 +410,8 @@ function Task:open_output(direction)
 end
 
 ---Put the task back in PENDING state.
----Cannot be called on running or disposed tasks.
+---@note
+--- Cannot be called on running or disposed tasks.
 function Task:reset()
   if self:is_disposed() or self:is_running() then
     error(string.format("Cannot reset %s task", self.status))
@@ -498,8 +509,7 @@ function Task:set_result(data)
   self:dispatch("on_result", self.result)
 end
 
----Increment the refcount for this Task.
----Prevents it from being disposed
+---Increment the refcount for this Task, preventing it from being disposed (unless force=true)
 function Task:inc_reference()
   self._references = self._references + 1
 end
@@ -511,7 +521,7 @@ end
 
 ---Cleans up resources, removes from task list, and deletes buffer.
 ---@param force? boolean When true, will dispose even with a nonzero refcount or when buffer is visible
----@return boolean disposed
+---@return boolean disposed True if task was disposed
 function Task:dispose(force)
   vim.validate("force", force, "boolean", true)
   if self:is_disposed() then
@@ -556,6 +566,7 @@ function Task:dispose(force)
   return true
 end
 
+---Reset and re-run the task
 ---@param force_stop? boolean If true, restart the Task even if it is currently running
 ---@return boolean
 function Task:restart(force_stop)
@@ -595,6 +606,7 @@ function Task:on_exit(code)
   end
 end
 
+---Start a pending task
 function Task:start()
   if self:is_complete() then
     log.error("Cannot start task '%s' that has completed", self.name)
@@ -632,6 +644,8 @@ function Task:start()
   return true
 end
 
+---Stop a running task
+---@return boolean stopped True if the task was stopped
 function Task:stop()
   if not self:is_running() then
     return false

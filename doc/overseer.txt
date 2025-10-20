@@ -486,6 +486,152 @@ create_task_output_view({winid}, {opts})        *overseer.create_task_output_vie
       })
 <
 
+overseer.Task                                                      *overseer.Task*
+The task class and methods
+
+Task:clone(): overseer.Task                                  *overseer.Task:clone*
+    Create a deep copy of this task
+
+
+Task:add_component({comp})                           *overseer.Task:add_component*
+    Add a component, no-op if it already exists
+
+    Parameters:
+      {comp} `overseer.Serialized`
+
+Task:add_components({components})                   *overseer.Task:add_components*
+    Add components, skipping any that already exist
+
+    Parameters:
+      {components} `overseer.Serialized[]`
+
+Task:set_component({comp})                           *overseer.Task:set_component*
+    Add component, overwriting any existing
+
+    Parameters:
+      {comp} `overseer.Serialized`
+
+Task:set_components({components})                   *overseer.Task:set_components*
+    Add components, overwriting any existing
+
+    Parameters:
+      {components} `overseer.Serialized[]`
+
+Task:get_component({name}): nil|overseer.Component   *overseer.Task:get_component*
+
+    Parameters:
+      {name} `string`
+
+Task:remove_component({name}): nil|overseer.Component *overseer.Task:remove_component*
+
+    Parameters:
+      {name} `string`
+
+Task:remove_components({names}): overseer.Component[] *overseer.Task:remove_components*
+
+    Parameters:
+      {names} `string[]`
+
+Task:has_component({name}): boolean                  *overseer.Task:has_component*
+
+    Parameters:
+      {name} `string`
+
+Task:subscribe({event}, {callback})                      *overseer.Task:subscribe*
+    Subscribe to events on this task
+
+    Parameters:
+      {event}    `string`
+      {callback} `fun(task: overseer.Task, ...: any): nil|boolean` Callback can
+                 return a truthy value to unsubscribe itself
+
+    Note:
+      Listeners cannot be serialized, so will not be saved when saving task to disk and will not be
+      copied when cloning the task.
+
+Task:unsubscribe({event}, {callback})                  *overseer.Task:unsubscribe*
+    Unsubscribe from an event that was previously subscribed to
+
+    Parameters:
+      {event}    `string`
+      {callback} `fun(task: overseer.Task, ...: any)`
+
+Task:is_pending(): boolean                              *overseer.Task:is_pending*
+    Returns true if the task is PENDING
+
+
+Task:is_running(): boolean                              *overseer.Task:is_running*
+    Returns true if the task is RUNNING
+
+
+Task:is_complete(): boolean                            *overseer.Task:is_complete*
+    Returns true if the task is complete (not PENDING or RUNNING)
+
+
+Task:is_disposed(): boolean                            *overseer.Task:is_disposed*
+    Returns true if the task is DISPOSED
+
+
+Task:get_bufnr(): number|nil                             *overseer.Task:get_bufnr*
+    Get the buffer containing the task output. Will be nil if task is PENDING.
+
+
+Task:open_output({direction})                          *overseer.Task:open_output*
+    Open the task output in a window
+
+    Parameters:
+      {direction} `nil|"float"|"tab"|"vertical"|"horizontal"`
+
+    Note:
+      You can also use get_bufnr() to get the buffer and open it however you like.
+
+Task:broadcast({name})                                   *overseer.Task:broadcast*
+    Dispatch an event to all other tasks
+
+    Parameters:
+      {name} `string`
+
+Task:dispatch({name}): any[]                              *overseer.Task:dispatch*
+    Dispatch an event to all components
+
+    Parameters:
+      {name} `string`
+
+Task:inc_reference()                                 *overseer.Task:inc_reference*
+    Increment the refcount for this Task, preventing it from being disposed
+    (unless force=true)
+
+
+Task:dec_reference()                                 *overseer.Task:dec_reference*
+    Decrement the refcount for this Task
+
+
+Task:dispose({force}): boolean                             *overseer.Task:dispose*
+    Cleans up resources, removes from task list, and deletes buffer.
+
+    Parameters:
+      {force} `nil|boolean` When true, will dispose even with a nonzero refcount
+              or when buffer is visible
+    Returns:
+      `boolean` disposed True if task was disposed
+
+Task:restart({force_stop}): boolean                        *overseer.Task:restart*
+    Reset and re-run the task
+
+    Parameters:
+      {force_stop} `nil|boolean` If true, restart the Task even if it is
+                   currently running
+
+Task:start()                                                 *overseer.Task:start*
+    Start a pending task
+
+
+Task:stop(): boolean                                          *overseer.Task:stop*
+    Stop a running task
+
+    Returns:
+      `boolean` stopped True if the task was stopped
+
 --------------------------------------------------------------------------------
 KEYMAPS                                                         *overseer-keymaps*
 
@@ -494,7 +640,7 @@ using all the same parameters as |vim.keymap.set|.
 >lua
     keymaps = {
         -- Mappings can be a string
-        ["<CR>"] = "keymap.run_action",
+        ["<CR>"] = "<CMD>lua require('overseer').run_action()<CR>",
         -- Mappings can be a function
         gd = function()
             for _, task in ipairs(require("overseer").list_tasks()) do
