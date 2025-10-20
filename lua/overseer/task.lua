@@ -515,7 +515,7 @@ end
 function Task:dispose(force)
   vim.validate("force", force, "boolean", true)
   if self:is_disposed() then
-    return false
+    return true
   end
   if self._references > 0 and not force then
     log.debug("Not disposing task %s: has %d references", self.name, self._references)
