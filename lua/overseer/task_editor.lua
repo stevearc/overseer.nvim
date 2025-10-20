@@ -423,6 +423,7 @@ function Editor:submit()
     return c[1]
   end, self.components))
   local to_remove = {}
+  ---@diagnostic disable-next-line: invisible
   for _, v in ipairs(self.task.components) do
     if not seen[v.name] then
       table.insert(to_remove, v.name)

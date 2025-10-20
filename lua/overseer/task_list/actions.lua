@@ -187,6 +187,7 @@ M = {
         title = task.name,
         lines = lines,
         -- Peep into the default component params to fetch the errorformat
+        ---@diagnostic disable-next-line: invisible
         efm = task.default_component_params.errorformat,
       })
       vim.cmd("botright copen")

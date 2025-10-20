@@ -406,6 +406,7 @@ local wrapped_jobstart = function(cmd, opts)
     components = { "default_builtin" },
   })
   task:start()
+  ---@diagnostic disable-next-line: invisible
   local strat = task.strategy
   ---@cast strat overseer.JobstartStrategy
   return strat.job_id
@@ -434,6 +435,7 @@ local wrapped_system = function(cmd, opts, on_exit)
     components = { "default_builtin" },
   })
   task:start()
+  ---@diagnostic disable-next-line: invisible
   local strat = task.strategy
   ---@cast strat overseer.SystemStrategy
   return strat.handle

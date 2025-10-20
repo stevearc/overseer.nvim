@@ -21,7 +21,7 @@
   - [register_template(defn)](#register_templatedefn)
   - [register_alias(name, components, override)](#register_aliasname-components-override)
   - [create_task_output_view(winid, opts)](#create_task_output_viewwinid-opts)
-  - [Task](#task)
+  - [overseer.Task](#overseertask)
     - [Task:serialize()](#taskserialize)
     - [Task:clone()](#taskclone)
     - [Task:add_component(comp)](#taskadd_componentcomp)
@@ -557,11 +557,26 @@ overseer.create_task_output_view(0, {
 
 <!-- /API -->
 
-### Task
-
-The Task class and its associated methods
-
 <!-- Task API -->
+### overseer.Task
+
+| Field      | Type                         | Desc                                                                                                   |
+| ---------- | ---------------------------- | ------------------------------------------------------------------------------------------------------ |
+| id         | `integer`                    | Unique ID for this task                                                                                |
+| result     | `nil\|table<string, any>`    | For successful tasks, arbitrary key-value mapping of data produced by components                       |
+| metadata   | `table<string, any>`         | Arbitrary key-value mapping passed by the user during construction                                     |
+| status     | `overseer.Status`            | Current task status                                                                                    |
+| cmd        | `string\|string[]`           | Command to run. If it's a string it is run in the shell                                                |
+| cwd        | `string`                     | Working directory the task is run in                                                                   |
+| env        | `nil\|table<string, string>` | Additional environment variables for the task                                                          |
+| name       | `string`                     | Name of the task                                                                                       |
+| ephemeral  | `boolean`                    | Indicates that this task was generated indirectly (e.g. with run_after)                                |
+| source     | `nil\|overseer.Caller`       | If this task was created by wrapping jobstart/vim.system, this contains information about the callsite |
+| exit_code  | `nil\|integer`               | Exit code of the task process                                                                          |
+| parent_id  | `nil\|integer`               | ID of parent task. Used only to visually group tasks in the task list                                  |
+| time_start | `nil\|integer`               | Timestamp when the task was started (os.time())                                                        |
+| time_end   | `nil\|integer`               | Timestamp when the task ended (os.time())                                                              |
+
 
 #### Task:serialize()
 
@@ -655,8 +670,8 @@ Subscribe to events on this task
 
 **Note:**
 <pre>
-Listeners cannot be serialized, so will not be saved when saving task to disk and will not be
-copied when cloning the task.
+Listeners cannot be serialized, so will not be saved when saving task
+to disk and will not be copied when cloning the task.
 </pre>
 
 #### Task:unsubscribe(event, callback)

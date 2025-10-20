@@ -21,7 +21,9 @@ from nvim_doc_tools import (
     parse_directory,
     read_section,
     render_md_api2,
+    render_md_classes,
     render_vimdoc_api2,
+    render_vimdoc_classes,
     replace_section,
     wrap,
 )
@@ -336,13 +338,13 @@ def get_api_vimdoc() -> "VimdocSection":
     section = VimdocSection(
         "API", "overseer-api", render_vimdoc_api2("overseer", funcs, types)
     )
+
+    task = types.classes["overseer.Task"]
+    section.body.extend(render_vimdoc_classes([task], types))
+    section.body.append("\n")
     funcs = types.files["overseer/task.lua"].functions
     # Strip out Task.new because it's duplicative of overseer.new_task
     funcs.pop(0)
-    section.body.append(
-        "overseer.Task                                                      *overseer.Task*\n"
-    )
-    section.body.append("The task class and methods\n")
     section.body.append("\n")
     section.body.extend(render_vimdoc_api2("overseer", funcs, types))
     section.body.append("\n")
@@ -525,10 +527,15 @@ def update_md_api():
         lines,
     )
 
+    task = types.classes["overseer.Task"]
+    lines = render_md_classes([task], types, level=3)
+    lines.append("\n")
+
     funcs = types.files["overseer/task.lua"].functions
     # Strip out Task.new because it's duplicative of overseer.new_task
     funcs.pop(0)
-    lines = ["\n"] + render_md_api2(funcs, types, level=4) + ["\n"]
+    lines.extend(render_md_api2(funcs, types, level=4))
+    lines.append("\n")
     replace_section(
         os.path.join(DOC, "reference.md"),
         r"^<!-- Task API -->$",

@@ -239,7 +239,7 @@ If you want to define custom tasks for your project, I'd recommend starting with
   - [register_template(defn)](doc/reference.md#register_templatedefn)
   - [register_alias(name, components, override)](doc/reference.md#register_aliasname-components-override)
   - [create_task_output_view(winid, opts)](doc/reference.md#create_task_output_viewwinid-opts)
-  - [Task](doc/reference.md#task)
+  - [overseer.Task](doc/reference.md#overseertask)
     - [Task:serialize()](doc/reference.md#taskserialize)
     - [Task:clone()](doc/reference.md#taskclone)
     - [Task:add_component(comp)](doc/reference.md#taskadd_componentcomp)

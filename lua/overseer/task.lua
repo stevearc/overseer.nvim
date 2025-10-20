@@ -11,28 +11,31 @@ local util = require("overseer.util")
 local STATUS = constants.STATUS
 
 ---@class overseer.Task
----@field id number
----@field result? table
----@field metadata table
----@field default_component_params table
----@field status overseer.Status
----@field cmd string|string[]
----@field cwd string
----@field env? table<string, string>
----@field strategy_defn string|table
----@field strategy overseer.Strategy
----@field name string
+---@opaque
+---@field id integer Unique ID for this task
+---@field result? table<string, any> For successful tasks, arbitrary key-value mapping of data produced by components
+---@field metadata table<string, any> Arbitrary key-value mapping passed by the user during construction
+---@field private default_component_params table<string, any>
+---@field status overseer.Status Current task status
+---@field cmd string|string[] Command to run. If it's a string it is run in the shell
+---@field cwd string Working directory the task is run in
+---@field env? table<string, string> Additional environment variables for the task
+---@field private strategy_defn string|table
+---@field private strategy overseer.Strategy
+---@field name string Name of the task
 ---@field ephemeral boolean Indicates that this task was generated indirectly (e.g. with run_after)
 ---@field source? overseer.Caller If this task was created by wrapping jobstart/vim.system, this contains information about the callsite
----@field exit_code? number
----@field components overseer.Component[]
+---@field exit_code? integer Exit code of the task process
+---@field private components overseer.Component[]
 ---@field parent_id? integer ID of parent task. Used only to visually group tasks in the task list
----@field time_start? integer
----@field time_end? integer
+---@field time_start? integer Timestamp when the task was started (os.time())
+---@field time_end? integer Timestamp when the task ended (os.time())
 ---@field private from_template? overseer.TemplateSource
 ---@field private prev_bufnr? integer
----@field private _subscribers table<string, function[]>
+---@field private _subscribers table<string, overseer.TaskEventHandler[]>
 local Task = {}
+
+---@alias overseer.TaskEventHandler fun(task: overseer.Task, ...: any): nil|boolean
 
 local next_id = 1
 
@@ -289,8 +292,8 @@ end
 ---@param event string
 ---@param callback fun(task: overseer.Task, ...: any): nil|boolean Callback can return a truthy value to unsubscribe itself
 ---@note
---- Listeners cannot be serialized, so will not be saved when saving task to disk and will not be
---- copied when cloning the task.
+--- Listeners cannot be serialized, so will not be saved when saving task
+--- to disk and will not be copied when cloning the task.
 function Task:subscribe(event, callback)
   if not self._subscribers[event] then
     self._subscribers[event] = {}
