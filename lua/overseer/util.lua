@@ -1,3 +1,4 @@
+local log = require("overseer.log")
 local M = {}
 
 ---@param winid? number
@@ -147,13 +148,38 @@ M.scroll_to_end = function(winid)
   vim.api.nvim_set_option_value("scrolloff", scrolloff, { scope = "local", win = winid })
 end
 
----@param bufnr number
----@param ns number
----@param highlights table
-M.add_highlights = function(bufnr, ns, highlights)
-  for _, hl in ipairs(highlights) do
-    local group, lnum, col_start, col_end = unpack(hl)
-    vim.api.nvim_buf_add_highlight(bufnr, ns, group, lnum - 1, col_start, col_end)
+---@param bufnr integer
+---@param ns integer
+---@param lines overseer.TextChunk[][]
+M.render_buf_chunks = function(bufnr, ns, lines)
+  if not bufnr or not vim.api.nvim_buf_is_valid(bufnr) then
+    return
+  end
+  vim.api.nvim_buf_clear_namespace(bufnr, ns, 0, -1)
+  local new_lines = {}
+  local extmarks = {}
+  for _, chunks in ipairs(lines) do
+    local line = {}
+    local i = 0
+    for _, chunk in ipairs(chunks) do
+      ---@cast chunk overseer.TextChunk
+      local text, hl = chunk[1], chunk[2]
+      assert(type(text) == "string", "Text chunk must have a string as the first element")
+      table.insert(line, text)
+      if hl then
+        table.insert(extmarks, { #new_lines, i, { hl_group = hl, end_col = i + #text } })
+      end
+      i = i + #text
+    end
+    local line_text = table.concat(line, ""):gsub("\n", " ")
+    table.insert(new_lines, line_text)
+  end
+  vim.bo[bufnr].modifiable = true
+  vim.api.nvim_buf_set_lines(bufnr, 0, -1, false, new_lines)
+  vim.bo[bufnr].modifiable = false
+  vim.bo[bufnr].modified = false
+  for _, extmark in ipairs(extmarks) do
+    vim.api.nvim_buf_set_extmark(bufnr, ns, extmark[1], extmark[2], extmark[3])
   end
 end
 
@@ -171,15 +197,18 @@ end
 ---@param text string
 ---@param width number
 ---@param alignment "left"|"right"|"center"
+---@return string
 M.align = function(text, width, alignment)
+  local textwidth = vim.api.nvim_strwidth(text)
   if alignment == "center" then
-    local padding = math.floor((width - string.len(text)) / 2)
-    return string.rep(" ", padding) .. text
+    local padding = math.floor((width - textwidth) / 2)
+    return string.rep(" ", padding) .. text .. string.rep(" ", width - textwidth - padding)
   elseif alignment == "right" then
-    local padding = width - string.len(text)
+    local padding = width - textwidth
     return string.rep(" ", padding) .. text
   else
-    return text
+    local padding = width - textwidth
+    return text .. string.rep(" ", padding)
   end
 end
 
@@ -486,75 +515,11 @@ M.set_bufenter_callback = function(bufnr, key, callback)
   })
 end
 
----@param group string
----@return nil|integer
-M.get_hl_foreground = function(group)
-  if vim.fn.has("nvim-0.9") == 1 then
-    return vim.api.nvim_get_hl(0, { name = group }).fg
-  else
-    ---@diagnostic disable-next-line: undefined-field, deprecated
-    local ok, data = pcall(vim.api.nvim_get_hl_by_name, group, true)
-    if ok then
-      return data.foreground
-    end
-  end
-end
-
----@param color integer
----@return number[]
-M.color_to_rgb = function(color)
-  local r = bit.band(bit.rshift(color, 16), 0xff)
-  local g = bit.band(bit.rshift(color, 8), 0xff)
-  local b = bit.band(color, 0xff)
-  return { r / 255.0, g / 255.0, b / 255.0 }
-end
-
--- Attempts to find a green color from the current colorscheme
-M.find_success_color = function()
-  if vim.fn.has("nvim-0.9") == 1 then
-    return "DiagnosticOk"
-  end
-  local candidates = {
-    "Constant",
-    "Keyword",
-    "Special",
-    "Type",
-    "PreProc",
-    "Operator",
-    "String",
-    "Statement",
-    "Identifier",
-    "Function",
-    "Character",
-    "Title",
-  }
-  local best_grp
-  local best
-  for _, grp in ipairs(candidates) do
-    local fg = M.get_hl_foreground(grp)
-    if fg then
-      local rgb = M.color_to_rgb(fg)
-      -- Super simple "green" detection heuristic: g - r - b
-      local score = rgb[2] - rgb[1] - rgb[3]
-      if not best or score > best then
-        best_grp = grp
-        best = score
-      end
-    end
-  end
-  if best_grp and best > -0.5 then
-    return best_grp
-  end
-  return "DiagnosticInfo"
-end
-
 ---@param func fun(...: any)
 ---@param opts? {reset_timer_on_call: nil|boolean, delay: nil|integer|fun(...: any): integer}
 M.debounce = function(func, opts)
-  vim.validate({
-    func = { func, "f" },
-    opts = { opts, "t", true },
-  })
+  vim.validate("func", func, "function")
+  vim.validate("opts", opts, "table", true)
   opts = opts or {}
   local delay = opts.delay or 300
   local timer = nil
@@ -571,7 +536,7 @@ M.debounce = function(func, opts)
     if type(delay) == "function" then
       delay = delay(unpack(args))
     end
-    timer = assert(vim.loop.new_timer())
+    timer = assert(vim.uv.new_timer())
     timer:start(delay, 0, function()
       timer:close()
       timer = nil
@@ -603,16 +568,46 @@ M.format_duration = function(duration)
   return time
 end
 
+---@param time integer
+---@return string
+M.format_relative_timestamp = function(time)
+  local from_now = time - os.time()
+  local suffix = ""
+  if from_now <= 0 and from_now > -5 then
+    return "just now"
+  elseif from_now > 0 and from_now <= 5 then
+    return "a few seconds"
+  end
+  if from_now < 0 then
+    from_now = -from_now
+    suffix = " ago"
+  end
+  local secs = from_now % 60
+  local days = math.floor(from_now / day_s)
+  local hours = math.floor((from_now % day_s) / hour_s)
+  local mins = math.floor((from_now % hour_s) / minute_s)
+  if days > 0 then
+    return string.format("%d day%s%s", days, days > 1 and "s" or "", suffix)
+  elseif hours > 0 then
+    return string.format("%d hour%s%s", hours, hours > 1 and "s" or "", suffix)
+  elseif mins > 0 then
+    return string.format("%d minute%s%s", mins, mins > 1 and "s" or "", suffix)
+  else
+    return string.format("%d second%s%s", secs, secs > 1 and "s" or "", suffix)
+  end
+end
+
 ---@param name_or_config string|table
 ---@param cb fun(task: nil|overseer.Task)
 M.run_template_or_task = function(name_or_config, cb)
   if type(name_or_config) == "table" and name_or_config[1] == nil then
     -- This is a raw task params table
+    ---@cast name_or_config overseer.TaskDefinition
     cb(require("overseer").new_task(name_or_config))
   else
     local name, dep_params = M.split_config(name_or_config)
     -- If no task ID found, start the dependency
-    require("overseer.commands").run_template({
+    require("overseer").run_task({
       name = name,
       params = dep_params,
       autostart = false,
@@ -625,37 +620,53 @@ end
 ---@param callback fun()
 M.run_in_fullscreen_win = function(bufnr, callback)
   if not bufnr or bufnr == 0 then
-    bufnr = vim.api.nvim_get_current_buf()
+    bufnr = vim.api.nvim_create_buf(false, true)
+    vim.bo[bufnr].bufhidden = "wipe"
   end
   local start_winid = vim.api.nvim_get_current_win()
-  local winid = vim.api.nvim_open_win(bufnr, false, {
+  local eventignore = vim.o.eventignore
+  vim.o.eventignore = "all"
+  local winid = vim.api.nvim_open_win(bufnr, true, {
     relative = "editor",
     width = vim.o.columns,
     height = vim.o.lines,
     row = 0,
     col = 0,
-    noautocmd = true,
   })
-  local winnr = vim.api.nvim_win_get_number(winid)
-  vim.cmd.wincmd({ count = winnr, args = { "w" }, mods = { noautocmd = true } })
   local ok, err = xpcall(callback, debug.traceback)
   if not ok then
-    vim.api.nvim_err_writeln(err)
+    vim.api.nvim_echo({ { err } }, true, { err = true })
   end
-  winnr = vim.api.nvim_win_get_number(winid)
-  vim.cmd.close({ count = winnr, mods = { noautocmd = true, emsg_silent = true } })
-  winnr = vim.api.nvim_win_get_number(start_winid)
-  vim.cmd.wincmd({ count = winnr, args = { "w" }, mods = { noautocmd = true } })
+  pcall(vim.api.nvim_win_close, winid, true)
+  vim.api.nvim_set_current_win(start_winid)
+  vim.o.eventignore = eventignore
+end
+
+---@param callback fun()
+M.eventignore_call = function(callback)
+  local eventignore = vim.o.eventignore
+  vim.o.eventignore = "all"
+  local ok, err = xpcall(callback, debug.traceback)
+  vim.o.eventignore = eventignore
+  if not ok then
+    error(err)
+  end
 end
 
 ---Run a function in the context of a current directory
----@param cwd string
+---@param cwd? string
 ---@param callback fun()
 M.run_in_cwd = function(cwd, callback)
-  M.run_in_fullscreen_win(nil, function()
-    vim.cmd.lcd({ args = { cwd }, mods = { silent = true, noautocmd = true } })
-    callback()
-  end)
+  if not cwd then
+    return callback()
+  end
+  local prev_cwd = vim.fn.getcwd()
+  vim.cmd.lcd({ args = { cwd }, mods = { emsg_silent = true, noautocmd = true } })
+  local ok, err = xpcall(callback, debug.traceback)
+  if not ok then
+    vim.api.nvim_echo({ { err } }, true, { err = true })
+  end
+  vim.cmd.lcd({ args = { prev_cwd }, mods = { emsg_silent = true, noautocmd = true } })
 end
 
 ---@param status overseer.Status
@@ -682,23 +693,6 @@ M.soft_delete_buf = function(bufnr)
       vim.api.nvim_buf_delete(bufnr, { force = true })
     end
   end
-end
-
----This is a hack so we don't end up in insert mode after starting a task
----@param prev_mode string The vim mode we were in before opening a terminal
-M.hack_around_termopen_autocmd = function(prev_mode)
-  -- It's common to have autocmds that enter insert mode when opening a terminal
-  vim.defer_fn(function()
-    local new_mode = vim.api.nvim_get_mode().mode
-    if new_mode ~= prev_mode then
-      if string.find(new_mode, "i") == 1 then
-        vim.api.nvim_feedkeys(vim.api.nvim_replace_termcodes("<ESC>", true, true, true), "n", false)
-        if string.find(prev_mode, "v") == 1 or string.find(prev_mode, "V") == 1 then
-          vim.cmd.normal({ bang = true, args = { "gv" } })
-        end
-      end
-    end
-  end, 10)
 end
 
 ---@param old_bufnr nil|integer
@@ -743,6 +737,73 @@ M.get_last_output_lines = function(bufnr, num_lines)
     end_line = end_line - need_lines
   end
   return lines
+end
+
+---@class overseer.Caller
+---@field file? string
+---@field lnum? integer
+---@field module? string
+---@field top_module? string
+
+---@param file string
+---@param caller overseer.Caller
+local function assign_module(file, caller)
+  local relpath
+  for path in vim.gsplit(vim.o.runtimepath, ",", { plain = true }) do
+    path = path .. "/lua"
+    if file:find(path, 1, true) == 1 then
+      relpath = file:sub(#path + 2)
+      break
+    end
+  end
+  if relpath then
+    local mod = vim.fn.fnamemodify(relpath, ":r"):gsub("[/\\]", ".")
+    local top_mod
+    local dot_idx = mod:find(".", 1, true)
+    if dot_idx then
+      top_mod = mod:sub(1, dot_idx - 1)
+    else
+      top_mod = mod
+    end
+    caller.module = mod
+    caller.top_module = top_mod
+  end
+end
+
+---@return overseer.Caller
+M.get_caller = function()
+  -- 1: this function
+  -- 2: the wrapper function in init.lua
+  -- 3: the actual caller of the jobstart/system function
+  local level = 3
+  local info
+  while true do
+    info = debug.getinfo(level, "Sl")
+    if not info then
+      log.trace("No source info found: %s", debug.traceback())
+      return {}
+    end
+    if info.what ~= "C" then
+      break
+    end
+    level = level + 1
+  end
+  local file, lnum
+  if not info.source:match("^@") then
+    log.trace("Source is not file: %s\n%s", info.source, debug.traceback())
+    return {}
+  end
+
+  file = info.source:sub(2)
+  lnum = info.currentline
+  local ret = { file = file, lnum = lnum }
+  if vim.in_fast_event() then
+    -- This reads runtimepath and uses fnamemodify, which are not safe in fast events
+    vim.schedule_wrap(assign_module)(file, ret)
+  else
+    assign_module(file, ret)
+  end
+  return ret
 end
 
 return M

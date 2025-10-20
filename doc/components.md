@@ -3,14 +3,13 @@
 <!-- TOC -->
 
 - [dependencies](#dependencies)
-- [display_duration](#display_duration)
 - [on_complete_dispose](#on_complete_dispose)
 - [on_complete_notify](#on_complete_notify)
 - [on_complete_restart](#on_complete_restart)
 - [on_exit_set_status](#on_exit_set_status)
+- [on_output_notify](#on_output_notify)
 - [on_output_parse](#on_output_parse)
 - [on_output_quickfix](#on_output_quickfix)
-- [on_output_summarize](#on_output_summarize)
 - [on_output_write_file](#on_output_write_file)
 - [on_result_diagnostics](#on_result_diagnostics)
 - [on_result_diagnostics_quickfix](#on_result_diagnostics_quickfix)
@@ -30,22 +29,12 @@
 
 Set dependencies for task
 
-| Param       | Type           | Default | Desc                               |
-| ----------- | -------------- | ------- | ---------------------------------- |
-| *task_names | `list[string]` |         | Names of dependency task templates |
-| sequential  | `boolean`      | `false` |                                    |
+| Param      | Type           | Default | Desc                               |
+| ---------- | -------------- | ------- | ---------------------------------- |
+| sequential | `boolean`      | `false` |                                    |
+| tasks      | `list[string]` |         | Names of dependency task templates |
 
-- **task_names:** This can be a list of strings (template names, e.g. {"cargo build"}), tables (name with params, e.g. {"shell", cmd = "sleep 10"}), or tables (raw task params, e.g. {cmd = "sleep 10"})
-
-## display_duration
-
-[display_duration.lua](../lua/overseer/component/display_duration.lua)
-
-Display the run duration
-
-| Param        | Type      | Default | Desc                                   |
-| ------------ | --------- | ------- | -------------------------------------- |
-| detail_level | `integer` | `1`     | Show the duration at this detail level |
+- **tasks:** This can be a list of strings (template names, e.g. "cargo build"), tables (template name with params, e.g. {"mytask", foo = "bar"}), or tables (raw task params, e.g. {cmd = "sleep 10"})
 
 ## on_complete_dispose
 
@@ -94,6 +83,27 @@ Sets final task status based on exit code
 | ------------- | --------------- | -------------------------------------------- |
 | success_codes | `list[integer]` | Additional exit codes to consider as success |
 
+## on_output_notify
+
+[on_output_notify.lua](../lua/overseer/component/on_output_notify.lua)
+
+Use nvim-notify to show notification with task output summary for long-running tasks
+
+Works like on_complete_notify but, for long-running commands, also shows real-time output summary.
+Requires nvim-notify to modify the last notification window when new output arrives instead of
+creating new notification.
+
+| Param              | Type      | Default | Desc                                                                                     |
+| ------------------ | --------- | ------- | ---------------------------------------------------------------------------------------- |
+| delay_ms           | `number`  | `2000`  | Time in milliseconds to wait before displaying the notification during task runtime      |
+| max_lines          | `integer` | `1`     | Number of lines of output to show                                                        |
+| max_width          | `integer` | `49`    | Maximum output width                                                                     |
+| output_on_complete | `boolean` | `false` | Show the last lines of task output and status on completion (instead of only the status) |
+| trim               | `boolean` | `true`  | Remove whitespace from both sides of each line                                           |
+
+- **output_on_complete:** When output_on_complete==true: shows status + last output lines during task runtime and after completion.
+When output_on_complete==false: shows status + last output lines during task runtime and only status after completion.
+
 ## on_output_parse
 
 [on_output_parse.lua](../lua/overseer/component/on_output_parse.lua)
@@ -102,11 +112,15 @@ Parses task output and sets task result
 
 | Param              | Type     | Desc                                                                 |
 | ------------------ | -------- | -------------------------------------------------------------------- |
-| parser             | `opaque` | Parser definition to extract values from output                      |
+| parser             | `opaque` | Parse function or overseer.OutputParser                              |
 | problem_matcher    | `opaque` | VS Code-style problem matcher                                        |
-| relative_file_root | `string` | Relative filepaths will be joined to this root (instead of task cwd) |
+| errorformat        | `opaque` | Errorformat string                                                   |
 | precalculated_vars | `opaque` | Precalculated VS Code task variables                                 |
+| relative_file_root | `string` | Relative filepaths will be joined to this root (instead of task cwd) |
 
+- **parser:** This can be a function that takes a line of output and (optionally) returns a quickfix-list item (see :help |setqflist-what|). For more complex parsing, this should be a class of type overseer.OutputParser.
+- **problem_matcher:** Only one of 'parser', 'problem_matcher', or 'errorformat' is allowed.
+- **errorformat:** Only one of 'parser', 'problem_matcher', or 'errorformat' is allowed.
 - **precalculated_vars:** Tasks that are started from the VS Code provider precalculate certain interpolated variables (e.g. ${workspaceFolder}). We pass those in as params so they will remain stable even if Neovim's state changes in between creating and running (or restarting) the task.
 
 ## on_output_quickfix
@@ -129,16 +143,6 @@ Set all task output into the quickfix (on complete)
 | tail               | `boolean` | `true`    | Update the quickfix with task output as it happens, instead of waiting until completion |
 
 - **tail:** This may cause unexpected results for commands that produce "fancy" output using terminal escape codes (e.g. animated progress indicators)
-
-## on_output_summarize
-
-[on_output_summarize.lua](../lua/overseer/component/on_output_summarize.lua)
-
-Summarize task output in the task list
-
-| Param     | Type      | Default | Desc                                              |
-| --------- | --------- | ------- | ------------------------------------------------- |
-| max_lines | `integer` | `4`     | Number of lines of output to show when detail > 1 |
 
 ## on_output_write_file
 
@@ -227,12 +231,12 @@ Open task output
 
 Restart on any buffer :write
 
-| Param     | Type           | Default     | Desc                                                                      |
-| --------- | -------------- | ----------- | ------------------------------------------------------------------------- |
-| delay     | `number`       | `500`       | How long to wait (in ms) before triggering restart                        |
-| interrupt | `boolean`      | `true`      | Interrupt running tasks                                                   |
-| mode      | `enum`         | `"autocmd"` | How to watch the paths (`"autocmd"\|"uv"`)                                |
-| paths     | `list[string]` |             | Only restart when writing files in these paths (can be directory or file) |
+| Param     | Type           | Default     | Desc                                                                                |
+| --------- | -------------- | ----------- | ----------------------------------------------------------------------------------- |
+| delay     | `number`       | `500`       | How long to wait (in ms) before triggering restart                                  |
+| interrupt | `boolean`      | `true`      | Interrupt running tasks. If false, will wait for task to complete before restarting |
+| mode      | `enum`         | `"autocmd"` | How to watch the paths (`"autocmd"\|"uv"`)                                          |
+| paths     | `list[string]` |             | Only restart when writing files in these paths (can be directory or file)           |
 
 - **mode:** 'autocmd' will set autocmds on BufWritePost. 'uv' will use a libuv file watcher (recursive watching may not be supported on all platforms).
 
@@ -242,14 +246,14 @@ Restart on any buffer :write
 
 Run other tasks after this task completes
 
-| Param       | Type           | Default       | Desc                                                          |
-| ----------- | -------------- | ------------- | ------------------------------------------------------------- |
-| *task_names | `list[string]` |               | Names of dependency task templates                            |
-| detach      | `boolean`      | `false`       | Tasks created will not be linked to the parent task           |
-| statuses    | `list[enum]`   | `["SUCCESS"]` | Only run successive tasks if the final status is in this list |
+| Param    | Type           | Default       | Desc                                                          |
+| -------- | -------------- | ------------- | ------------------------------------------------------------- |
+| detach   | `boolean`      | `false`       | Tasks created will not be linked to the parent task           |
+| statuses | `list[enum]`   | `["SUCCESS"]` | Only run successive tasks if the final status is in this list |
+| tasks    | `list[string]` |               | Names of dependency task templates                            |
 
-- **task_names:** This can be a list of strings (template names, e.g. {"cargo build"}), tables (name with params, e.g. {"shell", cmd = "sleep 10"}), or tables (raw task params, e.g. {cmd = "sleep 10"})
 - **detach:** This means they will not restart when the parent restarts, and will not be disposed when the parent is disposed
+- **tasks:** This can be a list of strings (template names, e.g. "cargo build"), tables (template name with params, e.g. {"mytask", foo = "bar"}), or tables (raw task params, e.g. {cmd = "sleep 10"})
 
 ## timeout
 
@@ -271,6 +275,7 @@ Ensure that this task does not have any duplicates
 | ------------------ | --------- | ------- | ----------------------------------------------------------------------------------------------------------- |
 | replace            | `boolean` | `true`  | If a prior task exists, replace it. When false, will restart the existing task and dispose the current task |
 | restart_interrupts | `boolean` | `true`  | When replace = false, should restarting the existing task interrupt it                                      |
+| soft               | `boolean` | `false` | Only dispose duplicate tasks if they are completed. Implies replace = true.                                 |
 
 - **replace:** Note that when this is false a new task that is created will restart the existing one and _dispose itself_. This can lead to unexpected behavior if you are creating a task and then trying to use that reference (to run actions on it, use it as a dependency, etc)
 

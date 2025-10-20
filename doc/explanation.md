@@ -5,6 +5,7 @@
 - [Architecture](#architecture)
   - [Tasks](#tasks)
   - [Components](#components)
+  - [Serializability](#serializability)
   - [Templates](#templates)
 - [Task list](#task-list)
 - [Task editor](#task-editor)
@@ -18,19 +19,17 @@
 ### Tasks
 
 Tasks represent a single command that is run. They appear in the [task list](#task-list), where you
-can manage them (start/stop/restart/edit/open terminal). You can create them directly, either with
-`:OverseerBuild` or via the API `require('overseer.task').new()`.
-
-Most of the time, however, you will find it most convenient to create them using
-[templates](#templates).
+can manage them (start/stop/restart/edit/open terminal). You can create them directly with the
+[new_task()](reference.md#new_taskopts) method. Most of the time, however, you will find it most
+convenient to create them using [templates](#templates).
 
 ### Components
 
 Tasks are built using an [entity component
 system](https://en.wikipedia.org/wiki/Entity_component_system). By itself, all a task does is run a
 command in a terminal. Components are used to add more functionality. There are components to
-display a summary of the output in the [task list](#task-list), to show a notification when the task
-finishes running, and to set the task results into neovim diagnostics.
+parse and handle output, to show a notification when the task
+finishes running, and to re-run the task when files change.
 
 Components are designed to be easy to remove, customize, or replace. If you want to customize some
 aspect or behavior of a task, it's likely that it will be done through components.
@@ -38,8 +37,15 @@ aspect or behavior of a task, it's likely that it will be done through component
 See [custom components](guides.md#custom-components) for how to customize them or define your own,
 and [components](components.md) for a list of built-in components.
 
-**Note**: both tasks and components are designed to be serializable. They avoid putting things like
-functions in their constructors, and as a result can easily be serialized and saved to disk.
+### Serializability
+
+Both tasks and components are designed to be serializable. They generally avoid putting
+unserializable structures like functions in their constructors, and as a result can easily be
+serialized and saved to disk. However, even if they use functions they can still sometimes be
+serializable. For tasks that are created from a template, instead of serializing the raw task and
+component data, we serialize the values that will find and create the same task when passed to
+`overseer.run_task`. So if a task template passes a function to a task, that task _can_ still be
+serialized and saved to disk.
 
 ### Templates
 
@@ -57,9 +63,8 @@ tasks](guides.md#custom-tasks) for more.
 Control the task list with `:OverseerOpen`, `:OverseerClose`, and `:OverseerToggle`.
 
 The task list displays all tasks that have been created. It shows the task status, name, and a
-summary of the task output (controlled by the `on_output_summarize` component). You can show more or
-less detail for a single task with `<C-l>` and `<C-h>` (by default), or for all tasks with `L` and
-`H`.
+summary of the task output. You can customize the display by passing in a custom `task_list.render`
+function in the setup opts.
 
 `?` will show you a list of all the keybindings, and `<CR>` will open up a menu of all
 [actions](guides.md#actions) that you can perform on the selected task.
@@ -75,8 +80,8 @@ The task editor allows you to change the components on a task by hand. You shoul
 often (if you find yourself frequently making the same edits, consider turning that into an
 [action](guides.md#actions)), but it can be useful for experimentation and tweaking values on the fly.
 
-There are two ways to get to the task editor: `:OverseerBuild` will open it on a new task, and for
-existing tasks (that are not running) you can use the `edit` action.
+To open the editor for a task, use the `edit` action (open the overseer task list, `<CR>` on the
+task, select `edit`).
 
 For the most part you can edit the values like a normal buffer, but there is a lot of magic involved
 to produce a "form-like" experience. For enum fields, you can autocomplete the possible values with
@@ -113,19 +118,13 @@ disposed.
 
 **Q: How can I debug when something goes wrong?**
 
-Run `:OverseerInfo` to view the available tasks and information about why certain tasks are not
-available. It will also show you the location of the log file. If you need, you can crank up the
+Run `:checkhealth overseer` to view the available tasks and information about why certain tasks are
+not available. It will also show you the location of the log file. If you need, you can crank up the
 detail of the logs by adjusting the level:
 
 ```lua
 overseer.setup({
-  log = {
-    {
-      type = "file",
-      filename = "overseer.log",
-      level = vim.log.levels.DEBUG, -- or TRACE for max verbosity
-    },
-  },
+  log_level = vim.log.levels.TRACE,
 })
 ```
 

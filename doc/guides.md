@@ -9,7 +9,9 @@
 - [Custom components](#custom-components)
   - [Component aliases](#component-aliases)
   - [Task result](#task-result)
+- [Task events](#task-events)
 - [Customizing built-in tasks](#customizing-built-in-tasks)
+- [Customizing the task appearance in the task list](#customizing-the-task-appearance-in-the-task-list)
 - [Parsing output](#parsing-output)
 - [Running tasks sequentially](#running-tasks-sequentially)
 - [VS Code tasks](#vs-code-tasks)
@@ -30,39 +32,24 @@ overseer.register_template({
 
 **2) as a module**
 
-Similar to [custom components](#custom-components), templates can be lazy-loaded from a module in the `overseer.template` namespace. It is recommended that you namespace your tasks inside of a folder (e.g. `overseer/template/myplugin/first_task.lua`, referenced as `myplugin.first_task`). To load them, you would pass the require path in setup:
-
-```lua
-overseer.setup({
-  templates = { "builtin", "myplugin.first_task" },
-})
--- You can also load them separately from setup
-overseer.load_template("myplugin.second_task")
-```
-
-If you have multiple templates that you would like to expose as a bundle, you can create an alias module. For example, put the following into `overseer/template/myplugin/init.lua`:
-
-```lua
-return { "myplugin.first_task", "myplugin.second_task" }
-```
-
-This is how `builtin` references all of the different built-in templates.
+Similar to [custom components](#custom-components), templates can be lazy-loaded from a module in the `overseer.template` namespace. So if you put a task inside `<runtimepath>/lua/overseer/template/first_task.lua`, overseer will automatically detect and load it.
 
 ### Template definition
 
 The definition of a template looks like this:
 
 ```lua
-{
+---@type overseer.TemplateFileDefinition
+return {
   -- Required fields
   name = "Some Task",
   builder = function(params)
     -- This must return an overseer.TaskDefinition
     return {
-      -- cmd is the only required field
-      cmd = {'echo'},
-      -- additional arguments for the cmd
-      args = {"hello", "world"},
+      -- cmd is the only required field. It can be a list or a string.
+      cmd = { "echo", "hello", "world" },
+      -- additional arguments for the cmd (usually only useful if cmd is a string)
+      args = {},
       -- the name of the task (defaults to the cmd of the task)
       name = "Greet",
       -- set the working directory for the task
@@ -72,7 +59,7 @@ The definition of a template looks like this:
         VAR = "FOO",
       },
       -- the list of components or component aliases to add to the task
-      components = {"my_custom_component", "default"},
+      components = { "my_custom_component", "default" },
       -- arbitrary table of data for your own personal use
       metadata = {
         foo = "bar",
@@ -81,64 +68,82 @@ The definition of a template looks like this:
   end,
   -- Optional fields
   desc = "Optional description of task",
-  -- Tags can be used in overseer.run_template()
+  -- Tags can be used in overseer.run_task()
   tags = {overseer.TAG.BUILD},
   params = {
     -- See :help overseer-params
   },
-  -- Determines sort order when choosing tasks. Lower comes first.
-  priority = 50,
   -- Add requirements for this template. If they are not met, the template will not be visible.
   -- All fields are optional.
   condition = {
     -- A string or list of strings
     -- Only matches when current buffer is one of the listed filetypes
-    filetype = {"c", "cpp"},
+    filetype = { "c", "cpp" },
     -- A string or list of strings
     -- Only matches when cwd is inside one of the listed dirs
     dir = "/home/user/my_project",
-    -- Arbitrary logic for determining if task is available
-    callback = function(search)
-      print(vim.inspect(search))
-      return true
-    end,
   },
 }
 ```
 
 ### Template providers
 
-Template providers are used to generate multiple templates dynamically. The main use case is generating one task per target (e.g. for a makefile), but can be used for any situation where you want the templates themselves to be generated at runtime.
+Template providers are used to generate multiple templates dynamically. The main use case is
+generating one task per target (e.g. for a makefile), but can be used for any situation where you
+want the templates themselves to be generated at runtime.
 
-Providers are created the same way templates are (with `overseer.register_template`, or by putting them in a module). The structure is as follows:
+Providers are created the same way templates are (with `overseer.register_template`, or by putting
+them in a lua file). The structure is as follows:
 
 ```lua
-{
-  generator = function(search, cb)
-    -- Pass a list of templates to the callback
-    -- See the built-in providers for make or npm for an example
-    cb({...})
+---@type overseer.TemplateFileProvider
+return {
+  generator = function(search)
+    if not is_task_available() then
+      return "Task is not available for reason X"
+    end
+    -- return a list of tasks
+    return {...}
   end,
   -- Optional. Same as template.condition
   condition = {
-    callback = function(search)
-      return true
-    end,
+    filetype = { "c" },
   },
-  -- Optional. Overrides the default cache key of `opts.dir`
-  -- Additionally, if the returned value is an absolute file path,
-  -- whenever that file is written overseer will automatically clear the cache
+  -- Optional. Some task generators may be slow and thus you may want to cache the results.
+  -- By providing a cache key (usually a config file or root directory), overseer will automatically
+  -- cache results from slow providers and will clear the cache when that file is written.
   cache_key = function(opts)
-    return vim.fs.find('Makefile', { upward = true, type = "file", path = opts.dir })[1]
+    return vim.fs.find("Makefile", { upward = true, type = "file", path = opts.dir })[1]
+  end,
+}
+```
+
+If you want to do some asynchronous work while listing tasks (such as running a command with
+`vim.system`), you can use the `callback` argument to the generator function.
+
+```lua
+---@type overseer.TemplateFileProvider
+return {
+  generator = function(search, callback)
+    do_some_work(function(err)
+      if err then
+        callback(err)
+        return
+      end
+      -- Pass a list of tasks to the callback
+      callback({...})
+    end)
   end,
 }
 ```
 
 ## Actions
 
-Actions can be performed on tasks by using the `RunAction` keybinding in the task list, or by the `OverseerQuickAction` and `OverseerTaskAction` commands. They are simply a custom function that will do something to or with a task.
+Actions can be performed on tasks by using the `keymap.run_action` keybinding in the task list, or
+by the `OverseerTaskAction` command. Actions are simply custom functions that will do something to
+or with a task.
 
-Browse the set of built-in actions at [lua/overseer/task_list/actions.lua](../lua/overseer/task_list/actions.lua)
+Browse the set of built-in actions at [lua/overseer/task_list/actions.lua](../lua/overseer/task_list/actions.lua).
 
 You can define your own or disable any of the built-in actions in the call to setup():
 
@@ -167,8 +172,8 @@ overseer.setup({
   -- It will always be available in the "RunAction" menu, but it may be
   -- worth mapping it directly if you use it often.
   task_list = {
-    bindings = {
-      ["P"] = "<CMD>OverseerQuickAction My custom action<CR>",
+    keymaps = {
+      ["P"] = { "keymap.run_action", opts = { action = "my action" }, desc = "Do something cool" },
     },
   },
 })
@@ -185,6 +190,7 @@ Paths given are all relative to any runtimepath (`:help rtp`), so in practice it
 The component definition should look like the following example:
 
 ```lua
+---@type overseer.ComponentFileDefinition
 return {
   desc = "Include a description of your component",
   -- Define parameters that can be passed in to the component
@@ -254,15 +260,6 @@ return {
         -- Will be called IFF on_init was called, and will be called exactly once.
         -- This is a good place to free resources (e.g. timers, files, etc)
       end,
-      ---@param lines string[] The list of lines to render into
-      ---@param highlights table[] List of highlights to apply after rendering
-      ---@param detail number The detail level of the task. Ranges from 1 to 3.
-      render = function(self, task, lines, highlights, detail)
-        -- Called from the task list. This can be used to display information there.
-        table.insert(lines, "Here is a line of output")
-        -- The format is {highlight_group, lnum, col_start, col_end}
-        table.insert(highlights, { "Title", #lines, 0, -1 })
-      end,
     }
   end,
 }
@@ -294,6 +291,37 @@ A note on the Task result table: there is technically no schema for it, as the o
 **diagnostics**: This key is used for diagnostics. It should be a list of quickfix items (see `:help setqflist`) \
 **error**: This key will be set when there is an internal overseer error when running the task
 
+## Task events
+
+A lighter-weight alternative to custom components is directly subscribing to task events. Once you create a task you can call `task:subscribe("event", function() ... end)` to process the same events that get handled by components. For example, to run a function when a task completes:
+
+```lua
+local task = overseer.new_task({ cmd = {"echo", "hello", "world"} })
+-- on_complete gets called with the same arguments as it does for components
+task:subscribe("on_complete", function(_task, status, result)
+  print("Task", task.name, "finished with status", status)
+end)
+task:start()
+```
+
+To unsubscribe from an event, you can either pass the same function in to `task:unsubscribe()` or you can return a truthy value from the function.
+
+```lua
+local task = overseer.new_task({ cmd = { "build_and_serve.sh" } })
+task:subscribe("on_output_lines", function(_task, lines)
+  for _, line in ipairs(lines) do
+    local address = line:match("^Serving at (http.*)")
+    if address then
+      vim.ui.open(address)
+      return true
+    end
+  end
+end)
+task:start()
+```
+
+Note that when a task is serialized it cannot save the subscriptions.
+
 ## Customizing built-in tasks
 
 You may wish to customize the built-in task definitions, or tasks from another plugin. The simplest way to do this is using the [add_template_hook](reference.md#add_template_hookopts-hook) function. This allows you to run a function on the task definition (the arguments passed to [new_task](reference.md#new_taskopts)) and process it however you like. A common use case would be to add a component or modify the environment variables while in a specific project:
@@ -303,46 +331,77 @@ overseer.add_template_hook({
   dir = "/path/to/my/project",
   module = "^cargo$",
 }, function(task_defn, util)
+  -- The `util` parameter is just a namespace that exposes some useful functions
+  -- for mutating a task definition
   util.add_component(task_defn, { "on_output_quickfix", open = true })
+  util.remove_component(task_defn, "on_complete_dispose")
+  if util.has_component(task_defn, "timeout") then
+    -- ...
+  end
 end)
 ```
 
-## Parsing output
+## Customizing the task appearance in the task list
 
-The primary way of parsing output with overseer is the `on_output_parse` component.
+The task appearance can be customized via the `task_list.render` function in the [config](reference.md#setupopts). The render function is just a function that takes a task and returns a list of lines, where each line is a list of `[text, hl_group]` "chunks" (`:help nvim_echo` uses the same format).
 
 ```lua
--- Definition of a component that parses output in the form of:
--- /path/to/file.txt:123: This is a message
--- You would typically use this in the components list of a task definition returned by a template
-{"on_output_parse", parser = {
-  -- Put the parser results into the 'diagnostics' field on the task result
-  diagnostics = {
-    -- Extract fields using lua patterns
-    -- To integrate with other components, items in the "diagnostics" result should match
-    -- vim's quickfix item format (:help setqflist)
-    { "extract", "^([^%s].+):(%d+): (.+)$", "filename", "lnum", "text" },
-  }
-}}
+require("overseer").setup({
+  task_list = {
+    render = function(task)
+      -- There are a few different built-in format functions
+      -- return require("overseer.render").format_compact(task)
+      -- return require("overseer.render").format_verbose(task)
+      return require("overseer.render").format_standard(task)
+    end,
+  },
+})
 ```
 
-This is a simple example, but the parser library is flexible enough to parse nearly any output format. See more detailed documentation in [the parsers doc](parsers.md).
 
-You can of course create your own components to parse output leveraging the `on_output` or `on_output_lines` methods. The integration should be straightforward; see [on_output_parse.lua](../lua/overseer/component/on_output_parse.lua) to see how the built-in component leverages these methods.
+See more detailed documentation about rendering in [the rendering doc](rendering.md).
+
+## Parsing output
+
+The primary way of parsing output with overseer is the [on_output_parse](components.md#on_output_parse) component. This can use a VS Code-style problem matcher, a function, or a vim errorformat to parse the output.
+
+```lua
+-- Using vim errorformat
+{ "on_output_parse", errorformat = "%f:%l: %m" }
+
+-- Using VSCode problem matcher
+{ "on_output_parse", problem_matcher = "$tsc" }
+
+-- Using a function
+{ "on_output_parse", parser = function(line)
+  local fname, lnum, msg = line:match("^(.*):(%d+): (.*)$")
+  if fname then
+    return {
+      filename = fname,
+      lnum = tonumber(lnum),
+      text = msg
+    }
+  end
+end }
+```
+
+See more detailed documentation about parsers and `on_output_parse` in [the parsers doc](parsers.md).
+
+You can also create your own components to parse output leveraging the `on_output` or `on_output_lines` methods. The integration should be straightforward; see [on_output_parse.lua](../lua/overseer/component/on_output_parse.lua) to see how the built-in component leverages these methods.
 
 ## Running tasks sequentially
 
 There are currently two ways to get tasks to run sequentially. The first is by using the [dependencies](components.md#dependencies) component. For example, if you wanted to create a `npm serve` task that runs `npm build` first, you could create it like so:
 
 ```lua
-overseer.run_template({ name = "npm serve", autostart = false }, function(task)
+overseer.run_task({ name = "npm serve", autostart = false }, function(task)
   if task then
     task:add_component({
       "dependencies",
-      task_names = {
+      tasks = {
         "npm build",
-        -- You can also pass in params to the task
-        { "shell", cmd = "sleep 10" },
+        -- You can also pass in a task object
+        { cmd = "sleep 10" },
       },
       sequential = true,
     })
@@ -362,7 +421,7 @@ local task = overseer.new_task({
       "make clean", -- Step 1: clean
       { -- Step 2: build js and css in parallel
         "npm build",
-        { "shell", cmd = "lessc styles.less styles.css" },
+        { cmd = { "lessc", "styles.less", "styles.css" },
       },
       "npm serve", -- Step 3: serve
     },

@@ -1,8 +1,12 @@
 local util = require("overseer.util")
 local M = {}
 
+---@type overseer.Task[]
 local tasks = {}
+---@type table<integer, overseer.Task>
 local lookup = {}
+---@type table<function, overseer.Task[]>
+local sorted_cache = {}
 
 ---@return integer
 M.get_or_create_bufnr = function()
@@ -10,54 +14,70 @@ M.get_or_create_bufnr = function()
   return sidebar.bufnr
 end
 
-M.rerender = function()
+local function dispatch()
+  sorted_cache = {}
   vim.api.nvim_exec_autocmds("User", { pattern = "OverseerListUpdate", modeline = false })
 end
 
-local function group_parents_and_children()
-  local order = {}
-  for i, task in ipairs(tasks) do
-    order[task.id] = i
+---@param sort? fun(a: overseer.Task, b: overseer.Task): boolean Function that sorts tasks
+local function get_sorted_tasks(sort)
+  if not sort then
+    sort = M.sort_newest_first
   end
+  if sorted_cache[sort] then
+    return sorted_cache[sort]
+  end
+
+  local child_groups = {}
+  local top_level = {}
   for _, task in ipairs(tasks) do
     if task.parent_id then
-      order[task.id] = order[task.parent_id] - 0.5
+      local group = child_groups[task.parent_id]
+      if not group then
+        group = {}
+        child_groups[task.parent_id] = group
+      end
+      table.insert(group, task)
+    else
+      table.insert(top_level, task)
     end
   end
-  table.sort(tasks, function(a, b)
-    return order[a.id] < order[b.id]
-  end)
+
+  table.sort(top_level, sort)
+  for _, children in pairs(child_groups) do
+    table.sort(children, sort)
+  end
+
+  local ret = {}
+  for _, task in ipairs(top_level) do
+    table.insert(ret, task)
+    local children = child_groups[task.id]
+    if children then
+      for _, child in ipairs(children) do
+        table.insert(ret, child)
+      end
+    end
+  end
+
+  sorted_cache[sort] = ret
+  return ret
 end
 
+---Trigger a re-render without re-sorting the tasks
 ---@param task? overseer.Task
-M.update = function(task)
-  if not task then
-    M.rerender()
-    return
-  end
-  if task:is_disposed() then
+M.touch = function(task)
+  if not task or task:is_disposed() then
     return
   end
   if not lookup[task.id] then
     lookup[task.id] = task
     table.insert(tasks, task)
-    group_parents_and_children()
   end
-  M.rerender()
+  dispatch()
 end
 
----@param task overseer.Task
-M.touch_task = function(task)
-  if not lookup[task.id] then
-    return
-  end
-  local idx = util.tbl_index(tasks, task.id, function(t)
-    return t.id
-  end)
-  table.remove(tasks, idx)
-  table.insert(tasks, task)
-  group_parents_and_children()
-  M.rerender()
+M.on_task_updated = function()
+  dispatch()
 end
 
 ---@param task overseer.Task
@@ -69,7 +89,7 @@ M.remove = function(task)
       break
     end
   end
-  M.rerender()
+  dispatch()
 end
 
 ---@param id number
@@ -88,51 +108,36 @@ M.get_by_name = function(name)
   end
 end
 
--- 1-indexed, most recent first
----@param index number
----@return overseer.Task|nil
-M.get_by_index = function(index)
-  return tasks[#tasks + 1 - index]
-end
-
----@class overseer.ListTaskOpts
+---@class (exact) overseer.ListTaskOpts
 ---@field unique? boolean Deduplicates non-running tasks by name
----@field name? string|string[] Only list tasks with this name or names
----@field name_not? boolean Invert the name search (tasks *without* that name)
 ---@field status? overseer.Status|overseer.Status[] Only list tasks with this status or statuses
----@field status_not? boolean Invert the status search
----@field recent_first? boolean The most recent tasks are first in the list
----@field bundleable? boolean Only list tasks that should be included in a bundle
----@field filter? fun(task: overseer.Task): boolean
+---@field include_ephemeral? boolean Include ephemeral tasks
+---@field wrapped? boolean Include tasks that were created by the jobstart/vim.system wrappers
+---@field filter? fun(task: overseer.Task): boolean Only include tasks where this function returns true
+---@field sort? fun(a: overseer.Task, b: overseer.Task): boolean Function that sorts tasks
 
 ---@param opts? overseer.ListTaskOpts
 ---@return overseer.Task[]
 M.list_tasks = function(opts)
   opts = opts or {}
-  vim.validate({
-    unique = { opts.unique, "b", true },
-    -- name is string or list
-    name_not = { opts.name_not, "b", true },
-    -- status is string or list
-    status_not = { opts.status_not, "b", true },
-    recent_first = { opts.recent_first, "b", true },
-    bundleable = { opts.bundleable, "b", true },
-    filter = { opts.filter, "f", true },
-  })
-  local name = util.list_to_map(opts.name or {})
+  vim.validate("unique", opts.unique, "boolean", true)
+  vim.validate("status", opts.status, function(n)
+    return type(n) == "string" or type(n) == "table"
+  end, true)
+  vim.validate("wrapped", opts.wrapped, "boolean", true)
+  vim.validate("include_ephemeral", opts.include_ephemeral, "boolean", true)
+  vim.validate("filter", opts.filter, "function", true)
+  vim.validate("sort", opts.sort, "function", true)
+
   local status = util.list_to_map(opts.status or {})
   local seen = {}
   local ret = {}
-  for _, task in ipairs(tasks) do
+  for _, task in ipairs(get_sorted_tasks(opts.sort)) do
     if
-      (
-        not opts.name
-        or (name[task.name] and not opts.name_not)
-        or (not name[task.name] and opts.name_not)
-      )
-      and (not opts.status or (status[task.status] and not opts.status_not) or (not status[task.status] and opts.status_not))
-      and (not opts.bundleable or task:should_include_in_bundle())
+      (not opts.status or status[task.status])
+      and (opts.include_ephemeral or not task.ephemeral)
       and (not opts.filter or opts.filter(task))
+      and (opts.wrapped or not task.source)
     then
       local idx = seen[task.name]
       if idx and opts.unique then
@@ -150,10 +155,69 @@ M.list_tasks = function(opts)
       end
     end
   end
-  if opts.recent_first then
-    util.tbl_reverse(ret)
-  end
   return ret
+end
+
+---General purpose sort by status and start/end time
+---@param a overseer.Task
+---@param b overseer.Task
+---@return boolean
+M.default_sort = function(a, b)
+  if (a.time_end == nil) ~= (b.time_end == nil) then
+    -- If only one of the tasks has already ended, put the other one first
+    return a.time_end == nil
+  elseif (a.time_start ~= nil) ~= (b.time_start ~= nil) then
+    -- If only one of the tasks has started, put the other one first
+    return a.time_start == nil
+  elseif a.time_end ~= nil and a.time_end ~= b.time_end then
+    -- If both tasks have ended, sort by end time (most recent first)
+    return a.time_end > b.time_end
+  elseif a.time_start ~= nil and a.time_start ~= b.time_start then
+    -- If both tasks have started, sort by start time (most recent first)
+    return a.time_start > b.time_start
+  end
+
+  -- fall back to sort by name
+  return a.name < b.name
+end
+
+---A sort function that puts the newest tasks first
+---@param a overseer.Task
+---@param b overseer.Task
+---@return boolean
+M.sort_newest_first = function(a, b)
+  if a.time_start == nil then
+    if b.time_start == nil then
+      -- fall back to sort by name
+      return a.name < b.name
+    else
+      return true
+    end
+  elseif b.time_start == nil then
+    return false
+  end
+
+  -- Sort newest first
+  return a.time_start > b.time_start
+end
+
+---A sort function that puts tasks that finished most recently first
+---@param a overseer.Task
+---@param b overseer.Task
+---@return boolean
+M.sort_finished_recently = function(a, b)
+  if (a.time_end == nil) ~= (b.time_end == nil) then
+    return a.time_end ~= nil
+  elseif a.time_end ~= nil and a.time_end ~= b.time_end then
+    return a.time_end > b.time_end
+  elseif (a.time_start == nil) ~= (b.time_start == nil) then
+    return a.time_start ~= nil
+  elseif a.time_start ~= nil and a.time_start ~= b.time_start then
+    return a.time_start > b.time_start
+  else
+    -- fall back to sort by name
+    return a.name < b.name
+  end
 end
 
 return M

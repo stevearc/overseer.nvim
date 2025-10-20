@@ -7,37 +7,56 @@
 - [Highlight groups](#highlight-groups)
 - [Lua API](#lua-api)
   - [setup(opts)](#setupopts)
-  - [on_setup(callback)](#on_setupcallback)
   - [new_task(opts)](#new_taskopts)
   - [toggle(opts)](#toggleopts)
   - [open(opts)](#openopts)
   - [close()](#close)
-  - [list_task_bundles()](#list_task_bundles)
-  - [load_task_bundle(name, opts)](#load_task_bundlename-opts)
-  - [save_task_bundle(name, tasks, opts)](#save_task_bundlename-tasks-opts)
-  - [delete_task_bundle(name)](#delete_task_bundlename)
   - [list_tasks(opts)](#list_tasksopts)
-  - [run_template(opts, callback)](#run_templateopts-callback)
+  - [run_task(opts, callback)](#run_taskopts-callback)
   - [preload_task_cache(opts, cb)](#preload_task_cacheopts-cb)
   - [clear_task_cache(opts)](#clear_task_cacheopts)
   - [run_action(task, name)](#run_actiontask-name)
-  - [wrap_template(base, override, default_params)](#wrap_templatebase-override-default_params)
   - [add_template_hook(opts, hook)](#add_template_hookopts-hook)
   - [remove_template_hook(opts, hook)](#remove_template_hookopts-hook)
   - [register_template(defn)](#register_templatedefn)
-  - [load_template(name)](#load_templatename)
-  - [debug_parser()](#debug_parser)
-  - [register_alias(name, components)](#register_aliasname-components)
+  - [register_alias(name, components, override)](#register_aliasname-components-override)
+  - [create_task_output_view(winid, opts)](#create_task_output_viewwinid-opts)
+  - [overseer.Task](#overseertask)
+    - [Task:serialize()](#taskserialize)
+    - [Task:clone()](#taskclone)
+    - [Task:add_component(comp)](#taskadd_componentcomp)
+    - [Task:add_components(components)](#taskadd_componentscomponents)
+    - [Task:set_component(comp)](#taskset_componentcomp)
+    - [Task:set_components(components)](#taskset_componentscomponents)
+    - [Task:get_component(name)](#taskget_componentname)
+    - [Task:remove_component(name)](#taskremove_componentname)
+    - [Task:remove_components(names)](#taskremove_componentsnames)
+    - [Task:has_component(name)](#taskhas_componentname)
+    - [Task:subscribe(event, callback)](#tasksubscribeevent-callback)
+    - [Task:unsubscribe(event, callback)](#taskunsubscribeevent-callback)
+    - [Task:is_pending()](#taskis_pending)
+    - [Task:is_running()](#taskis_running)
+    - [Task:is_complete()](#taskis_complete)
+    - [Task:is_disposed()](#taskis_disposed)
+    - [Task:get_bufnr()](#taskget_bufnr)
+    - [Task:open_output(direction)](#taskopen_outputdirection)
+    - [Task:broadcast(name)](#taskbroadcastname)
+    - [Task:dispatch(name)](#taskdispatchname)
+    - [Task:inc_reference()](#taskinc_reference)
+    - [Task:dec_reference()](#taskdec_reference)
+    - [Task:dispose(force)](#taskdisposeforce)
+    - [Task:restart(force_stop)](#taskrestartforce_stop)
+    - [Task:start()](#taskstart)
+    - [Task:stop()](#taskstop)
 - [Components](#components)
   - [dependencies](components.md#dependencies)
-  - [display_duration](components.md#display_duration)
   - [on_complete_dispose](components.md#on_complete_dispose)
   - [on_complete_notify](components.md#on_complete_notify)
   - [on_complete_restart](components.md#on_complete_restart)
   - [on_exit_set_status](components.md#on_exit_set_status)
+  - [on_output_notify](components.md#on_output_notify)
   - [on_output_parse](components.md#on_output_parse)
   - [on_output_quickfix](components.md#on_output_quickfix)
-  - [on_output_summarize](components.md#on_output_summarize)
   - [on_output_write_file](components.md#on_output_write_file)
   - [on_result_diagnostics](components.md#on_result_diagnostics)
   - [on_result_diagnostics_quickfix](components.md#on_result_diagnostics_quickfix)
@@ -51,27 +70,8 @@
 - [Strategies](#strategies)
   - [jobstart(opts)](strategies.md#jobstartopts)
   - [orchestrator(opts)](strategies.md#orchestratoropts)
-  - [terminal()](strategies.md#terminal)
+  - [system(opts)](strategies.md#systemopts)
   - [test()](strategies.md#test)
-  - [toggleterm(opts)](strategies.md#toggletermopts)
-- [Parsers](#parsers)
-    - [always](parsers.md#always)
-    - [append](parsers.md#append)
-    - [dispatch](parsers.md#dispatch)
-    - [ensure](parsers.md#ensure)
-    - [extract](parsers.md#extract)
-    - [extract_efm](parsers.md#extract_efm)
-    - [extract_json](parsers.md#extract_json)
-    - [extract_multiline](parsers.md#extract_multiline)
-    - [extract_nested](parsers.md#extract_nested)
-    - [invert](parsers.md#invert)
-    - [loop](parsers.md#loop)
-    - [parallel](parsers.md#parallel)
-    - [sequence](parsers.md#sequence)
-    - [set_defaults](parsers.md#set_defaults)
-    - [skip_lines](parsers.md#skip_lines)
-    - [skip_until](parsers.md#skip_until)
-    - [test](parsers.md#test)
 - [Parameters](#parameters)
 
 <!-- /TOC -->
@@ -82,156 +82,93 @@ For speed tweakers: don't worry about lazy loading; overseer lazy-loads itself!
 
 ```lua
 require("overseer").setup({
-  -- Default task strategy
-  strategy = "terminal",
-  -- Template modules to load
-  templates = { "builtin" },
-  -- Directories where overseer will look for template definitions (relative to rtp)
-  template_dirs = { "overseer.template" },
-  -- When true, tries to detect a green color from your colorscheme to use for success highlight
-  auto_detect_success_color = true,
   -- Patch nvim-dap to support preLaunchTask and postDebugTask
   dap = true,
+  -- Configure the task output buffer and window
+  output = {
+    -- Use a terminal buffer to display output. If false, a normal buffer is used
+    use_terminal = true,
+    -- If true, don't clear the buffer when a task restarts
+    preserve_output = false,
+  },
   -- Configure the task list
   task_list = {
-    -- Default detail level for tasks. Can be 1-3.
-    default_detail = 1,
+    -- Default direction. Can be "left", "right", or "bottom"
+    direction = "bottom",
     -- Width dimensions can be integers or a float between 0 and 1 (e.g. 0.4 for 40%)
     -- min_width and max_width can be a single value or a list of mixed integer/float types.
     -- max_width = {100, 0.2} means "the lesser of 100 columns or 20% of total"
     max_width = { 100, 0.2 },
     -- min_width = {40, 0.1} means "the greater of 40 columns or 10% of total"
     min_width = { 40, 0.1 },
-    -- optionally define an integer/float for the exact width of the task list
-    width = nil,
-    max_height = { 20, 0.1 },
+    max_height = { 20, 0.2 },
     min_height = 8,
-    height = nil,
     -- String that separates tasks
-    separator = "────────────────────────────────────────",
-    -- Default direction. Can be "left", "right", or "bottom"
-    direction = "bottom",
+    separator = "━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━",
+    -- Indentation for child tasks
+    child_indent = { "┃ ", "┣━", "┗━" },
+    -- Function that renders tasks. See lua/overseer/render.lua for built-in options
+    -- and for useful functions if you want to build your own.
+    render = function(task)
+      return require("overseer.render").format_standard(task)
+    end,
+    -- The sort function for tasks
+    sort = function(a, b)
+      return require("overseer.task_list").default_sort(a, b)
+    end,
     -- Set keymap to false to remove default behavior
     -- You can add custom keymaps here as well (anything vim.keymap.set accepts)
-    bindings = {
-      ["?"] = "ShowHelp",
-      ["g?"] = "ShowHelp",
-      ["<CR>"] = "RunAction",
-      ["<C-e>"] = "Edit",
-      ["o"] = "Open",
-      ["<C-v>"] = "OpenVsplit",
-      ["<C-s>"] = "OpenSplit",
-      ["<C-f>"] = "OpenFloat",
-      ["<C-q>"] = "OpenQuickFix",
-      ["p"] = "TogglePreview",
-      ["<C-l>"] = "IncreaseDetail",
-      ["<C-h>"] = "DecreaseDetail",
-      ["L"] = "IncreaseAllDetail",
-      ["H"] = "DecreaseAllDetail",
-      ["["] = "DecreaseWidth",
-      ["]"] = "IncreaseWidth",
-      ["{"] = "PrevTask",
-      ["}"] = "NextTask",
-      ["<C-k>"] = "ScrollOutputUp",
-      ["<C-j>"] = "ScrollOutputDown",
-      ["q"] = "Close",
+    keymaps = {
+      ["?"] = "keymap.show_help",
+      ["g?"] = "keymap.show_help",
+      ["<CR>"] = "keymap.run_action",
+      ["dd"] = { "keymap.run_action", opts = { action = "dispose" }, desc = "Dispose task" },
+      ["<C-e>"] = { "keymap.run_action", opts = { action = "edit" }, desc = "Edit task" },
+      ["o"] = "keymap.open",
+      ["<C-v>"] = { "keymap.open", opts = { dir = "vsplit" }, desc = "Open task output in vsplit" },
+      ["<C-s>"] = { "keymap.open", opts = { dir = "split" }, desc = "Open task output in split" },
+      ["<C-t>"] = { "keymap.open", opts = { dir = "tab" }, desc = "Open task output in tab" },
+      ["<C-f>"] = { "keymap.open", opts = { dir = "float" }, desc = "Open task output in float" },
+      ["<C-q>"] = {
+        "keymap.run_action",
+        opts = { action = "open output in quickfix" },
+        desc = "Open task output in the quickfix",
+      },
+      ["p"] = "keymap.toggle_preview",
+      ["{"] = "keymap.prev_task",
+      ["}"] = "keymap.next_task",
+      ["<C-k>"] = "keymap.scroll_output_up",
+      ["<C-j>"] = "keymap.scroll_output_down",
+      ["g."] = "keymap.toggle_show_wrapped",
+      ["q"] = { "<CMD>close<CR>", desc = "Close task list" },
     },
   },
-  -- See :help overseer-actions
+  -- Custom actions for tasks. See :help overseer-actions
   actions = {},
   -- Configure the floating window used for task templates that require input
   -- and the floating window used for editing tasks
   form = {
-    border = "rounded",
     zindex = 40,
     -- Dimensions can be integers or a float between 0 and 1 (e.g. 0.4 for 40%)
     -- min_X and max_X can be a single value or a list of mixed integer/float types.
     min_width = 80,
     max_width = 0.9,
-    width = nil,
     min_height = 10,
     max_height = 0.9,
-    height = nil,
     -- Set any window options here (e.g. winhighlight)
-    win_opts = {
-      winblend = 0,
-    },
+    win_opts = {},
   },
-  task_launcher = {
-    -- Set keymap to false to remove default behavior
-    -- You can add custom keymaps here as well (anything vim.keymap.set accepts)
-    bindings = {
-      i = {
-        ["<C-s>"] = "Submit",
-        ["<C-c>"] = "Cancel",
-      },
-      n = {
-        ["<CR>"] = "Submit",
-        ["<C-s>"] = "Submit",
-        ["q"] = "Cancel",
-        ["?"] = "ShowHelp",
-      },
-    },
-  },
-  task_editor = {
-    -- Set keymap to false to remove default behavior
-    -- You can add custom keymaps here as well (anything vim.keymap.set accepts)
-    bindings = {
-      i = {
-        ["<CR>"] = "NextOrSubmit",
-        ["<C-s>"] = "Submit",
-        ["<Tab>"] = "Next",
-        ["<S-Tab>"] = "Prev",
-        ["<C-c>"] = "Cancel",
-      },
-      n = {
-        ["<CR>"] = "NextOrSubmit",
-        ["<C-s>"] = "Submit",
-        ["<Tab>"] = "Next",
-        ["<S-Tab>"] = "Prev",
-        ["q"] = "Cancel",
-        ["?"] = "ShowHelp",
-      },
-    },
-  },
-  -- Configure the floating window used for confirmation prompts
-  confirm = {
-    border = "rounded",
-    zindex = 40,
-    -- Dimensions can be integers or a float between 0 and 1 (e.g. 0.4 for 40%)
-    -- min_X and max_X can be a single value or a list of mixed integer/float types.
-    min_width = 20,
-    max_width = 0.5,
-    width = nil,
-    min_height = 6,
-    max_height = 0.9,
-    height = nil,
-    -- Set any window options here (e.g. winhighlight)
-    win_opts = {
-      winblend = 0,
-    },
-  },
-  -- Configuration for task floating windows
+  -- Configuration for task floating output windows
   task_win = {
     -- How much space to leave around the floating window
     padding = 2,
-    border = "rounded",
     -- Set any window options here (e.g. winhighlight)
-    win_opts = {
-      winblend = 0,
-    },
-  },
-  -- Configuration for mapping help floating windows
-  help_win = {
-    border = "rounded",
     win_opts = {},
   },
   -- Aliases for bundles of components. Redefine the builtins, or create your own.
   component_aliases = {
     -- Most tasks are initialized with the default components
     default = {
-      { "display_duration", detail_level = 2 },
-      "on_output_summarize",
       "on_exit_set_status",
       "on_complete_notify",
       { "on_complete_dispose", require_view = { "SUCCESS", "FAILURE" } },
@@ -241,65 +178,44 @@ require("overseer").setup({
       "default",
       "on_result_diagnostics",
     },
-  },
-  bundles = {
-    -- When saving a bundle with OverseerSaveBundle or save_task_bundle(), filter the tasks with
-    -- these options (passed to list_tasks())
-    save_task_opts = {
-      bundleable = true,
+    -- Tasks created from experimental_wrap_builtins
+    default_builtin = {
+      "on_exit_set_status",
+      "on_complete_dispose",
+      { "unique", soft = true },
     },
-    -- Autostart tasks when they are loaded from a bundle
-    autostart_on_load = true,
   },
-  -- A list of components to preload on setup.
-  -- Only matters if you want them to show up in the task editor.
-  preload_components = {},
-  -- Controls when the parameter prompt is shown when running a template
-  --   always    Show when template has any params
-  --   missing   Show when template has any params not explicitly passed in
-  --   allow     Only show when a required param is missing
-  --   avoid     Only show when a required param with no default value is missing
-  --   never     Never show prompt (error if required param missing)
-  default_template_prompt = "allow",
-  -- For template providers, how long to wait (in ms) before timing out.
-  -- Set to 0 to disable timeouts.
-  template_timeout = 3000,
+  -- List of other directories to search for task templates.
+  -- This will search under the runtimepath, so for example
+  -- "foo/bar" will search "<runtimepath>/lua/foo/bar/*"
+  template_dirs = {},
+  -- For template providers, how long to wait before timing out.
+  -- Set to 0 to wait forever.
+  template_timeout_ms = 3000,
   -- Cache template provider results if the provider takes longer than this to run.
-  -- Time is in ms. Set to 0 to disable caching.
-  template_cache_threshold = 100,
-  -- Configure where the logs go and what level to use
-  -- Types are "echo", "notify", and "file"
-  log = {
-    {
-      type = "echo",
-      level = vim.log.levels.WARN,
-    },
-    {
-      type = "file",
-      filename = "overseer.log",
-      level = vim.log.levels.WARN,
-    },
+  -- Set to 0 to disable caching.
+  template_cache_threshold_ms = 200,
+  log_level = vim.log.levels.WARN,
+  -- Overseer can wrap any call to vim.system and vim.fn.jobstart as a task.
+  experimental_wrap_builtins = {
+    enabled = false,
+    condition = function(cmd, caller, opts)
+      return true
+    end,
   },
 })
 ```
 
 ## Commands
 
-| Command                 | Args                | Description                                                            |
-| ----------------------- | ------------------- | ---------------------------------------------------------------------- |
-| `OverseerOpen[!]`       | `left/right/bottom` | Open the overseer window. With `!` cursor stays in current window      |
-| `OverseerClose`         |                     | Close the overseer window                                              |
-| `OverseerToggle[!]`     | `left/right/bottom` | Toggle the overseer window. With `!` cursor stays in current window    |
-| `OverseerSaveBundle`    | `[name]`            | Serialize and save the current tasks to disk                           |
-| `OverseerLoadBundle[!]` | `[name]`            | Load tasks that were saved to disk. With `!` tasks will not be started |
-| `OverseerDeleteBundle`  | `[name]`            | Delete a saved task bundle                                             |
-| `OverseerRunCmd`        | `[command]`         | Run a raw shell command                                                |
-| `OverseerRun`           | `[name/tags]`       | Run a task from a template                                             |
-| `OverseerInfo`          |                     | Display diagnostic information about overseer                          |
-| `OverseerBuild`         |                     | Open the task builder                                                  |
-| `OverseerQuickAction`   | `[action]`          | Run an action on the most recent task, or the task under the cursor    |
-| `OverseerTaskAction`    |                     | Select a task to run an action on                                      |
-| `OverseerClearCache`    |                     | Clear the task cache                                                   |
+| Command              | Args                | Description                                                                           |
+| -------------------- | ------------------- | ------------------------------------------------------------------------------------- |
+| `OverseerOpen[!]`    | `left/right/bottom` | Open the overseer window. With `!` cursor stays in current window                     |
+| `OverseerClose`      |                     | Close the overseer window                                                             |
+| `OverseerToggle[!]`  | `left/right/bottom` | Toggle the overseer window. With `!` cursor stays in current window                   |
+| `OverseerRun`        | `[name/tags]`       | Run a task from a template                                                            |
+| `OverseerShell[!]`   | `[command]`         | Run a shell command as an overseer task. With `!` the task is created but not started |
+| `OverseerTaskAction` |                     | Select a task to run an action on                                                     |
 
 ## Highlight groups
 
@@ -328,7 +244,6 @@ The official API surface includes:
 - Config options passed to `setup()`
 - [Components](explanation.md#components), including names and parameters
 - [Commands](#commands)
-- [Parsers](guides.md#parsing-output), including names and parameters
 
 <!-- API -->
 
@@ -337,18 +252,9 @@ The official API surface includes:
 `setup(opts)` \
 Initialize overseer
 
-| Param | Type                   | Desc                  |
-| ----- | ---------------------- | --------------------- |
-| opts  | `overseer.Config\|nil` | Configuration options |
-
-### on_setup(callback)
-
-`on_setup(callback)` \
-Add a callback to run after overseer lazy setup
-
-| Param    | Type    | Desc |
-| -------- | ------- | ---- |
-| callback | `fun()` |      |
+| Param | Type                      | Desc                  |
+| ----- | ------------------------- | --------------------- |
+| opts  | `overseer.SetupOpts\|nil` | Configuration options |
 
 ### new_task(opts)
 
@@ -367,12 +273,12 @@ Create a new Task
 | >metadata                 | `nil\|table`                 | Arbitrary metadata for your own use                                              |
 | >default_component_params | `nil\|table<string, any>`    | Default values for component params                                              |
 | >components               | `nil\|overseer.Serialized[]` | List of components to attach. Defaults to `{"default"}`                          |
+| >ephemeral                | `nil\|boolean`               | Indicates that this task was generated by another task (e.g. with run_after)     |
 
 **Examples:**
 ```lua
 local task = overseer.new_task({
-  cmd = { "./build.sh" },
-  args = { "all" },
+  cmd = { "./build.sh", "all" },
   components = { { "on_output_quickfix", open = true }, "default" }
 })
 task:start()
@@ -386,7 +292,7 @@ Open or close the task list
 | Param          | Type                             | Desc                                                     |
 | -------------- | -------------------------------- | -------------------------------------------------------- |
 | opts           | `nil\|overseer.WindowOpts`       |                                                          |
-| >enter         | `nil\|boolean`                   |                                                          |
+| >enter         | `nil\|boolean`                   | Focus the task list window after opening (default true)  |
 | >direction     | `nil\|"left"\|"right"\|"bottom"` |                                                          |
 | >winid         | `nil\|integer`                   | Use this existing window instead of opening a new window |
 | >focus_task_id | `nil\|integer`                   | After opening, focus this task                           |
@@ -396,11 +302,13 @@ Open or close the task list
 `open(opts)` \
 Open the task list
 
-| Param      | Type                       | Desc                                           |
-| ---------- | -------------------------- | ---------------------------------------------- |
-| opts       | `nil\|overseer.WindowOpts` |                                                |
-| >enter     | `boolean\|nil`             | If false, stay in current window. Default true |
-| >direction | `nil\|"left"\|"right"`     | Which direction to open the task list          |
+| Param          | Type                             | Desc                                                     |
+| -------------- | -------------------------------- | -------------------------------------------------------- |
+| opts           | `nil\|overseer.WindowOpts`       |                                                          |
+| >enter         | `nil\|boolean`                   | Focus the task list window after opening (default true)  |
+| >direction     | `nil\|"left"\|"right"\|"bottom"` |                                                          |
+| >winid         | `nil\|integer`                   | Use this existing window instead of opening a new window |
+| >focus_task_id | `nil\|integer`                   | After opening, focus this task                           |
 
 ### close()
 
@@ -408,133 +316,74 @@ Open the task list
 Close the task list
 
 
-### list_task_bundles()
-
-`list_task_bundles(): string[]` \
-Get the list of saved task bundles
-
-
-Returns:
-
-| Type     | Desc                  |
-| -------- | --------------------- |
-| string[] | Names of task bundles |
-
-### load_task_bundle(name, opts)
-
-`load_task_bundle(name, opts)` \
-Load tasks from a saved bundle
-
-| Param           | Type           | Desc                                                    |
-| --------------- | -------------- | ------------------------------------------------------- |
-| name            | `nil\|string`  |                                                         |
-| opts            | `nil\|table`   |                                                         |
-| >ignore_missing | `nil\|boolean` | When true, don't notify if bundle doesn't exist         |
-| >autostart      | `nil\|boolean` | When true, start the tasks after loading (default true) |
-
-### save_task_bundle(name, tasks, opts)
-
-`save_task_bundle(name, tasks, opts)` \
-Save tasks to a bundle on disk
-
-| Param        | Type                                   | Desc                                                               |
-| ------------ | -------------------------------------- | ------------------------------------------------------------------ |
-| name         | `string\|nil`                          | Name of bundle. If nil, will prompt user.                          |
-| tasks        | `nil\|overseer.Task[]`                 | Specific tasks to save. If nil, uses config.bundles.save_task_opts |
-| opts         | `table\|nil`                           |                                                                    |
-| >on_conflict | `nil\|"overwrite"\|"append"\|"cancel"` |                                                                    |
-
-### delete_task_bundle(name)
-
-`delete_task_bundle(name)` \
-Delete a saved task bundle
-
-| Param | Type          | Desc |
-| ----- | ------------- | ---- |
-| name  | `string\|nil` |      |
-
 ### list_tasks(opts)
 
 `list_tasks(opts): overseer.Task[]` \
 List all tasks
 
-| Param         | Type                                      | Desc                                                |
-| ------------- | ----------------------------------------- | --------------------------------------------------- |
-| opts          | `nil\|overseer.ListTaskOpts`              |                                                     |
-| >unique       | `nil\|boolean`                            | Deduplicates non-running tasks by name              |
-| >name         | `nil\|string\|string[]`                   | Only list tasks with this name or names             |
-| >name_not     | `nil\|boolean`                            | Invert the name search (tasks *without* that name)  |
-| >status       | `nil\|overseer.Status\|overseer.Status[]` | Only list tasks with this status or statuses        |
-| >status_not   | `nil\|boolean`                            | Invert the status search                            |
-| >recent_first | `nil\|boolean`                            | The most recent tasks are first in the list         |
-| >bundleable   | `nil\|boolean`                            | Only list tasks that should be included in a bundle |
-| >filter       | `nil\|fun(task: overseer.Task): boolean`  |                                                     |
+| Param              | Type                                                    | Desc                                                                |
+| ------------------ | ------------------------------------------------------- | ------------------------------------------------------------------- |
+| opts               | `nil\|overseer.ListTaskOpts`                            |                                                                     |
+| >unique            | `nil\|boolean`                                          | Deduplicates non-running tasks by name                              |
+| >status            | `nil\|overseer.Status\|overseer.Status[]`               | Only list tasks with this status or statuses                        |
+| >include_ephemeral | `nil\|boolean`                                          | Include ephemeral tasks                                             |
+| >wrapped           | `nil\|boolean`                                          | Include tasks that were created by the jobstart/vim.system wrappers |
+| >filter            | `nil\|fun(task: overseer.Task): boolean`                | Only include tasks where this function returns true                 |
+| >sort              | `nil\|fun(a: overseer.Task, b: overseer.Task): boolean` | Function that sorts tasks                                           |
 
-### run_template(opts, callback)
+### run_task(opts, callback)
 
-`run_template(opts, callback)` \
+`run_task(opts, callback)` \
 Run a task from a template
 
-| Param      | Type                                                   | Desc                                                                                                                                |
-| ---------- | ------------------------------------------------------ | ----------------------------------------------------------------------------------------------------------------------------------- |
-| opts       | `overseer.TemplateRunOpts`                             |                                                                                                                                     |
-| >name      | `nil\|string`                                          | The name of the template to run                                                                                                     |
-| >tags      | `nil\|string[]`                                        | List of tags used to filter when searching for template                                                                             |
-| >autostart | `nil\|boolean`                                         | When true, start the task after creating it (default true)                                                                          |
-| >first     | `nil\|boolean`                                         | When true, take first result and never show the task picker. Default behavior will auto-set this based on presence of name and tags |
-| >prompt    | `nil\|"always"\|"missing"\|"allow"\|"avoid"\|"never"`  | Controls when to prompt user for parameter input                                                                                    |
-| >params    | `nil\|table`                                           | Parameters to pass to template                                                                                                      |
-| >cwd       | `nil\|string`                                          | Working directory for the task                                                                                                      |
-| >env       | `nil\|table<string, string>`                           | Additional environment variables for the task                                                                                       |
-| callback   | `nil\|fun(task: overseer.Task\|nil, err: string\|nil)` |                                                                                                                                     |
-
-**Note:**
-<pre>
-The prompt option will control when the user is presented a popup dialog to input template
-parameters. The possible values are:
-   always    Show when template has any params
-   missing   Show when template has any params not explicitly passed in
-   allow     Only show when a required param is missing
-   avoid     Only show when a required param with no default value is missing
-   never     Never show prompt (error if required param missing)
-The default is controlled by the default_template_prompt config option.
-</pre>
+| Param            | Type                                                                    | Desc                                                                                                                                |
+| ---------------- | ----------------------------------------------------------------------- | ----------------------------------------------------------------------------------------------------------------------------------- |
+| opts             | `overseer.TemplateRunOpts`                                              |                                                                                                                                     |
+| >name            | `nil\|string`                                                           | The name of the template to run                                                                                                     |
+| >tags            | `nil\|string[]`                                                         | List of tags used to filter when searching for template                                                                             |
+| >autostart       | `nil\|boolean`                                                          | When true, start the task after creating it (default true)                                                                          |
+| >first           | `nil\|boolean`                                                          | When true, take first result and never show the task picker. Default behavior will auto-set this based on presence of name and tags |
+| >params          | `nil\|table`                                                            | Parameters to pass to template                                                                                                      |
+| >cwd             | `nil\|string`                                                           | Working directory for the task                                                                                                      |
+| >env             | `nil\|table<string, string>`                                            | Additional environment variables for the task                                                                                       |
+| >disallow_prompt | `nil\|boolean`                                                          | When true, if any required parameters are missing return an error instead of prompting the user for them                            |
+| >on_build        | `nil\|fun(task_defn: overseer.TaskDefinition, util: overseer.TaskUtil)` | callback that is called after the task definition is built but before the task is created.                                          |
+| callback         | `nil\|fun(task: overseer.Task\|nil, err: string\|nil)`                  |                                                                                                                                     |
 
 **Examples:**
 ```lua
 -- Run the task named "make all"
 -- equivalent to :OverseerRun make\ all
-overseer.run_template({name = "make all"})
+overseer.run_task({name = "make all"})
 -- Run the default "build" task
 -- equivalent to :OverseerRun BUILD
-overseer.run_template({tags = {overseer.TAG.BUILD}})
+overseer.run_task({tags = {overseer.TAG.BUILD}})
 -- Run the task named "serve" with some default parameters
-overseer.run_template({name = "serve", params = {port = 8080}})
+overseer.run_task({name = "serve", params = {port = 8080}})
 -- Create a task but do not start it
-overseer.run_template({name = "make", autostart = false}, function(task)
+overseer.run_task({name = "make", autostart = false}, function(task)
   -- do something with the task
 end)
 -- Run a task and immediately open the floating window
-overseer.run_template({name = "make"}, function(task)
+overseer.run_task({name = "make"}, function(task)
   if task then
     overseer.run_action(task, 'open float')
   end
 end)
--- Run a task and always show the parameter prompt
-overseer.run_template({name = "npm watch", prompt = "always"})
 ```
 
 ### preload_task_cache(opts, cb)
 
 `preload_task_cache(opts, cb)` \
-Preload templates for run_template
+Preload templates for run_task
 
-| Param | Type          | Desc                               |
-| ----- | ------------- | ---------------------------------- |
-| opts  | `nil\|table`  |                                    |
-| >dir  | `string`      |                                    |
-| >ft   | `nil\|string` |                                    |
-| cb    | `nil\|fun()`  | Called when preloading is complete |
+| Param     | Type                         | Desc                               |
+| --------- | ---------------------------- | ---------------------------------- |
+| opts      | `nil\|overseer.SearchParams` |                                    |
+| >filetype | `nil\|string`                |                                    |
+| >tags     | `nil\|string[]`              |                                    |
+| >dir      | `string`                     |                                    |
+| cb        | `nil\|fun()`                 | Called when preloading is complete |
 
 **Note:**
 <pre>
@@ -554,13 +403,14 @@ vim.api.nvim_create_autocmd({"VimEnter", "DirChanged"}, {
 ### clear_task_cache(opts)
 
 `clear_task_cache(opts)` \
-Clear cached templates for run_template
+Clear cached templates for run_task
 
-| Param | Type          | Desc |
-| ----- | ------------- | ---- |
-| opts  | `nil\|table`  |      |
-| >dir  | `string`      |      |
-| >ft   | `nil\|string` |      |
+| Param     | Type                         | Desc |
+| --------- | ---------------------------- | ---- |
+| opts      | `nil\|overseer.SearchParams` |      |
+| >filetype | `nil\|string`                |      |
+| >tags     | `nil\|string[]`              |      |
+| >dir      | `string`                     |      |
 
 ### run_action(task, name)
 
@@ -570,73 +420,19 @@ Run an action on a task
 | Param | Type            | Desc                                               |
 | ----- | --------------- | -------------------------------------------------- |
 | task  | `overseer.Task` |                                                    |
-| name  | `string\|nil`   | Name of action. When omitted, prompt user to pick. |
-
-### wrap_template(base, override, default_params)
-
-`wrap_template(base, override, default_params): overseer.TemplateFileDefinition` \
-Create a new template by overriding fields on another
-
-| Param          | Type                                               | Desc                                                  |
-| -------------- | -------------------------------------------------- | ----------------------------------------------------- |
-| base           | `overseer.TemplateFileDefinition`                  | The base template definition to wrap                  |
-| >module        | `nil\|string`                                      | The name of the module this was loaded from           |
-| >aliases       | `nil\|string[]`                                    |                                                       |
-| >desc          | `nil\|string`                                      |                                                       |
-| >tags          | `nil\|string[]`                                    |                                                       |
-| >params        | `nil\|overseer.Params\|fun(): overseer.Params`     |                                                       |
-| >priority      | `nil\|number`                                      |                                                       |
-| >condition     | `nil\|overseer.SearchCondition`                    |                                                       |
-| >>filetype     | `nil\|string\|string[]`                            |                                                       |
-| >>dir          | `nil\|string\|string[]`                            |                                                       |
-| >>callback     | `nil\|fun(search: overseer.SearchParams): boolean` | , nil|string                                          |
-| >builder       | `fun(params: table): overseer.TaskDefinition`      |                                                       |
-| >hide          | `nil\|boolean`                                     | Hide from the template list                           |
-| override       | `nil\|table<string, any>`                          | Override any fields on the base                       |
-| default_params | `nil\|table<string, any>`                          | Provide default values for any parameters on the base |
-
-**Note:**
-<pre>
-This is typically used for a TemplateProvider, to define the task a single time and generate
-multiple templates based on the available args.
-</pre>
-
-**Examples:**
-```lua
-local tmpl = {
-  params = {
-    args = { type = 'list', delimiter = ' ' }
-  },
-  builder = function(params)
-  return {
-    cmd = { 'make' },
-    args = params.args,
-  }
-}
-local template_provider = {
-  name = "Some provider",
-  generator = function(opts, cb)
-    cb({
-      overseer.wrap_template(tmpl, nil, { args = { 'all' } }),
-      overseer.wrap_template(tmpl, {name = 'make clean'}, { args = { 'clean' } }),
-    })
-  end
-}
-```
+| name  | `nil\|string`   | Name of action. When omitted, prompt user to pick. |
 
 ### add_template_hook(opts, hook)
 
 `add_template_hook(opts, hook)` \
 Add a hook that runs on a TaskDefinition before the task is created
 
-| Param     | Type                                                               | Desc                                                                      |
-| --------- | ------------------------------------------------------------------ | ------------------------------------------------------------------------- |
-| opts      | `nil\|overseer.HookOptions`                                        | When nil, run the hook on all templates                                   |
-| >name     | `nil\|string`                                                      | Only run if the template name matches this pattern (using string.match)   |
-| >module   | `nil\|string`                                                      | Only run if the template module matches this pattern (using string.match) |
-| >filetype | `nil\|string\|string[]`                                            | Only run if the current file is one of these filetypes                    |
-| >dir      | `nil\|string\|string[]`                                            | Only run if inside one of these directories                               |
-| hook      | `fun(task_defn: overseer.TaskDefinition, util: overseer.TaskUtil)` |                                                                           |
+| Param   | Type                                                               | Desc                                                                      |
+| ------- | ------------------------------------------------------------------ | ------------------------------------------------------------------------- |
+| opts    | `nil\|overseer.HookOptions`                                        | When nil, run the hook on all templates                                   |
+| >module | `nil\|string`                                                      | Only run if the template module matches this pattern (using string.match) |
+| >name   | `nil\|string`                                                      | Only run if the template name matches this pattern (using string.match)   |
+| hook    | `fun(task_defn: overseer.TaskDefinition, util: overseer.TaskUtil)` |                                                                           |
 
 **Examples:**
 ```lua
@@ -661,12 +457,12 @@ end)
 `remove_template_hook(opts, hook)` \
 Remove a hook that was added with add_template_hook
 
-| Param   | Type                                                               | Desc                          |
-| ------- | ------------------------------------------------------------------ | ----------------------------- |
-| opts    | `nil\|overseer.HookOptions`                                        | Same as for add_template_hook |
-| >module | `nil\|string`                                                      |                               |
-| >name   | `nil\|string`                                                      |                               |
-| hook    | `fun(task_defn: overseer.TaskDefinition, util: overseer.TaskUtil)` |                               |
+| Param   | Type                                                               | Desc                                                                      |
+| ------- | ------------------------------------------------------------------ | ------------------------------------------------------------------------- |
+| opts    | `nil\|overseer.HookOptions`                                        | Same as for add_template_hook                                             |
+| >module | `nil\|string`                                                      | Only run if the template module matches this pattern (using string.match) |
+| >name   | `nil\|string`                                                      | Only run if the template name matches this pattern (using string.match)   |
+| hook    | `fun(task_defn: overseer.TaskDefinition, util: overseer.TaskUtil)` |                                                                           |
 
 **Examples:**
 ```lua
@@ -700,36 +496,16 @@ overseer.register_template({
 })
 ```
 
-### load_template(name)
+### register_alias(name, components, override)
 
-`load_template(name)` \
-Load a template definition from its module location
-
-| Param | Type     | Desc |
-| ----- | -------- | ---- |
-| name  | `string` |      |
-
-**Examples:**
-```lua
--- This will load the template in lua/overseer/template/mytask.lua
-overseer.load_template('mytask')
-```
-
-### debug_parser()
-
-`debug_parser()` \
-Open a tab with windows laid out for debugging a parser
-
-
-### register_alias(name, components)
-
-`register_alias(name, components)` \
+`register_alias(name, components, override)` \
 Register a new component alias.
 
-| Param      | Type                    | Desc |
-| ---------- | ----------------------- | ---- |
-| name       | `string`                |      |
-| components | `overseer.Serialized[]` |      |
+| Param      | Type                    | Desc                                                      |
+| ---------- | ----------------------- | --------------------------------------------------------- |
+| name       | `string`                |                                                           |
+| components | `overseer.Serialized[]` |                                                           |
+| override   | `nil\|boolean`          | When true, override any existing alias with the same name |
 
 **Note:**
 <pre>
@@ -743,22 +519,302 @@ setting a component alias that they can then use when creating tasks.
 require("overseer").register_alias("my_plugin", { "default", "on_output_quickfix" })
 ```
 
+### create_task_output_view(winid, opts)
+
+`create_task_output_view(winid, opts)` \
+Set a window to display the output of a dynamically-chosen task
+
+| Param                | Type                                                                                                               | Desc                                                                             |
+| -------------------- | ------------------------------------------------------------------------------------------------------------------ | -------------------------------------------------------------------------------- |
+| winid                | `nil\|integer`                                                                                                     | The window to use for displaying the task output                                 |
+| opts                 | `nil\|overseer.TaskViewOpts`                                                                                       |                                                                                  |
+| >select              | `nil\|fun(self: overseer.TaskView, tasks: overseer.Task[], task_under_cursor?: overseer.Task): nil\|overseer.Task` | Select which task in the task list to display the output of                      |
+| >close_on_list_close | `nil\|boolean`                                                                                                     | Close the window when the task list is closed                                    |
+| >list_task_opts      | `nil\|overseer.ListTaskOpts`                                                                                       | Passed to list_tasks() to get the list of tasks to pass to the select() function |
+| >>unique             | `nil\|boolean`                                                                                                     | Deduplicates non-running tasks by name                                           |
+| >>status             | `nil\|overseer.Status\|overseer.Status[]`                                                                          | Only list tasks with this status or statuses                                     |
+| >>include_ephemeral  | `nil\|boolean`                                                                                                     | Include ephemeral tasks                                                          |
+| >>wrapped            | `nil\|boolean`                                                                                                     | Include tasks that were created by the jobstart/vim.system wrappers              |
+| >>filter             | `nil\|fun(task: overseer.Task): boolean`                                                                           | Only include tasks where this function returns true                              |
+| >>sort               | `nil\|fun(a: overseer.Task, b: overseer.Task): boolean`                                                            | Function that sorts tasks                                                        |
+
+**Examples:**
+```lua
+-- Always show the output from the most recent Neotest task in this window.
+-- Close it automatically when all test tasks are disposed.
+overseer.create_task_output_view(0, {
+  select = function(self, tasks, task_under_cursor)
+    for _, task in ipairs(tasks) do
+      if task.metadata.neotest_group_id then
+        return task
+      end
+    end
+    self:dispose()
+  end,
+})
+```
+
 
 <!-- /API -->
+
+<!-- Task API -->
+### overseer.Task
+
+| Field      | Type                         | Desc                                                                                                   |
+| ---------- | ---------------------------- | ------------------------------------------------------------------------------------------------------ |
+| id         | `integer`                    | Unique ID for this task                                                                                |
+| result     | `nil\|table<string, any>`    | For successful tasks, arbitrary key-value mapping of data produced by components                       |
+| metadata   | `table<string, any>`         | Arbitrary key-value mapping passed by the user during construction                                     |
+| status     | `overseer.Status`            | Current task status                                                                                    |
+| cmd        | `string\|string[]`           | Command to run. If it's a string it is run in the shell                                                |
+| cwd        | `string`                     | Working directory the task is run in                                                                   |
+| env        | `nil\|table<string, string>` | Additional environment variables for the task                                                          |
+| name       | `string`                     | Name of the task                                                                                       |
+| ephemeral  | `boolean`                    | Indicates that this task was generated indirectly (e.g. with run_after)                                |
+| source     | `nil\|overseer.Caller`       | If this task was created by wrapping jobstart/vim.system, this contains information about the callsite |
+| exit_code  | `nil\|integer`               | Exit code of the task process                                                                          |
+| parent_id  | `nil\|integer`               | ID of parent task. Used only to visually group tasks in the task list                                  |
+| time_start | `nil\|integer`               | Timestamp when the task was started (os.time())                                                        |
+| time_end   | `nil\|integer`               | Timestamp when the task ended (os.time())                                                              |
+
+
+#### Task:serialize()
+
+`Task:serialize(): overseer.TaskDefinition` \
+Returns the arguments require to create a clone of this task when passed to overseer.new_task
+
+
+#### Task:clone()
+
+`Task:clone(): overseer.Task` \
+Create a deep copy of this task
+
+
+#### Task:add_component(comp)
+
+`Task:add_component(comp)` \
+Add a component, no-op if it already exists
+
+| Param | Type                  | Desc |
+| ----- | --------------------- | ---- |
+| comp  | `overseer.Serialized` |      |
+
+#### Task:add_components(components)
+
+`Task:add_components(components)` \
+Add components, skipping any that already exist
+
+| Param      | Type                    | Desc |
+| ---------- | ----------------------- | ---- |
+| components | `overseer.Serialized[]` |      |
+
+#### Task:set_component(comp)
+
+`Task:set_component(comp)` \
+Add component, overwriting any existing
+
+| Param | Type                  | Desc |
+| ----- | --------------------- | ---- |
+| comp  | `overseer.Serialized` |      |
+
+#### Task:set_components(components)
+
+`Task:set_components(components)` \
+Add components, overwriting any existing
+
+| Param      | Type                    | Desc |
+| ---------- | ----------------------- | ---- |
+| components | `overseer.Serialized[]` |      |
+
+#### Task:get_component(name)
+
+`Task:get_component(name): nil|overseer.Component`
+
+| Param | Type     | Desc |
+| ----- | -------- | ---- |
+| name  | `string` |      |
+
+#### Task:remove_component(name)
+
+`Task:remove_component(name): nil|overseer.Component`
+
+| Param | Type     | Desc |
+| ----- | -------- | ---- |
+| name  | `string` |      |
+
+#### Task:remove_components(names)
+
+`Task:remove_components(names): overseer.Component[]`
+
+| Param | Type       | Desc |
+| ----- | ---------- | ---- |
+| names | `string[]` |      |
+
+#### Task:has_component(name)
+
+`Task:has_component(name): boolean`
+
+| Param | Type     | Desc |
+| ----- | -------- | ---- |
+| name  | `string` |      |
+
+#### Task:subscribe(event, callback)
+
+`Task:subscribe(event, callback)` \
+Subscribe to events on this task
+
+| Param    | Type                                               | Desc                                                     |
+| -------- | -------------------------------------------------- | -------------------------------------------------------- |
+| event    | `string`                                           |                                                          |
+| callback | `fun(task: overseer.Task, ...: any): nil\|boolean` | Callback can return a truthy value to unsubscribe itself |
+
+**Note:**
+<pre>
+Listeners cannot be serialized, so will not be saved when saving task
+to disk and will not be copied when cloning the task.
+</pre>
+
+#### Task:unsubscribe(event, callback)
+
+`Task:unsubscribe(event, callback)` \
+Unsubscribe from an event that was previously subscribed to
+
+| Param    | Type                                 | Desc |
+| -------- | ------------------------------------ | ---- |
+| event    | `string`                             |      |
+| callback | `fun(task: overseer.Task, ...: any)` |      |
+
+#### Task:is_pending()
+
+`Task:is_pending(): boolean` \
+Returns true if the task is PENDING
+
+
+#### Task:is_running()
+
+`Task:is_running(): boolean` \
+Returns true if the task is RUNNING
+
+
+#### Task:is_complete()
+
+`Task:is_complete(): boolean` \
+Returns true if the task is complete (not PENDING or RUNNING)
+
+
+#### Task:is_disposed()
+
+`Task:is_disposed(): boolean` \
+Returns true if the task is DISPOSED
+
+
+#### Task:get_bufnr()
+
+`Task:get_bufnr(): number|nil` \
+Get the buffer containing the task output. Will be nil if task is PENDING.
+
+
+#### Task:open_output(direction)
+
+`Task:open_output(direction)` \
+Open the task output in a window
+
+| Param     | Type                                            | Desc |
+| --------- | ----------------------------------------------- | ---- |
+| direction | `nil\|"float"\|"tab"\|"vertical"\|"horizontal"` |      |
+
+**Note:**
+<pre>
+You can also use get_bufnr() to get the buffer and open it however you like.
+</pre>
+
+#### Task:broadcast(name)
+
+`Task:broadcast(name)` \
+Dispatch an event to all other tasks
+
+| Param | Type     | Desc |
+| ----- | -------- | ---- |
+| name  | `string` |      |
+
+#### Task:dispatch(name)
+
+`Task:dispatch(name): any[]` \
+Dispatch an event to all components
+
+| Param | Type     | Desc |
+| ----- | -------- | ---- |
+| name  | `string` |      |
+
+#### Task:inc_reference()
+
+`Task:inc_reference()` \
+Increment the refcount for this Task, preventing it from being disposed (unless force=true)
+
+
+#### Task:dec_reference()
+
+`Task:dec_reference()` \
+Decrement the refcount for this Task
+
+
+#### Task:dispose(force)
+
+`Task:dispose(force): boolean` \
+Cleans up resources, removes from task list, and deletes buffer.
+
+| Param | Type           | Desc                                                                           |
+| ----- | -------------- | ------------------------------------------------------------------------------ |
+| force | `nil\|boolean` | When true, will dispose even with a nonzero refcount or when buffer is visible |
+
+Returns:
+
+| Type    | Desc                               |
+| ------- | ---------------------------------- |
+| boolean | disposed True if task was disposed |
+
+#### Task:restart(force_stop)
+
+`Task:restart(force_stop): boolean` \
+Reset and re-run the task
+
+| Param      | Type           | Desc                                                      |
+| ---------- | -------------- | --------------------------------------------------------- |
+| force_stop | `nil\|boolean` | If true, restart the Task even if it is currently running |
+
+#### Task:start()
+
+`Task:start()` \
+Start a pending task
+
+
+#### Task:stop()
+
+`Task:stop(): boolean` \
+Stop a running task
+
+
+Returns:
+
+| Type    | Desc                                 |
+| ------- | ------------------------------------ |
+| boolean | stopped True if the task was stopped |
+
+
+<!-- /Task API -->
 
 ## Components
 
 <!-- TOC.components -->
 
 - [dependencies](components.md#dependencies)
-- [display_duration](components.md#display_duration)
 - [on_complete_dispose](components.md#on_complete_dispose)
 - [on_complete_notify](components.md#on_complete_notify)
 - [on_complete_restart](components.md#on_complete_restart)
 - [on_exit_set_status](components.md#on_exit_set_status)
+- [on_output_notify](components.md#on_output_notify)
 - [on_output_parse](components.md#on_output_parse)
 - [on_output_quickfix](components.md#on_output_quickfix)
-- [on_output_summarize](components.md#on_output_summarize)
 - [on_output_write_file](components.md#on_output_write_file)
 - [on_result_diagnostics](components.md#on_result_diagnostics)
 - [on_result_diagnostics_quickfix](components.md#on_result_diagnostics_quickfix)
@@ -778,35 +834,10 @@ require("overseer").register_alias("my_plugin", { "default", "on_output_quickfix
 
 - [jobstart(opts)](strategies.md#jobstartopts)
 - [orchestrator(opts)](strategies.md#orchestratoropts)
-- [terminal()](strategies.md#terminal)
+- [system(opts)](strategies.md#systemopts)
 - [test()](strategies.md#test)
-- [toggleterm(opts)](strategies.md#toggletermopts)
 
 <!-- /TOC.strategies -->
-
-## Parsers
-
-<!-- TOC.parsers -->
-
-  - [always](parsers.md#always)
-  - [append](parsers.md#append)
-  - [dispatch](parsers.md#dispatch)
-  - [ensure](parsers.md#ensure)
-  - [extract](parsers.md#extract)
-  - [extract_efm](parsers.md#extract_efm)
-  - [extract_json](parsers.md#extract_json)
-  - [extract_multiline](parsers.md#extract_multiline)
-  - [extract_nested](parsers.md#extract_nested)
-  - [invert](parsers.md#invert)
-  - [loop](parsers.md#loop)
-  - [parallel](parsers.md#parallel)
-  - [sequence](parsers.md#sequence)
-  - [set_defaults](parsers.md#set_defaults)
-  - [skip_lines](parsers.md#skip_lines)
-  - [skip_until](parsers.md#skip_until)
-  - [test](parsers.md#test)
-
-<!-- /TOC.parsers -->
 
 ## Parameters
 
@@ -821,7 +852,7 @@ local params = {
     desc = "A detailed description",
     order = 1, -- determines order of parameters in the UI
     validate = function(value)
-      return true,
+      return true
     end,
     optional = true,
     default = "foobar",

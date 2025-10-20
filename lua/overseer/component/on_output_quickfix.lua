@@ -34,7 +34,7 @@ local function copen(self, height)
 end
 
 ---@type overseer.ComponentFileDefinition
-local comp = {
+return {
   desc = "Set all task output into the quickfix (on complete)",
   params = {
     errorformat = {
@@ -119,7 +119,7 @@ local comp = {
           if params.tail then
             -- If we have been tailing the output, we should just keep the quickfix as it is
             -- because we've exceeded the scrollback limit and will lose the earlier data.
-            log:warn(
+            log.warn(
               "Task(%d) '%s' exceeded the output scrollback limit (%d lines). Keeping tail output instead of doing a large replace operation upon completion.",
               task.id,
               task.name,
@@ -127,7 +127,7 @@ local comp = {
             )
             return
           else
-            log:warn(
+            log.warn(
               "Task(%d) '%s' exceeded the output scrollback limit (%d lines). Only the last lines will be processed for the quickfix.",
               task.id,
               task.name,
@@ -238,5 +238,3 @@ local comp = {
     return comp
   end,
 }
-
-return comp

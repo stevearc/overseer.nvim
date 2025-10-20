@@ -1,7 +1,6 @@
 local component = require("overseer.component")
 local constants = require("overseer.constants")
 local form = require("overseer.form")
-local task_bundle = require("overseer.task_bundle")
 local task_editor = require("overseer.task_editor")
 local task_list = require("overseer.task_list")
 local util = require("overseer.util")
@@ -9,6 +8,12 @@ local STATUS = constants.STATUS
 
 local M
 
+---@class (exact) overseer.Action
+---@field desc? string Detailed description of what the action does
+---@field condition? fun(task: overseer.Task): boolean Function to check if the action is applicable
+---@field run fun(task: overseer.Task)
+
+---@type table<string, overseer.Action>
 M = {
   start = {
     condition = function(task)
@@ -26,12 +31,6 @@ M = {
       task:stop()
     end,
   },
-  save = {
-    desc = "save the task to a bundle file",
-    run = function(task)
-      task_bundle.save_task_bundle(nil, { task })
-    end,
-  },
   restart = {
     condition = function(task)
       return task.status ~= STATUS.PENDING
@@ -46,10 +45,11 @@ M = {
     end,
   },
   edit = {
+    desc = "Edit the task components directly",
     run = function(task)
       task_editor.open(task, function(t)
         if t then
-          task_list.update(t)
+          task_list.touch(t)
         end
       end)
     end,
@@ -91,7 +91,7 @@ M = {
         end
         params[1] = "restart_on_save"
         task:set_component(params)
-        task_list.update(task)
+        task_list.touch(task)
       end)
     end,
   },
@@ -107,7 +107,7 @@ M = {
   ["open float"] = {
     desc = "open terminal in a floating window",
     condition = function(task)
-      return task:get_bufnr()
+      return task:get_bufnr() ~= nil
     end,
     run = function(task)
       task:open_output("float")
@@ -116,7 +116,7 @@ M = {
   open = {
     desc = "open terminal in the current window",
     condition = function(task)
-      return task:get_bufnr()
+      return task:get_bufnr() ~= nil
     end,
     run = function(task)
       task:open_output()
@@ -125,7 +125,7 @@ M = {
   ["open hsplit"] = {
     desc = "open terminal in a horizontal split",
     condition = function(task)
-      return task:get_bufnr()
+      return task:get_bufnr() ~= nil
     end,
     run = function(task)
       task:open_output("horizontal")
@@ -134,7 +134,7 @@ M = {
   ["open vsplit"] = {
     desc = "open terminal in a vertical split",
     condition = function(task)
-      return task:get_bufnr()
+      return task:get_bufnr() ~= nil
     end,
     run = function(task)
       task:open_output("vertical")
@@ -143,7 +143,7 @@ M = {
   ["open tab"] = {
     desc = "open terminal in a new tab",
     condition = function(task)
-      return task:get_bufnr()
+      return task:get_bufnr() ~= nil
     end,
     run = function(task)
       task:open_output("tab")
@@ -152,7 +152,7 @@ M = {
   ["set quickfix diagnostics"] = {
     desc = "put the diagnostics results into quickfix",
     condition = function(task)
-      return task.result
+      return task.result ~= nil
         and task.result.diagnostics
         and not vim.tbl_isempty(task.result.diagnostics)
     end,
@@ -163,7 +163,7 @@ M = {
   ["set loclist diagnostics"] = {
     desc = "put the diagnostics results into loclist",
     condition = function(task)
-      return task.result
+      return task.result ~= nil
         and task.result.diagnostics
         and not vim.tbl_isempty(task.result.diagnostics)
     end,
@@ -177,17 +177,17 @@ M = {
     condition = function(task)
       local bufnr = task:get_bufnr()
       return task:is_complete()
-        and bufnr
+        and bufnr ~= nil
         and vim.api.nvim_buf_is_valid(bufnr)
         and vim.api.nvim_buf_is_loaded(bufnr)
     end,
     run = function(task)
-      local lines = vim.api.nvim_buf_get_lines(task:get_bufnr(), 0, -1, true)
+      local lines = vim.api.nvim_buf_get_lines(assert(task:get_bufnr()), 0, -1, true)
       vim.fn.setqflist({}, " ", {
         title = task.name,
-        context = task.name,
         lines = lines,
         -- Peep into the default component params to fetch the errorformat
+        ---@diagnostic disable-next-line: invisible
         efm = task.default_component_params.errorformat,
       })
       vim.cmd("botright copen")

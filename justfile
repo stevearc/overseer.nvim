@@ -12,7 +12,7 @@ _private-task:
   echo "Private task"
 
 doc:
-  python .github/main.py generate
+	venv/bin/python scripts/main.py generate
 
 lint:
   python .github/main.py lint

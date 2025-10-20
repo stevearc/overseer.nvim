@@ -1,6 +1,8 @@
+local util = require("overseer.util")
+
 -- Looks for a result value of 'diagnostics' that is a list of quickfix items
 ---@type overseer.ComponentFileDefinition
-local comp = {
+return {
   desc = "If task result contains diagnostics, add them to the quickfix",
   params = {
     use_loclist = {
@@ -67,12 +69,12 @@ local comp = {
           end
         elseif params.open then
           local winid = vim.api.nvim_get_current_win()
-          vim.cmd(conf.open_cmd)
-          vim.api.nvim_set_current_win(winid)
+          util.eventignore_call(function()
+            vim.cmd(conf.open_cmd)
+            vim.api.nvim_set_current_win(winid)
+          end)
         end
       end,
     }
   end,
 }
-
-return comp

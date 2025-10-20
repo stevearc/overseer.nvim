@@ -1,4 +1,3 @@
-local uv = vim.uv or vim.loop
 local constants = require("overseer.constants")
 local log = require("overseer.log")
 local STATUS = constants.STATUS
@@ -15,7 +14,7 @@ local function is_buffer_visible(bufnr)
 end
 
 ---@type overseer.ComponentFileDefinition
-local comp = {
+return {
   desc = "After task is completed, dispose it after a timeout",
   params = {
     timeout = {
@@ -47,9 +46,7 @@ local comp = {
   },
   constructor = function(opts)
     opts = opts or {}
-    vim.validate({
-      timeout = { opts.timeout, "n" },
-    })
+    vim.validate("timeout", opts.timeout, "number")
     return {
       timer = nil,
 
@@ -67,12 +64,12 @@ local comp = {
       end,
       _start_timer = function(self, task)
         self:_stop_timer()
-        log:debug(
+        log.debug(
           "task(%s)[on_complete_dispose] starting dispose timer for %ds",
           task.id,
           opts.timeout
         )
-        self.timer = uv.new_timer()
+        self.timer = vim.uv.new_timer()
         -- Start a repeating timer because the dispose could fail with a
         -- temporary reason (e.g. the task buffer is open, or the action menu is
         -- displayed for the task)
@@ -80,7 +77,7 @@ local comp = {
           1000 * opts.timeout,
           1000 * opts.timeout,
           vim.schedule_wrap(function()
-            log:debug("task(%s)[on_complete_dispose] attempt dispose", task.id)
+            log.debug("task(%s)[on_complete_dispose] attempt dispose", task.id)
             task:dispose()
           end)
         )
@@ -88,7 +85,7 @@ local comp = {
 
       on_complete = function(self, task, status)
         if not vim.tbl_contains(opts.statuses, task.status) then
-          log:debug(
+          log.debug(
             "task(%s)[on_complete_dispose] complete, not auto-disposing task of status %s",
             task.id,
             status
@@ -103,7 +100,7 @@ local comp = {
         then
           self:_start_timer(task)
         else
-          log:debug(
+          log.debug(
             "task(%s)[on_complete_dispose] complete, waiting for output view",
             task.id,
             status
@@ -132,5 +129,3 @@ local comp = {
     }
   end,
 }
-
-return comp

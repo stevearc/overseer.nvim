@@ -7,8 +7,6 @@ local task_list = require("overseer.task_list")
 local template = require("overseer.template")
 local util = require("overseer.util")
 local STATUS = constants.STATUS
----@diagnostic disable-next-line: deprecated
-local islist = vim.isarray or vim.tbl_islist
 
 ---Check if this is a reference to a defined task template
 ---@param task any
@@ -20,7 +18,7 @@ local function is_named_task(task)
   end
   assert(type(task) == "table", "Task must be a string or table")
 
-  if islist(task) then
+  if vim.islist(task) then
     -- If this is a list-like table, then this is not a named task.
     -- It will be a list of named tasks or task definitions.
     return false
@@ -72,19 +70,15 @@ local OrchestratorStrategy = {}
 ---   },
 --- })
 function OrchestratorStrategy.new(opts)
-  vim.validate({
-    opts = { opts, "t" },
-  })
-  vim.validate({
-    tasks = { opts.tasks, "t" },
-  })
+  vim.validate("opts", opts, "table")
+  vim.validate("opts.tasks", opts.tasks, "table")
   -- Each entry in tasks can be either a task definition, OR a list of task definitions.
   -- Convert it to each entry being a list of task definitions.
   local task_defns = {}
   for i, v in ipairs(opts.tasks) do
     if is_named_task(v) then
       task_defns[i] = { v }
-    elseif islist(v) then
+    elseif vim.islist(v) then
       task_defns[i] = v
     else
       task_defns[i] = { v }
@@ -108,9 +102,6 @@ function OrchestratorStrategy:render_buf()
   local ns = vim.api.nvim_create_namespace("overseer")
   vim.api.nvim_buf_clear_namespace(self.bufnr, ns, 0, -1)
 
-  local lines = {}
-  local highlights = {}
-
   local columns = {}
   local col_widths = {}
   local max_row = 0
@@ -128,34 +119,25 @@ function OrchestratorStrategy:render_buf()
     max_row = math.max(max_row, #columns[i])
   end
 
+  local lines = {}
   for i = 1, max_row do
     local line = {}
-    local col_start = 0
     for j, column in ipairs(columns) do
       local task = column[i]
-      if task then
-        table.insert(
-          line,
-          util.ljust(string.format("%s %s", task.status, task.name), col_widths[j])
-        )
-        local col_end = col_start + task.status:len()
-        table.insert(
-          highlights,
-          { string.format("Overseer%s", task.status), #lines + 1, col_start, col_end }
-        )
-      else
-        table.insert(line, string.rep(" ", col_widths[j]))
+      if j > 1 then
+        table.insert(line, { " -> " })
       end
-      col_start = col_start + line[#line]:len() + 4
+      if task then
+        table.insert(line, { task.status, string.format("Overseer%s", task.status) })
+        table.insert(line, { util.ljust(" " .. task.name, col_widths[j] - #task.status) })
+      else
+        table.insert(line, { string.rep(" ", col_widths[j]) })
+      end
     end
-    table.insert(lines, table.concat(line, " -> "))
+    table.insert(lines, line)
   end
 
-  vim.bo[self.bufnr].modifiable = true
-  vim.api.nvim_buf_set_lines(self.bufnr, 0, -1, true, lines)
-  vim.bo[self.bufnr].modifiable = false
-  vim.bo[self.bufnr].modified = false
-  util.add_highlights(self.bufnr, ns, highlights)
+  util.render_buf_chunks(self.bufnr, ns, lines)
 end
 
 function OrchestratorStrategy:reset()
@@ -199,6 +181,7 @@ function OrchestratorStrategy:start_next()
         break
       elseif status == STATUS.FAILURE or status == STATUS.CANCELED then
         if self.task and self.task:is_running() then
+          ---@diagnostic disable-next-line: invisible
           self.task:finalize(status)
         end
         break
@@ -206,6 +189,7 @@ function OrchestratorStrategy:start_next()
       all_success = i == #self.tasks
     end
     if all_success then
+      ---@diagnostic disable-next-line: invisible
       self.task:finalize(STATUS.SUCCESS)
     end
   end
@@ -225,9 +209,6 @@ function OrchestratorStrategy:build_task(defn, i, j)
   ---@param task overseer.Task
   local function finalize_subtask(task)
     task:add_component("orchestrator.on_status_broadcast")
-    -- Don't include child tasks when saving to bundle. We will re-create them when the
-    -- orchestration task is loaded.
-    task:set_include_in_bundle(false)
     self.tasks[i][j] = task.id
     if self:section_complete(1) then
       self:start_next()
@@ -235,7 +216,8 @@ function OrchestratorStrategy:build_task(defn, i, j)
   end
 
   if type(defn) == "table" and defn[1] == nil then
-    defn = vim.tbl_extend("error", { parent_id = self.task.id }, defn)
+    defn = vim.tbl_extend("error", { parent_id = self.task.id, ephemeral = true }, defn)
+    ---@cast defn overseer.TaskDefinition
     local task = require("overseer").new_task(defn)
     finalize_subtask(task)
     return
@@ -245,7 +227,8 @@ function OrchestratorStrategy:build_task(defn, i, j)
   params = params or {}
   template.get_by_name(name, search, function(tmpl)
     if not tmpl then
-      log:error("Orchestrator could not find task '%s'", name)
+      log.error("Orchestrator could not find task '%s'", name)
+      ---@diagnostic disable-next-line: invisible
       self.task:finalize(STATUS.FAILURE)
       return
     end
@@ -258,7 +241,8 @@ function OrchestratorStrategy:build_task(defn, i, j)
       build_opts,
       vim.schedule_wrap(function(task_defn)
         if not task_defn then
-          log:warn("Canceled building task '%s'", name)
+          log.warn("Canceled building task '%s'", name)
+          ---@diagnostic disable-next-line: invisible
           self.task:finalize(STATUS.FAILURE)
           return
         end

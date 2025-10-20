@@ -1,5 +1,5 @@
 ---@type overseer.ComponentFileDefinition
-local comp = {
+return {
   desc = "Cancel task if it exceeds a timeout",
   params = {
     timeout = {
@@ -13,14 +13,12 @@ local comp = {
   },
   constructor = function(opts)
     opts = opts or {}
-    vim.validate({
-      timeout = { opts.timeout, "n" },
-    })
+    vim.validate("timeout", opts.timeout, "number")
     return {
       timer = nil,
       canceled = false,
       on_start = function(self, task)
-        self.timer = vim.loop.new_timer()
+        self.timer = vim.uv.new_timer()
         self.timer:start(
           1000 * opts.timeout,
           0,
@@ -42,14 +40,6 @@ local comp = {
           self.timer = nil
         end
       end,
-      render = function(self, task, lines, highlights, detail)
-        if self.canceled then
-          table.insert(lines, "Task timed out")
-          table.insert(highlights, { "DiagnosticWarn", #lines, 0, -1 })
-        end
-      end,
     }
   end,
 }
-
-return comp

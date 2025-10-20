@@ -1,5 +1,4 @@
 local util = require("overseer.util")
-local uv = vim.uv or vim.loop
 
 local function has_nvim_notify()
   return not not pcall(require, "notify")
@@ -13,11 +12,11 @@ local function get_notify_config(setting, default)
 end
 
 ---@type overseer.ComponentFileDefinition
-local comp = {
+return {
   desc = "Use nvim-notify to show notification with task output summary for long-running tasks",
 
   long_desc = vim.trim([[
-Works like on_complete_notify but, for long-running commands, also shows real-time output summary (like on_output_summarize).
+Works like on_complete_notify but, for long-running commands, also shows real-time output summary.
 Requires nvim-notify to modify the last notification window when new output arrives instead of creating new notification.
   ]]),
 
@@ -122,11 +121,11 @@ When output_on_complete==false: shows status + last output lines during task run
       end,
 
       on_start = function(self)
-        self.start_time = uv.now()
+        self.start_time = vim.uv.now()
       end,
 
       on_output = function(self, task, _data)
-        local elapsed = uv.now() - self.start_time
+        local elapsed = vim.uv.now() - self.start_time
         if elapsed < params.delay_ms then
           return
         end
@@ -146,5 +145,3 @@ When output_on_complete==false: shows status + last output lines during task run
     }
   end,
 }
-
-return comp

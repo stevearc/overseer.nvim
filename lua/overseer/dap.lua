@@ -1,7 +1,7 @@
 local constants = require("overseer.constants")
 local dap = require("dap")
 local log = require("overseer.log")
-local vscode = require("overseer.template.vscode")
+local vscode = require("overseer.vscode")
 local STATUS = constants.STATUS
 local TAG = constants.TAG
 local M = {}
@@ -17,7 +17,7 @@ local function get_task(name, config, cb)
   else
     args.name = name
   end
-  require("overseer").run_template(args, cb)
+  require("overseer").run_task(args, cb)
 end
 
 M.listener = function(config)
@@ -28,10 +28,10 @@ M.listener = function(config)
 
   if config.postDebugTask then
     dap.listeners.after.event_terminated.overseer = function()
-      log:debug("Running DAP postDebugTask %s", config.postDebugTask)
+      log.debug("Running DAP postDebugTask %s", config.postDebugTask)
       get_task(config.postDebugTask, config, function(task, err)
         if err then
-          log:error("Could not run postDebugTask %s", config.postDebugTask)
+          log.error("Could not run postDebugTask %s", config.postDebugTask)
         elseif task then
           task:start()
         end
@@ -40,11 +40,11 @@ M.listener = function(config)
   end
 
   if config.preLaunchTask then
-    log:debug("Running DAP preLaunchTask %s", config.preLaunchTask)
+    log.debug("Running DAP preLaunchTask %s", config.preLaunchTask)
     local co = coroutine.running()
     get_task(config.preLaunchTask, config, function(task, err)
       if not task then
-        log:error("Could not run preLaunchTask %s: %s", config.preLaunchTask, err)
+        log.error("Could not run preLaunchTask %s: %s", config.preLaunchTask, err)
         return
       end
 

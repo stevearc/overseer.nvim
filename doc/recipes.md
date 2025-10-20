@@ -4,13 +4,25 @@ Have a cool recipe to share? Open a pull request and add it to this doc!
 
 <!-- TOC -->
 
+- [Run a quick command like with `:!` or `:term`](#run-a-quick-command-like-with--or-term)
 - [Restart last task](#restart-last-task)
 - [Run shell scripts in the current directory](#run-shell-scripts-in-the-current-directory)
 - [Directory-local tasks with exrc](#directory-local-tasks-with-exrc)
-- [:Make similar to vim-dispatch](#make-similar-to-vim-dispatch)
+- [Asynchronous :Make similar to vim-dispatch](#asynchronous-make-similar-to-vim-dispatch)
 - [Asynchronous :Grep command](#asynchronous-grep-command)
+- [Create a window that displays the most recent task output](#create-a-window-that-displays-the-most-recent-task-output)
 
 <!-- /TOC -->
+
+## Run a quick command like with `:!` or `:term`
+
+The `:OverseerShell` command allows you to run a shell command as an overseer task. It's a bit much to type, so we can create an abbreviation for that:
+
+```lua
+vim.cmd.cnoreabbrev("OS OverseerShell")
+```
+
+Now you can easily start a new task by simply typing `:OS <command to run>`
 
 ## Restart last task
 
@@ -19,11 +31,17 @@ This command restarts the most recent overseer task
 ```lua
 vim.api.nvim_create_user_command("OverseerRestartLast", function()
   local overseer = require("overseer")
-  local tasks = overseer.list_tasks({ recent_first = true })
+  local task_list = require("overseer.task_list")
+  local tasks = overseer.list_tasks({ status = {
+    overseer.STATUS.SUCCESS,
+    overseer.STATUS.FAILURE,
+    overseer.STATUS.CANCELED,
+  }, sort = task_list.sort_finished_recently })
   if vim.tbl_isempty(tasks) then
     vim.notify("No tasks found", vim.log.levels.WARN)
   else
-    overseer.run_action(tasks[1], "restart")
+    local most_recent = tasks[1]
+    overseer.run_action(most_recent, "restart")
   end
 end, {})
 ```
@@ -35,8 +53,9 @@ This template will find all shell scripts in the current directory and create ta
 ```lua
 local files = require("overseer.files")
 
+---@type overseer.TemplateFileProvider
 return {
-  generator = function(opts, cb)
+  generator = function(opts)
     local scripts = vim.tbl_filter(function(filename)
       return filename:match("%.sh$")
     end, files.list_files(opts.dir))
@@ -44,19 +63,15 @@ return {
     for _, filename in ipairs(scripts) do
       table.insert(ret, {
         name = filename,
-        params = {
-          args = { optional = true, type = "list", delimiter = " " },
-        },
         builder = function(params)
           return {
-            cmd = { files.join(opts.dir, filename) },
-            args = params.args,
+            cmd = { vim.fs.joinpath(opts.dir, filename) },
           }
         end,
       })
     end
 
-    cb(ret)
+    return ret
   end,
 }
 ```
@@ -69,7 +84,6 @@ You can add directory-local tasks by setting the exrc option (`vim.o.exrc = true
 -- /path/to/dir/.nvim.lua
 require("overseer").register_template({
   name = "My project task",
-  params = {},
   condition = {
     -- This makes the template only available in the current directory
     -- In case you :cd out later
@@ -77,14 +91,14 @@ require("overseer").register_template({
   },
   builder = function()
     return {
-      cmd = {"echo"},
-      args = {"Hello", "world"},
+      cmd = { "echo" },
+      args = { "Hello", "world" },
     }
   end,
 })
 ```
 
-## :Make similar to vim-dispatch
+## Asynchronous :Make similar to vim-dispatch
 
 The venerable vim-dispatch provides several commands, but the main `:Make` command can be mimicked fairly easily:
 
@@ -138,4 +152,25 @@ vim.api.nvim_create_user_command("Grep", function(params)
   })
   task:start()
 end, { nargs = "*", bang = true, complete = "file" })
+```
+
+## Create a window that displays the most recent task output
+
+You can use `overseer.create_task_output_view` to create a dynamic view of task output based on any
+criteria. This example will show the output of the most recently started task.
+
+```lua
+overseer.create_task_output_view(0, {
+  list_task_opts = {
+    filter = function(task)
+      return task.time_start ~= nil
+    end,
+  }
+  select = function(self, tasks, task_under_cursor)
+    table.sort(tasks, function(a, b)
+      return a.time_start > b.time_start
+    end)
+    return tasks[1]
+  end,
+})
 ```

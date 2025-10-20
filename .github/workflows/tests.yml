@@ -11,7 +11,7 @@ on:
 jobs:
   luacheck:
     name: Luacheck
-    runs-on: ubuntu-22.04
+    runs-on: ubuntu-24.04
     steps:
       - uses: actions/checkout@v4
 
@@ -27,37 +27,34 @@ jobs:
 
   stylua:
     name: StyLua
-    runs-on: ubuntu-22.04
+    runs-on: ubuntu-24.04
     steps:
       - uses: actions/checkout@v4
       - name: Stylua
         uses: JohnnyMorganz/stylua-action@v4
         with:
           token: ${{ secrets.GITHUB_TOKEN }}
-          version: v2.0.2
+          version: v2.3.0
           args: --check lua tests
 
   typecheck:
     name: typecheck
-    runs-on: ubuntu-22.04
+    runs-on: ubuntu-24.04
     steps:
       - uses: actions/checkout@v4
       - uses: stevearc/nvim-typecheck-action@v2
         with:
           path: lua
-          libraries: https://github.com/nvim-neotest/neotest https://github.com/mfussenegger/nvim-dap https://github.com/akinsho/toggleterm.nvim
+          libraries: https://github.com/nvim-neotest/neotest https://github.com/mfussenegger/nvim-dap
 
   run_tests:
     strategy:
       matrix:
         nvim_tag:
-          - v0.8.3
-          - v0.9.4
-          - v0.10.0
-          - v0.10.4
+          - v0.11.0
 
     name: Run tests
-    runs-on: ubuntu-22.04
+    runs-on: ubuntu-24.04
     env:
       NVIM_TAG: ${{ matrix.nvim_tag }}
     steps:
@@ -73,7 +70,7 @@ jobs:
 
   update_docs:
     name: Update docs
-    runs-on: ubuntu-22.04
+    runs-on: ubuntu-24.04
     steps:
       - uses: actions/checkout@v4
 
@@ -110,7 +107,7 @@ jobs:
       - typecheck
       - run_tests
       - update_docs
-    runs-on: ubuntu-22.04
+    runs-on: ubuntu-24.04
     steps:
       - uses: googleapis/release-please-action@v4
         id: release

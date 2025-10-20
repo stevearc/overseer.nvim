@@ -4,10 +4,10 @@ VS Code extensions can add new task types, problem matchers, and patterns. This 
 
 ## Task types
 
-To define a custom task type, simply add a new module to the neovim path. For a new type called "cowsay", you would add it to `lua/overseer/template/vscode/provider/cowsay.lua`. The format of the module is as follows:
+To define a custom task type, simply add a new module to the neovim path. For a new type called "cowsay", you would add it to `lua/overseer/vscode/provider/cowsay.lua`. The format of the module is as follows:
 
 ```lua
--- lua/overseer/template/vscode/provider/cowsay.lua
+-- lua/overseer/vscode/provider/cowsay.lua
 local M = {}
 
 ---@param defn table This is the decoded JSON data for the task
@@ -28,7 +28,7 @@ end
 return M
 ```
 
-You can see how the existing task types were implemented in the [overseer/template/vscode/provider](../lua/overseer/template/vscode/provider) folder.
+You can see how the existing task types were implemented in the [overseer/vscode/provider](../lua/overseer/vscode/provider) folder.
 
 ## Problem matchers and patterns
 
@@ -67,4 +67,4 @@ M.problem_matchers = {
 return M
 ```
 
-You can see the existing patterns and problem matchers in [problem_matcher.lua](../lua/overseer/template/vscode/problem_matcher.lua)
+You can see the existing patterns and problem matchers in [problem_matcher.lua](../lua/overseer/vscode/problem_matcher.lua)

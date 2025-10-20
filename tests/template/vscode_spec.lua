@@ -1,21 +1,19 @@
 require("plenary.async").tests.add_to_env()
 local constants = require("overseer.constants")
-local files = require("overseer.files")
 local overseer = require("overseer")
-local parser = require("overseer.parser")
-local problem_matcher = require("overseer.template.vscode.problem_matcher")
-local vscode = require("overseer.template.vscode")
+local problem_matcher = require("overseer.vscode.problem_matcher")
+local vscode = require("overseer.vscode")
 
 describe("vscode", function()
   it("parses process command and args", function()
-    local provider = vscode.get_provider("process")
+    local provider = assert(vscode.get_provider("process"))
     local opts =
       provider.get_task_opts({ type = "process", command = "ls", args = { "foo", "bar" } })
     assert.are.same({ "ls", "foo", "bar" }, opts.cmd)
   end)
 
   it("parses shell command and args", function()
-    local provider = vscode.get_provider("shell")
+    local provider = assert(vscode.get_provider("shell"))
     local opts = provider.get_task_opts({
       type = "shell",
       command = "ls",
@@ -25,7 +23,7 @@ describe("vscode", function()
   end)
 
   it("strong quotes the args", function()
-    local provider = vscode.get_provider("shell")
+    local provider = assert(vscode.get_provider("shell"))
     local opts = provider.get_task_opts({
       type = "shell",
       command = "ls",
@@ -35,7 +33,7 @@ describe("vscode", function()
   end)
 
   it("interpolates variables in command, args, and opts", function()
-    local tmpl = vscode.convert_vscode_task({
+    local tmpl = assert(vscode.convert_vscode_task({
       label = "task",
       type = "shell",
       command = "${workspaceFolder}/script",
@@ -46,7 +44,7 @@ describe("vscode", function()
           FOO = "${execPath}",
         },
       },
-    })
+    }))
     local task = tmpl.builder({})
     local dir = vim.fn.getcwd(0)
     assert.equals(string.format("%s/script code", dir), task.cmd)
@@ -55,7 +53,7 @@ describe("vscode", function()
   end)
 
   it("interpolates input variables in command", function()
-    local tmpl = vscode.convert_vscode_task({
+    local tmpl = assert(vscode.convert_vscode_task({
       label = "task",
       type = "shell",
       command = "echo",
@@ -68,43 +66,43 @@ describe("vscode", function()
           options = { "first", "second" },
         },
       },
-    })
+    }))
     local task = tmpl.builder({ a_word = 'hello"world' })
     assert.equals('echo hello\\"world', task.cmd)
   end)
 
   it("uses the task label", function()
-    local tmpl = vscode.convert_vscode_task({
+    local tmpl = assert(vscode.convert_vscode_task({
       type = "shell",
       command = "ls",
       label = "my task",
-    })
+    }))
     assert.equals("my task", tmpl.name)
   end)
 
   it("sets the tag from the group", function()
-    local tmpl = vscode.convert_vscode_task({
+    local tmpl = assert(vscode.convert_vscode_task({
       label = "task",
       type = "shell",
       command = "ls",
       group = "test",
-    })
+    }))
     assert.are.same({ constants.TAG.TEST }, tmpl.tags)
   end)
 
   it("sets the tag from group object", function()
-    local tmpl = vscode.convert_vscode_task({
+    local tmpl = assert(vscode.convert_vscode_task({
       label = "task",
       type = "shell",
       command = "ls",
       group = { kind = "build", isDefault = true },
-    })
+    }))
     assert.are.same({ constants.TAG.BUILD }, tmpl.tags)
   end)
 
   describe("problem matcher", function()
     it("can parse simple line output", function()
-      local parse = parser.new(problem_matcher.get_parser_from_problem_matcher({
+      local parse = assert(problem_matcher.get_parser_from_problem_matcher({
         pattern = {
           regexp = "^(.*):(\\d+):(\\d+):\\s+(warning|error):\\s+(.*)$",
           file = 1,
@@ -114,21 +112,24 @@ describe("vscode", function()
           message = 5,
         },
       }))
-      parse:ingest({ "helloWorld.c:5:3: warning: implicit declaration of function 'prinft'" })
+
+      parse:parse("helloWorld.c:5:3: warning: implicit declaration of function 'prinft'")
       local results = parse:get_result()
       assert.are.same({
-        {
-          lnum = 5,
-          col = 3,
-          filename = "helloWorld.c",
-          text = "implicit declaration of function 'prinft'",
-          type = "W",
+        diagnostics = {
+          {
+            lnum = 5,
+            col = 3,
+            filename = "helloWorld.c",
+            text = "implicit declaration of function 'prinft'",
+            type = "W",
+          },
         },
       }, results)
     end)
 
     it("can set the default severity level", function()
-      local parse = parser.new(problem_matcher.get_parser_from_problem_matcher({
+      local parse = assert(problem_matcher.get_parser_from_problem_matcher({
         severity = "warning",
         pattern = {
           regexp = "^(.*):(\\d+):(\\d+):\\s+(.*)$",
@@ -138,21 +139,23 @@ describe("vscode", function()
           message = 4,
         },
       }))
-      parse:ingest({ "helloWorld.c:5:3: implicit declaration of function 'prinft'" })
+      parse:parse("helloWorld.c:5:3: implicit declaration of function 'prinft'")
       local results = parse:get_result()
       assert.are.same({
-        {
-          lnum = 5,
-          col = 3,
-          filename = "helloWorld.c",
-          text = "implicit declaration of function 'prinft'",
-          type = "W",
+        diagnostics = {
+          {
+            lnum = 5,
+            col = 3,
+            filename = "helloWorld.c",
+            text = "implicit declaration of function 'prinft'",
+            type = "W",
+          },
         },
       }, results)
     end)
 
     it("can parse a file location", function()
-      local parse = parser.new(problem_matcher.get_parser_from_problem_matcher({
+      local parse = assert(problem_matcher.get_parser_from_problem_matcher({
         pattern = {
           regexp = "^(.*):([0-9,]+):\\s+(.*)$",
           file = 1,
@@ -160,41 +163,45 @@ describe("vscode", function()
           message = 3,
         },
       }))
-      parse:ingest({ "helloWorld.c:5,3,5,8: implicit declaration of function 'prinft'" })
+      parse:parse("helloWorld.c:5,3,5,8: implicit declaration of function 'prinft'")
       local results = parse:get_result()
       assert.are.same({
-        {
-          lnum = 5,
-          col = 3,
-          end_lnum = 5,
-          end_col = 8,
-          filename = "helloWorld.c",
-          text = "implicit declaration of function 'prinft'",
+        diagnostics = {
+          {
+            lnum = 5,
+            col = 3,
+            end_lnum = 5,
+            end_col = 8,
+            filename = "helloWorld.c",
+            text = "implicit declaration of function 'prinft'",
+          },
         },
       }, results)
     end)
 
     it("uses full line as message by default", function()
-      local parse = parser.new(problem_matcher.get_parser_from_problem_matcher({
+      local parse = assert(problem_matcher.get_parser_from_problem_matcher({
         pattern = {
           regexp = "^(.*):(\\d+):.*$",
           file = 1,
           location = 2,
         },
       }))
-      parse:ingest({ "helloWorld.c:5: implicit declaration of function 'prinft'" })
+      parse:parse("helloWorld.c:5: implicit declaration of function 'prinft'")
       local results = parse:get_result()
       assert.are.same({
-        {
-          lnum = 5,
-          filename = "helloWorld.c",
-          text = "helloWorld.c:5: implicit declaration of function 'prinft'",
+        diagnostics = {
+          {
+            lnum = 5,
+            filename = "helloWorld.c",
+            text = "helloWorld.c:5: implicit declaration of function 'prinft'",
+          },
         },
       }, results)
     end)
 
     it("can match multiline patterns", function()
-      local parse = parser.new(problem_matcher.get_parser_from_problem_matcher({
+      local parse = assert(problem_matcher.get_parser_from_problem_matcher({
         pattern = {
           {
             regexp = "^([^\\s].*)$",
@@ -209,23 +216,23 @@ describe("vscode", function()
           },
         },
       }))
-      parse:ingest({
-        { "test.js" },
-        { '  1:0   error  Missing "use strict" statement' },
-      })
+      parse:parse("test.js")
+      parse:parse('  1:0   error  Missing "use strict" statement')
       assert.are.same({
-        {
-          filename = "test.js",
-          lnum = 1,
-          col = 0,
-          type = "E",
-          text = 'Missing "use strict" statement',
+        diagnostics = {
+          {
+            filename = "test.js",
+            lnum = 1,
+            col = 0,
+            type = "E",
+            text = 'Missing "use strict" statement',
+          },
         },
       }, parse:get_result())
     end)
 
     it("can match repeating multiline patterns", function()
-      local parse = parser.new(problem_matcher.get_parser_from_problem_matcher({
+      local parse = assert(problem_matcher.get_parser_from_problem_matcher({
         pattern = {
           {
             regexp = "^([^\\s].*)$",
@@ -241,40 +248,42 @@ describe("vscode", function()
           },
         },
       }))
-      parse:ingest({
-        { "test.js" },
-        { '  1:0   error    Missing "use strict" statement' },
-        { "  1:9   warning  foo is defined but never used" },
-      })
+      parse:parse("test.js")
+      parse:parse('  1:0   error    Missing "use strict" statement')
+      parse:parse("  1:9   warning  foo is defined but never used")
       assert.are.same({
-        {
-          filename = "test.js",
-          lnum = 1,
-          col = 0,
-          type = "E",
-          text = 'Missing "use strict" statement',
-        },
-        {
-          filename = "test.js",
-          lnum = 1,
-          col = 9,
-          type = "W",
-          text = "foo is defined but never used",
+        diagnostics = {
+          {
+            filename = "test.js",
+            lnum = 1,
+            col = 0,
+            type = "E",
+            text = 'Missing "use strict" statement',
+          },
+          {
+            filename = "test.js",
+            lnum = 1,
+            col = 9,
+            type = "W",
+            text = "foo is defined but never used",
+          },
         },
       }, parse:get_result())
     end)
 
     it("can use built in parsers", function()
-      local parse = parser.new(problem_matcher.get_parser_from_problem_matcher({
+      local parse = assert(problem_matcher.get_parser_from_problem_matcher({
         pattern = "$go",
       }))
-      parse:ingest({ "my_test.go:307: Expected 'Something' received 'Nothing'" })
+      parse:parse("my_test.go:307: Expected 'Something' received 'Nothing'")
       local results = parse:get_result()
       assert.are.same({
-        {
-          lnum = 307,
-          filename = "my_test.go",
-          text = "Expected 'Something' received 'Nothing'",
+        diagnostics = {
+          {
+            lnum = 307,
+            filename = "my_test.go",
+            text = "Expected 'Something' received 'Nothing'",
+          },
         },
       }, results)
     end)
@@ -282,13 +291,14 @@ describe("vscode", function()
 end)
 
 describe("vscode integration tests", function()
-  local vs_util = require("overseer.template.vscode.vs_util")
+  local vs_util = require("overseer.vscode.vs_util")
   local _orig_load_tasks_file = vs_util.load_tasks_file
   local task_file
   local test_hook = function(task_defn, util)
     task_defn.strategy = "test"
   end
   before_each(function()
+    ---@diagnostic disable-next-line: duplicate-set-field
     vs_util.load_tasks_file = function()
       return task_file
     end
@@ -312,7 +322,7 @@ describe("vscode integration tests", function()
       },
     }
 
-    local task, err = a.wrap(overseer.run_template, 2)({ name = "tsc watch" })
+    local task, err = a.wrap(overseer.run_task, 2)({ name = "tsc watch" })
     assert.is_nil(err)
     task.strategy:send_output([[
 yarn run v1.22.10
@@ -333,7 +343,7 @@ src/index.ts:3:1 - error TS1435: Unknown keyword or identifier. Did you mean 'im
     assert.are.same({
       diagnostics = {
         {
-          filename = files.join(task.cwd, "src/index.ts"),
+          filename = vim.fs.joinpath(task.cwd, "src/index.ts"),
           lnum = 3,
           col = 1,
           type = "E",
@@ -348,9 +358,7 @@ src/index.ts:3:1 - error TS1435: Unknown keyword or identifier. Did you mean 'im
       "[7:48:57 AM] File change detected. Starting incremental compilation...",
       "",
     })
-    assert.are.same({
-      diagnostics = {},
-    }, task.result)
+    assert.are.same({ diagnostics = {} }, task.result)
 
     -- We should be able to parse new results after the reset
     task.strategy:send_output([[
@@ -364,7 +372,7 @@ src/index.ts:3:1 - error TS1435: Unknown keyword or identifier. Did you mean 'im
     assert.are.same({
       diagnostics = {
         {
-          filename = files.join(task.cwd, "src/index.ts"),
+          filename = vim.fs.joinpath(task.cwd, "src/index.ts"),
           lnum = 3,
           col = 1,
           type = "E",

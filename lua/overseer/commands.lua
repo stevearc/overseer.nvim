@@ -1,16 +1,8 @@
-local Task = require("overseer.task")
 local action_util = require("overseer.action_util")
-local config = require("overseer.config")
 local constants = require("overseer.constants")
-local files = require("overseer.files")
-local layout = require("overseer.layout")
 local log = require("overseer.log")
-local sidebar = require("overseer.task_list.sidebar")
-local task_bundle = require("overseer.task_bundle")
-local task_editor = require("overseer.task_editor")
 local task_list = require("overseer.task_list")
 local template = require("overseer.template")
-local util = require("overseer.util")
 local window = require("overseer.window")
 
 local M = {}
@@ -31,121 +23,24 @@ M._toggle = function(params)
   window.toggle({ enter = not params.bang, direction = args_or_nil(params.args) })
 end
 
-M._save_bundle = function(params)
-  task_bundle.save_task_bundle(args_or_nil(params.args))
-end
-
-M._load_bundle = function(params)
-  task_bundle.load_task_bundle(args_or_nil(params.args), { autostart = not params.bang })
-end
-
-M._delete_bundle = function(params)
-  task_bundle.delete_task_bundle(args_or_nil(params.args))
-end
-
-M._info = function(params)
-  M.info(function(info)
-    local lines = {}
-    local highlights = {}
-    if info.log.file then
-      table.insert(lines, string.format("Log file: %s", info.log.file))
-    end
-    if info.log.level then
-      table.insert(lines, string.format("Log level: %s", info.log.level))
-    end
-    if not vim.tbl_isempty(info.templates.templates) then
-      table.insert(lines, "Individual templates")
-      table.insert(highlights, { "Title", #lines, 0, -1 })
-    end
-    for name, tmpl_report in pairs(info.templates.templates) do
-      if tmpl_report.is_present then
-        table.insert(lines, string.format("%s: available", name))
-      else
-        table.insert(lines, string.format("%s: %s", name, tmpl_report.message))
-      end
-      table.insert(
-        highlights,
-        { tmpl_report.is_present and "OverseerSUCCESS" or "OverseerFAILURE", #lines, 0, name:len() }
-      )
-    end
-    if not vim.tbl_isempty(info.templates.providers) then
-      table.insert(lines, "Template providers")
-      table.insert(highlights, { "Title", #lines, 0, -1 })
-    end
-    for name, provider_report in pairs(info.templates.providers) do
-      if provider_report.is_present then
-        if provider_report.from_cache then
-          name = name .. " (cached)"
-        end
-        table.insert(
-          lines,
-          string.format(
-            "%s: %d/%d tasks available",
-            name,
-            provider_report.available_tasks,
-            provider_report.total_tasks
-          )
-        )
-      else
-        table.insert(lines, string.format("%s: %s", name, provider_report.message))
-      end
-      table.insert(highlights, {
-        provider_report.is_present and provider_report.available_tasks > 0 and "OverseerSUCCESS"
-          or "OverseerFAILURE",
-        #lines,
-        0,
-        name:len(),
-      })
-    end
-
-    local max_width = 0
-    for _, line in ipairs(lines) do
-      max_width = math.max(max_width, vim.api.nvim_strwidth(line))
-    end
-
-    local width = layout.calculate_width(max_width, { min_width = 80, max_width = 0.9 })
-    local height = layout.calculate_height(#lines, { min_height = 10, max_height = 0.9 })
-    local bufnr = vim.api.nvim_create_buf(false, true)
-    local winid = vim.api.nvim_open_win(bufnr, true, {
-      relative = "editor",
-      border = config.form.border,
-      zindex = config.form.zindex,
-      width = width,
-      height = height,
-      col = math.floor((layout.get_editor_width() - width) / 2),
-      row = math.floor((layout.get_editor_height() - height) / 2),
-      style = "minimal",
+M._run_shell = function(params)
+  if params.args and params.args ~= "" then
+    local task = require("overseer.task").new({
+      cmd = params.args,
     })
-    vim.api.nvim_buf_set_lines(bufnr, 0, -1, true, lines)
-    vim.bo[bufnr].modifiable = false
-    vim.bo[bufnr].modified = false
-    vim.bo[bufnr].bufhidden = "wipe"
-    vim.keymap.set("n", "q", "<cmd>close<cr>", { buffer = bufnr })
-    vim.keymap.set("n", "<C-c>", "<cmd>close<cr>", { buffer = bufnr })
-    vim.api.nvim_create_autocmd("BufLeave", {
-      desc = "Close info window when leaving buffer",
-      buffer = bufnr,
-      once = true,
-      nested = true,
-      callback = function()
-        if vim.api.nvim_win_is_valid(winid) then
-          vim.api.nvim_win_close(winid, true)
+    if not params.bang then
+      task:start()
+    end
+  else
+    vim.ui.input({ prompt = "command", completion = "shellcmdline" }, function(cmd)
+      if cmd then
+        local task = require("overseer.task").new({ cmd = cmd })
+        if not params.bang then
+          task:start()
         end
-      end,
-    })
-    local ns = vim.api.nvim_create_namespace("overseer")
-    util.add_highlights(bufnr, ns, highlights)
-  end)
-end
-
-M._run_command = function(params)
-  local tmpl_params = {
-    cmd = params.args ~= "" and params.args or nil,
-  }
-  M.run_template({
-    name = "shell",
-    params = tmpl_params,
-  })
+      end
+    end)
+  end
 end
 
 M._run_template = function(params)
@@ -161,7 +56,7 @@ M._run_template = function(params)
     end
   end
   if name and not vim.tbl_isempty(tags) then
-    log:error("Cannot find template: %s is not a tag", name)
+    log.error("Cannot find template: %s is not a tag", name)
     return
   end
   local opts = {
@@ -175,24 +70,8 @@ M._run_template = function(params)
   end)
 end
 
-M._build_task = function(_params)
-  M.build_task()
-end
-
-M._quick_action = function(params)
-  local action_name = params.fargs[1]
-  if action_name == "" then
-    action_name = nil
-  end
-  M.quick_action(action_name)
-end
-
 M._task_action = function(params)
   M.task_action()
-end
-
-M._clear_cache = function(_params)
-  M.clear_cache()
 end
 
 ---@return overseer.SearchParams
@@ -226,38 +105,30 @@ end
 -- TEMPLATE LOADING/RUNNING
 
 ---Options for running a template
----Values for prompt:
----  always    Show when template has any params
----  missing   Show when template has any params not explicitly passed in
----  allow     Only show when a required param is missing
----  avoid     Only show when a required param with no default value is missing
----  never     Never show prompt (error if required param missing)
 ---@class overseer.TemplateRunOpts
 ---@field name? string The name of the template to run
 ---@field tags? string[] List of tags used to filter when searching for template
 ---@field autostart? boolean When true, start the task after creating it (default true)
 ---@field first? boolean When true, take first result and never show the task picker. Default behavior will auto-set this based on presence of name and tags
----@field prompt? "always"|"missing"|"allow"|"avoid"|"never" Controls when to prompt user for parameter input
 ---@field params? table Parameters to pass to template
 ---@field cwd? string Working directory for the task
 ---@field env? table<string, string> Additional environment variables for the task
+---@field disallow_prompt? boolean When true, if any required parameters are missing return an error instead of prompting the user for them
+---@field on_build? fun(task_defn: overseer.TaskDefinition, util: overseer.TaskUtil) callback that is called after the task definition is built but before the task is created.
 
 ---@param opts overseer.TemplateRunOpts
 ---@param callback? fun(task: overseer.Task|nil, err: string|nil)
 M.run_template = function(opts, callback)
   opts = vim.tbl_deep_extend("keep", opts or {}, {
     autostart = true,
-    prompt = config.default_template_prompt,
   })
-  vim.validate({
-    name = { opts.name, "s", true },
-    tags = { opts.tags, "t", true },
-    autostart = { opts.autostart, "b", true },
-    first = { opts.first, "b", true },
-    prompt = { opts.prompt, "s", true },
-    params = { opts.params, "t", true },
-    callback = { callback, "f", true },
-  })
+  vim.validate("name", opts.name, "string", true)
+  vim.validate("tags", opts.tags, "table", true)
+  vim.validate("autostart", opts.autostart, "boolean", true)
+  vim.validate("first", opts.first, "boolean", true)
+  vim.validate("disallow_prompt", opts.disallow_prompt, "boolean", true)
+  vim.validate("params", opts.params, "table", true)
+  vim.validate("callback", callback, "function", true)
   if opts.first == nil then
     opts.first = opts.name ~= nil or not vim.tbl_isempty(opts.tags or {})
   end
@@ -277,23 +148,16 @@ M.run_template = function(opts, callback)
       return
     end
     local build_opts = {
-      prompt = opts.prompt,
       params = opts.params or {},
       search = search_opts,
+      disallow_prompt = opts.disallow_prompt,
+      on_build = opts.on_build,
+      env = opts.env,
+      cwd = opts.cwd,
     }
-    template.build_task_args(tmpl, build_opts, function(task_defn)
-      local task = nil
-      if task_defn then
-        if opts.cwd then
-          task_defn.cwd = opts.cwd
-        end
-        if task_defn.env or opts.env then
-          task_defn.env = vim.tbl_deep_extend("force", task_defn.env or {}, opts.env or {})
-        end
-        task = Task.new(task_defn)
-        if opts.autostart then
-          task:start()
-        end
+    template.build_task(tmpl, build_opts, function(_, task)
+      if task and opts.autostart then
+        task:start()
       end
       if callback then
         callback(task)
@@ -310,7 +174,7 @@ M.run_template = function(opts, callback)
       end, templates)
 
       if #templates == 0 then
-        log:error("Could not find any matching task templates for opts %s", opts)
+        log.error("Could not find any matching task templates for opts %s", opts)
       elseif #templates == 1 or opts.first then
         handle_tmpl(templates[1])
       else
@@ -334,45 +198,14 @@ M.run_template = function(opts, callback)
   end
 end
 
-M.build_task = function()
-  local task = Task.new({
-    name = "New task",
-    cmd = { "ls" },
-  })
-  task_editor.open(task, function(result)
-    if result then
-      task:start()
-    else
-      task:dispose()
-    end
-  end)
-end
-
----@param name? string Name of action to run
-M.quick_action = function(name)
-  if vim.bo.filetype == "OverseerList" then
-    local sb = sidebar.get_or_create()
-    sb:run_action(name)
-    return
-  end
-  local tasks = task_list.list_tasks({ recent_first = true })
-  local task
-  if #tasks == 0 then
-    vim.notify("No tasks available", vim.log.levels.WARN)
-    return
-  else
-    task = tasks[1]
-  end
-  action_util.run_task_action(task, name)
-end
-
 M.task_action = function()
-  local tasks = task_list.list_tasks({ unique = true, recent_first = true })
+  local tasks = task_list.list_tasks({
+    unique = true,
+    sort = task_list.sort_finished_recently,
+    include_ephemeral = true,
+  })
   if #tasks == 0 then
     vim.notify("No tasks available", vim.log.levels.WARN)
-    return
-  elseif #tasks == 1 then
-    action_util.run_task_action(tasks[1])
     return
   end
 
@@ -393,38 +226,11 @@ M.task_action = function()
   end)
 end
 
+---@param callback fun(info: overseer.Report)
 M.info = function(callback)
   local search_opts = get_search_params()
-  local info = {
-    log = {
-      file = nil,
-      level = nil,
-    },
-    templates = {
-      templates = {},
-      providers = {},
-    },
-  }
-  local levels_reverse = {}
-  for k, v in pairs(vim.log.levels) do
-    levels_reverse[v] = k
-  end
-  for _, log_conf in ipairs(config.log) do
-    if log_conf.type == "file" then
-      local ok, stdpath = pcall(vim.fn.stdpath, "log")
-      if not ok then
-        stdpath = vim.fn.stdpath("cache")
-      end
-      info.log = {
-        file = files.join(stdpath, log_conf.filename),
-        level = levels_reverse[log_conf.level],
-      }
-      break
-    end
-  end
   template.list(search_opts, function(_, report)
-    info.templates = report
-    callback(info)
+    callback(report)
   end)
 end
 

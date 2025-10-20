@@ -2,14 +2,13 @@ local config = require("overseer.config")
 local layout = require("overseer.layout")
 local log = require("overseer.log")
 local util = require("overseer.util")
----@diagnostic disable-next-line: deprecated
-local islist = vim.islist or vim.tbl_islist
 local M = {}
 
 ---@alias overseer.Param overseer.StringParam|overseer.BoolParam|overseer.NumberParam|overseer.IntParam|overseer.ListParam|overseer.EnumParam|overseer.NamedEnumParam|overseer.OpaqueParam
 
 ---@class overseer.BaseParam
 ---@field name? string
+---@field deprecated? boolean
 ---@field desc? string
 ---@field long_desc? string
 ---@field order? integer
@@ -70,12 +69,10 @@ M.validate_params = function(params)
     if name:match("%s") then
       error(string.format("Param '%s' cannot contain whitespace", name))
     end
-    vim.validate({
-      name = { param.name, "s", true },
-      desc = { param.desc, "s", true },
-      optional = { param.optional, "b", true },
-      -- default = any type
-    })
+    vim.validate("name", param.name, "string", true)
+    vim.validate("desc", param.desc, "string", true)
+    vim.validate("optional", param.optional, "boolean", true)
+    -- default = any type
     local default = default_schema[param.type]
     if default then
       for k, v in pairs(default) do
@@ -116,16 +113,6 @@ M.render_value = function(schema, value)
 end
 
 ---@param schema overseer.Param
----@param prefix string
----@param name string
----@param value any
----@return string
-M.render_field = function(schema, prefix, name, value)
-  local str_value = M.render_value(schema, value)
-  return string.format("%s%s: %s", prefix, name, str_value)
-end
-
----@param schema overseer.Param
 ---@param value any
 ---@return boolean
 local function validate_type(schema, value)
@@ -139,7 +126,7 @@ local function validate_type(schema, value)
   elseif ptype == "namedEnum" then
     return vim.tbl_contains(vim.tbl_values(schema.choices), value)
   elseif ptype == "list" then
-    return type(value) == "table" and islist(value)
+    return type(value) == "table" and vim.islist(value)
   elseif ptype == "number" then
     return type(value) == "number"
   elseif ptype == "integer" then
@@ -149,7 +136,7 @@ local function validate_type(schema, value)
   elseif ptype == "string" then
     return true
   else
-    log:warn("Unknown param type '%s'", ptype)
+    log.warn("Unknown param type '%s'", ptype)
     return false
   end
 end
@@ -264,14 +251,14 @@ end
 
 local registered_cmp = false
 
+---@param bufnr integer
+---@param opts? { on_resize?: fun(), get_preferred_dim?: fun(): integer, integer }
+---@return fun() cleanup
+---@return fun() set_layout
 M.open_form_win = function(bufnr, opts)
   opts = opts or {}
-  vim.validate({
-    autocmds = { opts.autocmds, "t", true },
-    on_resize = { opts.on_resize, "f", true },
-    get_preferred_dim = { opts.get_preferred_dim, "f", true },
-  })
-  opts.autocmds = opts.autocmds or {}
+  vim.validate("on_resize", opts.on_resize, "function", true)
+  vim.validate("get_preferred_dim", opts.get_preferred_dim, "function", true)
   local function calc_layout()
     local desired_width
     local desired_height
@@ -282,7 +269,6 @@ M.open_form_win = function(bufnr, opts)
     local height = layout.calculate_height(desired_height, config.form)
     local win_opts = {
       relative = "editor",
-      border = config.form.border,
       zindex = config.form.zindex,
       width = width,
       height = height,
@@ -303,11 +289,18 @@ M.open_form_win = function(bufnr, opts)
   end
 
   local function set_layout()
-    vim.api.nvim_win_set_config(winid, calc_layout())
+    if vim.api.nvim_win_is_valid(winid) then
+      vim.api.nvim_win_set_config(winid, calc_layout())
+    else
+      return true
+    end
   end
 
   local winwidth = vim.api.nvim_win_get_width(winid)
   local function on_win_scrolled()
+    if not vim.api.nvim_win_is_valid(winid) then
+      return true
+    end
     local new_width = vim.api.nvim_win_get_width(winid)
     if winwidth ~= new_width then
       winwidth = new_width
@@ -316,45 +309,18 @@ M.open_form_win = function(bufnr, opts)
   end
 
   if opts.on_resize then
-    table.insert(
-      opts.autocmds,
-      vim.api.nvim_create_autocmd("WinScrolled", {
-        desc = "Rerender on window resize",
-        pattern = tostring(winid),
-        nested = true,
-        callback = on_win_scrolled,
-      })
-    )
+    vim.api.nvim_create_autocmd("WinScrolled", {
+      desc = "Rerender on window resize",
+      pattern = tostring(winid),
+      nested = true,
+      callback = on_win_scrolled,
+    })
   end
-  table.insert(
-    opts.autocmds,
-    vim.api.nvim_create_autocmd("VimResized", {
-      desc = "Rerender on vim resize",
-      nested = true,
-      callback = set_layout,
-    })
-  )
-  -- This is a little bit of a hack. We force the cursor to be *after the ': '
-  -- of the fields, but if the user enters insert mode with "i", the cursor will
-  -- now be before the space. If they type, the parsing will misbehave. So we
-  -- detect that and just...nudge them forwards a bit.
-  table.insert(
-    opts.autocmds,
-    vim.api.nvim_create_autocmd("InsertCharPre", {
-      desc = "Move cursor to end of line when inserting",
-      buffer = bufnr,
-      nested = true,
-      callback = function()
-        local cur = vim.api.nvim_win_get_cursor(0)
-        local lnum = cur[1]
-        local line = vim.api.nvim_buf_get_lines(bufnr, lnum - 1, lnum, true)[1]
-        local name = line:match("^[^%s]+: ")
-        if name and cur[2] < string.len(name) then
-          vim.api.nvim_win_set_cursor(0, { lnum, string.len(name) })
-        end
-      end,
-    })
-  )
+  vim.api.nvim_create_autocmd("VimResized", {
+    desc = "Rerender on vim resize",
+    nested = true,
+    callback = set_layout,
+  })
 
   vim.bo[bufnr].omnifunc = "v:lua.overseer_form_omnifunc"
   -- Configure nvim-cmp if installed
@@ -374,9 +340,6 @@ M.open_form_win = function(bufnr, opts)
   end
 
   local function cleanup()
-    for _, id in ipairs(opts.autocmds) do
-      vim.api.nvim_del_autocmd(id)
-    end
     util.leave_insert()
     vim.api.nvim_win_close(winid, true)
   end
