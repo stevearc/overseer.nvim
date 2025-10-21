@@ -1,5 +1,12 @@
 # Changelog
 
+## [1.6.1](https://github.com/stevearc/overseer.nvim/compare/v1.6.0...v1.6.1) (2025-03-05)
+
+
+### Bug Fixes
+
+* **make:** pass language env var to make ([#406](https://github.com/stevearc/overseer.nvim/issues/406)) ([6296d2e](https://github.com/stevearc/overseer.nvim/commit/6296d2e8cf66fcf382ef928ffef229cb3efc35a8))
+
 ## [1.6.0](https://github.com/stevearc/overseer.nvim/compare/v1.5.0...v1.6.0) (2025-02-15)
 
 
