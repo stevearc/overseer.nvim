@@ -19,11 +19,12 @@ The strategy is what controls how a task is actually run. The default, `terminal
 `jobstart(opts): overseer.Strategy` \
 Run tasks using jobstart()
 
-| Param            | Type         | Desc                                                                                                                                             |
-| ---------------- | ------------ | ------------------------------------------------------------------------------------------------------------------------------------------------ |
-| opts             | `nil\|table` |                                                                                                                                                  |
-| >preserve_output | `boolean`    | If true, don't clear the buffer when tasks restart                                                                                               |
-| >use_terminal    | `boolean`    | If false, use a normal non-terminal buffer to store the output. This may produce unwanted results if the task outputs terminal escape sequences. |
+| Param            | Type                       | Desc                                                                                                                                                                            |
+| ---------------- | -------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| opts             | `nil\|table`               |                                                                                                                                                                                 |
+| >preserve_output | `boolean`                  | If true, don't clear the buffer when tasks restart                                                                                                                              |
+| >use_terminal    | `boolean`                  | If false, use a normal non-terminal buffer to store the output. This may produce unwanted results if the task outputs terminal escape sequences.                                |
+| >pty_width       | `nil\|integer\|"auto"`     | Width of the PTY when use_terminal is true. Can be a number, "auto" (vim.o.columns - 4), or nil (no width specified). Default is "auto". Set to nil to avoid width constraints. |
 
 ## orchestrator(opts)
 

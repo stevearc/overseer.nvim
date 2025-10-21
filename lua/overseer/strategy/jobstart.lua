@@ -13,11 +13,13 @@ local JobstartStrategy = {}
 ---@param opts nil|table
 ---    preserve_output boolean If true, don't clear the buffer when tasks restart
 ---    use_terminal boolean If false, use a normal non-terminal buffer to store the output. This may produce unwanted results if the task outputs terminal escape sequences.
+---    pty_width nil|integer|string Width of the PTY when use_terminal is true. Can be a number, "auto" (vim.o.columns - 4), or nil (no width specified)
 ---@return overseer.Strategy
 function JobstartStrategy.new(opts)
   opts = vim.tbl_extend("keep", opts or {}, {
     preserve_output = false,
     use_terminal = true,
+    pty_width = "auto",
   })
   local strategy = {
     bufnr = nil,
@@ -130,12 +132,23 @@ function JobstartStrategy:start(task)
       task:dispatch("on_output_lines", lines)
     end
   end
+  
+  -- Calculate PTY width based on configuration
+  local width = nil
+  if self.opts.use_terminal and self.opts.pty_width ~= nil then
+    if self.opts.pty_width == "auto" then
+      -- Take 4 off the total width so it looks nice in the floating window
+      width = vim.o.columns - 4
+    elseif type(self.opts.pty_width) == "number" then
+      width = self.opts.pty_width
+    end
+  end
+  
   job_id = vim.fn.jobstart(task.cmd, {
     cwd = task.cwd,
     env = task.env,
     pty = self.opts.use_terminal,
-    -- Take 4 off the total width so it looks nice in the floating window
-    width = vim.o.columns - 4,
+    width = width,
     on_stdout = function(j, d)
       if self.job_id ~= j then
         return
