@@ -31,6 +31,8 @@ local function create_overseer_window(direction, existing_win)
         return task_under_cursor or tasks[1]
       end,
     })
+    local task_output_bufnr = vim.api.nvim_win_get_buf(task_view.winid)
+    vim.bo[task_output_bufnr].filetype = "OverseerListOutput"
     util.go_win_no_au(winid)
   end
 
