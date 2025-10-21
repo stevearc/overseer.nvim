@@ -96,20 +96,25 @@ end
 ---@return integer
 M.open_fullscreen_float = function(bufnr)
   local conf = config.task_win
-  local width = M.get_editor_width() - 2 - 2 * conf.padding
-  local height = M.get_editor_height() - 2 * conf.padding
-  local row = conf.padding
-  local col = conf.padding
-  local winid = vim.api.nvim_open_win(bufnr, true, {
-    relative = "editor",
-    row = row,
-    col = col,
-    width = width,
-    height = height,
-    border = conf.border,
-    zindex = conf.zindex,
-    style = "minimal",
-  })
+  local function get_dimensions()
+    local width = M.get_editor_width() - 2 - 2 * conf.padding
+    local height = M.get_editor_height() - 2 * conf.padding
+    local row = conf.padding
+    local col = conf.padding
+    return {
+      relative = "editor",
+      row = row,
+      col = col,
+      width = width,
+      height = height,
+      border = conf.border,
+      zindex = conf.zindex,
+      style = "minimal",
+    }
+  end
+
+  local winid = vim.api.nvim_open_win(bufnr, true, get_dimensions())
+
   for k, v in pairs(conf.win_opts) do
     vim.api.nvim_set_option_value(k, v, { scope = "local", win = winid })
   end
@@ -121,6 +126,26 @@ M.open_fullscreen_float = function(bufnr)
       pcall(vim.api.nvim_win_close, winid, true)
     end,
   })
+
+  local augroup_name = "OverseerFloatResize_" .. winid
+  vim.api.nvim_create_augroup(augroup_name, { clear = true })
+  vim.api.nvim_create_autocmd("WinClosed", {
+    desc = "Clean up auto commands when window is closed",
+    group = augroup_name,
+    callback = function(args)
+      if args.match == tostring(winid) then
+        pcall(vim.api.nvim_del_augroup_by_name, augroup_name)
+      end
+    end,
+  })
+  vim.api.nvim_create_autocmd("VimResized", {
+    desc = "Resize floating window on VimResized",
+    group = augroup_name,
+    callback = function()
+      pcall(vim.api.nvim_win_set_config, winid, get_dimensions())
+    end,
+  })
+
   return winid
 end
 
