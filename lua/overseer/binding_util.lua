@@ -71,7 +71,11 @@ M.show_bindings = function(prefix)
 
   local bindings_to_plug = {}
   local highlights = {}
+  local close_bindings = {}
   for plug, bindings in pairs(plug_to_bindings) do
+    if vim.endswith(plug, ":Close") or vim.endswith(plug, ":Cancel") then
+      vim.list_extend(close_bindings, bindings)
+    end
     local binding_str = table.concat(bindings, "/")
     bindings_to_plug[binding_str] = plug
     local hl = {}
@@ -108,8 +112,13 @@ M.show_bindings = function(prefix)
       })
     end
   end
-  vim.keymap.set("n", "q", "<cmd>close<CR>", { buffer = bufnr })
-  vim.keymap.set("n", "<c-c>", "<cmd>close<CR>", { buffer = bufnr })
+
+  if #close_bindings == 0 then
+    close_bindings = { "q", "<c-c>" }
+  end
+  for _, b in ipairs(close_bindings) do
+    vim.keymap.set("n", b, "<cmd>close<CR>", { buffer = bufnr })
+  end
   vim.bo[bufnr].modifiable = false
   vim.bo[bufnr].bufhidden = "wipe"
 
