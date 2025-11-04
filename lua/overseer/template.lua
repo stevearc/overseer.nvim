@@ -93,24 +93,30 @@ local function get_providers()
     local path = vim.fs.joinpath("lua", dir, "**", "*.lua")
     local task_files = vim.api.nvim_get_runtime_file(path, true)
     for _, abspath in ipairs(task_files) do
-      local module_name = abspath:match("^.*(overseer/template/.*)%.lua$"):gsub("/", ".")
-      local tmpl = load_template(module_name)
-      if tmpl then
-        if tmpl.generator then
-          table.insert(file_providers, tmpl)
-        else
-          local provider = {
-            name = tmpl.module,
-            module = tmpl.module,
-            condition = tmpl.condition,
-            generator = function()
-              return { tmpl }
-            end,
-          }
-          ---@cast provider overseer.TemplateProvider
-          validate_template_provider(provider)
-          table.insert(file_providers, provider)
+      local normalized = abspath:gsub("\\", "/")
+      local rel = normalized:match("^.*(overseer/template/.*)%.lua$")
+      if rel then
+        local module_name = rel:gsub("/", ".")
+        local tmpl = load_template(module_name)
+        if tmpl then
+          if tmpl.generator then
+            table.insert(file_providers, tmpl)
+          else
+            local provider = {
+              name = tmpl.module,
+              module = tmpl.module,
+              condition = tmpl.condition,
+              generator = function()
+                return { tmpl }
+              end,
+            }
+            ---@cast provider overseer.TemplateProvider
+            validate_template_provider(provider)
+            table.insert(file_providers, provider)
+          end
         end
+      else
+        log.warn("Skipping unexpected template path: %s", abspath)
       end
     end
   end
