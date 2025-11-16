@@ -1,5 +1,117 @@
 # Changelog
 
+## [2.0.0](https://github.com/stevearc/overseer.nvim/compare/v1.6.0...v2.0.0) (2025-11-16)
+
+
+### ⚠ BREAKING CHANGES
+
+* Task:dispose() returns true if task was already disposed
+* return truthy value from event to unsubscribe
+* remove OverseerQuickAction command
+* rename actions -> keymap
+* make list_tasks sort order more stable
+* rename task "bundleable" property to "ephemeral"
+* overhaul keymap utility
+* rename time options to denote units
+* remove config and custom keymaps for form and task editor windows
+* replace behavior tree parsing with functions
+* remove OverseerClearCache command
+* remove some options for list_tasks that are unnecessary
+* rewrite task list rendering to be function-based
+* delete overseer.wrap_template
+* rename run_template -> run_task
+* remove auto-require behavior from top-level overseer module
+* remove callback from condition checks
+* remove OverseerBuild command
+* task bundles get the axe
+* remove files.join -> vim.fs.joinpath
+* get rid of shell template
+* get rid of task priority
+* convert OverseerInfo to checkhealth
+* simplify logging utility and configuration
+* drop support for older Neovim versions
+* remove toggleterm and terminal strategies
+
+### cleanup
+
+* remove callback from condition checks ([6fe80be](https://github.com/stevearc/overseer.nvim/commit/6fe80beaff8e13f8af58520c546bb8258b53151f))
+* remove some options for list_tasks that are unnecessary ([f1bc714](https://github.com/stevearc/overseer.nvim/commit/f1bc71420c1444449b952a2a4d83422136aed304))
+
+
+### Features
+
+* add another helper sort function ([b6aa633](https://github.com/stevearc/overseer.nvim/commit/b6aa633b0ab66d07b6f23d7e6f1c22f9dbe6f8ce))
+* add component alias for wrapped tasks ([1df495d](https://github.com/stevearc/overseer.nvim/commit/1df495d9f48cb574fa76a6c6ec2403ef929a7174))
+* can hook builtin vim.system and vim.fn.jobstart ([73fc65f](https://github.com/stevearc/overseer.nvim/commit/73fc65f00a19d58891ee756c2d1e3747454532b2))
+* can toggle showing wrapped tasks ([214fea1](https://github.com/stevearc/overseer.nvim/commit/214fea17cd966756bf47dcc4edd4396850b5bc5a))
+* condition callback for hooking builtins ([db8f530](https://github.com/stevearc/overseer.nvim/commit/db8f530dcdaccbfcd821d388cd10b80fe0521a66))
+* configurable task sorting ([8c0ea36](https://github.com/stevearc/overseer.nvim/commit/8c0ea36b0366191fc1c30c92d10d63b1f07bebae))
+* do not require calling setup() ([9cc79d7](https://github.com/stevearc/overseer.nvim/commit/9cc79d70ecba3cd383ff8eebbce08e3c7955a33a))
+* expose API for creating a task output view ([1681f2f](https://github.com/stevearc/overseer.nvim/commit/1681f2fd093c5dc356db60cb53f7b42af8b6662f))
+* OverseerShell can create tasks without starting them ([1da7f54](https://github.com/stevearc/overseer.nvim/commit/1da7f5492d52f6e5ee43f673da30a6c13694925f))
+* OverseerShell command and overseer.run_cmd method ([5bd5700](https://github.com/stevearc/overseer.nvim/commit/5bd5700ae4e35ea37bf52136770e667bc8553c81))
+* re-introduce config to customize default jobstart strategy ([27def94](https://github.com/stevearc/overseer.nvim/commit/27def94a4d7511830d59f952009557a87422dee9))
+* restore template_dirs config option ([1e2d8b1](https://github.com/stevearc/overseer.nvim/commit/1e2d8b12e520ea0d8dd814ab965a5d932d46b484))
+* run_task can pass a callback for post-build pre-create ([96df80a](https://github.com/stevearc/overseer.nvim/commit/96df80af7b871292131e17df1ffc34da0e4c250b))
+* save template name and params on tasks for serialization ([e12f0aa](https://github.com/stevearc/overseer.nvim/commit/e12f0aabed7858c96860429cf7336b144671c84d))
+* unique component has 'soft' option ([2101ed1](https://github.com/stevearc/overseer.nvim/commit/2101ed1b54bf13763d96f3922542644df2ce194b))
+
+
+### Bug Fixes
+
+* attach source to wrapped tasks and filter them out of task list by default ([7d05b5c](https://github.com/stevearc/overseer.nvim/commit/7d05b5c7b1b1b2c536736c04e1bd1c9aa1a011e1))
+* disable autocmds when updating quickfix ([36a1d79](https://github.com/stevearc/overseer.nvim/commit/36a1d79fc2a5207bf43ecf3c6a21cfb7dc3376ad))
+* disable builtin wrapping when in fast event ([6fc4af8](https://github.com/stevearc/overseer.nvim/commit/6fc4af88d740f9876190e94e23c81052e4573d25))
+* dispose dependency tasks with force ([#433](https://github.com/stevearc/overseer.nvim/issues/433)) ([65a96d8](https://github.com/stevearc/overseer.nvim/commit/65a96d82ed19a160d7eae95c66239a10b1f43e27))
+* eliminate all deprecation warnings ([c8715a9](https://github.com/stevearc/overseer.nvim/commit/c8715a9165bb80a26205efbcf7402e3ef028064a))
+* error in condition filetype handling ([a959e84](https://github.com/stevearc/overseer.nvim/commit/a959e84d2af1087205b2083bf306fffa3c57588d))
+* guard against cursor outside window ([57e4dd1](https://github.com/stevearc/overseer.nvim/commit/57e4dd1e68aa35734a80fc00f594ce3f86914324))
+* hide deprecated components in task editor ([ac7e541](https://github.com/stevearc/overseer.nvim/commit/ac7e54166ff7410e4d64c04adff02f23917b639d))
+* **make:** pass language env var to make ([#406](https://github.com/stevearc/overseer.nvim/issues/406)) ([6296d2e](https://github.com/stevearc/overseer.nvim/commit/6296d2e8cf66fcf382ef928ffef229cb3efc35a8))
+* neotest strategy ([3d80a89](https://github.com/stevearc/overseer.nvim/commit/3d80a89c024b2ed12c61bbdef9a2ab255e0a6e83))
+* reduce cursor jumping in task list ([371e1f4](https://github.com/stevearc/overseer.nvim/commit/371e1f4a1a1c9555bce8dfe7adcbb2e396de8bd6))
+* register_alias doesn't override existing values by default ([5f36392](https://github.com/stevearc/overseer.nvim/commit/5f36392203248194ec23a3c4866d96732e458baf))
+* run_in_fullscreen_win uses new buffer by default ([8102c26](https://github.com/stevearc/overseer.nvim/commit/8102c262fcded0873fdd535375058c8c323937ea))
+* set diagnostic code in on_result_diagnostics ([#430](https://github.com/stevearc/overseer.nvim/issues/430)) ([fe7b2f9](https://github.com/stevearc/overseer.nvim/commit/fe7b2f9ba263e150ab36474dfc810217b8cf7400))
+* slightly smarter open_output behavior ([636218f](https://github.com/stevearc/overseer.nvim/commit/636218feec42d7259a05ddd5f00a7443b37114ab))
+* some improvements to run_in_cwd and run_in_fullscreen_win ([b6ab696](https://github.com/stevearc/overseer.nvim/commit/b6ab6960a36b5ab8ae70eb0bc9f1a883d6d99a3f))
+* starting a task doesn't switch to normal mode ([2f02ca0](https://github.com/stevearc/overseer.nvim/commit/2f02ca0383c2101179f3fa7e3ce1298161065680))
+* task editor can change component param values ([be6e38b](https://github.com/stevearc/overseer.nvim/commit/be6e38b584817c84a0dbcaa6003212cf08344ed4))
+* undo in task editor no longer borks everything ([87d1025](https://github.com/stevearc/overseer.nvim/commit/87d1025e59185b33ef90b9f0c232f81653fc3595))
+
+
+### Performance Improvements
+
+* make first require(config) faster ([9ceff86](https://github.com/stevearc/overseer.nvim/commit/9ceff8602f7ebccde4ba1e699495729e98b2ae3d))
+
+
+### Code Refactoring
+
+* convert OverseerInfo to checkhealth ([d91b323](https://github.com/stevearc/overseer.nvim/commit/d91b3235cb678c32487011da69d53594ef46236a))
+* delete overseer.wrap_template ([d8391f1](https://github.com/stevearc/overseer.nvim/commit/d8391f1db878fc03fc46c4ce3dbc7311d9c62225))
+* drop support for older Neovim versions ([fcc9f3c](https://github.com/stevearc/overseer.nvim/commit/fcc9f3c71fdb027d27e1c047f11534187381ec9b))
+* get rid of shell template ([c35778a](https://github.com/stevearc/overseer.nvim/commit/c35778a2c8fb0e68162598677c3416d1d6d633c9))
+* get rid of task priority ([b7730ef](https://github.com/stevearc/overseer.nvim/commit/b7730ef68e79cf8789c6e5a8c14107588fa24e67))
+* make list_tasks sort order more stable ([4e93d8c](https://github.com/stevearc/overseer.nvim/commit/4e93d8c2fec7b8b0d466be671f4fdd58c7c80a7e))
+* overhaul keymap utility ([c968400](https://github.com/stevearc/overseer.nvim/commit/c9684006a027ce9e6c9318216bc6bb8282986e96))
+* remove auto-require behavior from top-level overseer module ([d7dc84f](https://github.com/stevearc/overseer.nvim/commit/d7dc84f1c3ab35646154333575baff62052ac207))
+* remove config and custom keymaps for form and task editor windows ([5297d86](https://github.com/stevearc/overseer.nvim/commit/5297d8635f96f101b29567ab5ee09860faa148aa))
+* remove files.join -&gt; vim.fs.joinpath ([596ee9f](https://github.com/stevearc/overseer.nvim/commit/596ee9f61e2a96e7f04b7894e43a2433b220934a))
+* remove OverseerBuild command ([1fa11b3](https://github.com/stevearc/overseer.nvim/commit/1fa11b33a5d4011f622c6b0c5933c011812d4cac))
+* remove OverseerClearCache command ([c26da4a](https://github.com/stevearc/overseer.nvim/commit/c26da4a898e16fa475c2d8e36f5a4e7656a38cde))
+* remove OverseerQuickAction command ([ef61cdc](https://github.com/stevearc/overseer.nvim/commit/ef61cdc9e8dc2c35b13439bf6b4d9b99b4b60e8d))
+* remove toggleterm and terminal strategies ([5764e36](https://github.com/stevearc/overseer.nvim/commit/5764e36d25ad8044d7d438be8870f41eccee4f9a))
+* rename actions -&gt; keymap ([6db885d](https://github.com/stevearc/overseer.nvim/commit/6db885dc8478de23ba55e64f127e961f686f020e))
+* rename run_template -&gt; run_task ([b716d77](https://github.com/stevearc/overseer.nvim/commit/b716d7738280446106a4d6d145fc84e9ac88ca46))
+* rename task "bundleable" property to "ephemeral" ([602279b](https://github.com/stevearc/overseer.nvim/commit/602279b5ff774f678d2e5fdc33a52a6f25addca4))
+* rename time options to denote units ([21f0a1c](https://github.com/stevearc/overseer.nvim/commit/21f0a1ce9b3273d5e7bd7bc1089ea3347f269938))
+* replace behavior tree parsing with functions ([fd3c863](https://github.com/stevearc/overseer.nvim/commit/fd3c86342d8b66f6b12c7f6c7588135ac4547db7))
+* return truthy value from event to unsubscribe ([7597cc8](https://github.com/stevearc/overseer.nvim/commit/7597cc8c39e70d469381f8ce10cb373fe4cd1db6))
+* rewrite task list rendering to be function-based ([fc8ddc7](https://github.com/stevearc/overseer.nvim/commit/fc8ddc7b65f8df3dfc56417be9f6e992250081fd))
+* simplify logging utility and configuration ([290d9dd](https://github.com/stevearc/overseer.nvim/commit/290d9dd381f49cd25063fb72e541dcd734bb00a1))
+* task bundles get the axe ([88c8429](https://github.com/stevearc/overseer.nvim/commit/88c8429f888cd0a5a3274181a29b560ad7bf8ccc))
+* Task:dispose() returns true if task was already disposed ([9aee58e](https://github.com/stevearc/overseer.nvim/commit/9aee58ee7377cc29fdcb30c5f64c3acca81205b0))
+
 ## [1.6.0](https://github.com/stevearc/overseer.nvim/compare/v1.5.0...v1.6.0) (2025-02-15)
 
 
