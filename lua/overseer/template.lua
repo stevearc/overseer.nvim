@@ -93,7 +93,8 @@ local function get_providers()
     local path = vim.fs.joinpath("lua", dir, "**", "*.lua")
     local task_files = vim.api.nvim_get_runtime_file(path, true)
     for _, abspath in ipairs(task_files) do
-      local module_name = abspath:match("^.*(overseer/template/.*)%.lua$"):gsub("/", ".")
+      local module_name =
+        vim.fs.normalize(abspath):match("^.*(overseer/template/.*)%.lua$"):gsub("/", ".")
       local tmpl = load_template(module_name)
       if tmpl then
         if tmpl.generator then
