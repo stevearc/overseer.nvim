@@ -10,8 +10,8 @@ describe("npm template workspace glob patterns", function()
   end
 
   it("loads the npm template successfully", function()
-    assert.is_not_nil(npm_template)
-    assert.is_not_nil(npm_template.generator)
+    assert.not_nil(npm_template)
+    assert.not_nil(npm_template.generator)
   end)
 
   it("handles literal workspace paths", function()
@@ -186,6 +186,93 @@ describe("npm template workspace glob patterns", function()
         packages = { "packages/*" },
       },
     })
+
+    local opts = {
+      dir = temp_dir,
+      filename = vim.fs.joinpath(temp_dir, "package.json"),
+    }
+
+    local tasks = npm_template.generator(opts)
+    assert.is_table(tasks)
+    -- Should have root build task + core test + ui test
+    assert.is_true(#tasks >= 3)
+
+    vim.fn.delete(temp_dir, "rf")
+  end)
+
+  it("handles pnpm-workspace.yaml with simple patterns", function()
+    local temp_dir = vim.fn.tempname()
+    vim.fn.mkdir(temp_dir, "p")
+
+    -- Create directory structure:
+    -- packages/core/package.json
+    -- packages/ui/package.json
+    create_package_json(vim.fs.joinpath(temp_dir, "packages", "core"), {
+      name = "core",
+      scripts = { test = "echo test core" },
+    })
+
+    create_package_json(vim.fs.joinpath(temp_dir, "packages", "ui"), {
+      name = "ui",
+      scripts = { test = "echo test ui" },
+    })
+
+    -- Create root package.json
+    create_package_json(temp_dir, {
+      name = "root",
+      scripts = { build = "echo build" },
+    })
+
+    -- Create pnpm-workspace.yaml
+    local pnpm_workspace_path = vim.fs.joinpath(temp_dir, "pnpm-workspace.yaml")
+    vim.fn.writefile({
+      "packages:",
+      "  - 'packages/core'",
+      "  - 'packages/ui'",
+    }, pnpm_workspace_path)
+
+    local opts = {
+      dir = temp_dir,
+      filename = vim.fs.joinpath(temp_dir, "package.json"),
+    }
+
+    local tasks = npm_template.generator(opts)
+    assert.is_table(tasks)
+    -- Should have root build task + core test + ui test
+    assert.is_true(#tasks >= 3)
+
+    vim.fn.delete(temp_dir, "rf")
+  end)
+
+  it("handles pnpm-workspace.yaml with glob patterns", function()
+    local temp_dir = vim.fn.tempname()
+    vim.fn.mkdir(temp_dir, "p")
+
+    -- Create directory structure:
+    -- packages/core/package.json
+    -- packages/ui/package.json
+    create_package_json(vim.fs.joinpath(temp_dir, "packages", "core"), {
+      name = "core",
+      scripts = { test = "echo test core" },
+    })
+
+    create_package_json(vim.fs.joinpath(temp_dir, "packages", "ui"), {
+      name = "ui",
+      scripts = { test = "echo test ui" },
+    })
+
+    -- Create root package.json
+    create_package_json(temp_dir, {
+      name = "root",
+      scripts = { build = "echo build" },
+    })
+
+    -- Create pnpm-workspace.yaml with glob pattern
+    local pnpm_workspace_path = vim.fs.joinpath(temp_dir, "pnpm-workspace.yaml")
+    vim.fn.writefile({
+      "packages:",
+      "  - 'packages/*'",
+    }, pnpm_workspace_path)
 
     local opts = {
       dir = temp_dir,

@@ -97,6 +97,48 @@ local function resolve_workspace_paths(base_path, workspace_patterns)
   return resolved
 end
 
+---@param filepath string
+---@return table|nil
+---Parse pnpm-workspace.yaml and extract packages array, returning both inclusions and exclusions
+local function parse_pnpm_workspace(filepath)
+  local content = files.read_file(filepath)
+  if not content then
+    return nil
+  end
+
+  local inclusions, exclusions = {}, {}
+  local in_packages_section = false
+  local packages_indent
+
+  for line in content:gmatch("[^\n]+") do
+    if not line:match("^%s*$") and not line:match("^%s*#") then
+      if line:match("^packages:%s*$") then
+        in_packages_section = true
+        packages_indent = line:match("^(%s*)packages:")
+      elseif in_packages_section then
+        local indent = line:match("^(%s*)")
+        if #indent <= #packages_indent then
+          break
+        end
+
+        local pkg = line:match("^%s*%-%s*['\"](.+)['\"]%s*$") or line:match("^%s*%-%s*(.-)%s*$")
+        if pkg and pkg ~= "" then
+          if pkg:sub(1, 1) == "!" then
+            table.insert(exclusions, pkg:sub(2))
+          else
+            table.insert(inclusions, pkg)
+          end
+        end
+      end
+    end
+  end
+
+  if #inclusions > 0 or #exclusions > 0 then
+    return { inclusions = inclusions, exclusions = exclusions }
+  end
+  return nil
+end
+
 ---@type overseer.TemplateFileProvider
 return {
   generator = function(opts)
@@ -127,7 +169,7 @@ return {
       end
     end
 
-    -- Load tasks from workspaces
+    -- Load tasks from workspaces in package.json
     if data.workspaces then
       -- Support both array format and Yarn v1 object format with .packages property
       local workspace_patterns = data.workspaces
@@ -153,6 +195,33 @@ return {
         end
       end
     end
+
+    -- Load tasks from pnpm-workspace.yaml if it exists
+    local pnpm_workspace_file = vim.fs.joinpath(cwd, "pnpm-workspace.yaml")
+    if vim.uv.fs_stat(pnpm_workspace_file) then
+      local pnpm_config = parse_pnpm_workspace(pnpm_workspace_file)
+      if pnpm_config then
+        local workspace_paths = resolve_workspace_paths(cwd, pnpm_config.inclusions)
+        for _, workspace_path in ipairs(workspace_paths) do
+          local workspace_package_file = vim.fs.joinpath(workspace_path, "package.json")
+          local workspace_data = files.load_json_file(workspace_package_file)
+          if workspace_data and workspace_data.scripts then
+            for k in pairs(workspace_data.scripts) do
+              table.insert(ret, {
+                name = string.format("%s[workspace] %s (%s)", bin, k, workspace_data.name),
+                builder = function()
+                  return {
+                    cmd = { bin, "run", k },
+                    cwd = workspace_path,
+                  }
+                end,
+              })
+            end
+          end
+        end
+      end
+    end
+
     return ret
   end,
 }
