@@ -36,33 +36,32 @@ local function get_candidate_package_files(opts)
 end
 
 ---@param candidate_packages string[]
----@return string|nil
-local function get_package_file(candidate_packages)
-  for _, package in ipairs(candidate_packages) do
-    local data = files.load_json_file(package)
-    if data.scripts or data.workspaces then
-      return package
-    end
-  end
-  return nil
-end
-
----@param candidate_packages string[]
----@return string
----Determine the appropriate package manager by checking for known lockfiles located in the same directories as the provided package.json files.
----Falls back to "npm" if none are found.
-local function pick_package_manager(candidate_packages)
+---@return { package: string, manager: string }|nil
+---Determine the package.json file with scripts/workspaces and its package manager.
+---Prioritizes packages with lockfiles, falls back to "npm" and closest package.json if no lockfile is found.
+local function get_package_and_manager(candidate_packages)
   for _, package_file in ipairs(candidate_packages) do
-    local package_dir = vim.fs.dirname(package_file)
-    for mgr, lockfiles in pairs(mgr_lockfiles) do
-      for _, lockfile in ipairs(lockfiles) do
-        if vim.uv.fs_stat(vim.fs.joinpath(package_dir, lockfile)) then
-          return mgr
+    local data = files.load_json_file(package_file)
+    if data.scripts or data.workspaces then
+      local package_dir = vim.fs.dirname(package_file)
+      for mgr, lockfiles in pairs(mgr_lockfiles) do
+        for _, lockfile in ipairs(lockfiles) do
+          if vim.uv.fs_stat(vim.fs.joinpath(package_dir, lockfile)) then
+            return { package = package_file, manager = mgr }
+          end
         end
       end
     end
   end
-  return "npm"
+
+  for _, package_file in ipairs(candidate_packages) do
+    local data = files.load_json_file(package_file)
+    if data.scripts or data.workspaces then
+      return { package = package_file, manager = "npm" }
+    end
+  end
+
+  return nil
 end
 
 ---@param base_path string
@@ -143,11 +142,12 @@ end
 return {
   generator = function(opts)
     local candidate_packages = get_candidate_package_files(opts)
-    local package = get_package_file(candidate_packages)
-    if not package then
+    local result = get_package_and_manager(candidate_packages)
+    if not result then
       return "No package.json file found"
     end
-    local bin = pick_package_manager(candidate_packages)
+    local package = result.package
+    local bin = result.manager
     if vim.fn.executable(bin) == 0 then
       return string.format("Could not find command '%s'", bin)
     end
