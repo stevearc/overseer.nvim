@@ -30,9 +30,8 @@ M.get_selected_text = function()
   return table.concat(lines, "\n")
 end
 
-local function get_workspace_folder()
-  local vscode_dir =
-    vim.fs.find(".vscode", { upward = true, type = "directory", path = vim.fn.getcwd() })[1]
+local function get_workspace_folder(path)
+  local vscode_dir = vim.fs.find(".vscode", { upward = true, type = "directory", path = path })[1]
   if vscode_dir then
     return vim.fs.dirname(vscode_dir)
   else
@@ -46,7 +45,7 @@ M.precalculate_vars = function()
     workspaceFolder = get_workspace_folder(),
     workspaceFolderBasename = vim.fs.basename(vim.fn.getcwd()),
     file = vim.fn.expand("%:p"),
-    fileWorkspaceFolder = get_workspace_folder(),
+    fileWorkspaceFolder = get_workspace_folder(vim.fn.expand("%:p:h")),
     relativeFile = vim.fn.expand("%:."),
     relativeFileDirname = vim.fn.expand("%:.:h"),
     fileBasename = vim.fn.expand("%:t"),
@@ -88,7 +87,7 @@ M.replace_vars = function(str, params, precalculated_vars)
     elseif name == "file" then
       return vim.fn.expand("%:p")
     elseif name == "fileWorkspaceFolder" then
-      return get_workspace_folder()
+      return get_workspace_folder(vim.fn.expand("%:p:h"))
     elseif name == "relativeFile" then
       return vim.fn.expand("%:.")
     elseif name == "relativeFileDirname" then
