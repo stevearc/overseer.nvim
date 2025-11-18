@@ -12,21 +12,25 @@ end
 ---@param cwd string
 ---@param cb fun(error: nil|string, workspace_root: nil|string)
 local function get_workspace_root(cwd, cb)
-  overseer.builtin.system({ "cargo", "metadata", "--no-deps", "--format-version", "1" }, {
-    cwd = cwd,
-    text = true,
-  }, function(out)
-    local ok, data = pcall(json.decode, out.stdout)
-    if ok then
-      if data.workspace_root then
-        cb(nil, data.workspace_root)
+  overseer.builtin.system(
+    { "cargo", "metadata", "--no-deps", "--format-version", "1" },
+    {
+      cwd = cwd,
+      text = true,
+    },
+    vim.schedule_wrap(function(out)
+      local ok, data = pcall(json.decode, out.stdout)
+      if ok then
+        if data.workspace_root then
+          cb(nil, data.workspace_root)
+        else
+          cb("No workspace_root found in output")
+        end
       else
-        cb("No workspace_root found in output")
+        cb(data)
       end
-    else
-      cb(data)
-    end
-  end)
+    end)
+  )
 end
 
 local commands = {
