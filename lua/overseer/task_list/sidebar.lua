@@ -294,7 +294,7 @@ function Sidebar:jump(direction)
   local lnum = vim.api.nvim_win_get_cursor(0)[1]
   for i, v in ipairs(self.task_lines) do
     local first_line = v[1]
-    if first_line <= lnum then
+    if first_line >= lnum then
       if direction < 0 and i > 1 then
         local new_lnum = self.task_lines[i - 1][1]
         vim.api.nvim_win_set_cursor(0, { new_lnum, 0 })
