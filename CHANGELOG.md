@@ -1,5 +1,16 @@
 # Changelog
 
+## [2.0.1](https://github.com/stevearc/overseer.nvim/compare/v2.0.0...v2.0.1) (2025-11-28)
+
+
+### Bug Fixes
+
+* **cargo:** add schedule_wrap to cargo command callback (fix [#456](https://github.com/stevearc/overseer.nvim/issues/456)) ([36298ea](https://github.com/stevearc/overseer.nvim/commit/36298eab791cca87ac3a228933413d094423400e))
+* fileWorkspaceFolder should respect current opened file ([#434](https://github.com/stevearc/overseer.nvim/issues/434)) ([b071fb5](https://github.com/stevearc/overseer.nvim/commit/b071fb5e1fa71f320fee0aa02e53f7f0621882a0))
+* make prev_task and next_task work ([#460](https://github.com/stevearc/overseer.nvim/issues/460)) ([00f16bd](https://github.com/stevearc/overseer.nvim/commit/00f16bd83e06d921dce308c262b3aeae596e2be0))
+* **taskfile:** send correct target name in generator ([#466](https://github.com/stevearc/overseer.nvim/issues/466)) ([9b6811c](https://github.com/stevearc/overseer.nvim/commit/9b6811cf677e35f6cfaee743db1f1284e3556668))
+* **windows:** normalize file path before extracting module name ([#459](https://github.com/stevearc/overseer.nvim/issues/459)) ([1023f1c](https://github.com/stevearc/overseer.nvim/commit/1023f1c0e9096c0e309dc419c3406208689670fb))
+
 ## [2.0.0](https://github.com/stevearc/overseer.nvim/compare/v1.6.0...v2.0.0) (2025-11-16)
 
 
