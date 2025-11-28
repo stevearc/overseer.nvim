@@ -53,7 +53,7 @@ return {
             desc = target.desc,
             builder = function()
               return {
-                cmd = { "task", target },
+                cmd = { "task", target.name },
                 cwd = cwd,
               }
             end,
