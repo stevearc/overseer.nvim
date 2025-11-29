@@ -72,6 +72,7 @@ local default_config = {
     max_width = 0.9,
     min_height = 10,
     max_height = 0.9,
+    border = nil,
     -- Set any window options here (e.g. winhighlight)
     win_opts = {},
   },
@@ -79,6 +80,7 @@ local default_config = {
   task_win = {
     -- How much space to leave around the floating window
     padding = 2,
+    border = nil,
     -- Set any window options here (e.g. winhighlight)
     win_opts = {},
   },
@@ -228,6 +230,7 @@ end
 ---@class (exact) overseer.ConfigFloatWin : overseer.LayoutOpts
 ---@field zindex integer
 ---@field win_opts table<string, any>
+---@field border? string[]|"none"|"single"|"double"|"rounded"|"solid"|"shadow"
 
 ---@class (exact) overseer.SetupConfigFloatWin
 ---@field zindex? integer
@@ -241,6 +244,7 @@ end
 ---@field padding integer
 ---@field zindex? integer
 ---@field win_opts table<string, any>
+---@field border? string[]|"none"|"single"|"double"|"rounded"|"solid"|"shadow"
 
 ---@class (exact) overseer.SetupConfigTaskWin
 ---@field padding? integer How much space to leave around the floating window
