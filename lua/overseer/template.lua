@@ -22,7 +22,7 @@ local M = {}
 ---@field desc? string extended description of the task
 ---@field tags? string[] collection of tags used for optional task filtering
 ---@field params? overseer.Params|fun(): overseer.Params parameters to customize the task. If any are missing when the task is built, overseer will prompt the user for input
----@field condition? overseer.SearchCondition simple condition checks for when this task is available
+---@field condition? overseer.TemplateSearchCondition simple condition checks for when this task is available
 ---@field builder fun(params: table): overseer.TaskDefinition function that builds the task definition from the parameters
 ---@field hide? boolean Hide from the template list
 
@@ -33,6 +33,9 @@ local M = {}
 ---@class (exact) overseer.SearchCondition
 ---@field filetype? string|string[]
 ---@field dir? string|string[]
+
+---@class (exact) overseer.TemplateSearchCondition : overseer.SearchCondition
+---@field callback? fun(search: overseer.SearchParams): boolean, nil|string
 
 ---@alias overseer.Params table<string, overseer.Param>
 
@@ -315,7 +318,15 @@ M.register = function(defn)
       name = defn.name,
       module = defn.module,
       condition = defn.condition,
-      generator = function()
+      generator = function(opts)
+        local condition = defn.condition
+        if condition then
+          local passed, message = condition.callback(opts)
+          if not passed then
+            return false, message
+          end
+        end
+
         return { defn }
       end,
     }
