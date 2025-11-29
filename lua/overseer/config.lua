@@ -72,6 +72,7 @@ local default_config = {
     max_width = 0.9,
     min_height = 10,
     max_height = 0.9,
+    border = nil,
     -- Set any window options here (e.g. winhighlight)
     win_opts = {},
   },
@@ -79,6 +80,7 @@ local default_config = {
   task_win = {
     -- How much space to leave around the floating window
     padding = 2,
+    border = nil,
     -- Set any window options here (e.g. winhighlight)
     win_opts = {},
   },
