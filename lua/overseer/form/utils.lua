@@ -272,6 +272,7 @@ M.open_form_win = function(bufnr, opts)
       zindex = config.form.zindex,
       width = width,
       height = height,
+      border = config.form.border,
       col = math.floor((layout.get_editor_width() - width) / 2),
       row = math.floor((layout.get_editor_height() - height) / 2),
     }
