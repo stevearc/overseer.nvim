@@ -108,6 +108,12 @@ local default_config = {
   -- This will search under the runtimepath, so for example
   -- "foo/bar" will search "<runtimepath>/lua/foo/bar/*"
   template_dirs = {},
+  -- List of module names or lua patterns that match modules (must start with '^')
+  -- to disable. This can be used to disable built in task providers.
+  disable_template_modules = {
+    -- "overseer.template.make",
+    -- "^.*cargo",
+  },
   -- For template providers, how long to wait before timing out.
   -- Set to 0 to wait forever.
   template_timeout_ms = 3000,
@@ -174,6 +180,7 @@ end
 ---@field task_win overseer.ConfigTaskWin
 ---@field component_aliases table<string, overseer.Serialized[]> Aliases for bundles of components. Redefine the builtins, or create your own.
 ---@field template_dirs string[] List of other directories to search for task templates.
+---@field disable_template_modules string[]
 ---@field template_timeout_ms? integer For template providers, how long to wait (in ms) before timing out. Set to 0 to disable timeouts.
 ---@field template_cache_threshold_ms? integer Cache template provider results if the provider takes longer than this to run. Time is in ms. Set to 0 to disable caching.
 
@@ -188,6 +195,7 @@ end
 ---@field task_win? overseer.SetupConfigTaskWin
 ---@field component_aliases? table<string, overseer.Serialized[]> Aliases for bundles of components. Redefine the builtins, or create your own.
 ---@field template_dirs? string[] List of other directories to search for task templates.
+---@field disable_template_modules? string[] List of module names or lua patterns that match modules
 ---@field template_timeout_ms? integer For template providers, how long to wait (in ms) before timing out. Set to 0 to disable timeouts.
 ---@field template_cache_threshold_ms? integer Cache template provider results if the provider takes longer than this to run. Time is in ms. Set to 0 to disable caching.
 
