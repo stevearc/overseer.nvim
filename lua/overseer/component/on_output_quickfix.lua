@@ -15,8 +15,9 @@ end
 
 ---@param self table The component
 ---@param height nil|integer
+---@param focus boolean
 ---@return boolean True if the quickfix window was opened
-local function copen(self, height)
+local function copen(self, height, focus)
   -- Only open the quickfix once. If the user closes it, we don't want to re-open.
   if self.qf_opened then
     return false
@@ -28,7 +29,9 @@ local function copen(self, height)
   end
   local winid = vim.api.nvim_get_current_win()
   vim.cmd(open_cmd)
-  vim.api.nvim_set_current_win(winid)
+  if not focus then
+    vim.api.nvim_set_current_win(winid)
+  end
   self.qf_opened = true
   return cur_qf.winid == 0
 end
@@ -93,6 +96,11 @@ return {
       type = "boolean",
       default = true,
     },
+    focus = {
+      desc = "Focus the quickfix window when opened",
+      type = "boolean",
+      default = false,
+    },
   },
   constructor = function(params)
     local comp = {
@@ -106,7 +114,7 @@ return {
         local open = params.open_on_exit == "always"
         open = open or (params.open_on_exit == "failure" and code ~= 0)
         if open then
-          copen(self, params.open_height)
+          copen(self, params.open_height, params.focus)
         end
       end,
       on_pre_result = function(self, task)
@@ -172,10 +180,10 @@ return {
           if params.close then
             vim.cmd("cclose")
           elseif params.open then
-            copen(self, params.open_height)
+            copen(self, params.open_height, params.focus)
           end
         elseif params.open_on_match or params.open then
-          copen(self, params.open_height)
+          copen(self, params.open_height, params.focus)
         end
 
         if params.set_diagnostics then
@@ -211,7 +219,7 @@ return {
           items = valid_items
         end
         if params.open or (not vim.tbl_isempty(valid_items) and params.open_on_match) then
-          scroll_buffer = copen(self, params.open_height) or scroll_buffer
+          scroll_buffer = copen(self, params.open_height, params.focus) or scroll_buffer
           cur_qf = vim.fn.getqflist({ context = 0, winid = 0, id = self.qf_id })
         end
         local what = {

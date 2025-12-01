@@ -833,6 +833,8 @@ on_output_quickfix                                            *on_output_quickfi
       {close}           `boolean` Close the quickfix on completion if no
                         errorformat matches (default `false`)
       {errorformat}     `string` See :help errorformat
+      {focus}           `boolean` Focus the quickfix window when opened (default
+                        `false`)
       {items_only}      `boolean` Only show lines that match the errorformat
                         (default `false`)
       {open}            `boolean` Open the quickfix on output (default `false`)
