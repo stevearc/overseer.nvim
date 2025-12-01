@@ -143,6 +143,9 @@ end
 ---@return boolean match
 ---@return nil|string reason
 local function condition_matches(condition, tags, search, match_tags)
+  if type(condition) == "function" then
+    return condition()
+  end
   condition = condition or {}
   if condition.filetype then
     if not search.filetype then
