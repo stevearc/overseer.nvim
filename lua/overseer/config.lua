@@ -239,6 +239,7 @@ end
 ---@field min_height? number|number[]
 ---@field max_height? number|number[]
 ---@field win_opts? table<string, any>
+---@field border? string[]|"none"|"single"|"double"|"rounded"|"solid"|"shadow"
 
 ---@class (exact) overseer.ConfigTaskWin
 ---@field padding integer
@@ -250,6 +251,7 @@ end
 ---@field padding? integer How much space to leave around the floating window
 ---@field zindex? integer
 ---@field win_opts? table<string, any> Set any window options here (e.g. winhighlight)
+---@field border? string[]|"none"|"single"|"double"|"rounded"|"solid"|"shadow"
 
 setmetatable(M, {
   -- If the user hasn't called setup() yet, make sure we correctly set up the config object so there
