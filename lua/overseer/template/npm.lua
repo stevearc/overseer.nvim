@@ -35,6 +35,19 @@ local function get_candidate_package_files(opts)
   })
 end
 
+---@param package_dir string
+---@return string|nil
+local function detect_package_manager(package_dir)
+  for mgr, lockfiles in pairs(mgr_lockfiles) do
+    for _, lockfile in ipairs(lockfiles) do
+      if vim.uv.fs_stat(vim.fs.joinpath(package_dir, lockfile)) then
+        return mgr
+      end
+    end
+  end
+  return nil
+end
+
 ---@param candidate_packages string[]
 ---@return { package: string, manager: string }|nil
 ---Determine the package.json file with scripts/workspaces and its package manager.
@@ -44,12 +57,9 @@ local function get_package_and_manager(candidate_packages)
     local data = files.load_json_file(package_file)
     if data.scripts or data.workspaces then
       local package_dir = vim.fs.dirname(package_file)
-      for mgr, lockfiles in pairs(mgr_lockfiles) do
-        for _, lockfile in ipairs(lockfiles) do
-          if vim.uv.fs_stat(vim.fs.joinpath(package_dir, lockfile)) then
-            return { package = package_file, manager = mgr }
-          end
-        end
+      local manager = detect_package_manager(package_dir)
+      if manager then
+        return { package = package_file, manager = manager }
       end
     end
   end
@@ -96,46 +106,116 @@ local function resolve_workspace_paths(base_path, workspace_patterns)
   return resolved
 end
 
+---@param bin string
+---@param workspace_paths string[]
+---@return table[]
+local function add_workspace_tasks(bin, workspace_paths)
+  local tasks = {}
+
+  for _, workspace_path in ipairs(workspace_paths) do
+    local workspace_package_file = vim.fs.joinpath(workspace_path, "package.json")
+    local workspace_data = files.load_json_file(workspace_package_file)
+    if workspace_data and workspace_data.scripts then
+      for k in pairs(workspace_data.scripts) do
+        table.insert(tasks, {
+          name = string.format("%s[workspace] %s (%s)", bin, k, workspace_data.name),
+          builder = function()
+            return {
+              cmd = { bin, "run", k },
+              cwd = workspace_path,
+            }
+          end,
+        })
+      end
+    end
+  end
+
+  return tasks
+end
+
+---@param content string
+---@return table|nil
+local function parse_pnpm_workspace_regex(content)
+  local inclusions, exclusions = {}, {}
+
+  local in_packages = false
+  for line in content:gmatch("[^\n]+") do
+    -- Check if we're entering the packages block
+    if line:match("^packages%s*:") then
+      in_packages = true
+
+    -- Check if we're leaving the packages block (key at same indentation level)
+    elseif in_packages and line:match("^%w+%s*:") and not line:match("^%s+%-") then
+      in_packages = false
+
+    -- If we're in the packages block, parse the patterns
+    elseif in_packages then
+      -- Match lines like "  - 'pattern'" or "  - \"pattern\""
+      local pattern = line:match("%-[%s]*['\"]([^'\"]+)['\"]")
+      if pattern then
+        if pattern:sub(1, 1) == "!" then
+          table.insert(exclusions, pattern:sub(2))
+        else
+          table.insert(inclusions, pattern)
+        end
+      end
+    end
+  end
+
+  if #inclusions > 0 then
+    return { inclusions = inclusions }
+  end
+
+  return nil
+end
+
 ---@param filepath string
 ---@return table|nil
----Parse pnpm-workspace.yaml and extract packages array, returning both inclusions and exclusions
+---Parse pnpm-workspace.yaml file and extract workspace patterns
+---Uses treesitter if available, falls back to regex-based parsing
 local function parse_pnpm_workspace(filepath)
   local content = files.read_file(filepath)
   if not content then
     return nil
   end
 
-  local inclusions, exclusions = {}, {}
-  local in_packages_section = false
-  local packages_indent
+  local ok_parser, parser = pcall(vim.treesitter.get_string_parser, content, "yaml")
+  if ok_parser and parser then
+    local tree = parser:parse()
+    local root = tree[1]:root()
 
-  for line in content:gmatch("[^\n]+") do
-    if not line:match("^%s*$") and not line:match("^%s*#") then
-      if line:match("^packages:%s*$") then
-        in_packages_section = true
-        packages_indent = line:match("^(%s*)packages:")
-      elseif in_packages_section then
-        local indent = line:match("^(%s*)")
-        if #indent <= #packages_indent then
-          break
-        end
+    local inclusions, exclusions = {}, {}
 
-        local pkg = line:match("^%s*%-%s*['\"](.+)['\"]%s*$") or line:match("^%s*%-%s*(.-)%s*$")
-        if pkg and pkg ~= "" then
-          if pkg:sub(1, 1) == "!" then
-            table.insert(exclusions, pkg:sub(2))
+    local query_str = [[
+      (single_quote_scalar) @item
+    ]]
+
+    local ok_query, query = pcall(vim.treesitter.query.parse, "yaml", query_str)
+    if ok_query and query then
+      for _, capture, _ in query:iter_captures(root, content) do
+        local node = capture
+        local text = vim.treesitter.get_node_text(node, content)
+
+        -- Remove quotes and trim whitespace
+        text = text:gsub("^'", ""):gsub("'$", ""):match("^%s*(.-)%s*$")
+
+        if text and text ~= "" then
+          if text:sub(1, 1) == "!" then
+            table.insert(exclusions, text:sub(2))
           else
-            table.insert(inclusions, pkg)
+            table.insert(inclusions, text)
           end
         end
+      end
+
+      if #inclusions > 0 then
+        return { inclusions = inclusions }
       end
     end
   end
 
-  if #inclusions > 0 or #exclusions > 0 then
-    return { inclusions = inclusions, exclusions = exclusions }
-  end
-  return nil
+  -- Fallback to regex-based parsing
+  return parse_pnpm_workspace_regex(content)
 end
 
 ---@type overseer.TemplateFileProvider
@@ -177,22 +257,9 @@ return {
         workspace_patterns = data.workspaces.packages
       end
       local workspace_paths = resolve_workspace_paths(cwd, workspace_patterns)
-      for _, workspace_path in ipairs(workspace_paths) do
-        local workspace_package_file = vim.fs.joinpath(workspace_path, "package.json")
-        local workspace_data = files.load_json_file(workspace_package_file)
-        if workspace_data and workspace_data.scripts then
-          for k in pairs(workspace_data.scripts) do
-            table.insert(ret, {
-              name = string.format("%s[workspace] %s (%s)", bin, k, workspace_data.name),
-              builder = function()
-                return {
-                  cmd = { bin, "run", k },
-                  cwd = workspace_path,
-                }
-              end,
-            })
-          end
-        end
+      local workspace_tasks = add_workspace_tasks(bin, workspace_paths)
+      for _, task in ipairs(workspace_tasks) do
+        table.insert(ret, task)
       end
     end
 
@@ -202,22 +269,9 @@ return {
       local pnpm_config = parse_pnpm_workspace(pnpm_workspace_file)
       if pnpm_config then
         local workspace_paths = resolve_workspace_paths(cwd, pnpm_config.inclusions)
-        for _, workspace_path in ipairs(workspace_paths) do
-          local workspace_package_file = vim.fs.joinpath(workspace_path, "package.json")
-          local workspace_data = files.load_json_file(workspace_package_file)
-          if workspace_data and workspace_data.scripts then
-            for k in pairs(workspace_data.scripts) do
-              table.insert(ret, {
-                name = string.format("%s[workspace] %s (%s)", bin, k, workspace_data.name),
-                builder = function()
-                  return {
-                    cmd = { bin, "run", k },
-                    cwd = workspace_path,
-                  }
-                end,
-              })
-            end
-          end
+        local workspace_tasks = add_workspace_tasks(bin, workspace_paths)
+        for _, task in ipairs(workspace_tasks) do
+          table.insert(ret, task)
         end
       end
     end
