@@ -61,7 +61,7 @@ return {
         vim.defer_fn(function()
           restarting = false
           -- Only perform the restart if the version hasn't been bumped
-          if version == trigger_version then
+          if version == trigger_version and not task:is_disposed() then
             if not task:restart(opts.interrupt) then
               -- If we couldn't restart the task, it's because it is currently running and we won't
               -- interrupt it. Flag to restart once task is complete.
