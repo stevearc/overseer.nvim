@@ -155,6 +155,7 @@ require("overseer").setup({
     max_width = 0.9,
     min_height = 10,
     max_height = 0.9,
+    border = nil,
     -- Set any window options here (e.g. winhighlight)
     win_opts = {},
   },
@@ -162,6 +163,7 @@ require("overseer").setup({
   task_win = {
     -- How much space to leave around the floating window
     padding = 2,
+    border = nil,
     -- Set any window options here (e.g. winhighlight)
     win_opts = {},
   },

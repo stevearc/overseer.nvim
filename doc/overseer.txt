@@ -120,7 +120,6 @@ OPTIONS                                                         *overseer-option
       task_win = {
         -- How much space to leave around the floating window
         padding = 2,
-        -- Float window border style
         border = nil,
         -- Set any window options here (e.g. winhighlight)
         win_opts = {},
