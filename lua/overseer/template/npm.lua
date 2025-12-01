@@ -183,27 +183,36 @@ local function parse_pnpm_workspace(filepath)
   if ok_parser and parser then
     local tree = parser:parse()
     local root = tree[1]:root()
-
     local inclusions, exclusions = {}, {}
 
     local query_str = [[
-      (single_quote_scalar) @item
+      (block_mapping_pair
+        key: (flow_node
+                (plain_scalar) @key)
+        (#eq? @key "packages")
+        value: (block_node
+                  (block_sequence
+                    (block_sequence_item
+                      (flow_node
+                        (_ ) @item)))))
     ]]
 
     local ok_query, query = pcall(vim.treesitter.query.parse, "yaml", query_str)
     if ok_query and query then
-      for _, capture, _ in query:iter_captures(root, content) do
-        local node = capture
-        local text = vim.treesitter.get_node_text(node, content)
+      for id, node in query:iter_captures(root, content) do
+        local capture_name = query.captures[id]
+        if capture_name == "item" then
+          local text = vim.treesitter.get_node_text(node, content)
 
-        -- Remove quotes and trim whitespace
-        text = text:gsub("^'", ""):gsub("'$", ""):match("^%s*(.-)%s*$")
+          -- Remove quotes and trim whitespace
+          text = text:gsub("^[\"']", ""):gsub("[\"']$", ""):match("^%s*(.-)%s*$")
 
-        if text and text ~= "" then
-          if text:sub(1, 1) == "!" then
-            table.insert(exclusions, text:sub(2))
-          else
-            table.insert(inclusions, text)
+          if text and text ~= "" then
+            if text:sub(1, 1) == "!" then
+              table.insert(exclusions, text:sub(2))
+            else
+              table.insert(inclusions, text)
+            end
           end
         end
       end
