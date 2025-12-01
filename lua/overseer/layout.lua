@@ -141,6 +141,7 @@ M.open_fullscreen_float = function(bufnr)
     height = height,
     zindex = conf.zindex,
     style = "minimal",
+    border = conf.border,
   })
   for k, v in pairs(conf.win_opts) do
     vim.api.nvim_set_option_value(k, v, { scope = "local", win = winid })
