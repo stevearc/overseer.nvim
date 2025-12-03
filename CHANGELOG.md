@@ -1,5 +1,27 @@
 # Changelog
 
+## [2.1.0](https://github.com/stevearc/overseer.nvim/compare/v2.0.0...v2.1.0) (2025-12-03)
+
+
+### Features
+
+* add mise tasks template provider ([#414](https://github.com/stevearc/overseer.nvim/issues/414)) ([00e01e6](https://github.com/stevearc/overseer.nvim/commit/00e01e68b92773fcd1fcd530c126faf2b6851007))
+* add win border option for task win and form ([#468](https://github.com/stevearc/overseer.nvim/issues/468)) ([7fc4d8f](https://github.com/stevearc/overseer.nvim/commit/7fc4d8feb3df05bb9e7b71a876c828c90231c814))
+* config option to disable template providers ([4c796a6](https://github.com/stevearc/overseer.nvim/commit/4c796a69f886a270ea62e8509bbc1f72438b8946))
+* **on_output_quickfix:** param to focus quickfix window on open ([ebe6030](https://github.com/stevearc/overseer.nvim/commit/ebe6030cb635d36d8df7316716ba3e75b72e2618))
+
+
+### Bug Fixes
+
+* **cargo:** add schedule_wrap to cargo command callback (fix [#456](https://github.com/stevearc/overseer.nvim/issues/456)) ([36298ea](https://github.com/stevearc/overseer.nvim/commit/36298eab791cca87ac3a228933413d094423400e))
+* fileWorkspaceFolder should respect current opened file ([#434](https://github.com/stevearc/overseer.nvim/issues/434)) ([b071fb5](https://github.com/stevearc/overseer.nvim/commit/b071fb5e1fa71f320fee0aa02e53f7f0621882a0))
+* guard restarts against concurrent task dispose ([#465](https://github.com/stevearc/overseer.nvim/issues/465)) ([3a6c2cf](https://github.com/stevearc/overseer.nvim/commit/3a6c2cf66d7c8dab374bccf2409b27c607954c2a))
+* **lualine:** broken lualine component ([#457](https://github.com/stevearc/overseer.nvim/issues/457)) ([916114d](https://github.com/stevearc/overseer.nvim/commit/916114d282b25173a6ba2b2a9cb4679640a06da4))
+* make prev_task and next_task work ([#460](https://github.com/stevearc/overseer.nvim/issues/460)) ([00f16bd](https://github.com/stevearc/overseer.nvim/commit/00f16bd83e06d921dce308c262b3aeae596e2be0))
+* replace deleted files.join with vim.fs.joinpath ([#469](https://github.com/stevearc/overseer.nvim/issues/469)) ([e423223](https://github.com/stevearc/overseer.nvim/commit/e4232238b940b3b39be66e029c92e98ef1f35e48))
+* **taskfile:** send correct target name in generator ([#466](https://github.com/stevearc/overseer.nvim/issues/466)) ([9b6811c](https://github.com/stevearc/overseer.nvim/commit/9b6811cf677e35f6cfaee743db1f1284e3556668))
+* **windows:** normalize file path before extracting module name ([#459](https://github.com/stevearc/overseer.nvim/issues/459)) ([1023f1c](https://github.com/stevearc/overseer.nvim/commit/1023f1c0e9096c0e309dc419c3406208689670fb))
+
 ## [2.0.0](https://github.com/stevearc/overseer.nvim/compare/v1.6.0...v2.0.0) (2025-11-16)
 
 
