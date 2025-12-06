@@ -112,6 +112,7 @@ OPTIONS                                                         *overseer-option
         max_width = 0.9,
         min_height = 10,
         max_height = 0.9,
+        border = nil,
         -- Set any window options here (e.g. winhighlight)
         win_opts = {},
       },
@@ -119,6 +120,7 @@ OPTIONS                                                         *overseer-option
       task_win = {
         -- How much space to leave around the floating window
         padding = 2,
+        border = nil,
         -- Set any window options here (e.g. winhighlight)
         win_opts = {},
       },
@@ -146,6 +148,12 @@ OPTIONS                                                         *overseer-option
       -- This will search under the runtimepath, so for example
       -- "foo/bar" will search "<runtimepath>/lua/foo/bar/*"
       template_dirs = {},
+      -- List of module names or lua patterns that match modules (must start with '^')
+      -- to disable. This can be used to disable built in task providers.
+      disable_template_modules = {
+        -- "overseer.template.make",
+        -- "^.*cargo",
+      },
       -- For template providers, how long to wait before timing out.
       -- Set to 0 to wait forever.
       template_timeout_ms = 3000,
@@ -833,6 +841,8 @@ on_output_quickfix                                            *on_output_quickfi
       {close}           `boolean` Close the quickfix on completion if no
                         errorformat matches (default `false`)
       {errorformat}     `string` See :help errorformat
+      {focus}           `boolean` Focus the quickfix window when opened (default
+                        `false`)
       {items_only}      `boolean` Only show lines that match the errorformat
                         (default `false`)
       {open}            `boolean` Open the quickfix on output (default `false`)

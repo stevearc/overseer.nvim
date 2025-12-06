@@ -85,7 +85,7 @@ M.get_stdpath_filename = function(stdpath, ...)
       error(dir)
     end
   end
-  return M.join(dir, ...)
+  return vim.fs.joinpath(dir, ...)
 end
 
 ---@param filepath string

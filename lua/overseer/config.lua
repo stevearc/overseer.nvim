@@ -72,6 +72,7 @@ local default_config = {
     max_width = 0.9,
     min_height = 10,
     max_height = 0.9,
+    border = nil,
     -- Set any window options here (e.g. winhighlight)
     win_opts = {},
   },
@@ -79,6 +80,7 @@ local default_config = {
   task_win = {
     -- How much space to leave around the floating window
     padding = 2,
+    border = nil,
     -- Set any window options here (e.g. winhighlight)
     win_opts = {},
   },
@@ -106,6 +108,12 @@ local default_config = {
   -- This will search under the runtimepath, so for example
   -- "foo/bar" will search "<runtimepath>/lua/foo/bar/*"
   template_dirs = {},
+  -- List of module names or lua patterns that match modules (must start with '^')
+  -- to disable. This can be used to disable built in task providers.
+  disable_template_modules = {
+    -- "overseer.template.make",
+    -- "^.*cargo",
+  },
   -- For template providers, how long to wait before timing out.
   -- Set to 0 to wait forever.
   template_timeout_ms = 3000,
@@ -172,6 +180,7 @@ end
 ---@field task_win overseer.ConfigTaskWin
 ---@field component_aliases table<string, overseer.Serialized[]> Aliases for bundles of components. Redefine the builtins, or create your own.
 ---@field template_dirs string[] List of other directories to search for task templates.
+---@field disable_template_modules string[]
 ---@field template_timeout_ms? integer For template providers, how long to wait (in ms) before timing out. Set to 0 to disable timeouts.
 ---@field template_cache_threshold_ms? integer Cache template provider results if the provider takes longer than this to run. Time is in ms. Set to 0 to disable caching.
 
@@ -186,6 +195,7 @@ end
 ---@field task_win? overseer.SetupConfigTaskWin
 ---@field component_aliases? table<string, overseer.Serialized[]> Aliases for bundles of components. Redefine the builtins, or create your own.
 ---@field template_dirs? string[] List of other directories to search for task templates.
+---@field disable_template_modules? string[] List of module names or lua patterns that match modules
 ---@field template_timeout_ms? integer For template providers, how long to wait (in ms) before timing out. Set to 0 to disable timeouts.
 ---@field template_cache_threshold_ms? integer Cache template provider results if the provider takes longer than this to run. Time is in ms. Set to 0 to disable caching.
 
@@ -228,6 +238,7 @@ end
 ---@class (exact) overseer.ConfigFloatWin : overseer.LayoutOpts
 ---@field zindex integer
 ---@field win_opts table<string, any>
+---@field border? string[]|"none"|"single"|"double"|"rounded"|"solid"|"shadow"
 
 ---@class (exact) overseer.SetupConfigFloatWin
 ---@field zindex? integer
@@ -236,16 +247,19 @@ end
 ---@field min_height? number|number[]
 ---@field max_height? number|number[]
 ---@field win_opts? table<string, any>
+---@field border? string[]|"none"|"single"|"double"|"rounded"|"solid"|"shadow"
 
 ---@class (exact) overseer.ConfigTaskWin
 ---@field padding integer
 ---@field zindex? integer
 ---@field win_opts table<string, any>
+---@field border? string[]|"none"|"single"|"double"|"rounded"|"solid"|"shadow"
 
 ---@class (exact) overseer.SetupConfigTaskWin
 ---@field padding? integer How much space to leave around the floating window
 ---@field zindex? integer
 ---@field win_opts? table<string, any> Set any window options here (e.g. winhighlight)
+---@field border? string[]|"none"|"single"|"double"|"rounded"|"solid"|"shadow"
 
 setmetatable(M, {
   -- If the user hasn't called setup() yet, make sure we correctly set up the config object so there

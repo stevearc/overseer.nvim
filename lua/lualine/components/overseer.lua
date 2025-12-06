@@ -88,6 +88,9 @@ function M:update_status()
     local status_tasks = tasks_by_status[status]
     if self.symbols[status] and status_tasks then
       if self.options.colored then
+        if not self.highlight_groups then
+          self:update_colors()
+        end
         local hl_start = self:format_hl(self.highlight_groups[status])
         table.insert(pieces, string.format("%s%s%s", hl_start, self.symbols[status], #status_tasks))
       else

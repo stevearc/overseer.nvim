@@ -78,6 +78,19 @@ local function load_template(name)
   end
 end
 
+---@param module_name string
+---@return boolean
+local function is_disabled_module(module_name)
+  for _, module in ipairs(config.disable_template_modules) do
+    if vim.startswith(module, "^") and module_name:match(module) then
+      return true
+    elseif module_name == module then
+      return true
+    end
+  end
+  return false
+end
+
 local _combined_providers
 local last_rtp
 ---@return overseer.TemplateProvider[]
@@ -95,22 +108,24 @@ local function get_providers()
     for _, abspath in ipairs(task_files) do
       local module_name =
         vim.fs.normalize(abspath):match("^.*(overseer/template/.*)%.lua$"):gsub("/", ".")
-      local tmpl = load_template(module_name)
-      if tmpl then
-        if tmpl.generator then
-          table.insert(file_providers, tmpl)
-        else
-          local provider = {
-            name = tmpl.module,
-            module = tmpl.module,
-            condition = tmpl.condition,
-            generator = function()
-              return { tmpl }
-            end,
-          }
-          ---@cast provider overseer.TemplateProvider
-          validate_template_provider(provider)
-          table.insert(file_providers, provider)
+      if not is_disabled_module(module_name) then
+        local tmpl = load_template(module_name)
+        if tmpl then
+          if tmpl.generator then
+            table.insert(file_providers, tmpl)
+          else
+            local provider = {
+              name = tmpl.module,
+              module = tmpl.module,
+              condition = tmpl.condition,
+              generator = function()
+                return { tmpl }
+              end,
+            }
+            ---@cast provider overseer.TemplateProvider
+            validate_template_provider(provider)
+            table.insert(file_providers, provider)
+          end
         end
       end
     end

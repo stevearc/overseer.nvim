@@ -155,6 +155,7 @@ require("overseer").setup({
     max_width = 0.9,
     min_height = 10,
     max_height = 0.9,
+    border = nil,
     -- Set any window options here (e.g. winhighlight)
     win_opts = {},
   },
@@ -162,6 +163,7 @@ require("overseer").setup({
   task_win = {
     -- How much space to leave around the floating window
     padding = 2,
+    border = nil,
     -- Set any window options here (e.g. winhighlight)
     win_opts = {},
   },
@@ -189,6 +191,12 @@ require("overseer").setup({
   -- This will search under the runtimepath, so for example
   -- "foo/bar" will search "<runtimepath>/lua/foo/bar/*"
   template_dirs = {},
+  -- List of module names or lua patterns that match modules (must start with '^')
+  -- to disable. This can be used to disable built in task providers.
+  disable_template_modules = {
+    -- "overseer.template.make",
+    -- "^.*cargo",
+  },
   -- For template providers, how long to wait before timing out.
   -- Set to 0 to wait forever.
   template_timeout_ms = 3000,
