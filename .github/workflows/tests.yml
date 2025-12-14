@@ -44,7 +44,6 @@ jobs:
       - uses: actions/checkout@v4
       - uses: stevearc/nvim-typecheck-action@v2
         with:
-          luals-version: 3.15.0
           path: lua
           libraries: https://github.com/nvim-neotest/neotest https://github.com/mfussenegger/nvim-dap
 
