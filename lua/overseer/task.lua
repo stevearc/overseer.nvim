@@ -109,6 +109,7 @@ function Task.new(opts)
       "jobstart",
       use_terminal = config.output.use_terminal,
       preserve_output = config.output.preserve_output,
+      custom_init = config.output.custom_init,
     }
   end
 
