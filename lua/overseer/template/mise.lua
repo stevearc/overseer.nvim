@@ -3,11 +3,25 @@ local overseer = require("overseer")
 ---@param opts overseer.SearchParams
 ---@return nil|string
 local function get_mise_file(opts)
-  local is_misefile = function(name)
+  local function is_mise_file(name)
     name = name:lower()
-    return name == "mise.toml" or name == ".mise.toml"
+    -- mise.toml, mise.<env>.toml, or .local.toml, or dot-prefixed
+    return name:match("^%.?mise%.toml$") ~= nil
+      or name:match("^%.?mise%.local%.toml$") ~= nil
+      or name:match("^%.?mise%.%w+%.toml$") ~= nil
+      or name:match("^%.?mise%.%w+%.local%.toml$") ~= nil
   end
-  return vim.fs.find(is_misefile, { upward = true, path = opts.dir })[1]
+
+  local function is_mise_dir(name)
+    name = name:lower()
+    -- (.)mise, (.)mise-tasks, or .config dir
+    return name:match("^%.?mise$") ~= nil
+      or name:match("^%.?mise%-tasks$") ~= nil
+      or name == ".config"
+  end
+
+  return vim.fs.find(is_mise_file, { type = "file", upward = true, path = opts.dir[1] })[1]
+    or vim.fs.find(is_mise_dir, { type = "directory", upward = true, path = opts.dir[1] })[1]
 end
 
 ---@type overseer.TemplateFileProvider
@@ -21,7 +35,7 @@ local provider = {
     end
     local mise_file = get_mise_file(opts)
     if not mise_file then
-      return "No mise.toml found"
+      return "No mise file or directory found"
     end
 
     local ret = {}
