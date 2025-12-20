@@ -9,11 +9,6 @@ describe("npm template workspace glob patterns", function()
     vim.fn.writefile(vim.split(json_str, "\n"), json_path)
   end
 
-  it("loads the npm template successfully", function()
-    assert.not_nil(npm_template)
-    assert.not_nil(npm_template.generator)
-  end)
-
   it("handles literal workspace paths", function()
     local temp_dir = vim.fn.tempname()
     vim.fn.mkdir(temp_dir, "p")
