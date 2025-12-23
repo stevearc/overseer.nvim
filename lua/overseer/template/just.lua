@@ -47,40 +47,47 @@ local tmpl = {
           return
         end
         assert(data)
-        for _, recipe in pairs(data.recipes) do
-          if not recipe.private then
-            local params_defn = {}
-            for _, param in ipairs(recipe.parameters) do
-              params_defn[param.name] = {
-                default = param.default,
-                type = param.kind == "singular" and "string" or "list",
-                delimiter = " ",
-              }
-            end
+        local get_recipes
+        get_recipes = function(data)
+          for _, recipe in pairs(data.recipes) do
+            if not recipe.private then
+              local params_defn = {}
+              for _, param in ipairs(recipe.parameters) do
+                params_defn[param.name] = {
+                  default = param.default,
+                  type = param.kind == "singular" and "string" or "list",
+                  delimiter = " ",
+                }
+              end
 
-            table.insert(ret, {
-              name = string.format("just %s", recipe.name),
-              desc = recipe.doc,
-              params = params_defn,
-              builder = function(params)
-                local cmd = { "just", recipe.name }
-                for _, param in ipairs(recipe.parameters) do
-                  local v = params[param.name]
-                  if v and v ~= "" then
-                    if type(v) == "table" then
-                      vim.list_extend(cmd, v)
-                    else
-                      table.insert(cmd, v)
+              table.insert(ret, {
+                name = string.format("just %s", recipe.namepath),
+                desc = recipe.doc,
+                params = params_defn,
+                builder = function(params)
+                  local cmd = { "just", recipe.namepath }
+                  for _, param in ipairs(recipe.parameters) do
+                    local v = params[param.name]
+                    if v and v ~= "" then
+                      if type(v) == "table" then
+                        vim.list_extend(cmd, v)
+                      else
+                        table.insert(cmd, v)
+                      end
                     end
                   end
-                end
-                return {
-                  cmd = cmd,
-                }
-              end,
-            })
+                  return {
+                    cmd = cmd,
+                  }
+                end,
+              })
+            end
+          end
+          for _, module in pairs(data.modules) do
+            get_recipes(module)
           end
         end
+        get_recipes(data)
         cb(ret)
       end)
     )
