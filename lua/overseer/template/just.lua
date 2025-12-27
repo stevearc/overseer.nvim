@@ -114,8 +114,7 @@ local tmpl = {
       return 'Command "just" not found'
     end
     local candidates =
-      -- vim.fs.find(is_justfile, { upward = true, path = opts.dir, limit = math.huge })
-      vim.fs.find("justfile", { upward = true, path = opts.dir, limit = math.huge })
+      vim.fs.find(is_justfile, { upward = true, path = opts.dir, limit = math.huge })
     if vim.tbl_isempty(candidates) then
       return "No justfile found"
     end
@@ -141,9 +140,7 @@ local tmpl = {
       add_recipes(ret, cwd, data.recipes)
       if data.modules then
         for _, module in pairs(data.modules) do
-          if module.recipes then
-            add_recipes(ret, cwd, module.recipes)
-          end
+          add_recipes(ret, cwd, module.recipes or {})
         end
       end
       cb(ret)
