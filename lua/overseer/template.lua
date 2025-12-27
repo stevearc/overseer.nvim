@@ -482,8 +482,12 @@ M.list = function(opts, cb)
   vim.validate("tags", opts.tags, "table", true)
   vim.validate("dir", opts.dir, "string")
   vim.validate("filetype", opts.filetype, "string", true)
-  -- Make sure the search dir is an absolute path
-  opts.dir = vim.fn.fnamemodify(opts.dir, ":p")
+  -- Make sure the search dir is an absolute path.
+  -- Trim the trailing slash from the search directory.
+  -- There is a bad interaction with vim.fs.find({upward = true})
+  -- where the first found file will be duplicated if it is in the same directory as `dir` and if
+  -- `dir` ends with a trailing slash.
+  opts.dir = vim.fn.fnamemodify(opts.dir, ":p"):gsub("[/\\]$", "")
 
   if not clear_cache_autocmd then
     clear_cache_autocmd = vim.api.nvim_create_autocmd("BufWritePost", {
