@@ -355,6 +355,10 @@ Run a task from a template
 | >cwd             | `nil\|string`                                                           | Working directory for the task                                                                                                      |
 | >env             | `nil\|table<string, string>`                                            | Additional environment variables for the task                                                                                       |
 | >disallow_prompt | `nil\|boolean`                                                          | When true, if any required parameters are missing return an error instead of prompting the user for them                            |
+| >search_params   | `nil\|overseer.SearchParams`                                            | Search parameters to use when looking for the template                                                                              |
+| >>filetype       | `nil\|string`                                                           |                                                                                                                                     |
+| >>tags           | `nil\|string[]`                                                         |                                                                                                                                     |
+| >>dir            | `string`                                                                |                                                                                                                                     |
 | >on_build        | `nil\|fun(task_defn: overseer.TaskDefinition, util: overseer.TaskUtil)` | callback that is called after the task definition is built but before the task is created.                                          |
 | callback         | `nil\|fun(task: overseer.Task\|nil, err: string\|nil)`                  |                                                                                                                                     |
 
