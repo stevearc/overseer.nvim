@@ -114,6 +114,7 @@ end
 ---@field cwd? string Working directory for the task
 ---@field env? table<string, string> Additional environment variables for the task
 ---@field disallow_prompt? boolean When true, if any required parameters are missing return an error instead of prompting the user for them
+---@field search_params? overseer.SearchParams Search parameters to use when looking for the template
 ---@field on_build? fun(task_defn: overseer.TaskDefinition, util: overseer.TaskUtil) callback that is called after the task definition is built but before the task is created.
 
 ---@param opts overseer.TemplateRunOpts
@@ -132,7 +133,7 @@ M.run_template = function(opts, callback)
   if opts.first == nil then
     opts.first = opts.name ~= nil or not vim.tbl_isempty(opts.tags or {})
   end
-  local search_opts = get_search_params()
+  local search_opts = opts.search_params or get_search_params()
   search_opts.tags = opts.tags
 
   ---@param tmpl? overseer.TemplateDefinition
