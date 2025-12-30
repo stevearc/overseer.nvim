@@ -129,20 +129,25 @@ end
 ---@return integer
 M.open_fullscreen_float = function(bufnr)
   local conf = config.task_win
-  local width = M.get_editor_width() - 2 - 2 * conf.padding
-  local height = M.get_editor_height() - 2 * conf.padding
-  local row = conf.padding
-  local col = conf.padding
-  local winid = vim.api.nvim_open_win(bufnr, true, {
-    relative = "editor",
-    row = row,
-    col = col,
-    width = width,
-    height = height,
-    zindex = conf.zindex,
-    style = "minimal",
-    border = conf.border,
-  })
+  local function get_dimensions()
+    local width = M.get_editor_width() - 2 - 2 * conf.padding
+    local height = M.get_editor_height() - 2 * conf.padding
+    local row = conf.padding
+    local col = conf.padding
+    return {
+      relative = "editor",
+      row = row,
+      col = col,
+      width = width,
+      height = height,
+      border = conf.border,
+      zindex = conf.zindex,
+      style = "minimal",
+    }
+  end
+
+  local winid = vim.api.nvim_open_win(bufnr, true, get_dimensions())
+
   for k, v in pairs(conf.win_opts) do
     vim.api.nvim_set_option_value(k, v, { scope = "local", win = winid })
   end
@@ -154,6 +159,15 @@ M.open_fullscreen_float = function(bufnr)
       pcall(vim.api.nvim_win_close, winid, true)
     end,
   })
+
+  vim.api.nvim_create_autocmd("VimResized", {
+    desc = "Resize floating window on VimResized",
+    callback = function()
+      local win_exists = pcall(vim.api.nvim_win_set_config, winid, get_dimensions())
+      return not win_exists
+    end,
+  })
+
   return winid
 end
 
