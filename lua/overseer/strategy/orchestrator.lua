@@ -239,9 +239,9 @@ function OrchestratorStrategy:build_task(defn, i, j)
     template.build_task_args(
       tmpl,
       build_opts,
-      vim.schedule_wrap(function(task_defn)
-        if not task_defn then
-          log.warn("Canceled building task '%s'", name)
+      vim.schedule_wrap(function(err, task_defn)
+        if err then
+          log.warn("Canceled building task '%s' with error '%s'", name, err)
           ---@diagnostic disable-next-line: invisible
           self.task:finalize(STATUS.FAILURE)
           return
