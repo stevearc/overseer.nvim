@@ -147,6 +147,9 @@ function Task.new(opts)
   local bufnr = task:get_bufnr()
   if bufnr then
     vim.b[bufnr].overseer_task = task.id
+    vim.api.nvim_buf_call(bufnr, function()
+      vim.bo[bufnr].filetype = "OverseerOutput"
+    end)
   end
   task:subscribe("on_status", task_list.on_task_updated)
   return task
@@ -640,6 +643,9 @@ function Task:start()
   if bufnr then
     vim.bo[bufnr].buflisted = false
     vim.b[bufnr].overseer_task = self.id
+    vim.api.nvim_buf_call(bufnr, function()
+      vim.bo[bufnr].filetype = "OverseerOutput"
+    end)
   end
 
   util.replace_buffer_in_wins(self.prev_bufnr, bufnr)
