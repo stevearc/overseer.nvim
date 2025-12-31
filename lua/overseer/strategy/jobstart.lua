@@ -173,6 +173,9 @@ function JobstartStrategy:_init_buffer()
       vim.keymap.set("n", lhs, open_input, { buffer = self.bufnr })
     end
   end
+  if self.opts.custom_init then
+    self.opts.custom_init(self.bufnr)
+  end
 end
 
 ---@param task overseer.Task
