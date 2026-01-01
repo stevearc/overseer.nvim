@@ -251,8 +251,9 @@ function JobstartStrategy:start(task)
     cwd = task.cwd,
     env = task.env,
     pty = coalesce(wrap.pty, self.opts.use_terminal),
-    -- Take 4 off the total width so it looks nice in the floating window
+    -- Take 4 off the total width and height so it looks nice in the floating window
     width = coalesce(wrap.width, vim.o.columns - 4),
+    height = coalesce(wrap.width, vim.o.lines - 4),
     on_stdout = function(j, d, m)
       if wrap.on_stdout then
         wrap.on_stdout(j, d, m)
