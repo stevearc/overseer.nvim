@@ -343,7 +343,7 @@ function Task:is_disposed()
 end
 
 ---Get the buffer containing the task output. Will be nil if task is PENDING.
----@return number|nil
+---@return integer|nil
 function Task:get_bufnr()
   local bufnr = self.strategy:get_bufnr()
   if bufnr and vim.api.nvim_buf_is_valid(bufnr) then
@@ -562,13 +562,7 @@ function Task:dispose(force)
   self.strategy:dispose()
   self:dispatch("on_dispose")
   task_list.remove(self)
-  if bufnr and vim.api.nvim_buf_is_valid(bufnr) then
-    if bufnr_visible then
-      vim.bo[bufnr].bufhidden = "wipe"
-    else
-      vim.api.nvim_buf_delete(bufnr, { force = true })
-    end
-  end
+  util.soft_delete_buf(bufnr)
   return true
 end
 
