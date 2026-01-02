@@ -722,7 +722,7 @@ Returns true if the task is DISPOSED
 
 #### Task:get_bufnr()
 
-`Task:get_bufnr(): number|nil` \
+`Task:get_bufnr(): integer|nil` \
 Get the buffer containing the task output. Will be nil if task is PENDING.
 
 

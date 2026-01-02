@@ -611,7 +611,7 @@ Task:is_disposed(): boolean                            *overseer.Task:is_dispose
     Returns true if the task is DISPOSED
 
 
-Task:get_bufnr(): number|nil                             *overseer.Task:get_bufnr*
+Task:get_bufnr(): integer|nil                            *overseer.Task:get_bufnr*
     Get the buffer containing the task output. Will be nil if task is PENDING.
 
 
