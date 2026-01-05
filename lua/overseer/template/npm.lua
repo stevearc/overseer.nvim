@@ -285,6 +285,15 @@ return {
       end
     end
 
+    table.insert(ret, {
+      name = bin,
+      builder = function()
+        return {
+          cmd = { bin },
+          cwd = cwd,
+        }
+      end,
+    })
     return ret
   end,
 }
