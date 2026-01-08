@@ -94,7 +94,11 @@ local function resolve_workspace_paths(base_path, workspace_patterns)
 
     for _, match in ipairs(matches) do
       local package_json_path = vim.fs.joinpath(match, "package.json")
-      if vim.uv.fs_stat(package_json_path) and not seen[match] then
+      if
+        not match:match("node_modules")
+        and vim.uv.fs_stat(package_json_path)
+        and not seen[match]
+      then
         table.insert(resolved, match)
         seen[match] = true
       end
