@@ -1,5 +1,39 @@
 # Changelog
 
+## [2.1.0](https://github.com/stevearc/overseer.nvim/compare/v2.0.0...v2.1.0) (2026-01-11)
+
+
+### Features
+
+* Add filetype to task output buffer ([#439](https://github.com/stevearc/overseer.nvim/issues/439)) ([e180d8a](https://github.com/stevearc/overseer.nvim/commit/e180d8a5c496944c487d2c959dc6ab19c96ff016))
+* add mise tasks template provider ([#414](https://github.com/stevearc/overseer.nvim/issues/414)) ([00e01e6](https://github.com/stevearc/overseer.nvim/commit/00e01e68b92773fcd1fcd530c126faf2b6851007))
+* add win border option for task win and form ([#468](https://github.com/stevearc/overseer.nvim/issues/468)) ([7fc4d8f](https://github.com/stevearc/overseer.nvim/commit/7fc4d8feb3df05bb9e7b71a876c828c90231c814))
+* config option to disable template providers ([4c796a6](https://github.com/stevearc/overseer.nvim/commit/4c796a69f886a270ea62e8509bbc1f72438b8946))
+* **just:** improve behavior for modules in subdirectories ([4acd767](https://github.com/stevearc/overseer.nvim/commit/4acd7670e7cba8152d4fea519d466c8351ad0ad4))
+* **just:** list tasks from justfile modules ([#481](https://github.com/stevearc/overseer.nvim/issues/481)) ([0181f28](https://github.com/stevearc/overseer.nvim/commit/0181f28273cabb1b802e3a5af286d0c5ae92d8f8))
+* **npm:** add support for glob pattern in npm workspaces and pnpm-workspaces.yaml ([#463](https://github.com/stevearc/overseer.nvim/issues/463)) ([42d15cd](https://github.com/stevearc/overseer.nvim/commit/42d15cd7846f9198eb4bdc08c85a653effc05b76))
+* **on_output_quickfix:** param to focus quickfix window on open ([ebe6030](https://github.com/stevearc/overseer.nvim/commit/ebe6030cb635d36d8df7316716ba3e75b72e2618))
+* **run_template:** allow overriding search params when running templates ([#480](https://github.com/stevearc/overseer.nvim/issues/480)) ([27f12d6](https://github.com/stevearc/overseer.nvim/commit/27f12d67392750437ff236bdf29808a47c986253))
+
+
+### Bug Fixes
+
+* **cargo:** add schedule_wrap to cargo command callback (fix [#456](https://github.com/stevearc/overseer.nvim/issues/456)) ([36298ea](https://github.com/stevearc/overseer.nvim/commit/36298eab791cca87ac3a228933413d094423400e))
+* duplicate template files found from vim.fs.find ([ef08def](https://github.com/stevearc/overseer.nvim/commit/ef08def9e5a113bd7e213813640b530e089186d0))
+* fileWorkspaceFolder should respect current opened file ([#434](https://github.com/stevearc/overseer.nvim/issues/434)) ([b071fb5](https://github.com/stevearc/overseer.nvim/commit/b071fb5e1fa71f320fee0aa02e53f7f0621882a0))
+* guard restarts against concurrent task dispose ([#465](https://github.com/stevearc/overseer.nvim/issues/465)) ([3a6c2cf](https://github.com/stevearc/overseer.nvim/commit/3a6c2cf66d7c8dab374bccf2409b27c607954c2a))
+* **lualine:** broken lualine component ([#457](https://github.com/stevearc/overseer.nvim/issues/457)) ([916114d](https://github.com/stevearc/overseer.nvim/commit/916114d282b25173a6ba2b2a9cb4679640a06da4))
+* make prev_task and next_task work ([#460](https://github.com/stevearc/overseer.nvim/issues/460)) ([00f16bd](https://github.com/stevearc/overseer.nvim/commit/00f16bd83e06d921dce308c262b3aeae596e2be0))
+* make some buffer updates fail more gracefully ([#415](https://github.com/stevearc/overseer.nvim/issues/415)) ([100e969](https://github.com/stevearc/overseer.nvim/commit/100e9698c7b396cc54e2fc02e41911b8f202571c))
+* **mise:** Improve detection of Mise tasks ([#476](https://github.com/stevearc/overseer.nvim/issues/476)) ([2066064](https://github.com/stevearc/overseer.nvim/commit/20660642c99a3d3bfb301a29156bd20963961342))
+* named template tasks in orchestrator strategy ([#474](https://github.com/stevearc/overseer.nvim/issues/474)) ([c824500](https://github.com/stevearc/overseer.nvim/commit/c8245003131fd07a74397683d790925d5857753c))
+* **pnpm:** Revert "add support for glob pattern in npm workspaces and pnpm-workspaces.yaml" ([fe4c8a0](https://github.com/stevearc/overseer.nvim/commit/fe4c8a06796c3da68b4dbbb0fcc3aa4ba8971385))
+* replace deleted files.join with vim.fs.joinpath ([#469](https://github.com/stevearc/overseer.nvim/issues/469)) ([e423223](https://github.com/stevearc/overseer.nvim/commit/e4232238b940b3b39be66e029c92e98ef1f35e48))
+* resize floating windows when vim changes size ([#438](https://github.com/stevearc/overseer.nvim/issues/438)) ([33dc4f7](https://github.com/stevearc/overseer.nvim/commit/33dc4f7808b0bb705250362fac7947c7d7dfcf96))
+* set jobstart pty height by default ([#472](https://github.com/stevearc/overseer.nvim/issues/472)) ([aebd76e](https://github.com/stevearc/overseer.nvim/commit/aebd76e175090d14fe48476ded4671c44db1b2d2))
+* **taskfile:** send correct target name in generator ([#466](https://github.com/stevearc/overseer.nvim/issues/466)) ([9b6811c](https://github.com/stevearc/overseer.nvim/commit/9b6811cf677e35f6cfaee743db1f1284e3556668))
+* **windows:** normalize file path before extracting module name ([#459](https://github.com/stevearc/overseer.nvim/issues/459)) ([1023f1c](https://github.com/stevearc/overseer.nvim/commit/1023f1c0e9096c0e309dc419c3406208689670fb))
+
 ## [2.0.0](https://github.com/stevearc/overseer.nvim/compare/v1.6.0...v2.0.0) (2025-11-16)
 
 
