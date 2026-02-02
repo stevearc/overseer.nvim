@@ -29,7 +29,7 @@ Vim has its own custom format for defining how to parse diagnostics from output.
 { "on_output_parse", errorformat = "%f:%l: %m" }
 ```
 
-Note that this is only useful if you don't want the result to be put in the quickfix. If you plan to put them in the quickfix, you should just use the [on_output_quickfix](components.md#on_output_quickfix) component.
+Note that this is only useful if you don't want the result to be put in the quickfix. If you plan to put them in the quickfix, you should just use the [on_output_quickfix](components.md#on_output_quickfix) component. Pasting errors from your tasks into an AI chatbot like Gemini or ChatGPT might be the quickest way to create an errorformat that matches your errors, especially if you have multiline errors.
 
 ## Function
 
