@@ -97,10 +97,6 @@ vim.api.nvim_create_user_command("Make", function(params)
   end
   local winnr = vim.fn.win_getid()
   local bufnr = vim.api.nvim_win_get_buf(winnr)
-  local efm = vim.api.nvim_get_option_value(
-    "errorformat",
-    { scope = "local", buf = bufnr }
-  )
   local task = require("overseer").new_task {
     cmd = vim.fn.expandcmd(cmd),
     components = {
@@ -108,7 +104,7 @@ vim.api.nvim_create_user_command("Make", function(params)
         "on_output_quickfix",
         open = not params.bang,
         open_height = 8,
-        errorformat = efm,
+        errorformat = vim.o.errorformat,
       },
       "default",
     },
