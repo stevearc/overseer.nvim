@@ -1,5 +1,13 @@
 # Changelog
 
+## [2.2.0](https://github.com/stevearc/overseer.nvim/compare/v2.1.0...v2.2.0) (2026-02-11)
+
+
+### Features
+
+* notifier supports custom system notification callback ([392093e](https://github.com/stevearc/overseer.nvim/commit/392093e610333c0aea89bf43de7362e25783eada))
+* support devenv tasks ([#447](https://github.com/stevearc/overseer.nvim/issues/447)) ([5828bdb](https://github.com/stevearc/overseer.nvim/commit/5828bdbd86677497613033c142f0a8624489216f))
+
 ## [2.1.0](https://github.com/stevearc/overseer.nvim/compare/v2.0.0...v2.1.0) (2026-01-11)
 
 
