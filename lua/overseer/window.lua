@@ -90,7 +90,7 @@ M.open = function(opts)
   opts = vim.tbl_deep_extend("keep", opts or {}, {
     enter = true,
     direction = config.task_list.direction,
-  })
+  }) or {}
   local winid = M.get_win_id()
   if winid == nil then
     winid = create_overseer_window(opts.direction, opts.winid)

@@ -2,10 +2,14 @@ local files = require("overseer.files")
 local log = require("overseer.log")
 local overseer = require("overseer")
 
+---@class overseer.Notifier
+---@field private system "always"|"never"|"unfocused"
+---@field private system_notify? fun(message: string, level: integer): boolean?
 local Notifier = { focused = true }
 
 ---@class overseer.NotifierParams
 ---@field system "always"|"never"|"unfocused"
+---@field system_notify? fun(message: string, level: integer): boolean? Custom function for system notifications. Return `false` to fall back to built-in system notifier.
 
 local initialized = false
 local function create_autocmds()
@@ -33,11 +37,13 @@ end
 ---@param opts? overseer.NotifierParams
 function Notifier.new(opts)
   create_autocmds()
-  opts = vim.tbl_deep_extend("keep", opts or {}, {
-    system = "never",
-  })
+  opts = opts or {}
 
-  return setmetatable(opts, { __index = Notifier })
+  ---@type overseer.Notifier
+  return setmetatable({
+    system = opts.system or "never",
+    system_notify = opts.system_notify,
+  }, { __index = Notifier })
 end
 
 local function system_notify(message, level)
@@ -72,7 +78,9 @@ end
 function Notifier:notify(message, level)
   vim.notify(message, level)
   if self.system == "always" or (self.system == "unfocused" and not self.focused) then
-    system_notify(message, level)
+    if not self.system_notify or self.system_notify(message, level) == false then
+      system_notify(message, level)
+    end
   end
 end
 
