@@ -39,6 +39,7 @@ return {
             end,
           })
         end
+        cb(ret)
       end)
     )
   end,
