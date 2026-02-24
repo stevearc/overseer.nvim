@@ -112,7 +112,12 @@ vim.api.nvim_create_user_command("Make", function(params)
   local task = require("overseer").new_task({
     cmd = vim.fn.expandcmd(cmd),
     components = {
-      { "on_output_quickfix", open = not params.bang, open_height = 8 },
+      {
+        "on_output_quickfix",
+        open = not params.bang,
+        open_height = 8,
+        errorformat = vim.o.errorformat,
+      },
       "default",
     },
   })
