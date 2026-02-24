@@ -113,7 +113,6 @@ end, {
   nargs = "*",
   bang = true,
 })
-)
 ```
 
 ## Asynchronous :Grep command
