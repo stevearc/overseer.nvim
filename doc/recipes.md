@@ -95,7 +95,7 @@ vim.api.nvim_create_user_command("Make", function(params)
   if num_subs == 0 then
     cmd = cmd .. " " .. params.args
   end
-  local task = require("overseer").new_task {
+  local task = require("overseer").new_task({
     cmd = vim.fn.expandcmd(cmd),
     components = {
       {
@@ -106,7 +106,7 @@ vim.api.nvim_create_user_command("Make", function(params)
       },
       "default",
     },
-  }
+  })
   task:start()
 end, {
   desc = "Run your makeprg as an Overseer task",
