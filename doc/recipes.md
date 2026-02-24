@@ -95,8 +95,6 @@ vim.api.nvim_create_user_command("Make", function(params)
   if num_subs == 0 then
     cmd = cmd .. " " .. params.args
   end
-  local winnr = vim.fn.win_getid()
-  local bufnr = vim.api.nvim_win_get_buf(winnr)
   local task = require("overseer").new_task {
     cmd = vim.fn.expandcmd(cmd),
     components = {
