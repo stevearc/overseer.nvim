@@ -65,7 +65,7 @@ function Task.new(opts)
   opts = opts or {}
   log.trace("New task: %s", opts)
   -- cmd can be table or string
-  vim.validate("cmd", opts.name, function(v)
+  vim.validate("cmd", opts.cmd, function(v)
     return type(v) == "string" or type(v) == "table"
   end, true)
   vim.validate("args", opts.args, "table", true)
