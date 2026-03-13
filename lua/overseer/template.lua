@@ -51,7 +51,7 @@ local hooks = {}
 
 ---@param defn overseer.TemplateProvider
 local function validate_template_provider(defn)
-  vim.validate("name", defn.name, "string")
+  vim.validate("name", defn.name, "string", true)
   vim.validate("generator", defn.generator, "function")
   vim.validate("cache_key", defn.cache_key, "function", true)
 end
