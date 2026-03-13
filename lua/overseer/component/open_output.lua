@@ -67,6 +67,7 @@ return {
     end
     ---@type overseer.ComponentSkeleton
     local methods = {}
+    local bufnr
 
     if params.on_start ~= "never" then
       methods.on_start = function(self, task)
@@ -105,6 +106,14 @@ return {
           open_output(task, params.direction, params.focus)
         end
       end
+    end
+
+    methods.on_exit = function(self, task, code)
+      bufnr = task:get_bufnr()
+    end
+
+    methods.on_reset = function(self, task)
+      pcall(vim.cmd, "bdelete! " .. bufnr)
     end
 
     return methods
