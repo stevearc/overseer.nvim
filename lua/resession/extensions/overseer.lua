@@ -27,6 +27,7 @@ M.on_load = function(data)
   local overseer = require("overseer")
   for _, params in ipairs(data) do
     local task = overseer.new_task(params)
+    task:add_components(params.components)
     if conf.autostart_on_load then
       task:start()
     end
