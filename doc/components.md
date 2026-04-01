@@ -274,6 +274,7 @@ Ensure that this task does not have any duplicates
 
 | Param              | Type      | Default | Desc                                                                                                        |
 | ------------------ | --------- | ------- | ----------------------------------------------------------------------------------------------------------- |
+| compare            | `opaque`  |         | Comparison function that returns true when a task is equal                                                  |
 | replace            | `boolean` | `true`  | If a prior task exists, replace it. When false, will restart the existing task and dispose the current task |
 | restart_interrupts | `boolean` | `true`  | When replace = false, should restarting the existing task interrupt it                                      |
 | soft               | `boolean` | `false` | Only dispose duplicate tasks if they are completed. Implies replace = true.                                 |

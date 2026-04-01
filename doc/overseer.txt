@@ -982,6 +982,8 @@ unique                                                                    *uniqu
     Ensure that this task does not have any duplicates
 
     Parameters:
+      {compare} `opaque` Comparison function that returns true when a task is
+                equal
       {replace} `boolean` If a prior task exists, replace it. When false, will
                 restart the existing task and dispose the current task (default
                 `true`) Note that when this is false a new task that is created
