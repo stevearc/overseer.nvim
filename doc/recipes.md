@@ -170,7 +170,7 @@ overseer.create_task_output_view(0, {
     filter = function(task)
       return task.time_start ~= nil
     end,
-  }
+  },
   select = function(self, tasks, task_under_cursor)
     table.sort(tasks, function(a, b)
       return a.time_start > b.time_start

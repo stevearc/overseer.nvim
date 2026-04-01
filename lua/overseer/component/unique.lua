@@ -22,13 +22,21 @@ return {
       type = "boolean",
       default = false,
     },
+    compare = {
+      desc = "Comparison function that returns true when a task is equal",
+      type = "opaque",
+      optional = true,
+    },
   },
   constructor = function(params)
+    local compare = params.compare or function(a, b)
+      return a.name == b.name
+    end
     return {
       on_pre_start = function(_, task)
         local tasks = task_list.list_tasks()
         for _, t in ipairs(tasks) do
-          if t.name == task.name and t ~= task then
+          if t ~= task and compare(t, task) then
             if params.replace then
               if t:is_complete() or not params.soft then
                 task:subscribe("on_start", function()
