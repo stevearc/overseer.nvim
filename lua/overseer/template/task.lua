@@ -16,14 +16,20 @@ local function find_taskfile(opts)
   return vim.fs.find(taskfiles, { upward = true, type = "file", path = opts.dir })[1]
 end
 
+---@return string
+local function get_task_bin()
+  return vim.fn.executable("go-task") == 1 and "go-task" or "task"
+end
+
 ---@type overseer.TemplateFileProvider
 return {
   cache_key = function(opts)
     return find_taskfile(opts)
   end,
   generator = function(opts, cb)
-    if vim.fn.executable("task") == 0 then
-      return 'Command "task" not found'
+    local task_bin = get_task_bin()
+    if vim.fn.executable(task_bin) == 0 then
+      return string.format('Command "%s" not found', task_bin)
     end
     local taskfile = find_taskfile(opts)
     if not taskfile then
@@ -32,14 +38,14 @@ return {
     local cwd = vim.fs.dirname(taskfile)
     local ret = {}
     overseer.builtin.system(
-      { "task", "--list-all", "--json" },
+      { task_bin, "--list-all", "--json" },
       {
         cwd = cwd,
         text = true,
       },
       vim.schedule_wrap(function(out)
         if out.code ~= 0 then
-          return cb(out.stderr or out.stdout or "Error running 'task'")
+          return cb(out.stderr or out.stdout or string.format("Error running '%s'", task_bin))
         end
         local ok, data = pcall(vim.json.decode, out.stdout, { luanil = { object = true } })
         if not ok then
@@ -53,7 +59,7 @@ return {
             desc = target.desc,
             builder = function()
               return {
-                cmd = { "task", target.name },
+                cmd = { task_bin, target.name },
                 cwd = cwd,
               }
             end,
