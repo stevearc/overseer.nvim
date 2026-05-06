@@ -109,6 +109,9 @@ function SystemStrategy:start(task)
 
   ---@param data string
   local on_output = vim.schedule_wrap(function(data)
+    if not self.bufnr or not vim.api.nvim_buf_is_valid(self.bufnr) then
+      return
+    end
     -- Update the buffer
     -- Track which wins we will need to scroll
     local trail_wins = {}
@@ -208,6 +211,9 @@ function SystemStrategy:start(task)
     -- The rest of this needs to not happen in a fast event
     vim.schedule(function()
       log.debug("Task %s exited with code %s", task.name, out.code)
+      if not self.bufnr or not vim.api.nvim_buf_is_valid(self.bufnr) then
+        return
+      end
       -- Feed one last line end to flush the output
       on_output("\n")
       vim.bo[self.bufnr].modifiable = true
