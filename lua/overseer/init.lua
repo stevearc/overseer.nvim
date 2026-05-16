@@ -152,7 +152,6 @@ M.private_setup = function()
   did_setup = true
 
   create_commands()
-  M.wrap_builtins()
   create_highlights()
   local aug = vim.api.nvim_create_augroup("Overseer", {})
   vim.api.nvim_create_autocmd("ColorScheme", {
