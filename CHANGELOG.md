@@ -1,5 +1,23 @@
 # Changelog
 
+## [2.2.0](https://github.com/stevearc/overseer.nvim/compare/v2.1.0...v2.2.0) (2026-05-24)
+
+
+### Features
+
+* notifier supports custom system notification callback ([392093e](https://github.com/stevearc/overseer.nvim/commit/392093e610333c0aea89bf43de7362e25783eada))
+* support devenv tasks ([#447](https://github.com/stevearc/overseer.nvim/issues/447)) ([5828bdb](https://github.com/stevearc/overseer.nvim/commit/5828bdbd86677497613033c142f0a8624489216f))
+* the unique component can use custom comparison callback ([c9a1207](https://github.com/stevearc/overseer.nvim/commit/c9a12073262b05798521f2c430a9910a5d485b5a))
+
+
+### Bug Fixes
+
+* experimental_wrap_builtins no longer briefly enabled by default ([#512](https://github.com/stevearc/overseer.nvim/issues/512)) ([2cc93e9](https://github.com/stevearc/overseer.nvim/commit/2cc93e93233c41ce42e01c1cc5e0dab3d3cbff7d))
+* **go-task:** support go-task binary for Arch Linux ([#511](https://github.com/stevearc/overseer.nvim/issues/511)) ([a93d9f6](https://github.com/stevearc/overseer.nvim/commit/a93d9f6d6defdac4bcd6d2c8ba988650e42e0a0e))
+* guard against deleted buffer in vim.schedule callbacks ([#514](https://github.com/stevearc/overseer.nvim/issues/514)) ([3d0c7e7](https://github.com/stevearc/overseer.nvim/commit/3d0c7e7bbfe1a1c6f9bfecd0af8709171a97df71))
+* **mix:** call callback after successfully parsing tasks ([#494](https://github.com/stevearc/overseer.nvim/issues/494)) ([1f9fa0b](https://github.com/stevearc/overseer.nvim/commit/1f9fa0be8d78e2c5e0ab911d68a02a32ade41909))
+* validate `opts.cmd` in task constructor ([#504](https://github.com/stevearc/overseer.nvim/issues/504)) ([a219444](https://github.com/stevearc/overseer.nvim/commit/a2194447f4c5a1baf95139c5c7b539fa7b0d012f))
+
 ## [2.1.0](https://github.com/stevearc/overseer.nvim/compare/v2.0.0...v2.1.0) (2026-01-11)
 
 
