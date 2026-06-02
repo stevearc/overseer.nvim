@@ -57,6 +57,11 @@ return {
       type = "boolean",
       default = false,
     },
+    close_on_reset = {
+      desc = "Delete the output buffer when the task is reset",
+      type = "boolean",
+      default = false,
+    },
   },
   constructor = function(params)
     -- backwards compatibility
@@ -67,9 +72,10 @@ return {
     end
     ---@type overseer.ComponentSkeleton
     local methods = {}
+    local bufnr
 
     if params.on_start ~= "never" then
-      methods.on_start = function(self, task)
+      methods.on_start = function(_, task)
         if
           params.on_start == "always"
           or (
@@ -83,7 +89,7 @@ return {
     end
 
     if params.on_result ~= "never" then
-      methods.on_result = function(self, task, result)
+      methods.on_result = function(_, task, result)
         if
           params.on_result == "always"
           or (
@@ -96,7 +102,7 @@ return {
     end
 
     if params.on_complete ~= "never" then
-      methods.on_complete = function(self, task, status, result)
+      methods.on_complete = function(_, task, status)
         if
           params.on_complete == "always"
           or (params.on_complete == "success" and status == STATUS.SUCCESS)
@@ -104,6 +110,19 @@ return {
         then
           open_output(task, params.direction, params.focus)
         end
+      end
+    end
+
+    if params.close_on_reset then
+      methods.on_exit = function(_, task)
+        bufnr = task:get_bufnr()
+      end
+
+      methods.on_reset = function()
+        if bufnr and vim.api.nvim_buf_is_valid(bufnr) then
+          vim.api.nvim_buf_delete(bufnr, { force = true })
+        end
+        bufnr = nil
       end
     end
 
