@@ -2,6 +2,7 @@ local files = require("overseer.files")
 local log = require("overseer.log")
 local parselib = require("overseer.parselib")
 local problem_matcher = require("overseer.vscode.problem_matcher")
+local util = require("overseer.util")
 
 ---@param cwd string
 ---@param result table
@@ -99,18 +100,30 @@ return {
         version = parser.result_version
       end,
       on_output_lines = function(self, task, lines)
-        for _, line in ipairs(lines) do
-          parser:parse(line)
-        end
+        local cwd = params.relative_file_root or task.cwd
+        -- Run this in the context of the task cwd (or relative_file_root) so
+        -- that parsers backed by vim.fn.getqflist() (e.g. errorformat-based
+        -- parsers) resolve relative filenames correctly. getqflist() creates
+        -- a buffer for any matched filename immediately, resolved against
+        -- Neovim's real cwd, so this has to happen before parsing, not just
+        -- when fixing up the result below.
+        util.run_in_cwd(cwd, function()
+          for _, line in ipairs(lines) do
+            parser:parse(line)
+          end
+        end)
         if version ~= parser.result_version then
-          task:set_result(
-            fix_relative_filenames(params.relative_file_root or task.cwd, parser:get_result())
-          )
+          task:set_result(fix_relative_filenames(cwd, parser:get_result()))
           version = parser.result_version
         end
       end,
       on_pre_result = function(self, task)
-        return fix_relative_filenames(params.relative_file_root or task.cwd, parser:get_result())
+        local cwd = params.relative_file_root or task.cwd
+        local result
+        util.run_in_cwd(cwd, function()
+          result = parser:get_result()
+        end)
+        return fix_relative_filenames(cwd, result)
       end,
     }
   end,
