@@ -9,6 +9,7 @@
 - [Session managers](#session-managers)
   - [resession.nvim](#resessionnvim)
   - [Other session managers](#other-session-managers)
+- [AI coding agents (MCP)](#ai-coding-agents-mcp)
 
 <!-- /TOC -->
 
@@ -236,3 +237,15 @@ require("auto-session").setup({
   },
 })
 ```
+
+## AI coding agents (MCP)
+
+[overseer-nvim-mcp](https://github.com/impossiblecode/overseer-nvim-mcp) is an MCP server that gives a coding agent (Claude Code, Codex CLI, Gemini CLI, opencode, or anything loaded through [mcphub.nvim](https://github.com/ravitemer/mcphub.nvim)) the same control over overseer tasks that you have. When the agent runs inside a Neovim terminal buffer, the dev servers and watchers it starts become real overseer tasks: you see them in the task list, you can stop them yourself, and they get proper teardown instead of outliving the agent's shell.
+
+Register the server with your MCP client, e.g. Claude Code:
+
+```sh
+claude mcp add overseer -- npx -y overseer-nvim-mcp
+```
+
+It connects over the `$NVIM` socket the terminal buffer provides, so there is nothing to configure. Without `$NVIM` it registers no tools. Setup for other clients is in the [overseer-nvim-mcp README](https://github.com/impossiblecode/overseer-nvim-mcp#install).

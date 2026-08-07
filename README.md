@@ -33,6 +33,7 @@ A task runner and job management plugin for Neovim
   - [Neotest](doc/third_party.md#neotest)
   - [DAP](doc/third_party.md#dap)
   - [Session managers](doc/third_party.md#session-managers)
+  - [AI coding agents (MCP)](doc/third_party.md#ai-coding-agents-mcp)
 - [Recipes](#recipes)
   - [Run a quick command like with `:!` or `:term`](doc/recipes.md#run-a-quick-command-like-with--or-term)
   - [Restart last task](doc/recipes.md#restart-last-task)
@@ -207,6 +208,7 @@ If you want to define custom tasks for your project, I'd recommend starting with
 - [Session managers](doc/third_party.md#session-managers)
   - [resession.nvim](doc/third_party.md#resessionnvim)
   - [Other session managers](doc/third_party.md#other-session-managers)
+- [AI coding agents (MCP)](doc/third_party.md#ai-coding-agents-mcp)
 
 ## Recipes
 
