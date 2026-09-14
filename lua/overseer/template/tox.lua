@@ -76,6 +76,15 @@ return {
 
     local ret = {}
     local cwd = vim.fs.dirname(tox_file)
+    table.insert(ret, {
+      name = "tox",
+      builder = function()
+        return {
+          cmd = { "tox" },
+          cwd = cwd,
+        }
+      end,
+    })
     for k in pairs(targets) do
       table.insert(ret, {
         name = string.format("tox %s", k),
