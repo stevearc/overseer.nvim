@@ -2,7 +2,11 @@ local overseer = require("overseer")
 ---@param opts overseer.SearchParams
 ---@return nil|string
 local function get_makefile(opts)
-  return vim.fs.find("Makefile", { upward = true, type = "file", path = opts.dir })[1]
+  return vim.fs.find({ "GNUmakefile", "makefile", "Makefile" }, {
+    upward = true,
+    type = "file",
+    path = opts.dir,
+  })[1]
 end
 
 ---@type overseer.TemplateFileProvider
