@@ -342,7 +342,9 @@ M.open_form_win = function(bufnr, opts)
 
   local function cleanup()
     util.leave_insert()
-    vim.api.nvim_win_close(winid, true)
+    if vim.api.nvim_win_is_valid(winid) then
+      vim.api.nvim_win_close(winid, true)
+    end
   end
   return cleanup, set_layout
 end
