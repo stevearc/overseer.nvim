@@ -68,15 +68,39 @@ local function get_commands(roots, on_commands, cb)
           return
         end
         local available = vim.deepcopy(commands)
-        local seen = {}
-        for _, command in ipairs(commands) do
-          seen[table.concat(command.args, " ")] = true
+        local by_command, aliases = {}, {}
+        -- Index the copies, keeping the built-in command definitions unchanged.
+        for _, command in ipairs(available) do
+          by_command[table.concat(command.args, " ")] = command
         end
         for line in out.stdout:gmatch("[^\r\n]+") do
-          local alias = line:match("^%s+(%S+)%s+alias:")
-          if alias and not seen[alias] then
-            table.insert(available, { args = { alias } })
-            seen[alias] = true
+          local alias, expansion = line:match("^%s+(%S+)%s+alias:%s+(.+)$")
+          if alias then
+            aliases[alias] = vim.trim(expansion)
+          end
+        end
+        local function resolve(expansion, seen)
+          local first, rest = expansion:match("^(%S+)(.*)$")
+          if not aliases[first] then
+            return expansion
+          elseif seen[first] then
+            return nil
+          end
+          seen[first] = true
+          return resolve(aliases[first] .. rest, seen)
+        end
+        for alias, expansion in vim.spairs(aliases) do
+          local label = resolve(expansion, { [alias] = true })
+          if label then
+            local command = by_command[label]
+            if not command then
+              -- Execute the alias so Cargo preserves quoting and array arguments.
+              command = { args = { alias }, label = label }
+              by_command[label] = command
+              table.insert(available, command)
+            end
+            command.aliases = command.aliases or {}
+            table.insert(command.aliases, alias)
           end
         end
         on_commands(root, available)
@@ -117,8 +141,12 @@ return {
       end
       get_commands(roots, function(root, available_commands)
         for _, command in ipairs(available_commands) do
+          local label = command.label or table.concat(command.args, " ")
+          local aliases = command.aliases and " (" .. table.concat(command.aliases, ", ") .. ")"
+            or ""
           table.insert(ret, {
-            name = string.format("cargo %s%s", table.concat(command.args, " "), root.postfix),
+            name = string.format("cargo %s%s%s", label, aliases, root.postfix),
+            aliases = { "cargo " .. label .. root.postfix },
             tags = command.tags,
             builder = function()
               return {
