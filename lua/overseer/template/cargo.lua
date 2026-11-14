@@ -48,10 +48,72 @@ local commands = {
   { args = { "fmt" } },
 }
 
+local builtin_aliases = {
+  b = "build",
+  c = "check",
+  d = "doc",
+  r = "run",
+  rm = "remove",
+  t = "test",
+}
+
+---Discover aliases in each root without changing how task templates are built.
+---@param roots table[]
+---@param on_commands fun(root: table, commands: table[])
+---@param cb fun(err: string|nil)
+local function get_commands(roots, on_commands, cb)
+  local remaining = #roots
+  local failed = false
+  for _, root in ipairs(roots) do
+    overseer.builtin.system(
+      { "cargo", "--list", "--color", "never" },
+      { cwd = root.cwd, text = true },
+      vim.schedule_wrap(function(out)
+        if failed then
+          return
+        elseif out.code ~= 0 then
+          failed = true
+          cb(out.stderr)
+          return
+        end
+        local available = vim.deepcopy(commands)
+        local by_command, aliases = {}, {}
+        -- Index the copies, keeping the built-in command definitions unchanged.
+        for _, command in ipairs(available) do
+          by_command[table.concat(command.args, " ")] = command
+        end
+        for line in out.stdout:gmatch("[^\r\n]+") do
+          local alias, expansion = line:match("^%s+(%S+)%s+alias:%s+(.+)$")
+          if alias then
+            aliases[alias] = vim.trim(expansion)
+          end
+        end
+        for alias, expansion in vim.spairs(aliases) do
+          if builtin_aliases[alias] == expansion then
+            local command = by_command[expansion]
+            if not command then
+              command = { args = { expansion } }
+              by_command[expansion] = command
+              table.insert(available, command)
+            end
+            command.aliases = { alias }
+          elseif not by_command[alias] then
+            -- Let Cargo expand custom aliases, preserving options and quoting.
+            table.insert(available, { args = { alias } })
+          end
+        end
+        on_commands(root, available)
+        remaining = remaining - 1
+        if remaining == 0 then
+          cb(nil)
+        end
+      end)
+    )
+  end
+end
+
 return {
-  cache_key = function(opts)
-    return get_cargo_file(opts)
-  end,
+  -- Alias configuration can change independently of Cargo.toml, so do not cache.
   generator = function(opts, cb)
     if vim.fn.executable("cargo") == 0 then
       return 'Command "cargo" not found'
@@ -76,10 +138,14 @@ return {
         roots[1].relative_file_root = workspace_root
         table.insert(roots, { postfix = " (workspace)", cwd = workspace_root })
       end
-      for _, root in ipairs(roots) do
-        for _, command in ipairs(commands) do
+      get_commands(roots, function(root, available_commands)
+        for _, command in ipairs(available_commands) do
+          local label = table.concat(command.args, " ")
+          local aliases = command.aliases and " (" .. table.concat(command.aliases, ", ") .. ")"
+            or ""
           table.insert(ret, {
-            name = string.format("cargo %s%s", table.concat(command.args, " "), root.postfix),
+            name = string.format("cargo %s%s%s", label, aliases, root.postfix),
+            aliases = { "cargo " .. label .. root.postfix },
             tags = command.tags,
             builder = function()
               return {
@@ -99,8 +165,9 @@ return {
             end,
           })
         end
-      end
-      cb(ret)
+      end, function(alias_err)
+        cb(alias_err or ret)
+      end)
     end)
   end,
 }
