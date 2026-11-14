@@ -48,6 +48,47 @@ local commands = {
   { args = { "fmt" } },
 }
 
+---Discover aliases in each root without changing how task templates are built.
+---@param roots table[]
+---@param on_commands fun(root: table, commands: table[])
+---@param cb fun(err: string|nil)
+local function get_commands(roots, on_commands, cb)
+  local remaining = #roots
+  local failed = false
+  for _, root in ipairs(roots) do
+    overseer.builtin.system(
+      { "cargo", "--list", "--color", "never" },
+      { cwd = root.cwd, text = true },
+      vim.schedule_wrap(function(out)
+        if failed then
+          return
+        elseif out.code ~= 0 then
+          failed = true
+          cb(out.stderr)
+          return
+        end
+        local available = vim.deepcopy(commands)
+        local seen = {}
+        for _, command in ipairs(commands) do
+          seen[table.concat(command.args, " ")] = true
+        end
+        for line in out.stdout:gmatch("[^\r\n]+") do
+          local alias = line:match("^%s+(%S+)%s+alias:")
+          if alias and not seen[alias] then
+            table.insert(available, { args = { alias } })
+            seen[alias] = true
+          end
+        end
+        on_commands(root, available)
+        remaining = remaining - 1
+        if remaining == 0 then
+          cb(nil)
+        end
+      end)
+    )
+  end
+end
+
 return {
   -- Alias configuration can change independently of Cargo.toml, so do not cache.
   generator = function(opts, cb)
@@ -74,59 +115,32 @@ return {
         roots[1].relative_file_root = workspace_root
         table.insert(roots, { postfix = " (workspace)", cwd = workspace_root })
       end
-      local function add_root(index)
-        local root = roots[index]
-        if not root then
-          cb(ret)
-          return
+      get_commands(roots, function(root, available_commands)
+        for _, command in ipairs(available_commands) do
+          table.insert(ret, {
+            name = string.format("cargo %s%s", table.concat(command.args, " "), root.postfix),
+            tags = command.tags,
+            builder = function()
+              return {
+                cmd = vim.list_extend({ "cargo" }, command.args),
+                cwd = root.cwd,
+                default_component_params = {
+                  errorformat = [[%Eerror: %\%%(aborting %\|could not compile%\)%\@!%m,]]
+                    .. [[%Eerror[E%n]: %m,]]
+                    .. [[%Inote: %m,]]
+                    .. [[%Wwarning: %\%%(%.%# warning%\)%\@!%m,]]
+                    .. [[%C %#--> %f:%l:%c,]]
+                    .. [[%E  left:%m,%C right:%m %f:%l:%c,%Z,]]
+                    .. [[%.%#panicked at \'%m\'\, %f:%l:%c]],
+                  relative_file_root = root.relative_file_root,
+                },
+              }
+            end,
+          })
         end
-        overseer.builtin.system(
-          { "cargo", "--list", "--color", "never" },
-          { cwd = root.cwd, text = true },
-          vim.schedule_wrap(function(out)
-            if out.code ~= 0 then
-              cb(out.stderr)
-              return
-            end
-            local available_commands = vim.deepcopy(commands)
-            local seen = {}
-            for _, command in ipairs(commands) do
-              seen[table.concat(command.args, " ")] = true
-            end
-            for line in out.stdout:gmatch("[^\r\n]+") do
-              local alias = line:match("^%s+(%S+)%s+alias:")
-              if alias and not seen[alias] then
-                table.insert(available_commands, { args = { alias } })
-                seen[alias] = true
-              end
-            end
-            for _, command in ipairs(available_commands) do
-              table.insert(ret, {
-                name = string.format("cargo %s%s", table.concat(command.args, " "), root.postfix),
-                tags = command.tags,
-                builder = function()
-                  return {
-                    cmd = vim.list_extend({ "cargo" }, command.args),
-                    cwd = root.cwd,
-                    default_component_params = {
-                      errorformat = [[%Eerror: %\%%(aborting %\|could not compile%\)%\@!%m,]]
-                        .. [[%Eerror[E%n]: %m,]]
-                        .. [[%Inote: %m,]]
-                        .. [[%Wwarning: %\%%(%.%# warning%\)%\@!%m,]]
-                        .. [[%C %#--> %f:%l:%c,]]
-                        .. [[%E  left:%m,%C right:%m %f:%l:%c,%Z,]]
-                        .. [[%.%#panicked at \'%m\'\, %f:%l:%c]],
-                      relative_file_root = root.relative_file_root,
-                    },
-                  }
-                end,
-              })
-            end
-            add_root(index + 1)
-          end)
-        )
-      end
-      add_root(1)
+      end, function(alias_err)
+        cb(alias_err or ret)
+      end)
     end)
   end,
 }
