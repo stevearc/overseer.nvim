@@ -48,6 +48,15 @@ local commands = {
   { args = { "fmt" } },
 }
 
+local builtin_aliases = {
+  b = "build",
+  c = "check",
+  d = "doc",
+  r = "run",
+  rm = "remove",
+  t = "test",
+}
+
 ---Discover aliases in each root without changing how task templates are built.
 ---@param roots table[]
 ---@param on_commands fun(root: table, commands: table[])
@@ -79,28 +88,18 @@ local function get_commands(roots, on_commands, cb)
             aliases[alias] = vim.trim(expansion)
           end
         end
-        local function resolve(expansion, seen)
-          local first, rest = expansion:match("^(%S+)(.*)$")
-          if not aliases[first] then
-            return expansion
-          elseif seen[first] then
-            return nil
-          end
-          seen[first] = true
-          return resolve(aliases[first] .. rest, seen)
-        end
         for alias, expansion in vim.spairs(aliases) do
-          local label = resolve(expansion, { [alias] = true })
-          if label then
-            local command = by_command[label]
+          if builtin_aliases[alias] == expansion then
+            local command = by_command[expansion]
             if not command then
-              -- Execute the alias so Cargo preserves quoting and array arguments.
-              command = { args = { alias }, label = label }
-              by_command[label] = command
+              command = { args = { expansion } }
+              by_command[expansion] = command
               table.insert(available, command)
             end
-            command.aliases = command.aliases or {}
-            table.insert(command.aliases, alias)
+            command.aliases = { alias }
+          elseif not by_command[alias] then
+            -- Let Cargo expand custom aliases, preserving options and quoting.
+            table.insert(available, { args = { alias } })
           end
         end
         on_commands(root, available)
@@ -141,7 +140,7 @@ return {
       end
       get_commands(roots, function(root, available_commands)
         for _, command in ipairs(available_commands) do
-          local label = command.label or table.concat(command.args, " ")
+          local label = table.concat(command.args, " ")
           local aliases = command.aliases and " (" .. table.concat(command.aliases, ", ") .. ")"
             or ""
           table.insert(ret, {
